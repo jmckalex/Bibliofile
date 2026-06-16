@@ -408,6 +408,13 @@ export function toDisplay(value: string): string {
   return stripDisplayBraces(detexify(value));
 }
 
+/** Raw BibTeX text of a field on an item (for editing): complex → `a # b`, else literal. */
+function rawFieldText(item: BibItem, name: string): string {
+  const v = item.rawValueOfField(name);
+  if (v === undefined) return '';
+  return isComplex(v) ? complexValueToBibTeX(v) : v;
+}
+
 /**
  * Display value for one field. URL/file/citation/note fields are NOT TeXified on
  * disk, so we show them raw (de-TeXifying a URL could mangle it); everything else
@@ -479,6 +486,7 @@ export function toItemDetail(item: BibItem): ItemDetail {
     fields.push({
       name,
       value: fieldDisplayValue(name, item.stringValueOfField(name, false)),
+      rawValue: rawFieldText(item, name),
       isInherited: false,
     });
   }
@@ -495,6 +503,7 @@ export function toItemDetail(item: BibItem): ItemDetail {
       fields.push({
         name,
         value: fieldDisplayValue(name, item.stringValueOfField(name, true)),
+        rawValue: rawFieldText(parent, name),
         isInherited: true,
       });
     }

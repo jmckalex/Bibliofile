@@ -259,6 +259,8 @@ export interface ItemField {
   readonly name: string;
   /** Display-ready value (macros expanded, de-TeXified by main). */
   readonly value: string;
+  /** Raw BibTeX field text for editing (not de-TeXified / not brace-stripped). */
+  readonly rawValue: string;
   /** True when the value is inherited from a crossref parent rather than set locally. */
   readonly isInherited: boolean;
 }

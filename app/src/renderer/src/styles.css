@@ -81,8 +81,59 @@ body {
 
 .bd-app {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   height: 100%;
+}
+
+/* ---- Toolbar ----------------------------------------------------------- */
+
+.bd-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--bd-surface-alt);
+  border-bottom: 1px solid var(--bd-border);
+}
+
+.bd-toolbar__spacer {
+  flex: 1;
+}
+
+.bd-btn {
+  font: inherit;
+  font-size: var(--bd-fs-sm);
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--bd-border-strong);
+  background: var(--bd-surface);
+  color: var(--bd-text);
+  cursor: pointer;
+}
+
+.bd-btn:hover:not(:disabled) {
+  border-color: var(--bd-accent);
+  color: var(--bd-accent);
+}
+
+.bd-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.bd-btn--primary:not(:disabled) {
+  background: var(--bd-accent);
+  border-color: var(--bd-accent);
+  color: #fff;
+}
+
+.bd-btn--primary:hover:not(:disabled) {
+  color: #fff;
+  filter: brightness(1.06);
+}
+
+.bd-btn--small {
+  padding: 2px 7px;
 }
 
 .bd-header {
@@ -611,4 +662,164 @@ button.bd-chip {
   justify-content: center;
   height: 100%;
   color: var(--bd-text-faint);
+}
+
+/* ---- Editing: inputs, identity, fields --------------------------------- */
+
+.bd-input {
+  font: inherit;
+  font-size: var(--bd-fs-sm);
+  width: 100%;
+  padding: 3px 6px;
+  border: 1px solid var(--bd-border);
+  border-radius: 4px;
+  background: var(--bd-surface);
+  color: var(--bd-text);
+  outline: none;
+}
+
+.bd-input:focus {
+  border-color: var(--bd-accent);
+  box-shadow: 0 0 0 2px var(--bd-accent-soft);
+}
+
+.bd-input--area {
+  resize: vertical;
+  font-family: var(--bd-font);
+  line-height: 1.4;
+}
+
+.bd-input--mono {
+  font-family: var(--bd-mono);
+}
+
+.bd-input--newname {
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-select {
+  cursor: pointer;
+}
+
+.bd-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.bd-identity__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bd-identity__label {
+  flex: none;
+  width: 64px;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+}
+
+.bd-field__edit {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 1px 0;
+}
+
+.bd-field__del,
+.bd-field__add {
+  flex: none;
+  width: 20px;
+  height: 22px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--bd-text-faint);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.bd-field__del:hover {
+  color: #b91c1c;
+  border-color: var(--bd-border);
+}
+
+.bd-field__add:hover {
+  color: var(--bd-accent);
+  border-color: var(--bd-border);
+}
+
+.bd-field--add .bd-field__name {
+  padding-right: 6px;
+}
+
+/* ---- Modal (macro editor) ---------------------------------------------- */
+
+.bd-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.bd-modal {
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bd-surface);
+  border: 1px solid var(--bd-border-strong);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+
+.bd-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--bd-border);
+  background: var(--bd-surface-alt);
+}
+
+.bd-modal__body {
+  padding: 10px 12px;
+  overflow: auto;
+}
+
+.bd-modal__empty {
+  color: var(--bd-text-faint);
+  margin: 6px 0;
+}
+
+.bd-macro {
+  display: grid;
+  grid-template-columns: minmax(60px, 28%) 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.bd-macro__name {
+  font-family: var(--bd-mono);
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-macro--add {
+  margin-top: 8px;
+  border-top: 1px solid var(--bd-border);
+  padding-top: 8px;
 }

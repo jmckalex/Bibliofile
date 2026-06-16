@@ -44,7 +44,7 @@ const DETAIL: ItemDetail = {
   id: 'i1',
   citeKey: 'beta2020',
   type: 'article',
-  fields: [{ name: 'Title', value: 'Beta', isInherited: false }],
+  fields: [{ name: 'Title', value: 'Beta', rawValue: 'Beta', isInherited: false }],
   files: [],
   previewHtml: '<p>Beta</p>',
 };
@@ -148,6 +148,19 @@ describe('viewer store', () => {
 
     const last = calls.listPublications.at(-1)!;
     expect(last.sort).toEqual({ key: 'year', direction: 'asc' });
+  });
+
+  it('edit marks dirty + refreshes; save clears dirty', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    expect(store.getState().dirty).toBe(false);
+
+    await store.getState().edit({ kind: 'setField', itemId: 'i1', field: 'Title', value: 'X' });
+    expect(store.getState().dirty).toBe(true);
+
+    await store.getState().save();
+    expect(store.getState().dirty).toBe(false);
   });
 
   it('setQuery stores the query (client-side filter, no reload)', async () => {

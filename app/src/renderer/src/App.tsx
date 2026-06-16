@@ -12,6 +12,7 @@ import { filterRows, useStore } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { DetailPane } from './DetailPane.js';
+import { MacroEditor } from './MacroEditor.js';
 
 type Theme = 'light' | 'dark';
 
@@ -121,8 +122,55 @@ function Footer() {
   );
 }
 
+function Toolbar({ onOpenMacros }: { onOpenMacros: () => void }) {
+  const edit = useStore((s) => s.edit);
+  const save = useStore((s) => s.save);
+  const selectedItemId = useStore((s) => s.selectedItemId);
+  const dirty = useStore((s) => s.dirty);
+  const saving = useStore((s) => s.saving);
+  const hasDoc = useStore((s) => s.documentId !== undefined);
+  if (!hasDoc) return null;
+  return (
+    <div className="bd-toolbar">
+      <button type="button" className="bd-btn" onClick={() => void edit({ kind: 'addEntry', entryType: 'article' })}>
+        ＋ New
+      </button>
+      <button
+        type="button"
+        className="bd-btn"
+        disabled={!selectedItemId}
+        onClick={() => selectedItemId && void edit({ kind: 'duplicateEntry', itemId: selectedItemId })}
+      >
+        ⧉ Duplicate
+      </button>
+      <button
+        type="button"
+        className="bd-btn"
+        disabled={!selectedItemId}
+        onClick={() => selectedItemId && void edit({ kind: 'deleteEntry', itemId: selectedItemId })}
+      >
+        🗑 Delete
+      </button>
+      <span className="bd-toolbar__spacer" />
+      <button type="button" className="bd-btn" onClick={onOpenMacros}>
+        @string…
+      </button>
+      <button
+        type="button"
+        className="bd-btn bd-btn--primary"
+        disabled={!dirty || saving}
+        onClick={() => void save()}
+      >
+        {saving ? 'Saving…' : dirty ? 'Save •' : 'Saved'}
+      </button>
+    </div>
+  );
+}
+
 export function App() {
   const onDocumentOpened = useStore((s) => s.onDocumentOpened);
+  const save = useStore((s) => s.save);
+  const [macrosOpen, setMacrosOpen] = useState(false);
 
   useEffect(() => {
     const api = window.bibdesk;
@@ -133,9 +181,22 @@ export function App() {
     return unsub;
   }, [onDocumentOpened]);
 
+  // Cmd/Ctrl+S saves.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        void save();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [save]);
+
   return (
     <div className="bd-app">
       <Header />
+      <Toolbar onOpenMacros={() => setMacrosOpen(true)} />
       <div className="bd-panes">
         <aside className="bd-pane">
           <GroupsSidebar />
@@ -148,6 +209,7 @@ export function App() {
         </section>
       </div>
       <Footer />
+      {macrosOpen && <MacroEditor onClose={() => setMacrosOpen(false)} />}
     </div>
   );
 }

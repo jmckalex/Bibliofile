@@ -1,32 +1,39 @@
 /**
- * Detail / preview pane. Shows the selected item's preview card (trusted HTML
- * pre-rendered + escaped by main), then a fields table (inherited fields are
- * muted + badged), then the attachments list.
+ * Detail / preview / EDIT pane. Shows the selected item's preview card (trusted
+ * HTML from main, with MathJax), then an editable form: cite key + type + fields
+ * (inherited fields are muted + badged; editing one creates a local override),
+ * an add-field row, and the attachments list.
+ *
+ * Field inputs are uncontrolled and keyed by `${itemId}:${name}` so switching
+ * items remounts them (correct values) while in-place edits — which reload the
+ * detail for the SAME item — reuse the node and preserve focus.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
-import type { ItemFile, ItemDetail } from '@bibdesk/shared';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ItemDetail, ItemField, ItemFile } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { typesetMath } from './mathjax.js';
+
+/** Common BibTeX entry types offered in the type picker. */
+const ENTRY_TYPES = [
+  'article', 'book', 'inbook', 'incollection', 'inproceedings', 'conference',
+  'proceedings', 'phdthesis', 'mastersthesis', 'techreport', 'manual', 'misc',
+  'unpublished', 'booklet',
+];
 
 function fileIcon(kind: ItemFile['kind']): string {
   return kind === 'url' ? '🔗' : '📄';
 }
 
-/** Open a URL/file via the bridge; best-effort (no-op if bridge absent). */
 function openExternal(target: string, kind: 'url' | 'file'): void {
   void window.bibdesk?.openExternal({ target, kind });
 }
 
 function PreviewCard({ html }: { html: string }) {
-  // main HTML-escapes field values before composing this snippet, so it is
-  // trusted-but-sanitized; render it directly, then run MathJax over any $…$.
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (ref.current && html.includes('$')) void typesetMath(ref.current);
   }, [html]);
-  // Delegate clicks on the card's DOI/URL chips (rendered by main as buttons
-  // carrying data-open-url) to the external opener.
   const onClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-open-url]');
     if (el?.dataset.openUrl) {
@@ -35,34 +42,158 @@ function PreviewCard({ html }: { html: string }) {
     }
   }, []);
   return (
-    <div
-      className="bd-preview"
-      ref={ref}
-      onClick={onClick}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+    <div className="bd-preview" ref={ref} onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
+  );
+}
+
+/** One editable field row (uncontrolled; commits on blur / Enter). */
+function FieldRow({ itemId, field }: { itemId: string; field: ItemField }) {
+  const edit = useStore((s) => s.edit);
+  const long = field.name.toLowerCase() === 'abstract' || field.rawValue.length > 60;
+
+  const commit = (value: string): void => {
+    if (value !== field.rawValue) {
+      void edit({ kind: 'setField', itemId, field: field.name, value });
+    }
+  };
+
+  return (
+    <div className={'bd-field' + (field.isInherited ? ' bd-field--inherited' : '')} style={{ display: 'contents' }}>
+      <div className="bd-field__name">
+        {field.name}
+        {field.isInherited && <span className="bd-field__badge">(inherited)</span>}
+      </div>
+      <div className="bd-field__edit">
+        {long ? (
+          <textarea
+            key={`${itemId}:${field.name}`}
+            className="bd-input bd-input--area"
+            defaultValue={field.rawValue}
+            rows={3}
+            onBlur={(e) => commit(e.target.value)}
+          />
+        ) : (
+          <input
+            key={`${itemId}:${field.name}`}
+            className="bd-input"
+            defaultValue={field.rawValue}
+            onBlur={(e) => commit(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+            }}
+          />
+        )}
+        {!field.isInherited && (
+          <button
+            type="button"
+            className="bd-field__del"
+            title={`Remove ${field.name}`}
+            onClick={() => void edit({ kind: 'removeField', itemId, field: field.name })}
+          >
+            ×
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Row for adding a brand-new field (name + value). */
+function AddFieldRow({ itemId }: { itemId: string }) {
+  const edit = useStore((s) => s.edit);
+  const [name, setName] = useState('');
+  const [value, setValue] = useState('');
+  const add = (): void => {
+    const n = name.trim();
+    if (!n) return;
+    void edit({ kind: 'setField', itemId, field: n, value });
+    setName('');
+    setValue('');
+  };
+  return (
+    <div className="bd-field bd-field--add" style={{ display: 'contents' }}>
+      <div className="bd-field__name">
+        <input
+          className="bd-input bd-input--newname"
+          placeholder="New field"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
+      <div className="bd-field__edit">
+        <input
+          className="bd-input"
+          placeholder="value"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') add();
+          }}
+        />
+        <button type="button" className="bd-field__add" title="Add field" onClick={add}>
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Identity({ detail }: { detail: ItemDetail }) {
+  const edit = useStore((s) => s.edit);
+  const types = ENTRY_TYPES.includes(detail.type) ? ENTRY_TYPES : [detail.type, ...ENTRY_TYPES];
+  return (
+    <div className="bd-identity">
+      <div className="bd-identity__row">
+        <label className="bd-identity__label">Cite Key</label>
+        <input
+          key={`${detail.id}:citekey`}
+          className="bd-input bd-input--mono"
+          defaultValue={detail.citeKey}
+          onBlur={(e) => {
+            if (e.target.value && e.target.value !== detail.citeKey) {
+              void edit({ kind: 'setCiteKey', itemId: detail.id, citeKey: e.target.value });
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+          }}
+        />
+        <button
+          type="button"
+          className="bd-btn bd-btn--small"
+          title="Generate cite key from author + year"
+          onClick={() => void edit({ kind: 'generateCiteKey', itemId: detail.id })}
+        >
+          Generate
+        </button>
+      </div>
+      <div className="bd-identity__row">
+        <label className="bd-identity__label">Type</label>
+        <select
+          className="bd-input bd-select"
+          value={detail.type}
+          onChange={(e) => void edit({ kind: 'setType', itemId: detail.id, entryType: e.target.value })}
+        >
+          {types.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
   );
 }
 
 function Fields({ detail }: { detail: ItemDetail }) {
-  if (detail.fields.length === 0) return null;
   return (
     <>
       <div className="bd-detail__section">Fields</div>
       <div className="bd-fields">
         {detail.fields.map((f, i) => (
-          <div
-            key={`${f.name}-${i}`}
-            className={'bd-field' + (f.isInherited ? ' bd-field--inherited' : '')}
-            style={{ display: 'contents' }}
-          >
-            <div className="bd-field__name">{f.name}</div>
-            <div className="bd-field__value">
-              {f.value}
-              {f.isInherited && <span className="bd-field__badge">(inherited)</span>}
-            </div>
-          </div>
+          <FieldRow key={`${f.name}-${i}`} itemId={detail.id} field={f} />
         ))}
+        <AddFieldRow itemId={detail.id} />
       </div>
     </>
   );
@@ -100,23 +231,16 @@ export function DetailPane() {
   const detailLoading = useStore((s) => s.detailLoading);
 
   if (!selectedItemId) {
-    return <div className="bd-detail__empty">Select a publication to see its details.</div>;
+    return <div className="bd-detail__empty">Select a publication to see and edit its details.</div>;
   }
-
   if (!detail || detail.id !== selectedItemId) {
     return <div className="bd-detail__empty">{detailLoading ? 'Loading…' : ''}</div>;
   }
 
   return (
     <div className="bd-detail">
-      {detail.previewHtml ? (
-        <PreviewCard html={detail.previewHtml} />
-      ) : (
-        <div>
-          <span className="bd-detail__citekey">{detail.citeKey}</span>
-          <span className="bd-detail__type">{detail.type}</span>
-        </div>
-      )}
+      {detail.previewHtml && <PreviewCard html={detail.previewHtml} />}
+      <Identity detail={detail} />
       <Fields detail={detail} />
       <Attachments detail={detail} />
     </div>

@@ -83,9 +83,9 @@ const sampleDetail: ItemDetail = {
   citeKey: 'knuth1984',
   type: 'article',
   fields: [
-    { name: 'Author', value: 'Donald E. Knuth', isInherited: false },
-    { name: 'Title', value: 'Literate Programming', isInherited: false },
-    { name: 'Journal', value: 'The Computer Journal', isInherited: true },
+    { name: 'Author', value: 'Donald E. Knuth', rawValue: 'Donald E. Knuth', isInherited: false },
+    { name: 'Title', value: 'Literate Programming', rawValue: 'Literate Programming', isInherited: false },
+    { name: 'Journal', value: 'The Computer Journal', rawValue: 'The Computer Journal', isInherited: true },
   ],
   files: [
     { kind: 'file', displayName: 'knuth1984.pdf', url: 'file:///papers/knuth1984.pdf' },

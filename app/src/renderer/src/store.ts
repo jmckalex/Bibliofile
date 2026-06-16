@@ -11,8 +11,10 @@
 import { createStore as createZustandStore, useStore as useZustandStore } from 'zustand';
 import type {
   BibDeskApi,
+  EditCommand,
   GroupNode,
   ItemDetail,
+  MacroDef,
   OpenedDocument,
   PublicationRow,
   SortDirection,
@@ -71,6 +73,13 @@ export interface ViewerState {
   /** Live search query (client-side substring filter over loaded rows). */
   query: string;
 
+  /** Document-level `@string` macros (for the macro editor). */
+  macros: MacroDef[];
+  /** True when there are unsaved edits. */
+  dirty: boolean;
+  /** True while a save is in flight. */
+  saving: boolean;
+
   loading: boolean;
   detailLoading: boolean;
   error?: string;
@@ -90,6 +99,12 @@ export interface ViewerState {
   setSort: (key: string) => Promise<void>;
   /** Set the live search query (client-side; no reload). */
   setQuery: (query: string) => void;
+  /** Apply one edit command, then refresh the affected views + dirty state. */
+  edit: (command: EditCommand) => Promise<void>;
+  /** Save the document to disk (explicit save + backup). */
+  save: () => Promise<void>;
+  /** (Re)load the document's `@string` macros. */
+  loadMacros: () => Promise<void>;
 }
 
 const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
@@ -107,6 +122,9 @@ export function createStore(api: BibDeskApi) {
     groups: [],
     sort: DEFAULT_SORT,
     query: '',
+    macros: [],
+    dirty: false,
+    saving: false,
     loading: false,
     detailLoading: false,
 
@@ -124,10 +142,13 @@ export function createStore(api: BibDeskApi) {
         total: 0,
         groups: [],
         sort: DEFAULT_SORT,
+        macros: [],
+        dirty: false,
         error: undefined,
       });
       await get().loadGroups();
       await get().loadPublications();
+      await get().loadMacros();
     },
 
     loadGroups: async () => {
@@ -192,6 +213,56 @@ export function createStore(api: BibDeskApi) {
     },
 
     setQuery: (query) => set({ query }),
+
+    edit: async (command) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      const structural =
+        command.kind === 'addEntry' ||
+        command.kind === 'duplicateEntry' ||
+        command.kind === 'deleteEntry';
+      try {
+        const res = await api.applyEdit({ documentId, command });
+        set({ dirty: res.dirty, error: undefined });
+        // structural edits can change category-group ids → re-default to Library
+        if (structural) set({ selectedGroupId: undefined });
+        await get().loadGroups();
+        await get().loadPublications();
+        if (res.affectedItemId) {
+          set({ selectedItemId: res.affectedItemId, detail: res.detail });
+        } else if (command.kind === 'deleteEntry') {
+          set({ selectedItemId: undefined, detail: undefined });
+        }
+        if (command.kind === 'setMacro' || command.kind === 'removeMacro') {
+          await get().loadMacros();
+        }
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    save: async () => {
+      const { documentId, dirty } = get();
+      if (!documentId || !dirty) return;
+      set({ saving: true, error: undefined });
+      try {
+        await api.saveDocument({ documentId });
+        set({ dirty: false, saving: false });
+      } catch (err) {
+        set({ saving: false, error: errorMessage(err) });
+      }
+    },
+
+    loadMacros: async () => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const { macros } = await api.listMacros({ documentId });
+        set({ macros: [...macros] });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
   }));
 }
 
