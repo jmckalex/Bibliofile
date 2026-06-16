@@ -531,6 +531,12 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('copyBibtex'),
       },
+      {
+        label: 'Copy \\cite{…}',
+        accelerator: 'Alt+CmdOrCtrl+C',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('copyCite'),
+      },
     ],
   });
 

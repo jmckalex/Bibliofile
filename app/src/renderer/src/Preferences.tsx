@@ -94,6 +94,28 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
+            <h3>Citations</h3>
+            <label className="bd-prefs__row">
+              <span>Drag / Copy cite</span>
+              <input
+                key={settings.citeCommandTemplate}
+                className="bd-input bd-input--mono"
+                defaultValue={settings.citeCommandTemplate}
+                onBlur={(e) => {
+                  if (e.target.value !== settings.citeCommandTemplate) {
+                    void save({ citeCommandTemplate: e.target.value });
+                  }
+                }}
+              />
+            </label>
+            <p className="bd-prefs__hint">
+              Inserted when you drag rows to a TeX editor or run <strong>Copy \cite&#123;…&#125;</strong>.
+              <code>%K</code> expands to the cite key(s) — e.g. <code>\cite&#123;%K&#125;</code> or{' '}
+              <code>\citep&#123;%K&#125;</code>.
+            </p>
+          </section>
+
+          <section className="bd-prefs__section">
             <h3>New entries</h3>
             <label className="bd-prefs__row">
               <span>Default type</span>

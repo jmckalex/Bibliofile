@@ -114,3 +114,6 @@ export { type BibDeskApi, type Unsubscribe } from './api.js';
 // --- DTO guards -------------------------------------------------------------
 /** Shallow runtime guards for validating DTOs at the IPC boundary. */
 export { isPublicationRow, isGroupNode } from './guards.js';
+
+// --- Cite-command formatting ------------------------------------------------
+export { formatCiteCommand } from './cite.js';

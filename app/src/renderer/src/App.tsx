@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import type { MenuCommand } from '@bibdesk/shared';
+import { formatCiteCommand } from '@bibdesk/shared';
 import { getStore, useStore, visibleRows } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
@@ -238,6 +239,11 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       if (key) await navigator.clipboard.writeText(key);
       return;
     }
+    case 'copyCite': {
+      const key = selectedCiteKey();
+      if (key) await navigator.clipboard.writeText(formatCiteCommand(store.settings.citeCommandTemplate, [key]));
+      return;
+    }
     case 'copyBibtex': {
       if (!documentId || !selectedItemId || !window.bibdesk) return;
       const res = await window.bibdesk.exportText({
@@ -299,8 +305,9 @@ export function App() {
     const onDragEnter = (e: DragEvent): void => {
       e.preventDefault();
       depth++;
-      if (e.dataTransfer?.types.includes('Files') || e.dataTransfer?.types.includes('text/plain'))
-        setDragging(true);
+      // Only show the import overlay for external file drags — not for an
+      // in-app row drag-out (which carries text/plain cite commands).
+      if (e.dataTransfer?.types.includes('Files')) setDragging(true);
     };
     const onDragOver = (e: DragEvent): void => e.preventDefault();
     const onDragLeave = (e: DragEvent): void => {

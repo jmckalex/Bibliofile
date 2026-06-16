@@ -21,6 +21,7 @@ import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faKey, faPaperclip, faSquareCheck } from '@fortawesome/free-solid-svg-icons';
 import { faSquare } from '@fortawesome/free-regular-svg-icons';
 import type { PublicationRow } from '@bibdesk/shared';
+import { formatCiteCommand } from '@bibdesk/shared';
 import { useStore, visibleRows } from './store.js';
 
 const ROW_HEIGHT = 28;
@@ -124,6 +125,7 @@ export function PublicationsTable() {
   const selectItem = useStore((s) => s.selectItem);
   const setSort = useStore((s) => s.setSort);
   const loading = useStore((s) => s.loading);
+  const citeTemplate = useStore((s) => s.settings.citeCommandTemplate);
 
   const data = useMemo(() => visibleRows(rows, query, ftsIds), [rows, query, ftsIds]);
 
@@ -190,7 +192,14 @@ export function PublicationsTable() {
                   className={'bd-tr' + (selected ? ' bd-tr--selected' : '')}
                   style={{ height: ROW_HEIGHT, transform: `translateY(${vItem.start}px)` }}
                   aria-selected={selected}
+                  draggable
                   onClick={() => void selectItem(row.original.id)}
+                  onDragStart={(e) => {
+                    // Drag a row into a TeX editor to insert the cite command.
+                    const cite = formatCiteCommand(citeTemplate, [row.original.citeKey]);
+                    e.dataTransfer.setData('text/plain', cite);
+                    e.dataTransfer.effectAllowed = 'copy';
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as ColMeta | undefined;

@@ -485,6 +485,11 @@ export interface Settings {
   readonly citeKeyFormat: string;
   /** Entry type used by the toolbar **New** button. */
   readonly defaultEntryType: string;
+  /**
+   * Template inserted when dragging rows to a TeX editor or copying `\cite{}`.
+   * `%K` expands to the comma-joined cite key(s); e.g. `\cite{%K}`, `\citep{%K}`.
+   */
+  readonly citeCommandTemplate: string;
   /** Field-type classification overrides. */
   readonly fieldTypes: FieldTypeSettings;
 }
@@ -495,6 +500,7 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultCiteStyle: 'apa',
   citeKeyFormat: '%a1:%Y%u2',
   defaultEntryType: 'article',
+  citeCommandTemplate: '\\cite{%K}',
   fieldTypes: {
     person: ['Author', 'Editor'],
     localFile: ['Local-Url'],
@@ -561,6 +567,7 @@ export type MenuCommand =
   | 'copyCiteKey'
   | 'copyCitation'
   | 'copyBibtex'
+  | 'copyCite'
   // View
   | 'toggleTheme'
   // App
