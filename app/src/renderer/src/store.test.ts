@@ -1,0 +1,148 @@
+/**
+ * Store unit tests — node env, no DOM. Drives {@link createStore} with an
+ * in-memory fake BibDeskApi and asserts the data-flow: documentOpened loads
+ * groups + rows, selectGroup reloads filtered, selectItem fills detail,
+ * setSort flips direction.
+ */
+
+import { describe, expect, it } from 'vitest';
+import type {
+  BibDeskApi,
+  GroupNode,
+  ItemDetail,
+  ListPublicationsRequest,
+  OpenedDocument,
+  PublicationRow,
+  Unsubscribe,
+} from '@bibdesk/shared';
+import { createStore } from './store.js';
+
+const DOC: OpenedDocument = {
+  documentId: 'doc-1',
+  path: '/tmp/test.bib',
+  displayName: 'test.bib',
+  itemCount: 3,
+  warnings: [],
+};
+
+const GROUPS: GroupNode[] = [
+  { id: 'lib', kind: 'library', name: 'Library', count: 3 },
+  { id: 'g1', kind: 'static', name: 'Favourites', count: 2 },
+];
+
+const ALL_ROWS: PublicationRow[] = [
+  { id: 'i1', citeKey: 'beta2020', type: 'article', authorsDisplay: 'B. Author', title: 'Beta', year: '2020' },
+  { id: 'i2', citeKey: 'alpha2019', type: 'book', authorsDisplay: 'A. Author', title: 'Alpha', year: '2019' },
+  { id: 'i3', citeKey: 'gamma2021', type: 'article', authorsDisplay: 'C. Author', title: 'Gamma', year: '2021' },
+];
+
+const GROUP_ROWS: Record<string, PublicationRow[]> = {
+  g1: [ALL_ROWS[0]!, ALL_ROWS[2]!],
+};
+
+const DETAIL: ItemDetail = {
+  id: 'i1',
+  citeKey: 'beta2020',
+  type: 'article',
+  fields: [{ name: 'Title', value: 'Beta', isInherited: false }],
+  files: [],
+  previewHtml: '<p>Beta</p>',
+};
+
+/** Records the requests it receives so tests can assert on them. */
+function makeFakeApi() {
+  const calls: { listPublications: ListPublicationsRequest[] } = { listPublications: [] };
+  const api: BibDeskApi = {
+    openDocument: async () => DOC,
+    closeDocument: async (r) => ({ documentId: r.documentId }),
+    listGroups: async () => ({ groups: GROUPS }),
+    listPublications: async (req) => {
+      calls.listPublications.push(req);
+      // The library group (and an absent groupId) returns the whole library;
+      // other groups filter to their members.
+      const base =
+        req.groupId && req.groupId !== 'lib' ? (GROUP_ROWS[req.groupId] ?? []) : ALL_ROWS;
+      const dir = req.sort?.direction ?? 'asc';
+      const key = (req.sort?.key ?? 'citeKey') as keyof PublicationRow;
+      const sorted = [...base].sort((a, b) =>
+        dir === 'asc'
+          ? String(a[key]).localeCompare(String(b[key]))
+          : String(b[key]).localeCompare(String(a[key])),
+      );
+      return { rows: sorted, total: sorted.length };
+    },
+    getItemDetail: async () => DETAIL,
+    onDocumentOpened: (): Unsubscribe => () => {},
+    onDocumentClosed: (): Unsubscribe => () => {},
+  };
+  return { api, calls };
+}
+
+describe('viewer store', () => {
+  it('onDocumentOpened loads groups + rows and defaults to the library group', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    const s = store.getState();
+    expect(s.documentId).toBe('doc-1');
+    expect(s.displayName).toBe('test.bib');
+    expect(s.itemCount).toBe(3);
+    expect(s.groups).toHaveLength(2);
+    expect(s.selectedGroupId).toBe('lib'); // library is default
+    expect(s.total).toBe(3);
+    expect(s.rows.map((r) => r.citeKey)).toEqual(['alpha2019', 'beta2020', 'gamma2021']);
+  });
+
+  it('selectGroup reloads publications with the right groupId', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    await store.getState().selectGroup('g1');
+    const s = store.getState();
+    expect(s.selectedGroupId).toBe('g1');
+    expect(s.rows.map((r) => r.id).sort()).toEqual(['i1', 'i3']);
+    expect(s.total).toBe(2);
+    // last listPublications request carried groupId 'g1'
+    const last = calls.listPublications.at(-1)!;
+    expect(last.groupId).toBe('g1');
+    expect(last.limit).toBe(-1);
+  });
+
+  it('selectItem populates detail', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    await store.getState().selectItem('i1');
+    const s = store.getState();
+    expect(s.selectedItemId).toBe('i1');
+    expect(s.detail?.citeKey).toBe('beta2020');
+    expect(s.detailLoading).toBe(false);
+  });
+
+  it('setSort flips direction on repeated calls to the same key', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    // default is citeKey asc
+    expect(store.getState().sort).toEqual({ key: 'citeKey', direction: 'asc' });
+
+    await store.getState().setSort('citeKey');
+    expect(store.getState().sort).toEqual({ key: 'citeKey', direction: 'desc' });
+    expect(store.getState().rows.map((r) => r.citeKey)).toEqual([
+      'gamma2021',
+      'beta2020',
+      'alpha2019',
+    ]);
+
+    // switching to a new key starts at asc
+    await store.getState().setSort('year');
+    expect(store.getState().sort).toEqual({ key: 'year', direction: 'asc' });
+
+    const last = calls.listPublications.at(-1)!;
+    expect(last.sort).toEqual({ key: 'year', direction: 'asc' });
+  });
+});

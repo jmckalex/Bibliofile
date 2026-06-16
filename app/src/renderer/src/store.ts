@@ -1,0 +1,200 @@
+/**
+ * Zustand store + factored data-flow logic for the read-only viewer.
+ *
+ * The data-flow logic is intentionally decoupled from any DOM/React: the store
+ * is created by {@link createStore} against a `BibDeskApi` instance, so unit
+ * tests can drive it with an in-memory fake api (no Electron, no jsdom). The
+ * default export {@link useStore} binds the store to `window.bibdesk` for the
+ * live app.
+ */
+
+import { createStore as createZustandStore, useStore as useZustandStore } from 'zustand';
+import type {
+  BibDeskApi,
+  GroupNode,
+  ItemDetail,
+  OpenedDocument,
+  PublicationRow,
+  SortDirection,
+} from '@bibdesk/shared';
+
+/** The fixed id of the always-present "library" group (selected by default). */
+function findDefaultGroupId(groups: readonly GroupNode[]): string | undefined {
+  const library = groups.find((g) => g.kind === 'library');
+  return library?.id ?? groups[0]?.id;
+}
+
+export interface SortState {
+  readonly key: string;
+  readonly direction: SortDirection;
+}
+
+export interface ViewerState {
+  /** Active document, set once `documentOpened` fires. */
+  documentId?: string;
+  displayName?: string;
+  itemCount: number;
+  warnings: number;
+
+  /** Publications table data (all rows; client-side virtualized). */
+  rows: PublicationRow[];
+  total: number;
+
+  /** Groups sidebar data (flat; tree built in the component). */
+  groups: GroupNode[];
+  selectedGroupId?: string;
+
+  /** Detail pane. */
+  selectedItemId?: string;
+  detail?: ItemDetail;
+
+  /** Current table sort (default: cite key asc). */
+  sort: SortState;
+
+  loading: boolean;
+  detailLoading: boolean;
+  error?: string;
+
+  // --- actions ---
+  /** Handle a `documentOpened` event: store ids, then load groups + rows. */
+  onDocumentOpened: (doc: OpenedDocument) => Promise<void>;
+  /** (Re)load the groups sidebar for the active document. */
+  loadGroups: () => Promise<void>;
+  /** (Re)load publications for the current group + sort (limit -1 = all). */
+  loadPublications: () => Promise<void>;
+  /** Select a group and reload the filtered publications. */
+  selectGroup: (groupId: string) => Promise<void>;
+  /** Select a row and load its full detail. */
+  selectItem: (itemId: string) => Promise<void>;
+  /** Toggle sort on a column key (asc⇄desc) and reload. */
+  setSort: (key: string) => Promise<void>;
+}
+
+const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
+
+/**
+ * Build a Zustand vanilla store wired to the given api. Exported (rather than a
+ * module-level singleton) so tests can inject a fake api.
+ */
+export function createStore(api: BibDeskApi) {
+  return createZustandStore<ViewerState>((set, get) => ({
+    itemCount: 0,
+    warnings: 0,
+    rows: [],
+    total: 0,
+    groups: [],
+    sort: DEFAULT_SORT,
+    loading: false,
+    detailLoading: false,
+
+    onDocumentOpened: async (doc) => {
+      set({
+        documentId: doc.documentId,
+        displayName: doc.displayName,
+        itemCount: doc.itemCount,
+        warnings: doc.warnings.length,
+        // reset per-document view state
+        selectedGroupId: undefined,
+        selectedItemId: undefined,
+        detail: undefined,
+        rows: [],
+        total: 0,
+        groups: [],
+        sort: DEFAULT_SORT,
+        error: undefined,
+      });
+      await get().loadGroups();
+      await get().loadPublications();
+    },
+
+    loadGroups: async () => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const { groups } = await api.listGroups({ documentId });
+        const next = [...groups];
+        set((s) => ({
+          groups: next,
+          // default to the library group if nothing is selected yet
+          selectedGroupId: s.selectedGroupId ?? findDefaultGroupId(next),
+        }));
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    loadPublications: async () => {
+      const { documentId, selectedGroupId, sort } = get();
+      if (!documentId) return;
+      set({ loading: true, error: undefined });
+      try {
+        const res = await api.listPublications({
+          documentId,
+          offset: 0,
+          limit: -1,
+          sort,
+          ...(selectedGroupId ? { groupId: selectedGroupId } : {}),
+        });
+        set({ rows: [...res.rows], total: res.total, loading: false });
+      } catch (err) {
+        set({ loading: false, error: errorMessage(err) });
+      }
+    },
+
+    selectGroup: async (groupId) => {
+      set({ selectedGroupId: groupId });
+      await get().loadPublications();
+    },
+
+    selectItem: async (itemId) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      set({ selectedItemId: itemId, detailLoading: true });
+      try {
+        const detail = await api.getItemDetail({ documentId, itemId });
+        // ignore stale responses if selection changed mid-flight
+        if (get().selectedItemId !== itemId) return;
+        set({ detail, detailLoading: false });
+      } catch (err) {
+        set({ detailLoading: false, error: errorMessage(err) });
+      }
+    },
+
+    setSort: async (key) => {
+      const { sort } = get();
+      const direction: SortDirection =
+        sort.key === key && sort.direction === 'asc' ? 'desc' : 'asc';
+      set({ sort: { key, direction } });
+      await get().loadPublications();
+    },
+  }));
+}
+
+export type ViewerStore = ReturnType<typeof createStore>;
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+/**
+ * Lazily-created singleton store bound to the live `window.bibdesk` bridge.
+ * Created on first access so the module is importable in non-DOM test contexts
+ * without touching `window`.
+ */
+let liveStore: ViewerStore | undefined;
+
+export function getStore(): ViewerStore {
+  if (!liveStore) {
+    const api = (globalThis as { window?: Window }).window?.bibdesk;
+    if (!api) {
+      throw new Error('window.bibdesk bridge is not available');
+    }
+    liveStore = createStore(api);
+  }
+  return liveStore;
+}
+
+/** React hook selecting from the live store. */
+export function useStore<T>(selector: (state: ViewerState) => T): T {
+  return useZustandStore(getStore(), selector);
+}
