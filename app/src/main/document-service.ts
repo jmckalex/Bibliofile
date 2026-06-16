@@ -26,6 +26,7 @@ import { basename, dirname, isAbsolute, relative, resolve } from 'node:path';
 import {
   parse,
   serialize,
+  serializeEntry,
   bdskFileKey,
   encodeBdskFile,
   relativePathOf,
@@ -78,6 +79,7 @@ import type {
   ListMacrosRequest,
   ListMacrosResponse,
   MacroDef,
+  ExportFormat,
   SaveDocumentRequest,
   SaveDocumentResult,
 } from '@bibdesk/shared';
@@ -847,6 +849,22 @@ export class DocumentStore {
     return this.retain(openLibraryFromFile(path));
   }
 
+  /**
+   * A fresh {@link OpenedDocument} summary for an already-open document — used to
+   * re-notify the renderer after main mutates the doc out-of-band (e.g. Save As
+   * changes the path/display name) so the UI re-syncs name + dirty state.
+   */
+  summarize(documentId: string): OpenedDocument {
+    const doc = this.requireDoc(documentId);
+    return {
+      documentId,
+      path: doc.path,
+      displayName: basename(doc.path),
+      itemCount: doc.library.items.length,
+      warnings: [],
+    };
+  }
+
   /** Retain an open result in the store and return its summary. */
   private retain(result: OpenDocumentResult): OpenedDocument {
     const { opened, library, crossrefStore } = result;
@@ -1262,6 +1280,26 @@ export class DocumentStore {
   /** Re-serialize the (possibly edited) in-memory library back to BibTeX text. */
   serializeDocument(documentId: string): string {
     return serialize(this.requireDoc(documentId).library);
+  }
+
+  /**
+   * Serialize a document, or a chosen subset of its items, to text in the given
+   * format. `bibtex` is implemented (whole-library via the round-trip serializer;
+   * a subset as standalone entry blocks). Other formats throw until the export
+   * feature lands, so callers can surface a clear "not yet supported" message.
+   */
+  exportText(documentId: string, format: ExportFormat, itemIds?: readonly string[]): string {
+    const doc = this.requireDoc(documentId);
+    if (format !== 'bibtex') {
+      throw new Error(`Export format "${format}" is not supported yet.`);
+    }
+    if (!itemIds) return serialize(doc.library);
+    // Subset: emit each selected entry as a standalone block (no header/macros).
+    const blocks = itemIds
+      .map((id) => doc.itemsById.get(id))
+      .filter((it): it is BibItem => it !== undefined)
+      .map((it) => serializeEntry(it, doc.library.bdskFiles));
+    return blocks.join('\n\n') + (blocks.length ? '\n' : '');
   }
 
   /**

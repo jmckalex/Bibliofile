@@ -8,7 +8,8 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useStore, visibleRows } from './store.js';
+import type { MenuCommand } from '@bibdesk/shared';
+import { getStore, useStore, visibleRows } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { DetailPane } from './DetailPane.js';
@@ -158,10 +159,106 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
   );
 }
 
+/** Strip HTML to plain text for clipboard (citation copy). */
+function htmlToText(html: string): string {
+  const el = document.createElement('div');
+  el.innerHTML = html;
+  return (el.textContent ?? '').replace(/\s+\n/g, '\n').trim();
+}
+
+/** The cite key of the current selection, from loaded detail or the row list. */
+function selectedCiteKey(): string | undefined {
+  const s = getStore().getState();
+  if (s.detail?.id === s.selectedItemId) return s.detail?.citeKey;
+  return s.rows.find((r) => r.id === s.selectedItemId)?.citeKey;
+}
+
+/** Modal openers passed from the App component. */
+interface ModalSetters {
+  setMacrosOpen: (v: boolean) => void;
+  setOnlineOpen: (v: boolean) => void;
+  setPrefsOpen: (v: boolean) => void;
+}
+
+/**
+ * Dispatch a native-menu command onto store actions / UI state. Reads the latest
+ * store snapshot via {@link useStore.getState} so it never closes over stale
+ * selection. Selection-scoped commands no-op gracefully when nothing is selected.
+ */
+async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): Promise<void> {
+  const store = getStore().getState();
+  const { documentId, selectedItemId } = store;
+
+  switch (command) {
+    case 'newPublication':
+      await store.edit({ kind: 'addEntry', entryType: store.settings.defaultEntryType });
+      return;
+    case 'duplicate':
+      if (selectedItemId) await store.edit({ kind: 'duplicateEntry', itemId: selectedItemId });
+      return;
+    case 'delete':
+      if (selectedItemId) await store.edit({ kind: 'deleteEntry', itemId: selectedItemId });
+      return;
+    case 'generateCiteKey':
+      if (selectedItemId) await store.edit({ kind: 'generateCiteKey', itemId: selectedItemId });
+      return;
+    case 'addAttachment':
+      if (selectedItemId) await store.addAttachment(selectedItemId);
+      return;
+    case 'online':
+      modals.setOnlineOpen(true);
+      return;
+    case 'editMacros':
+      modals.setMacrosOpen(true);
+      return;
+    case 'save':
+      await store.save();
+      return;
+    case 'find': {
+      const input = document.querySelector<HTMLInputElement>('.bd-search__input');
+      input?.focus();
+      input?.select();
+      return;
+    }
+    case 'toggleTheme': {
+      const isDark =
+        store.settings.theme === 'dark' ||
+        (store.settings.theme === 'system' &&
+          window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+      await store.saveSettings({ theme: isDark ? 'light' : 'dark' });
+      return;
+    }
+    case 'copyCiteKey': {
+      const key = selectedCiteKey();
+      if (key) await navigator.clipboard.writeText(key);
+      return;
+    }
+    case 'copyBibtex': {
+      if (!documentId || !selectedItemId || !window.bibdesk) return;
+      const res = await window.bibdesk.exportText({
+        documentId,
+        format: 'bibtex',
+        itemIds: [selectedItemId],
+      });
+      if (res.text) await navigator.clipboard.writeText(res.text);
+      return;
+    }
+    case 'copyCitation': {
+      if (!documentId || !selectedItemId || !window.bibdesk) return;
+      const res = await window.bibdesk.formatCitation({
+        documentId,
+        itemId: selectedItemId,
+        styleId: store.settings.defaultCiteStyle,
+      });
+      if (res.html) await navigator.clipboard.writeText(htmlToText(res.html));
+      return;
+    }
+  }
+}
+
 export function App() {
   const onDocumentOpened = useStore((s) => s.onDocumentOpened);
   const loadSettings = useStore((s) => s.loadSettings);
-  const save = useStore((s) => s.save);
   const [macrosOpen, setMacrosOpen] = useState(false);
   const [onlineOpen, setOnlineOpen] = useState(false);
   const [prefsOpen, setPrefsOpen] = useState(false);
@@ -177,23 +274,15 @@ export function App() {
       void onDocumentOpened(doc);
     });
     const unsubPrefs = api.onShowPreferences(() => setPrefsOpen(true));
+    const unsubMenu = api.onMenuCommand((command) => {
+      void dispatchMenuCommand(command, { setMacrosOpen, setOnlineOpen, setPrefsOpen });
+    });
     return () => {
       unsubOpen();
       unsubPrefs();
+      unsubMenu();
     };
   }, [onDocumentOpened]);
-
-  // Cmd/Ctrl+S saves.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent): void => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') {
-        e.preventDefault();
-        void save();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [save]);
 
   return (
     <div className="bd-app">

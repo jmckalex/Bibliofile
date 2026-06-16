@@ -55,6 +55,24 @@ describe('document-service: BD test.bib', () => {
     expect(chen.title).toContain('Calabi-Yau'); // {C}alabi-{Y}au -> Calabi-Yau
   });
 
+  it('exportText: whole library vs a selected subset (BibTeX)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+
+    const all = store.exportText(documentId, 'bibtex');
+    expect(all).toContain('@'); // serialized entries
+    // round-trips to the same shape the serializer produces for the whole lib
+    expect(all).toBe(store.serializeDocument(documentId));
+
+    const { rows } = store.listPublications({ documentId, offset: 0, limit: -1 });
+    const one = rows.find((r) => r.citeKey === 'chen-complex')!;
+    const subset = store.exportText(documentId, 'bibtex', [one.id]);
+    expect(subset).toContain('chen-complex');
+    expect(subset).not.toContain('math.DG/0106179'); // only the selected entry
+
+    expect(() => store.exportText(documentId, 'ris')).toThrow(/not supported/i);
+  });
+
   it('projects icon-column flags (keywords, attachments, read, rating)', () => {
     const store = new DocumentStore();
     const FLAGS = `

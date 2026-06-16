@@ -98,6 +98,10 @@ export {
   type UpdateSettingsRequest,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
+  type ExportFormat,
+  type ExportTextRequest,
+  type ExportTextResponse,
+  type MenuCommand,
 } from './dto.js';
 
 // --- Renderer-facing bridge -------------------------------------------------

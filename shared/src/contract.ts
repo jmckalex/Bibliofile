@@ -27,6 +27,9 @@ import type {
   Settings,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
+  ExportTextRequest,
+  ExportTextResponse,
+  MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -74,6 +77,7 @@ export interface IpcContract {
   [IpcChannels.getSettings]: IpcEntry<GetSettingsRequest, Settings>;
   [IpcChannels.updateSettings]: IpcEntry<UpdateSettingsRequest, Settings>;
   [IpcChannels.readAttachment]: IpcEntry<ReadAttachmentRequest, ReadAttachmentResponse>;
+  [IpcChannels.exportText]: IpcEntry<ExportTextRequest, ExportTextResponse>;
 }
 
 /**
@@ -84,6 +88,7 @@ export interface IpcEventMap {
   [IpcEvents.documentOpened]: OpenedDocument;
   [IpcEvents.documentClosed]: ClosedDocument;
   [IpcEvents.showPreferences]: null;
+  [IpcEvents.menuCommand]: MenuCommand;
 }
 
 /** Request payload type for a given request/response channel. */

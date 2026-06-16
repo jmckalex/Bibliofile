@@ -58,6 +58,8 @@ export const IpcChannels = {
   updateSettings: 'bibdesk:updateSettings',
   /** Read an attachment's bytes (for in-app PDF preview). */
   readAttachment: 'bibdesk:readAttachment',
+  /** Serialize a document (or a subset of items) to text in a given format. */
+  exportText: 'bibdesk:exportText',
 } as const;
 
 /**
@@ -71,6 +73,8 @@ export const IpcEvents = {
   documentClosed: 'bibdesk:event:documentClosed',
   /** Request the renderer to open the Preferences pane (from the menu). */
   showPreferences: 'bibdesk:event:showPreferences',
+  /** A native-menu item that acts on renderer state (see {@link MenuCommand}). */
+  menuCommand: 'bibdesk:event:menuCommand',
 } as const;
 
 /** Union of all request/response channel-name string-literal values. */

@@ -89,6 +89,8 @@ function makeFakeApi() {
     getSettings: async () => DEFAULT_SETTINGS,
     updateSettings: async (r) => ({ ...DEFAULT_SETTINGS, ...r.patch }),
     readAttachment: async () => ({ data: null }),
+    exportText: async () => ({ text: '' }),
+    onMenuCommand: (): Unsubscribe => () => {},
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
     onShowPreferences: (): Unsubscribe => () => {},

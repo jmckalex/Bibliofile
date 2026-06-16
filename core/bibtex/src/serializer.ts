@@ -136,7 +136,7 @@ function isEmpty(value: FieldValue | undefined): boolean {
  * case-insensitive-numeric; linked-file/URL fields are appended last (in their
  * own sorted order). Enforces the 98-field guard.
  */
-function serializeEntry(
+export function serializeEntry(
   item: BibItem,
   bdskFiles: Map<string, BdskFilePlist>,
 ): string {

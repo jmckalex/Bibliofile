@@ -28,6 +28,9 @@ import type {
   Settings,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
+  ExportTextRequest,
+  ExportTextResponse,
+  MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -108,6 +111,12 @@ export interface BibDeskApi {
 
   /** Read an attachment's bytes (for the in-app PDF viewer). */
   readAttachment(request: ReadAttachmentRequest): Promise<ReadAttachmentResponse>;
+
+  /** Serialize a document (or a subset of items) to text — e.g. BibTeX export/copy. */
+  exportText(request: ExportTextRequest): Promise<ExportTextResponse>;
+
+  /** Subscribe to native-menu commands that act on renderer state. Returns unsubscribe. */
+  onMenuCommand(listener: (command: MenuCommand) => void): Unsubscribe;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

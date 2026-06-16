@@ -30,6 +30,7 @@ import {
   IpcChannels,
   IpcEvents,
   type IpcHandlers,
+  type MenuCommand,
   type OpenedDocument,
   type OpenExternalRequest,
   type OpenExternalResult,
@@ -211,6 +212,7 @@ function openPath(path: string): OpenedDocument {
     mainWindow.setRepresentedFilename?.(opened.path);
   }
   lastDocumentId = opened.documentId;
+  buildMenu(); // refresh document-scoped menu items now that a doc is open
   notifyDocumentOpened(opened);
   // Index attachment PDF text in the background; field-text search works already.
   void store.indexAttachments(opened.documentId);
@@ -303,8 +305,86 @@ function openDialogOptions(): Electron.OpenDialogOptions {
   };
 }
 
+/** Send a menu command to the renderer (which acts on its own state). */
+function sendMenuCommand(command: MenuCommand): void {
+  mainWindow?.webContents.send(IpcEvents.menuCommand, command);
+}
+
+/** Is there an open document to act on? Gates document-scoped menu items. */
+function hasOpenDocument(): boolean {
+  return lastDocumentId !== null;
+}
+
+/** Save As: pick a new path, write there, and re-sync the renderer (name + dirty). */
+async function saveDocumentAs(): Promise<void> {
+  if (!lastDocumentId) return;
+  const current = store.summarize(lastDocumentId);
+  const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
+    title: 'Save As',
+    defaultPath: current.path,
+    filters: [{ name: 'BibTeX', extensions: ['bib'] }],
+  });
+  if (result.canceled || !result.filePath) return;
+  try {
+    const saved = store.saveDocument(lastDocumentId, result.filePath);
+    app.addRecentDocument(saved.path);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setTitle(`${basename(saved.path)} — BibDesk`);
+      mainWindow.setRepresentedFilename?.(saved.path);
+    }
+    // Re-notify so the renderer picks up the new display name + cleared dirty.
+    notifyDocumentOpened(store.summarize(lastDocumentId));
+  } catch (err) {
+    void dialog.showMessageBox(mainWindow ?? undefined!, {
+      type: 'error',
+      message: 'Could not save the document',
+      detail: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+/** Revert to Saved: re-read the document from disk, discarding unsaved edits. */
+async function revertToSaved(): Promise<void> {
+  if (!lastDocumentId) return;
+  const { path } = store.summarize(lastDocumentId);
+  const choice = await dialog.showMessageBox(mainWindow ?? undefined!, {
+    type: 'warning',
+    buttons: ['Revert', 'Cancel'],
+    defaultId: 0,
+    cancelId: 1,
+    message: 'Revert to the last saved version?',
+    detail: 'Any unsaved changes will be lost.',
+  });
+  if (choice.response !== 0) return;
+  openPathWhenReady(path);
+}
+
+/** Export the whole library to a file in the given format (BibTeX today). */
+async function exportDocumentAs(format: 'bibtex'): Promise<void> {
+  if (!lastDocumentId) return;
+  const current = store.summarize(lastDocumentId);
+  const ext = format === 'bibtex' ? 'bib' : format;
+  const base = current.displayName.replace(/\.bib$/i, '');
+  const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
+    title: 'Export',
+    defaultPath: `${base}.${ext}`,
+    filters: [{ name: format.toUpperCase(), extensions: [ext] }],
+  });
+  if (result.canceled || !result.filePath) return;
+  try {
+    writeFileSync(result.filePath, store.exportText(lastDocumentId, format), 'utf8');
+  } catch (err) {
+    void dialog.showMessageBox(mainWindow ?? undefined!, {
+      type: 'error',
+      message: 'Could not export the document',
+      detail: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
 function buildMenu(): void {
   const isMac = process.platform === 'darwin';
+  const docEnabled = hasOpenDocument();
   const template: MenuItemConstructorOptions[] = [];
 
   const prefsItem: MenuItemConstructorOptions = {
@@ -313,13 +393,16 @@ function buildMenu(): void {
     click: () => openPreferences(),
   };
 
+  // --- Application menu (macOS) ---
   if (isMac) {
     template.push({
       label: app.name,
       submenu: [
-        { role: 'about' },
+        { role: 'about', label: 'About BibDesk' },
         { type: 'separator' },
         prefsItem,
+        { type: 'separator' },
+        { role: 'services' },
         { type: 'separator' },
         { role: 'hide' },
         { role: 'hideOthers' },
@@ -330,25 +413,179 @@ function buildMenu(): void {
     });
   }
 
+  // --- File ---
   template.push({
     label: 'File',
     submenu: [
       {
-        label: 'Open…',
-        accelerator: 'CmdOrCtrl+O',
-        click: () => {
-          void showOpenDialog();
-        },
+        label: 'New Publication',
+        accelerator: 'CmdOrCtrl+N',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('newPublication'),
       },
       { type: 'separator' },
-      ...(isMac ? [] : [prefsItem, { type: 'separator' as const }]),
-      isMac ? { role: 'close' } : { role: 'quit' },
+      {
+        label: 'Open…',
+        accelerator: 'CmdOrCtrl+O',
+        click: () => void showOpenDialog(),
+      },
+      { role: 'recentDocuments', submenu: [{ role: 'clearRecentDocuments' }] },
+      { type: 'separator' },
+      {
+        label: 'Save',
+        accelerator: 'CmdOrCtrl+S',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('save'),
+      },
+      {
+        label: 'Save As…',
+        accelerator: 'Shift+CmdOrCtrl+S',
+        enabled: docEnabled,
+        click: () => void saveDocumentAs(),
+      },
+      {
+        label: 'Revert to Saved',
+        enabled: docEnabled,
+        click: () => void revertToSaved(),
+      },
+      { type: 'separator' },
+      {
+        label: 'Import',
+        submenu: [
+          {
+            label: 'Search Online (CrossRef / arXiv)…',
+            accelerator: 'Shift+CmdOrCtrl+O',
+            enabled: docEnabled,
+            click: () => sendMenuCommand('online'),
+          },
+        ],
+      },
+      {
+        label: 'Export',
+        submenu: [
+          {
+            label: 'BibTeX…',
+            enabled: docEnabled,
+            click: () => void exportDocumentAs('bibtex'),
+          },
+          { label: 'RIS…', enabled: false },
+          { label: 'HTML…', enabled: false },
+          { label: 'RTF…', enabled: false },
+        ],
+      },
+      { type: 'separator' },
+      ...(isMac
+        ? [{ role: 'close' as const }]
+        : [prefsItem, { type: 'separator' as const }, { role: 'quit' as const }]),
     ],
   });
 
-  template.push({ label: 'Edit', role: 'editMenu' });
-  template.push({ label: 'View', role: 'viewMenu' });
-  template.push({ label: 'Window', role: 'windowMenu' });
+  // --- Edit ---
+  template.push({
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'pasteAndMatchStyle' },
+      { role: 'delete' },
+      { role: 'selectAll' },
+      { type: 'separator' },
+      {
+        label: 'Find…',
+        accelerator: 'CmdOrCtrl+F',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('find'),
+      },
+      { type: 'separator' },
+      {
+        label: 'Copy Cite Key',
+        accelerator: 'Alt+CmdOrCtrl+K',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('copyCiteKey'),
+      },
+      {
+        label: 'Copy Citation',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('copyCitation'),
+      },
+      {
+        label: 'Copy as BibTeX',
+        accelerator: 'Alt+CmdOrCtrl+B',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('copyBibtex'),
+      },
+    ],
+  });
+
+  // --- Publication ---
+  template.push({
+    label: 'Publication',
+    submenu: [
+      {
+        label: 'New Publication',
+        accelerator: 'CmdOrCtrl+N',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('newPublication'),
+      },
+      {
+        label: 'Duplicate',
+        accelerator: 'Shift+CmdOrCtrl+D',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('duplicate'),
+      },
+      {
+        label: 'Delete Publication',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('delete'),
+      },
+      { type: 'separator' },
+      {
+        label: 'Generate Cite Key',
+        accelerator: 'CmdOrCtrl+K',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('generateCiteKey'),
+      },
+      { type: 'separator' },
+      {
+        label: 'Add File Attachment…',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('addAttachment'),
+      },
+      { type: 'separator' },
+      {
+        label: 'Macros (@string)…',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('editMacros'),
+      },
+    ],
+  });
+
+  // --- View ---
+  template.push({
+    label: 'View',
+    submenu: [
+      {
+        label: 'Toggle Light / Dark Theme',
+        accelerator: 'CmdOrCtrl+Shift+L',
+        click: () => sendMenuCommand('toggleTheme'),
+      },
+      { type: 'separator' },
+      { role: 'resetZoom' },
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' },
+      { role: 'reload' },
+      { role: 'toggleDevTools' },
+    ],
+  });
+
+  template.push({ role: 'window', label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, ...(isMac ? [{ type: 'separator' as const }, { role: 'front' as const }] : [{ role: 'close' as const }])] });
+
   template.push({
     role: 'help',
     submenu: [
@@ -466,6 +703,13 @@ function registerIpc(): void {
         return { data: null, error: e instanceof Error ? e.message : String(e) };
       }
     },
+    [IpcChannels.exportText]: (req) => {
+      try {
+        return { text: store.exportText(req.documentId, req.format, req.itemIds) };
+      } catch (e) {
+        return { text: '', error: e instanceof Error ? e.message : String(e) };
+      }
+    },
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -522,6 +766,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.readAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.readAttachment](req),
+  );
+  ipcMain.handle(IpcChannels.exportText, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.exportText](req),
   );
 }
 

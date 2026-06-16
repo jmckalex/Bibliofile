@@ -45,6 +45,9 @@ import {
   type Settings,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
+  type ExportTextRequest,
+  type ExportTextResponse,
+  type MenuCommand,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -106,6 +109,14 @@ const api: BibDeskApi = {
   },
   readAttachment(request: ReadAttachmentRequest): Promise<ReadAttachmentResponse> {
     return ipcRenderer.invoke(IpcChannels.readAttachment, request);
+  },
+  exportText(request: ExportTextRequest): Promise<ExportTextResponse> {
+    return ipcRenderer.invoke(IpcChannels.exportText, request);
+  },
+  onMenuCommand(listener: (command: MenuCommand) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, command: MenuCommand): void => listener(command);
+    ipcRenderer.on(IpcEvents.menuCommand, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.menuCommand, handler);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

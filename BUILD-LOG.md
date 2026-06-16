@@ -376,6 +376,21 @@ item's fields (no library needed). Columns are header-click sortable (`rowSortVa
 Tested (`toPublicationRow` flags) + GUI-smoke-verified. FontAwesome Free licensing: code MIT, icons
 CC BY 4.0, fonts SIL OFL — all permissive (user explicitly requested the FontAwesome set).
 
+## Full application menus — DONE (2026-06-16)
+
+Replaced the minimal menu with a complete BibDesk-style menu bar: **App** (About/Prefs/Services/
+Hide/Quit), **File** (New Publication, Open, Open Recent, Save, Save As…, Revert to Saved, Import▸
+Search Online, Export▸ BibTeX [RIS/HTML/RTF disabled→task #6], Close), **Edit** (undo/redo/clipboard
+roles + Find, Copy Cite Key, Copy Citation, Copy as BibTeX), **Publication** (New/Duplicate/Delete/
+Generate Cite Key/Add Attachment/Macros), **View** (toggle theme, zoom, full-screen, reload/devtools),
+**Window**, **Help**. Architecture: main owns the menu; renderer-state items forward a typed
+`MenuCommand` via the new `menuCommand` event → `dispatchMenuCommand` in App reads `getStore()`
+and dispatches to store actions (no stale selection). File-level actions (Open/Save As/Revert/Export)
+run in main; Save As/Revert re-notify `documentOpened` (via new `store.summarize`) to re-sync name +
+dirty. New `exportText` IPC (+`serializeEntry` export from bibtex) backs Copy-as-BibTeX (subset) and
+Export-as-BibTeX (whole lib); foundation for task #6's other formats. Menu rebuilt on doc-open so
+document-scoped items enable. Tested + smoke-verified (doc opens, menu builds without throwing).
+
 ## Decisions (user, 2026-06-16)
 
 - **Next: PDF preview** — in-app PDF.js viewer for attachments (pdfjs-dist already a dep). ✅ DONE

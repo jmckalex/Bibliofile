@@ -23,7 +23,7 @@
  */
 
 export { parse } from './parser.js';
-export { serialize } from './serializer.js';
+export { serialize, serializeEntry } from './serializer.js';
 
 export {
   type BibLibrary,

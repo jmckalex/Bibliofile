@@ -347,6 +347,29 @@ export interface ReadAttachmentResponse {
   readonly error?: string;
 }
 
+// --- Export -----------------------------------------------------------------
+
+/**
+ * Output format for {@link ExportTextRequest}. `bibtex` is implemented today
+ * (reuses the round-trip serializer); the others are reserved for the export
+ * feature and may be rejected with an error until then.
+ */
+export type ExportFormat = 'bibtex' | 'ris' | 'html' | 'rtf';
+
+/** Request serialized text for a whole document, or a subset of its items. */
+export interface ExportTextRequest {
+  readonly documentId: DocumentId;
+  readonly format: ExportFormat;
+  /** When present, export only these items (in this order); else the whole library. */
+  readonly itemIds?: readonly ItemId[];
+}
+
+/** Serialized text in the requested format, or an error if unsupported. */
+export interface ExportTextResponse {
+  readonly text: string;
+  readonly error?: string;
+}
+
 // --- Online search / import -------------------------------------------------
 
 /** An online bibliographic source. */
@@ -486,3 +509,33 @@ export interface ItemDetail {
   /** Rendered notes HTML (markdown + `[[citeKey]]` cross-references). */
   readonly notesHtml: string;
 }
+
+// --- Menu commands ----------------------------------------------------------
+
+/**
+ * A renderer-side action triggered from the native application menu. Main owns
+ * the menu (an Electron requirement) but most items act on renderer/store state
+ * (selection, modals, theme), so it forwards them as one of these commands via
+ * the {@link IpcEvents.menuCommand} event; the renderer dispatches to the store.
+ *
+ * File-level actions that main can do itself (Open, Save, Save As, Revert,
+ * Export to a file) are handled in main directly and are NOT in this union.
+ */
+export type MenuCommand =
+  // Publication
+  | 'newPublication'
+  | 'duplicate'
+  | 'delete'
+  | 'generateCiteKey'
+  | 'addAttachment'
+  | 'online'
+  | 'editMacros'
+  // Edit / clipboard (operate on the selection)
+  | 'find'
+  | 'copyCiteKey'
+  | 'copyCitation'
+  | 'copyBibtex'
+  // View
+  | 'toggleTheme'
+  // App
+  | 'save';
