@@ -212,37 +212,46 @@ export function openLibraryFromFile(path: string): OpenDocumentResult {
 function groupsFromLibrary(library: BibLibrary): Group[] {
   const out: Group[] = [];
   for (const record of library.groups) {
-    const built = buildGroup(record);
-    if (built) out.push(built);
+    for (const dict of dictsOf(record.data)) {
+      const built = buildGroupFromDict(record.kind, dict);
+      if (built) out.push(built);
+    }
   }
   return out;
 }
 
-/** Build one typed group from an already-decoded record, or undefined to skip. */
-function buildGroup(record: GroupRecord): Group | undefined {
-  const data = record.data as Record<string, unknown>;
-  // Name is already unescaped by the parser — read it directly (no re-unescape).
-  const name = typeof data['group name'] === 'string' ? (data['group name'] as string) : '';
+/**
+ * A BibDesk group `@comment` block decodes to an ARRAY of per-group dictionaries
+ * (one block per kind can hold several groups). Normalize `record.data` to that
+ * list of dicts (tolerating a bare single dict from older/odd inputs).
+ */
+function dictsOf(data: unknown): Record<string, unknown>[] {
+  if (Array.isArray(data)) return data.filter((d): d is Record<string, unknown> => !!d && typeof d === 'object');
+  if (data && typeof data === 'object') return [data as Record<string, unknown>];
+  return [];
+}
 
-  switch (record.kind) {
+/** The `group name` of a decoded group dict (already unescaped by the parser). */
+function nameOfDict(dict: Record<string, unknown>): string {
+  return typeof dict['group name'] === 'string' ? (dict['group name'] as string) : '';
+}
+
+/** Build one typed group from a single decoded group dict, or undefined to skip. */
+function buildGroupFromDict(kind: GroupKind, dict: Record<string, unknown>): Group | undefined {
+  const name = nameOfDict(dict);
+  switch (kind) {
     case 'static': {
-      const keysStr = typeof data.keys === 'string' ? (data.keys as string) : '';
-      const keys =
-        keysStr === ''
-          ? []
-          : keysStr
-              .split(',')
-              .map((k) => k.trim())
-              .filter((k) => k.length > 0);
+      const keysStr = typeof dict.keys === 'string' ? (dict.keys as string) : '';
+      const keys = keysStr
+        .split(',')
+        .map((k) => k.trim())
+        .filter((k) => k.length > 0);
       return new StaticGroup(name, keys);
     }
-    case 'smart': {
-      const filter = filterFromDecoded(data);
-      return new SmartGroup(name, filter);
-    }
-    // url / script are persisted but type-only (no live fetch/exec) here, so
-    // they never have members — represented as nodes with count 0 by listGroups,
-    // but we don't need a membership object for them.
+    case 'smart':
+      return new SmartGroup(name, filterFromDecoded(dict));
+    // url / script are persisted but type-only here (no live fetch/exec), so they
+    // have no membership object — listGroups still shows them with count 0.
     case 'url':
     case 'script':
     default:
@@ -1056,7 +1065,7 @@ export class DocumentStore {
     let items: readonly BibItem[] = doc.library.items;
     if (req.groupId && req.groupId !== this.libraryGroupId(doc)) {
       const categoryMembers = this.categoriesOf(doc).members.get(req.groupId);
-      const group = doc.groups.find((g) => g.id === req.groupId);
+      const group = this.resolveParsedGroup(doc, req.groupId);
       if (categoryMembers) {
         // author/keyword category group: precomputed member set
         items = items.filter((it) => categoryMembers.has(it.id));
@@ -1100,24 +1109,17 @@ export class DocumentStore {
       count: doc.library.items.length,
     });
 
-    // Parsed groups (counts via membership; url/script are type-only => 0).
-    for (let i = 0; i < doc.library.groups.length; i++) {
-      const record = doc.library.groups[i]!;
-      const data = record.data as Record<string, unknown>;
-      const name = typeof data['group name'] === 'string' ? (data['group name'] as string) : '';
-      // find the matching built membership group (static/smart) if any
-      const built = doc.groups.find(
-        (g) => g.name === name && g.kind === record.kind,
-      );
-      let count = 0;
-      if (built) {
-        count = doc.library.items.filter((it) => built.containsItem(asEvaluable(it))).length;
-      }
+    // Parsed groups: one node per group DICT (a block can hold several), each
+    // with a stable `g#record#dict` id. Counts via live membership; url/script
+    // are type-only => 0.
+    for (const node of this.parsedGroupNodes(doc)) {
       groups.push({
-        id: built?.id ?? `${record.kind}:${i}:${name}`,
-        kind: groupKindOf(record),
-        name,
-        count,
+        id: node.id,
+        kind: node.kind,
+        name: node.name,
+        count: node.group
+          ? doc.library.items.filter((it) => node.group!.containsItem(asEvaluable(it))).length
+          : 0,
       });
     }
 
@@ -1125,6 +1127,51 @@ export class DocumentStore {
     groups.push(...this.categoriesOf(doc).nodes);
 
     return { groups };
+  }
+
+  /** Enumerate parsed groups with stable `g#record#dict` ids + built membership. */
+  private parsedGroupNodes(
+    doc: OpenDoc,
+  ): { id: string; kind: GroupKind; name: string; group?: Group }[] {
+    const out: { id: string; kind: GroupKind; name: string; group?: Group }[] = [];
+    for (let ri = 0; ri < doc.library.groups.length; ri++) {
+      const record = doc.library.groups[ri]!;
+      const dicts = dictsOf(record.data);
+      for (let di = 0; di < dicts.length; di++) {
+        const dict = dicts[di]!;
+        out.push({
+          id: `g#${ri}#${di}`,
+          kind: record.kind,
+          name: nameOfDict(dict),
+          group: buildGroupFromDict(record.kind, dict),
+        });
+      }
+    }
+    return out;
+  }
+
+  /** Resolve a `g#record#dict` group id to its built membership group. */
+  private resolveParsedGroup(doc: OpenDoc, groupId: string): Group | undefined {
+    const m = /^g#(\d+)#(\d+)$/.exec(groupId);
+    if (!m) return undefined;
+    const record = doc.library.groups[Number(m[1])];
+    if (!record) return undefined;
+    const dict = dictsOf(record.data)[Number(m[2])];
+    return dict ? buildGroupFromDict(record.kind, dict) : undefined;
+  }
+
+  /** Resolve a `g#record#dict` group id to `{record, dict}` for editing, or undefined. */
+  private resolveGroupDict(
+    doc: OpenDoc,
+    groupId: string,
+  ): { record: GroupRecord; recordIndex: number; dict: Record<string, unknown> } | undefined {
+    const m = /^g#(\d+)#(\d+)$/.exec(groupId);
+    if (!m) return undefined;
+    const recordIndex = Number(m[1]);
+    const record = doc.library.groups[recordIndex];
+    if (!record) return undefined;
+    const dict = dictsOf(record.data)[Number(m[2])];
+    return dict ? { record, recordIndex, dict } : undefined;
   }
 
   /** Full detail for one item. Throws if the document or item id is unknown. */
@@ -1514,7 +1561,7 @@ export class DocumentStore {
     if (!groupId || groupId === this.libraryGroupId(doc)) return doc.library.items;
     const categoryMembers = this.categoriesOf(doc).members.get(groupId);
     if (categoryMembers) return doc.library.items.filter((it) => categoryMembers.has(it.id));
-    const group = doc.groups.find((g) => g.id === groupId);
+    const group = this.resolveParsedGroup(doc, groupId);
     if (group) return doc.library.items.filter((it) => group.containsItem(asEvaluable(it)));
     return [];
   }

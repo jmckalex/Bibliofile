@@ -168,6 +168,25 @@ describe('document-service: BD test.bib', () => {
     expect(store.isDirty(documentId)).toBe(false);
   });
 
+  it('parses static + smart group blocks (array-of-dicts) and filters by them', () => {
+    const fixture = fileURLToPath(
+      new URL('../../../core/bibtex/test/fixtures/synthesized/bd-all-groups.bib', import.meta.url),
+    );
+    const store = new DocumentStore();
+    const { documentId } = store.openText(readFileSync(fixture, 'utf8'), fixture);
+
+    const { groups } = store.listGroups({ documentId });
+    const toRead = groups.find((g) => g.name === 'To Read');
+    expect(toRead).toBeDefined();
+    expect(toRead!.kind).toBe('static');
+    expect(toRead!.count).toBe(2); // knuth-art + smith-2020
+    expect(groups.some((g) => g.name === 'Recent Articles' && g.kind === 'smart')).toBe(true);
+
+    // Selecting the static group filters the table to its members.
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1, groupId: toRead!.id }).rows;
+    expect(rows.map((r) => r.citeKey).sort()).toEqual(['knuth-art', 'smith-2020']);
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');
