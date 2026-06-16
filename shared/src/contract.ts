@@ -7,6 +7,7 @@
 
 import type { IpcChannels, IpcEvents } from './channels.js';
 import type {
+  AddAttachmentRequest,
   ApplyEditRequest,
   CloseDocumentRequest,
   ClosedDocument,
@@ -15,6 +16,7 @@ import type {
   FormatCitationResult,
   GetItemDetailRequest,
   ItemDetail,
+  RemoveAttachmentRequest,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -54,6 +56,8 @@ export interface IpcContract {
   [IpcChannels.listMacros]: IpcEntry<ListMacrosRequest, ListMacrosResponse>;
   [IpcChannels.saveDocument]: IpcEntry<SaveDocumentRequest, SaveDocumentResult>;
   [IpcChannels.formatCitation]: IpcEntry<FormatCitationRequest, FormatCitationResult>;
+  [IpcChannels.addAttachment]: IpcEntry<AddAttachmentRequest, EditResult>;
+  [IpcChannels.removeAttachment]: IpcEntry<RemoveAttachmentRequest, EditResult>;
 }
 
 /**

@@ -33,6 +33,8 @@ import {
   type SaveDocumentResult,
   type FormatCitationRequest,
   type FormatCitationResult,
+  type AddAttachmentRequest,
+  type RemoveAttachmentRequest,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -65,6 +67,12 @@ const api: BibDeskApi = {
   },
   formatCitation(request: FormatCitationRequest): Promise<FormatCitationResult> {
     return ipcRenderer.invoke(IpcChannels.formatCitation, request);
+  },
+  addAttachment(request: AddAttachmentRequest): Promise<EditResult> {
+    return ipcRenderer.invoke(IpcChannels.addAttachment, request);
+  },
+  removeAttachment(request: RemoveAttachmentRequest): Promise<EditResult> {
+    return ipcRenderer.invoke(IpcChannels.removeAttachment, request);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

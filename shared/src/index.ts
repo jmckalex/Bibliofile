@@ -81,6 +81,8 @@ export {
   CITATION_STYLES,
   type FormatCitationRequest,
   type FormatCitationResult,
+  type AddAttachmentRequest,
+  type RemoveAttachmentRequest,
 } from './dto.js';
 
 // --- Renderer-facing bridge -------------------------------------------------

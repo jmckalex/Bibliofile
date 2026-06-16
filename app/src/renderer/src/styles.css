@@ -667,11 +667,24 @@ button.bd-chip {
   padding: 4px 0;
 }
 
+.bd-detail__section--withaction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bd-files__empty {
+  color: var(--bd-text-faint);
+  font-size: var(--bd-fs-sm);
+  padding: 2px 0 6px;
+}
+
 .bd-file__btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   text-align: left;
   background: none;
   border: none;

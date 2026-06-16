@@ -248,27 +248,52 @@ function Fields({ detail }: { detail: ItemDetail }) {
 }
 
 function Attachments({ detail }: { detail: ItemDetail }) {
-  if (detail.files.length === 0) return null;
+  const addAttachment = useStore((s) => s.addAttachment);
+  const removeAttachment = useStore((s) => s.removeAttachment);
   return (
     <>
-      <div className="bd-detail__section">Attachments</div>
-      <ul className="bd-files">
-        {detail.files.map((file, i) => (
-          <li className="bd-file" key={`${file.url}-${i}`}>
-            <button
-              type="button"
-              className="bd-file__btn"
-              title={`Open ${file.url}`}
-              onClick={() => openExternal(file.url, file.kind === 'url' ? 'url' : 'file')}
-            >
-              <span className="bd-file__icon" aria-hidden="true">
-                {fileIcon(file.kind)}
-              </span>
-              <span className="bd-file__name">{file.displayName}</span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      <div className="bd-detail__section bd-detail__section--withaction">
+        <span>Attachments</span>
+        <button
+          type="button"
+          className="bd-btn bd-btn--small"
+          title="Attach file(s)"
+          onClick={() => void addAttachment(detail.id)}
+        >
+          ＋ Add
+        </button>
+      </div>
+      {detail.files.length === 0 ? (
+        <div className="bd-files__empty">No attachments.</div>
+      ) : (
+        <ul className="bd-files">
+          {detail.files.map((file, i) => (
+            <li className="bd-file" key={`${file.url}-${i}`}>
+              <button
+                type="button"
+                className="bd-file__btn"
+                title={`Open ${file.url}`}
+                onClick={() => openExternal(file.url, file.kind === 'url' ? 'url' : 'file')}
+              >
+                <span className="bd-file__icon" aria-hidden="true">
+                  {fileIcon(file.kind)}
+                </span>
+                <span className="bd-file__name">{file.displayName}</span>
+              </button>
+              {file.field && (
+                <button
+                  type="button"
+                  className="bd-field__del"
+                  title="Remove attachment"
+                  onClick={() => void removeAttachment(detail.id, file.field!)}
+                >
+                  ×
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }

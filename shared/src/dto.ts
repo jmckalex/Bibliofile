@@ -303,8 +303,26 @@ export interface ItemFile {
   readonly kind: 'file' | 'url';
   /** Display name (basename for files, label/host for URLs). */
   readonly displayName: string;
-  /** Resolved URL string (`file://...` for local files, absolute URL otherwise). */
+  /** Resolved URL string (`file://...`/absolute path for local files, absolute URL otherwise). */
   readonly url: string;
+  /**
+   * Source `Bdsk-File-N` field name when this attachment is a removable managed
+   * file link. Absent for attachments synthesised from `Url`/`Local-Url` fields.
+   */
+  readonly field?: string;
+}
+
+/** Request to add attachment(s) to an item (main opens a file picker). */
+export interface AddAttachmentRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+}
+
+/** Request to remove one managed attachment (`Bdsk-File-N`) from an item. */
+export interface RemoveAttachmentRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+  readonly field: string;
 }
 
 /**

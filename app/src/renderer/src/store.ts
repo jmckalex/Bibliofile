@@ -105,6 +105,10 @@ export interface ViewerState {
   save: () => Promise<void>;
   /** (Re)load the document's `@string` macros. */
   loadMacros: () => Promise<void>;
+  /** Attach file(s) to an item (opens a picker in main); refresh detail + dirty. */
+  addAttachment: (itemId: string) => Promise<void>;
+  /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
+  removeAttachment: (itemId: string, field: string) => Promise<void>;
 }
 
 const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
@@ -259,6 +263,30 @@ export function createStore(api: BibDeskApi) {
       try {
         const { macros } = await api.listMacros({ documentId });
         set({ macros: [...macros] });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    addAttachment: async (itemId) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const res = await api.addAttachment({ documentId, itemId });
+        set({ dirty: res.dirty });
+        if (res.detail) set({ selectedItemId: itemId, detail: res.detail });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    removeAttachment: async (itemId, field) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const res = await api.removeAttachment({ documentId, itemId, field });
+        set({ dirty: res.dirty });
+        if (res.detail) set({ detail: res.detail });
       } catch (err) {
         set({ error: errorMessage(err) });
       }

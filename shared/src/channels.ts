@@ -42,6 +42,10 @@ export const IpcChannels = {
   saveDocument: 'bibdesk:saveDocument',
   /** Format one item as a CSL-styled citation (HTML). */
   formatCitation: 'bibdesk:formatCitation',
+  /** Add attachment(s) to an item (main opens a file picker). */
+  addAttachment: 'bibdesk:addAttachment',
+  /** Remove one managed attachment from an item. */
+  removeAttachment: 'bibdesk:removeAttachment',
 } as const;
 
 /**

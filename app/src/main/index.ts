@@ -329,6 +329,25 @@ function registerIpc(): void {
         return { styleId: req.styleId, html: '', error: e instanceof Error ? e.message : String(e) };
       }
     },
+    [IpcChannels.addAttachment]: async (req) => {
+      const opts: Electron.OpenDialogOptions = {
+        title: 'Add Attachment',
+        properties: ['openFile', 'multiSelections'],
+      };
+      const result = mainWindow
+        ? await dialog.showOpenDialog(mainWindow, opts)
+        : await dialog.showOpenDialog(opts);
+      if (result.canceled || result.filePaths.length === 0) {
+        return {
+          dirty: store.isDirty(req.documentId),
+          affectedItemId: req.itemId,
+          detail: store.getItemDetail(req),
+        };
+      }
+      return store.addAttachments(req.documentId, req.itemId, result.filePaths);
+    },
+    [IpcChannels.removeAttachment]: (req) =>
+      store.removeAttachment(req.documentId, req.itemId, req.field),
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -361,6 +380,12 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.formatCitation, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.formatCitation](req),
+  );
+  ipcMain.handle(IpcChannels.addAttachment, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.addAttachment](req),
+  );
+  ipcMain.handle(IpcChannels.removeAttachment, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.removeAttachment](req),
   );
 }
 

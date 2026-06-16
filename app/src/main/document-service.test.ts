@@ -320,6 +320,42 @@ describe('document-service: BD test.bib', () => {
     expect(authors[0]?.given).toBe('Jingyi');
   });
 
+  it('attachments: add (Bdsk-File-N), resolve, round-trip, and remove', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-att-'));
+    const file = join(dir, 'lib.bib');
+    writeFileSync(file, BIB, 'utf8');
+    const pdf = join(dir, 'paper.pdf');
+    writeFileSync(pdf, '%PDF-1.4 fake', 'utf8');
+
+    const store = new DocumentStore();
+    const opened = store.openFile(file);
+    const target = store
+      .listPublications({ documentId: opened.documentId, offset: 0, limit: -1 })
+      .rows.find((r) => r.citeKey === 'chen-complex')!;
+
+    const res = store.addAttachments(opened.documentId, target.id, [pdf]);
+    const att = res.detail!.files.find((f) => f.field);
+    expect(att).toBeDefined();
+    expect(att!.displayName).toBe('paper.pdf');
+    expect(att!.field).toBe('Bdsk-File-1');
+
+    // round-trip: serialize -> reparse -> the attachment resolves again
+    const text = store.serializeDocument(opened.documentId);
+    expect(text.toLowerCase()).toContain('bdsk-file-1'); // serializer lowercases field names
+    const store2 = new DocumentStore();
+    const opened2 = store2.openText(text, file);
+    const t2 = store2
+      .listPublications({ documentId: opened2.documentId, offset: 0, limit: -1 })
+      .rows.find((r) => r.citeKey === 'chen-complex')!;
+    const d2 = store2.getItemDetail({ documentId: opened2.documentId, itemId: t2.id });
+    expect(d2.files.some((f) => f.displayName === 'paper.pdf' && f.field)).toBe(true);
+
+    // remove
+    store.removeAttachment(opened.documentId, target.id, 'Bdsk-File-1');
+    const d3 = store.getItemDetail({ documentId: opened.documentId, itemId: target.id });
+    expect(d3.files.some((f) => f.field === 'Bdsk-File-1')).toBe(false);
+  });
+
   it('throws on unknown documentId / itemId', () => {
     const store = new DocumentStore();
     expect(() => store.listPublications({ documentId: 'nope', offset: 0, limit: 10 })).toThrow();

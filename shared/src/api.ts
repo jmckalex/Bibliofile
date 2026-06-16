@@ -8,6 +8,7 @@
  */
 
 import type {
+  AddAttachmentRequest,
   ApplyEditRequest,
   CloseDocumentRequest,
   ClosedDocument,
@@ -16,6 +17,7 @@ import type {
   FormatCitationResult,
   GetItemDetailRequest,
   ItemDetail,
+  RemoveAttachmentRequest,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -69,6 +71,12 @@ export interface BibDeskApi {
 
   /** Format one item as a CSL-styled citation (HTML). */
   formatCitation(request: FormatCitationRequest): Promise<FormatCitationResult>;
+
+  /** Add attachment(s) to an item (opens a file picker in main). */
+  addAttachment(request: AddAttachmentRequest): Promise<EditResult>;
+
+  /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
+  removeAttachment(request: RemoveAttachmentRequest): Promise<EditResult>;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

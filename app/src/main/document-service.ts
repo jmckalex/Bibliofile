@@ -21,9 +21,17 @@
  */
 
 import { copyFileSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { basename, resolve } from 'node:path';
+import { basename, dirname, isAbsolute, relative, resolve } from 'node:path';
 
-import { parse, serialize, type BibLibrary, type GroupRecord } from '@bibdesk/bibtex';
+import {
+  parse,
+  serialize,
+  bdskFileKey,
+  encodeBdskFile,
+  relativePathOf,
+  type BibLibrary,
+  type GroupRecord,
+} from '@bibdesk/bibtex';
 import {
   type BibItem,
   type PublicationStore,
@@ -427,26 +435,52 @@ function fieldDisplayValue(name: string, raw: string): string {
   return toDisplay(raw);
 }
 
+/** Matches a managed `Bdsk-File-N` attachment field. */
+const BDSK_FILE_RE = /^bdsk-file-\d+$/i;
+
+/** Next free `Bdsk-File-N` index for an item (1-based, after the current max). */
+function nextBdskFileIndex(item: BibItem): number {
+  let max = 0;
+  for (const name of item.fieldNames()) {
+    const m = /^bdsk-file-(\d+)$/i.exec(name);
+    if (m) max = Math.max(max, parseInt(m[1]!, 10));
+  }
+  return max + 1;
+}
+
 /**
- * Derive the attachment list for an item. Prefers the model's `files` array;
- * since the bibtex parser does not populate it in this read-only path, we also
- * synthesize attachments from the well-known URL/file fields so the detail view
- * is useful. Each maps to `{ kind, displayName (basename), url }`.
+ * Derive the attachment list for an item: managed `Bdsk-File-N` blobs (resolved
+ * to absolute paths relative to the document, removable), plus attachments
+ * synthesised from `Local-Url`/`Url`/`Doi` fields and any model-level linked
+ * files. Each maps to `{ kind, displayName, url, field? }`.
  */
-export function itemFiles(item: BibItem): ItemFile[] {
+export function itemFiles(item: BibItem, lib: BibLibrary, docPath: string): ItemFile[] {
   const out: ItemFile[] = [];
   const seen = new Set<string>();
+  const baseDir = docPath ? dirname(docPath) : '';
 
-  const push = (kind: 'file' | 'url', url: string): void => {
+  const push = (kind: 'file' | 'url', url: string, field?: string): void => {
     if (!url || seen.has(url)) return;
     seen.add(url);
-    out.push({ kind, displayName: displayNameForUrl(kind, url), url });
+    out.push(field !== undefined
+      ? { kind, displayName: displayNameForUrl(kind, url), url, field }
+      : { kind, displayName: displayNameForUrl(kind, url), url });
   };
 
-  // 1) model-level linked files (kind already known)
+  // 1) managed Bdsk-File-N attachments (relative path resolved against the doc)
+  for (const name of item.fieldNames()) {
+    if (!BDSK_FILE_RE.test(name)) continue;
+    const plist = lib.bdskFiles.get(bdskFileKey(item.id, name));
+    const rel = plist ? relativePathOf(plist) : undefined;
+    if (!rel) continue;
+    const abs = baseDir && !isAbsolute(rel) ? resolve(baseDir, rel) : rel;
+    push('file', abs, name);
+  }
+
+  // 2) model-level linked files
   for (const f of item.files) push(f.kind, f.url);
 
-  // 2) synthesize from URL/file fields (the common case for parsed .bib files)
+  // 3) synthesise from URL/file fields
   for (const name of item.fieldNames()) {
     const lower = name.toLowerCase();
     const value = item.stringValueOfField(name, false).trim();
@@ -477,13 +511,15 @@ function displayNameForUrl(kind: 'file' | 'url', url: string): string {
  * de-TeXified display values; the attachment list; and a small, safe
  * typographic `previewHtml` card.
  */
-export function toItemDetail(item: BibItem): ItemDetail {
+export function toItemDetail(item: BibItem, files: ItemFile[]): ItemDetail {
   const fields: ItemField[] = [];
   const emitted = new Set<string>();
 
-  // Local fields, in stored order.
+  // Local fields, in stored order — hiding the managed Bdsk-File-N blobs, which
+  // are shown (and edited) as attachments rather than as raw base64 fields.
   for (const name of item.fieldNames()) {
     emitted.add(name.toLowerCase());
+    if (BDSK_FILE_RE.test(name)) continue;
     fields.push({
       name,
       value: fieldDisplayValue(name, item.stringValueOfField(name, false)),
@@ -515,8 +551,8 @@ export function toItemDetail(item: BibItem): ItemDetail {
     citeKey: item.citeKey,
     type: item.type,
     fields,
-    files: itemFiles(item),
-    previewHtml: buildPreviewHtml(item),
+    files,
+    previewHtml: buildPreviewHtml(item, files.length),
   };
 }
 
@@ -535,7 +571,7 @@ function splitKeywords(raw: string): string[] {
  * math spans intact for the renderer's MathJax pass. All interpolated text is
  * de-TeXified (math-aware) and HTML-escaped. Returns undefined when empty.
  */
-export function buildPreviewHtml(item: BibItem): string | undefined {
+export function buildPreviewHtml(item: BibItem, fileCount: number): string | undefined {
   const title = toDisplay(item.stringValueOfField(FieldNames.Title, true));
   const authors = formatAuthorsDisplay(item);
   const journal = toDisplay(
@@ -548,7 +584,6 @@ export function buildPreviewHtml(item: BibItem): string | undefined {
   const url = item.stringValueOfField('Url', true).trim();
   const abstract = toDisplay(item.stringValueOfField('Abstract', true));
   const keywords = splitKeywords(item.stringValueOfField('Keywords', true));
-  const fileCount = itemFiles(item).length;
 
   if (!title && !authors && !journal && !year) return undefined;
 
@@ -867,7 +902,36 @@ export class DocumentStore {
     const doc = this.requireDoc(req.documentId);
     const item = doc.itemsById.get(req.itemId);
     if (!item) throw new Error(`Unknown itemId: ${req.itemId}`);
-    return toItemDetail(item);
+    return this.detailFor(doc, item);
+  }
+
+  /**
+   * Attach one or more local files to an item as managed `Bdsk-File-N` blobs
+   * (BibDesk-compatible; stored as a `{ relativePath }` binary-plist relative to
+   * the document). Marks the document dirty. Returns the refreshed detail.
+   */
+  addAttachments(documentId: string, itemId: string, absPaths: readonly string[]): EditResult {
+    const doc = this.requireDoc(documentId);
+    const item = this.itemOf(doc, itemId);
+    const baseDir = doc.path ? dirname(doc.path) : '';
+    let n = nextBdskFileIndex(item);
+    for (const abs of absPaths) {
+      const rel = baseDir ? relative(baseDir, abs) : abs;
+      const field = `Bdsk-File-${n++}`;
+      const plist = { relativePath: rel };
+      item.setField(field, encodeBdskFile(plist));
+      doc.library.bdskFiles.set(bdskFileKey(item.id, field), plist);
+    }
+    return this.dirtyDetail(doc, item);
+  }
+
+  /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
+  removeAttachment(documentId: string, itemId: string, field: string): EditResult {
+    const doc = this.requireDoc(documentId);
+    const item = this.itemOf(doc, itemId);
+    item.removeField(field);
+    doc.library.bdskFiles.delete(bdskFileKey(item.id, field));
+    return this.dirtyDetail(doc, item);
   }
 
   /** True if the document has unsaved edits. */
@@ -893,7 +957,7 @@ export class DocumentStore {
     if (rawValue === '') item.removeField(fieldName);
     else item.setField(fieldName, rawValue);
     doc.dirty = true;
-    return toItemDetail(item);
+    return this.detailFor(doc, item);
   }
 
   /**
@@ -1077,10 +1141,15 @@ export class DocumentStore {
     return item;
   }
 
+  /** Document-aware item detail (resolves managed attachments via the library). */
+  private detailFor(doc: OpenDoc, item: BibItem): ItemDetail {
+    return toItemDetail(item, itemFiles(item, doc.library, doc.path));
+  }
+
   /** Mark dirty and return the affected item's refreshed detail. */
   private dirtyDetail(doc: OpenDoc, item: BibItem): EditResult {
     doc.dirty = true;
-    return { dirty: true, affectedItemId: item.id, detail: toItemDetail(item) };
+    return { dirty: true, affectedItemId: item.id, detail: this.detailFor(doc, item) };
   }
 
   /** The file-level (`@string`) macro tier (parent of the document tier). */
