@@ -349,6 +349,15 @@ TeXinfo-quality Help manual** (`docs/help/00–08`) + **Help menu** (in-app manu
 **Preferences pane** (theme, default CSL style, cite-key format, default entry type, field-type
 sets → TypeManager). `pnpm test` = 1286 green; `pnpm -r build` clean. Screenshots in `docs/`.
 
+## Decisions (user, 2026-06-16)
+
+- **Next: PDF preview** — in-app PDF.js viewer for attachments (pdfjs-dist already a dep).
+- **Template engine = Handlebars** (when templates land): helpers/conditionals over plain Mustache;
+  emit HTML; editable preview + export templates; not BibDesk-`.template`-compatible.
+- **Scripting = plugin API first, then a Claude assistant.** The JS plugin API over the data model
+  doubles as the agent's toolset. The assistant uses the **latest Claude** model with the user's
+  own **Anthropic API key stored via Electron `safeStorage`**; mutations require user approval.
+
 ## Design topics raised (awaiting direction) — 2026-06-16
 
 - **PDF preview:** not yet built. We open attachments externally + extract PDF text (pdfjs-dist)
