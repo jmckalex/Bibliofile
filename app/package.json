@@ -24,6 +24,7 @@
     "@citation-js/plugin-csl": "^0.7.22",
     "@tanstack/react-table": "^8.20.5",
     "@tanstack/react-virtual": "^3.10.9",
+    "better-sqlite3": "^11.10.0",
     "fast-xml-parser": "^4.5.6",
     "marked": "^14.1.4",
     "mathjax": "^3.2.2",

@@ -8,11 +8,9 @@ packages:
 # ignored-build-script warning otherwise returns exit 1 and blocks `pnpm -r test`.
 verifyDepsBeforeRun: false
 
-# Approve native build scripts. esbuild's native binary is already present via its
-# platform package; electron downloads its runtime binary.
-allowBuilds:
-  electron: true
-  esbuild: true
+# Approve native build scripts (esbuild platform binary, electron runtime,
+# better-sqlite3 native addon for FTS5).
 onlyBuiltDependencies:
   - esbuild
   - electron
+  - better-sqlite3
