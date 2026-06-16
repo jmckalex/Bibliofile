@@ -22,7 +22,7 @@ Times are local. Newest entries appended at the bottom of each section.
 | C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | ✅ done (94 tests) |
 | C6 | `core/groups` — taxonomy + smart-group predicate evaluator | ✅ done (106 tests) |
 | A1 | `shared` — IPC contract + types | ✅ done (12 tests) |
-| A2 | `app/src/main` — Electron main, open .bib, read API over IPC | ⏳ pending |
+| A2 | `app/src/main` — Electron main, open .bib, read API over IPC | 🔄 running |
 | A3 | `app/src/renderer` — React + Zustand + TanStack viewer | ⏳ pending |
 
 Dependency graph: B1 → {C1, C2, C7, T1} → C3 → {C4, C5, C6} → {A1 → A2 → A3}.
