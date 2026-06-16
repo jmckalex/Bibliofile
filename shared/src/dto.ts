@@ -385,4 +385,8 @@ export interface ItemDetail {
   readonly files: readonly ItemFile[];
   /** Optional pre-rendered HTML for the preview card. */
   readonly previewHtml?: string;
+  /** Raw markdown notes (the `Annote` field) for the notes editor. */
+  readonly notesRaw: string;
+  /** Rendered notes HTML (markdown + `[[citeKey]]` cross-references). */
+  readonly notesHtml: string;
 }

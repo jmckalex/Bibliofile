@@ -186,6 +186,73 @@ function CitationBlock({ detail }: { detail: ItemDetail }) {
   );
 }
 
+/** Notes: rendered markdown (with [[citeKey]] cross-refs + iframes) + an editor. */
+function NotesSection({ detail }: { detail: ItemDetail }) {
+  const edit = useStore((s) => s.edit);
+  const selectByCiteKey = useStore((s) => s.selectByCiteKey);
+  const [editing, setEditing] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!editing && ref.current && detail.notesHtml.includes('$')) void typesetMath(ref.current);
+  }, [editing, detail.notesHtml]);
+
+  const onClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const cite = (e.target as HTMLElement).closest<HTMLElement>('[data-cite]');
+      if (cite?.dataset.cite) {
+        e.preventDefault();
+        void selectByCiteKey(cite.dataset.cite);
+        return;
+      }
+      const link = (e.target as HTMLElement).closest<HTMLElement>('[data-open-url]');
+      if (link?.dataset.openUrl) {
+        e.preventDefault();
+        openExternal(link.dataset.openUrl, 'url');
+      }
+    },
+    [selectByCiteKey],
+  );
+
+  return (
+    <>
+      <div className="bd-detail__section bd-detail__section--withaction">
+        <span>Notes</span>
+        <button
+          type="button"
+          className="bd-btn bd-btn--small"
+          onClick={() => setEditing((v) => !v)}
+        >
+          {editing ? 'Done' : 'Edit'}
+        </button>
+      </div>
+      {editing ? (
+        <textarea
+          key={`${detail.id}:notes`}
+          className="bd-input bd-input--area bd-notes__editor"
+          defaultValue={detail.notesRaw}
+          rows={6}
+          placeholder="Markdown notes. Link entries with [[citeKey]]. Inline <iframe> embeds allowed."
+          onBlur={(e) => {
+            if (e.target.value !== detail.notesRaw) {
+              void edit({ kind: 'setField', itemId: detail.id, field: 'Annote', value: e.target.value });
+            }
+          }}
+        />
+      ) : detail.notesHtml ? (
+        <div
+          className="bd-notes"
+          ref={ref}
+          onClick={onClick}
+          dangerouslySetInnerHTML={{ __html: detail.notesHtml }}
+        />
+      ) : (
+        <div className="bd-notes__empty">No notes. Click Edit to add markdown notes.</div>
+      )}
+    </>
+  );
+}
+
 function Identity({ detail }: { detail: ItemDetail }) {
   const edit = useStore((s) => s.edit);
   const types = ENTRY_TYPES.includes(detail.type) ? ENTRY_TYPES : [detail.type, ...ENTRY_TYPES];
@@ -316,6 +383,7 @@ export function DetailPane() {
       <CitationBlock detail={detail} />
       <Identity detail={detail} />
       <Fields detail={detail} />
+      <NotesSection detail={detail} />
       <Attachments detail={detail} />
     </div>
   );

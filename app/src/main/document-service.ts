@@ -45,7 +45,7 @@ import {
 import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT } from '@bibdesk/formats';
 import type { Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
-import { renderMarkdown } from './markdown.js';
+import { renderMarkdown, renderNotes } from './markdown.js';
 import {
   Condition,
   Filter,
@@ -512,15 +512,19 @@ function displayNameForUrl(kind: 'file' | 'url', url: string): string {
  * de-TeXified display values; the attachment list; and a small, safe
  * typographic `previewHtml` card.
  */
-export function toItemDetail(item: BibItem, files: ItemFile[]): ItemDetail {
+export function toItemDetail(
+  item: BibItem,
+  files: ItemFile[],
+  citeKeyExists: (key: string) => boolean,
+): ItemDetail {
   const fields: ItemField[] = [];
   const emitted = new Set<string>();
 
-  // Local fields, in stored order — hiding the managed Bdsk-File-N blobs, which
-  // are shown (and edited) as attachments rather than as raw base64 fields.
+  // Local fields, in stored order — hiding the managed Bdsk-File-N blobs (shown
+  // as attachments) and Annote (shown + edited in the Notes section).
   for (const name of item.fieldNames()) {
     emitted.add(name.toLowerCase());
-    if (BDSK_FILE_RE.test(name)) continue;
+    if (BDSK_FILE_RE.test(name) || name.toLowerCase() === 'annote') continue;
     fields.push({
       name,
       value: fieldDisplayValue(name, item.stringValueOfField(name, false)),
@@ -547,6 +551,7 @@ export function toItemDetail(item: BibItem, files: ItemFile[]): ItemDetail {
     }
   }
 
+  const notesRaw = item.stringValueOfField('Annote', false);
   return {
     id: item.id,
     citeKey: item.citeKey,
@@ -554,6 +559,8 @@ export function toItemDetail(item: BibItem, files: ItemFile[]): ItemDetail {
     fields,
     files,
     previewHtml: buildPreviewHtml(item, files.length),
+    notesRaw,
+    notesHtml: renderNotes(notesRaw, citeKeyExists),
   };
 }
 
@@ -1167,9 +1174,12 @@ export class DocumentStore {
     return item;
   }
 
-  /** Document-aware item detail (resolves managed attachments via the library). */
+  /** Document-aware item detail (resolves managed attachments + notes cross-refs). */
   private detailFor(doc: OpenDoc, item: BibItem): ItemDetail {
-    return toItemDetail(item, itemFiles(item, doc.library, doc.path));
+    const keys = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
+    return toItemDetail(item, itemFiles(item, doc.library, doc.path), (k) =>
+      keys.has(k.toLowerCase()),
+    );
   }
 
   /** Mark dirty and return the affected item's refreshed detail. */

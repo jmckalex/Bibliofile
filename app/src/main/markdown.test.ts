@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderMarkdown } from './markdown.js';
+import { renderMarkdown, renderNotes } from './markdown.js';
 
 describe('renderMarkdown', () => {
   it('renders basic markdown', () => {
@@ -37,5 +37,40 @@ describe('renderMarkdown', () => {
   it('returns empty for blank input', () => {
     expect(renderMarkdown('')).toBe('');
     expect(renderMarkdown('   ')).toBe('');
+  });
+
+  it('does NOT allow iframes in abstracts (strict)', () => {
+    expect(renderMarkdown('<iframe src="https://x.org"></iframe>')).not.toContain('<iframe');
+  });
+});
+
+describe('renderNotes', () => {
+  it('turns [[citeKey]] into data-cite links, flagging unknown keys', () => {
+    const known = (k: string) => k === 'smith2020';
+    const h = renderNotes('See [[smith2020]] and also [[ghost1999]].', known);
+    expect(h).toContain('data-cite="smith2020"');
+    expect(h).toContain('data-cite="ghost1999"');
+    expect(h).toContain('bd-citelink--missing'); // ghost1999 is unknown
+    // smith2020 link is not flagged missing
+    expect(h).toMatch(/class="bd-citelink"[^>]*data-cite="smith2020"/);
+  });
+
+  it('allows inlined http/https iframes', () => {
+    const h = renderNotes('<iframe src="https://example.org/embed" width="560"></iframe>', () => true);
+    expect(h).toContain('<iframe');
+    expect(h).toContain('src="https://example.org/embed"');
+    expect(h).toContain('width="560"');
+  });
+
+  it('strips dangerous iframe src schemes', () => {
+    const h = renderNotes('<iframe src="javascript:alert(1)"></iframe>', () => true);
+    expect(h).not.toContain('javascript:');
+  });
+
+  it('still protects math + renders markdown in notes', () => {
+    const h = renderNotes('**bold** with $x_1$ and [[k]]', () => true);
+    expect(h).toContain('<strong>bold</strong>');
+    expect(h).toContain('$x_1$');
+    expect(h).toContain('data-cite="k"');
   });
 });

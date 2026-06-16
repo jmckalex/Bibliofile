@@ -538,6 +538,57 @@ button.bd-chip {
   text-decoration: underline dotted;
 }
 
+/* ---- Notes (markdown + cross-refs + embeds) ---------------------------- */
+
+.bd-notes {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--bd-text);
+}
+
+.bd-notes :where(p) {
+  margin: 0 0 0.5em;
+}
+
+.bd-notes iframe {
+  max-width: 100%;
+  border: 1px solid var(--bd-border);
+  border-radius: var(--bd-radius);
+}
+
+.bd-notes__editor {
+  font-family: var(--bd-mono);
+  line-height: 1.45;
+}
+
+.bd-notes__empty {
+  color: var(--bd-text-faint);
+  font-size: var(--bd-fs-sm);
+  padding: 2px 0;
+}
+
+.bd-citelink {
+  color: var(--bd-accent);
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--bd-accent) 40%, transparent);
+}
+
+.bd-citelink::before {
+  content: '↪ ';
+  opacity: 0.6;
+}
+
+.bd-citelink:hover {
+  text-decoration: none;
+  border-bottom-color: var(--bd-accent);
+}
+
+.bd-citelink--missing {
+  color: var(--bd-warning);
+  border-bottom-style: dotted;
+}
+
 .bd-card__citekey {
   font-family: var(--bd-mono);
   font-size: var(--bd-fs-sm);

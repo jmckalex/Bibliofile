@@ -96,6 +96,8 @@ export interface ViewerState {
   selectGroup: (groupId: string) => Promise<void>;
   /** Select a row and load its full detail. */
   selectItem: (itemId: string) => Promise<void>;
+  /** Select an entry by cite key (used by notes `[[citeKey]]` cross-references). */
+  selectByCiteKey: (citeKey: string) => Promise<void>;
   /** Toggle sort on a column key (asc⇄desc) and reload. */
   setSort: (key: string) => Promise<void>;
   /** Set the live search query (client-side; no reload). */
@@ -209,6 +211,19 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         set({ detailLoading: false, error: errorMessage(err) });
       }
+    },
+
+    selectByCiteKey: async (citeKey) => {
+      const lc = citeKey.toLowerCase();
+      let row = get().rows.find((r) => r.citeKey.toLowerCase() === lc);
+      if (!row) {
+        // not in the current group view → switch to the full library, then retry
+        const lib = get().groups.find((g) => g.kind === 'library');
+        set({ selectedGroupId: lib?.id });
+        await get().loadPublications();
+        row = get().rows.find((r) => r.citeKey.toLowerCase() === lc);
+      }
+      if (row) await get().selectItem(row.id);
     },
 
     setSort: async (key) => {

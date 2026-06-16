@@ -92,6 +92,8 @@ const sampleDetail: ItemDetail = {
     { kind: 'url', displayName: 'doi.org', url: 'https://doi.org/10.1093/comjnl/27.2.97' },
   ],
   previewHtml: '<div class="cite">Knuth (1984)</div>',
+  notesRaw: '',
+  notesHtml: '',
 };
 
 const sampleOpened: OpenedDocument = {

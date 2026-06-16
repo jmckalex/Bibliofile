@@ -47,6 +47,8 @@ const DETAIL: ItemDetail = {
   fields: [{ name: 'Title', value: 'Beta', rawValue: 'Beta', isInherited: false }],
   files: [],
   previewHtml: '<p>Beta</p>',
+  notesRaw: '',
+  notesHtml: '',
 };
 
 /** Records the requests it receives so tests can assert on them. */
