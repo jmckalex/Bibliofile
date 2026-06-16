@@ -128,6 +128,57 @@ describe('document-service: BD test.bib', () => {
     expect(page.rows).toHaveLength(2);
   });
 
+  it('builds Author category groups and filters by them', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    const { groups } = store.listGroups({ documentId });
+
+    const authorsSection = groups.find((g) => g.kind === 'category' && g.name === 'Authors');
+    expect(authorsSection).toBeDefined();
+    const authorChildren = groups.filter((g) => g.parentId === authorsSection!.id);
+    expect(authorChildren.length).toBeGreaterThan(0);
+    expect(authorChildren.every((g) => g.kind === 'author')).toBe(true);
+
+    // selecting an author group filters the table to exactly that author's items
+    const some = authorChildren[0]!;
+    const { rows, total } = store.listPublications({
+      documentId,
+      offset: 0,
+      limit: -1,
+      groupId: some.id,
+    });
+    expect(total).toBe(some.count);
+    expect(rows.length).toBe(some.count);
+    // BD test.bib has no Keywords, so there is no Keywords section
+    expect(groups.find((g) => g.name === 'Keywords')).toBeUndefined();
+  });
+
+  it('builds Keyword category groups with correct membership', () => {
+    const KW = [
+      '@article{a, Author = {A. One}, Keywords = {alpha, beta}, Title = {T1}, Year = {2000}}',
+      '@article{b, Author = {B. Two}, Keywords = {beta, gamma}, Title = {T2}, Year = {2001}}',
+      '',
+    ].join('\n');
+    const store = new DocumentStore();
+    const { documentId } = store.openText(KW, '/tmp/kw.bib');
+    const { groups } = store.listGroups({ documentId });
+
+    const kwSection = groups.find((g) => g.kind === 'category' && g.name === 'Keywords');
+    expect(kwSection).toBeDefined();
+    const children = groups.filter((g) => g.parentId === kwSection!.id);
+    expect(children.map((g) => g.name).sort()).toEqual(['alpha', 'beta', 'gamma']);
+
+    const beta = children.find((g) => g.name === 'beta')!;
+    expect(beta.count).toBe(2); // beta is shared by both items
+    const { total } = store.listPublications({
+      documentId,
+      offset: 0,
+      limit: -1,
+      groupId: beta.id,
+    });
+    expect(total).toBe(2);
+  });
+
   it('throws on unknown documentId / itemId', () => {
     const store = new DocumentStore();
     expect(() => store.listPublications({ documentId: 'nope', offset: 0, limit: 10 })).toThrow();

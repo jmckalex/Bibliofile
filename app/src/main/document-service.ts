@@ -567,6 +567,84 @@ export function buildPreviewHtml(item: BibItem): string | undefined {
 }
 
 // ---------------------------------------------------------------------------
+// Category groups (author / keyword) — computed from the library
+// ---------------------------------------------------------------------------
+
+/** Built category groups: sidebar nodes + a groupId → member item-id set map. */
+interface CategoryBuild {
+  nodes: GroupNode[];
+  members: Map<string, Set<string>>;
+}
+
+/**
+ * Build the dynamic **Authors** and **Keywords** category sections (BibDesk's
+ * "category groups"). Each section is a parent {@link GroupNode} with one child
+ * per distinct value; membership is precomputed into `members` (groupId → item
+ * ids) so {@link DocumentStore.listPublications} filters by O(1) set lookup. Ids
+ * are opaque (`<doc>:cat:authors:<n>`), so author/keyword text never has to be
+ * round-tripped through an id.
+ */
+function buildCategoryGroups(library: BibLibrary, documentId: string): CategoryBuild {
+  const nodes: GroupNode[] = [];
+  const members = new Map<string, Set<string>>();
+
+  const addSection = (
+    sectionId: string,
+    sectionName: string,
+    childKind: GroupKind,
+    valueMap: Map<string, { display: string; ids: Set<string> }>,
+  ): void => {
+    if (valueMap.size === 0) return;
+    const allIds = new Set<string>();
+    const children: GroupNode[] = [];
+    let idx = 0;
+    const sorted = [...valueMap.values()].sort((a, b) => a.display.localeCompare(b.display));
+    for (const entry of sorted) {
+      const id = `${sectionId}:${idx++}`;
+      members.set(id, entry.ids);
+      for (const i of entry.ids) allIds.add(i);
+      children.push({ id, kind: childKind, name: entry.display, count: entry.ids.size, parentId: sectionId });
+    }
+    members.set(sectionId, allIds);
+    nodes.push({ id: sectionId, kind: 'category', name: sectionName, count: allIds.size });
+    nodes.push(...children);
+  };
+
+  // Authors (keyed by normalized name; labelled with the display name)
+  const authorMap = new Map<string, { display: string; ids: Set<string> }>();
+  for (const item of library.items) {
+    for (const a of item.authors()) {
+      const key = (a.normalizedName || a.displayName || '').trim();
+      if (!key) continue;
+      let e = authorMap.get(key);
+      if (!e) {
+        e = { display: a.displayName || a.normalizedName || key, ids: new Set() };
+        authorMap.set(key, e);
+      }
+      e.ids.add(item.id);
+    }
+  }
+  addSection(`${documentId}:cat:authors`, 'Authors', 'author', authorMap);
+
+  // Keywords (case-insensitive key; first-seen casing as the label)
+  const kwMap = new Map<string, { display: string; ids: Set<string> }>();
+  for (const item of library.items) {
+    for (const kw of splitKeywords(item.stringValueOfField('Keywords', true))) {
+      const key = kw.toLowerCase();
+      let e = kwMap.get(key);
+      if (!e) {
+        e = { display: kw, ids: new Set() };
+        kwMap.set(key, e);
+      }
+      e.ids.add(item.id);
+    }
+  }
+  addSection(`${documentId}:cat:keywords`, 'Keywords', 'category', kwMap);
+
+  return { nodes, members };
+}
+
+// ---------------------------------------------------------------------------
 // DocumentStore — open documents keyed by documentId
 // ---------------------------------------------------------------------------
 
@@ -577,6 +655,10 @@ interface OpenDoc {
   readonly library: BibLibrary;
   /** Typed membership groups (library + parsed static/smart). */
   readonly groups: Group[];
+  /** Dynamic author/keyword category sidebar nodes. */
+  readonly categoryNodes: GroupNode[];
+  /** groupId → member item-id set, for both category sections and their children. */
+  readonly categoryMembers: Map<string, Set<string>>;
   /** id -> BibItem index for O(1) detail lookups. */
   readonly itemsById: Map<string, BibItem>;
 }
@@ -604,11 +686,14 @@ export class DocumentStore {
     const { opened, library } = result;
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
+    const cat = buildCategoryGroups(library, opened.documentId);
     this.docs.set(opened.documentId, {
       documentId: opened.documentId,
       path: opened.path,
       library,
       groups: groupsFromLibrary(library),
+      categoryNodes: cat.nodes,
+      categoryMembers: cat.members,
       itemsById,
     });
     return opened;
@@ -637,8 +722,12 @@ export class DocumentStore {
     // 1) membership filter
     let items: readonly BibItem[] = doc.library.items;
     if (req.groupId && req.groupId !== this.libraryGroupId(doc)) {
+      const categoryMembers = doc.categoryMembers.get(req.groupId);
       const group = doc.groups.find((g) => g.id === req.groupId);
-      if (group) {
+      if (categoryMembers) {
+        // author/keyword category group: precomputed member set
+        items = items.filter((it) => categoryMembers.has(it.id));
+      } else if (group) {
         items = items.filter((it) => group.containsItem(asEvaluable(it)));
       } else {
         items = []; // unknown/url/script group => no members in this session
@@ -698,6 +787,10 @@ export class DocumentStore {
         count,
       });
     }
+
+    // Dynamic Author / Keyword category sections.
+    groups.push(...doc.categoryNodes);
+
     return { groups };
   }
 
