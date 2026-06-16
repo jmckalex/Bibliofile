@@ -215,3 +215,38 @@ Core is done. Build the viewer in the `app` package:
   Authors, Title, Year), groups sidebar (read-only), selection → detail panel + preview card.
 - Orchestrator wires electron-vite and runs `dev` once to smoke-test loading
   `/Users/jalex/Source/BibDesk/bibdesk/Scripting/BD test.bib`. Electron binary is ready.
+
+---
+
+## Extended roadmap (post-viewer) — USER-AUTHORIZED beyond charter scope
+
+On 2026-06-16 the user authorized continuing past "core + read-only viewer": *"If the
+viewer completes before I'm back … plan the next stages and continue building, so that more
+of the app is finished."* So after the viewer lands & smoke-tests, proceed through these
+stages (each a runnable, tested, committed increment; stop-anywhere safe). Locked decisions
+(§1: React+Zustand+TanStack; JS plugin API; custom BibTeX layer) still hold.
+
+- **Stage 5 — Viewer polish → fuller main window (PLAN Phase 2).** Live substring
+  filter/search across fields (debounced); multi-column sort; more/﻿customizable columns;
+  special cell renderers (rating stars, boolean/tri-state, file badge+count, color); groups
+  sidebar actually FILTERS the table (wire `@bibdesk/groups` membership: static/smart/
+  category). Selection + keyboard nav. Status bar (counts). All read-only still. Low risk.
+- **Stage 6 — Beautiful preview pane (PLAN Phase 5 slice; the user's #1 stated goal).**
+  Native HTML/CSS typographic entry cards: title/author/venue hierarchy, DOI/URL chips,
+  attachment badges, entry-type color coding, keyword tags, theming via CSS vars + dark
+  mode, search highlighting. **KaTeX** (MIT) for inline `$…$` math in titles/abstracts.
+  ⚠ **Flag (decision-to-confirm):** formatted CSL bibliographies need a citation processor;
+  **citeproc-js is CPAL/AGPL — NOT permissive** (violates charter §2 MIT/BSD/Apache/ISC).
+  So I will NOT add citeproc-js. Stage 6 ships hand-rolled + KaTeX HTML preview only; the
+  CSL-engine choice (accept AGPL citeproc-js / find a permissive CSL processor / hand-roll a
+  few common styles) is left for the user. No GPL/AGPL/CC-BY-NC deps added.
+- **Stage 7 — Editing + round-trip SAVE (PLAN Phase 3 slice).** Turn read-only → read-write:
+  per-field-type editor form (string/person/date/rating/bool/url/crossref), mutate via the
+  model's change events, **serialize + write `.bib`** (the serializer already round-trips),
+  cite-key generation via `@bibdesk/formats`. ⚠ Save exercises the **C4↔C6 group-escaping
+  seam** — reconcile it then (single owner of escaping). Autosave/undo deferred unless time.
+- **Stage 8+ (if time) — local FTS search (Phase 4) / export (Phase 5) / file-attachment
+  open+reveal (Phase 6).** Pick by remaining time; FTS (better-sqlite3 FTS5, MIT) or a
+  pure-JS index (MiniSearch, MIT) both permissive.
+
+Sequencing: 5 → 6 → 7, each committed before the next. Re-evaluate scope vs. time after each.
