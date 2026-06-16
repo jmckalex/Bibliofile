@@ -3,7 +3,9 @@
  * real BibDesk-authored `BD test.bib` fixture and exercises the full open → rows
  * → groups → detail path the IPC handlers expose.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { describe, it, expect } from 'vitest';
@@ -177,6 +179,54 @@ describe('document-service: BD test.bib', () => {
       groupId: beta.id,
     });
     expect(total).toBe(2);
+  });
+
+  it('updateField + serializeDocument round-trips an edit', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    const { rows } = store.listPublications({ documentId, offset: 0, limit: -1 });
+    const target = rows.find((r) => r.citeKey === 'chen-complex')!;
+
+    store.updateField(documentId, target.id, 'Note', 'hello world');
+    expect(store.isDirty(documentId)).toBe(true);
+
+    const text = store.serializeDocument(documentId);
+    expect(text).toContain('hello world');
+
+    // re-parse the serialized text: the edit persists
+    const store2 = new DocumentStore();
+    const { documentId: d2 } = store2.openText(text, FIXTURE);
+    const r2 = store2
+      .listPublications({ documentId: d2, offset: 0, limit: -1 })
+      .rows.find((r) => r.citeKey === 'chen-complex')!;
+    const detail = store2.getItemDetail({ documentId: d2, itemId: r2.id });
+    expect(
+      detail.fields.some((f) => f.name.toLowerCase() === 'note' && f.value === 'hello world'),
+    ).toBe(true);
+  });
+
+  it('saveDocument writes atomically and keeps a .bak of the original', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-save-'));
+    const file = join(dir, 'lib.bib');
+    writeFileSync(file, BIB, 'utf8');
+
+    const store = new DocumentStore();
+    const opened = store.openFile(file);
+    const { rows } = store.listPublications({ documentId: opened.documentId, offset: 0, limit: -1 });
+    store.updateField(opened.documentId, rows[0]!.id, 'Note', 'saved-edit');
+
+    const res = store.saveDocument(opened.documentId);
+    expect(res.path).toBe(file);
+    expect(store.isDirty(opened.documentId)).toBe(false);
+
+    // the file now contains the edit; the .bak holds the un-edited original
+    expect(existsSync(`${file}.bak`)).toBe(true);
+    expect(readFileSync(file, 'utf8')).toContain('saved-edit');
+    expect(readFileSync(`${file}.bak`, 'utf8')).not.toContain('saved-edit');
+
+    // and the saved file re-opens cleanly with the same item count
+    const reopened = new DocumentStore().openFile(file);
+    expect(reopened.itemCount).toBe(3);
   });
 
   it('throws on unknown documentId / itemId', () => {

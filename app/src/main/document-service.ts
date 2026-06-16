@@ -20,10 +20,10 @@
  * {@link openLibraryFromText} reads no files.
  */
 
-import { readFileSync } from 'node:fs';
+import { copyFileSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 
-import { parse, type BibLibrary, type GroupRecord } from '@bibdesk/bibtex';
+import { parse, serialize, type BibLibrary, type GroupRecord } from '@bibdesk/bibtex';
 import {
   type BibItem,
   type PublicationStore,
@@ -657,7 +657,7 @@ function buildCategoryGroups(library: BibLibrary, documentId: string): CategoryB
 /** A single open document held by the {@link DocumentStore}. */
 interface OpenDoc {
   readonly documentId: string;
-  readonly path: string;
+  path: string;
   readonly library: BibLibrary;
   /** Typed membership groups (library + parsed static/smart). */
   readonly groups: Group[];
@@ -667,7 +667,12 @@ interface OpenDoc {
   readonly categoryMembers: Map<string, Set<string>>;
   /** id -> BibItem index for O(1) detail lookups. */
   readonly itemsById: Map<string, BibItem>;
+  /** Unsaved-changes flag, set by edits and cleared on save. */
+  dirty: boolean;
 }
+
+/** Process-unique temp-file suffix counter (avoids Date.now/random). */
+let __tmpSeq = 0;
 
 /**
  * Holds open documents keyed by `documentId` and implements every read the IPC
@@ -701,6 +706,7 @@ export class DocumentStore {
       categoryNodes: cat.nodes,
       categoryMembers: cat.members,
       itemsById,
+      dirty: false,
     });
     return opened;
   }
@@ -806,6 +812,59 @@ export class DocumentStore {
     const item = doc.itemsById.get(req.itemId);
     if (!item) throw new Error(`Unknown itemId: ${req.itemId}`);
     return toItemDetail(item);
+  }
+
+  /** True if the document has unsaved edits. */
+  isDirty(documentId: string): boolean {
+    return this.requireDoc(documentId).dirty;
+  }
+
+  /**
+   * Set (or, when `rawValue` is empty, remove) a field on an item, mark the
+   * document dirty, and return the item's refreshed detail. `rawValue` is the
+   * raw BibTeX field text (not the de-TeXified display form); it is stored as a
+   * literal string value (macro/complex editing comes later).
+   */
+  updateField(
+    documentId: string,
+    itemId: string,
+    fieldName: string,
+    rawValue: string,
+  ): ItemDetail {
+    const doc = this.requireDoc(documentId);
+    const item = doc.itemsById.get(itemId);
+    if (!item) throw new Error(`Unknown itemId: ${itemId}`);
+    if (rawValue === '') item.removeField(fieldName);
+    else item.setField(fieldName, rawValue);
+    doc.dirty = true;
+    return toItemDetail(item);
+  }
+
+  /** Re-serialize the (possibly edited) in-memory library back to BibTeX text. */
+  serializeDocument(documentId: string): string {
+    return serialize(this.requireDoc(documentId).library);
+  }
+
+  /**
+   * Save the document to disk: explicit-save semantics with a backup. Serializes
+   * the in-memory library, copies any existing file to `<path>.bak`, then writes
+   * atomically (temp file in the same dir, then rename over the target). Clears
+   * the dirty flag. `targetPath` overrides the document's own path (Save As).
+   */
+  saveDocument(documentId: string, targetPath?: string): { documentId: string; path: string } {
+    const doc = this.requireDoc(documentId);
+    const path = resolve(targetPath ?? doc.path);
+    const text = serialize(doc.library);
+
+    if (existsSync(path)) copyFileSync(path, `${path}.bak`);
+
+    const tmp = `${path}.tmp.${process.pid}.${__tmpSeq++}`;
+    writeFileSync(tmp, text, 'utf8');
+    renameSync(tmp, path); // atomic on the same filesystem
+
+    doc.path = path;
+    doc.dirty = false;
+    return { documentId, path };
   }
 
   // --- internals -----------------------------------------------------------
