@@ -523,6 +523,21 @@ button.bd-chip {
   margin: 8px 0 0;
 }
 
+.bd-card__abstract :where(p) {
+  margin: 0 0 0.5em;
+}
+
+.bd-mdlink {
+  color: var(--bd-accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.bd-mdlink--missing {
+  color: var(--bd-warning);
+  text-decoration: underline dotted;
+}
+
 .bd-card__citekey {
   font-family: var(--bd-mono);
   font-size: var(--bd-fs-sm);

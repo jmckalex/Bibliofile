@@ -45,6 +45,7 @@ import {
 import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT } from '@bibdesk/formats';
 import type { Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
+import { renderMarkdown } from './markdown.js';
 import {
   Condition,
   Filter,
@@ -582,7 +583,7 @@ export function buildPreviewHtml(item: BibItem, fileCount: number): string | und
   const pages = toDisplay(item.stringValueOfField('Pages', true));
   const doi = item.stringValueOfField('Doi', true).trim();
   const url = item.stringValueOfField('Url', true).trim();
-  const abstract = toDisplay(item.stringValueOfField('Abstract', true));
+  const abstractMd = item.stringValueOfField('Abstract', true); // markdown source
   const keywords = splitKeywords(item.stringValueOfField('Keywords', true));
 
   if (!title && !authors && !journal && !year) return undefined;
@@ -623,7 +624,8 @@ export function buildPreviewHtml(item: BibItem, fileCount: number): string | und
     );
   }
 
-  if (abstract) p.push(`<p class="bd-card__abstract">${escapeHtml(abstract)}</p>`);
+  const abstractHtml = renderMarkdown(abstractMd);
+  if (abstractHtml) p.push(`<div class="bd-card__abstract">${abstractHtml}</div>`);
   p.push(`<p class="bd-card__citekey">${escapeHtml(item.citeKey)}</p>`);
   p.push('</article>');
   return p.join('');
