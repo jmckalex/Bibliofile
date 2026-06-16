@@ -395,6 +395,42 @@ async function exportDocumentAs(format: 'bibtex'): Promise<void> {
   }
 }
 
+/** Columns offered in the View→Columns menu (label per builtin/common key). */
+const COLUMN_MENU: { key: string; label: string }[] = [
+  { key: 'citeKey', label: 'Cite Key' },
+  { key: 'type', label: 'Type' },
+  { key: 'authors', label: 'Authors' },
+  { key: 'title', label: 'Title' },
+  { key: 'year', label: 'Year' },
+  { key: 'keywords', label: 'Keywords' },
+  { key: 'attachments', label: 'Attachments' },
+  { key: 'read', label: 'Read' },
+  { key: 'rating', label: 'Rating' },
+  { key: 'Journal', label: 'Journal' },
+  { key: 'Booktitle', label: 'Booktitle' },
+  { key: 'Publisher', label: 'Publisher' },
+  { key: 'Doi', label: 'DOI' },
+  { key: 'Url', label: 'URL' },
+  { key: 'Month', label: 'Month' },
+];
+
+/** Checkbox items for View→Columns, reflecting the current settings + any extras. */
+function columnMenuItems(): MenuItemConstructorOptions[] {
+  const shown = new Set(getSettings().columns);
+  // Include configured columns not already in the curated list (e.g. custom fields).
+  const known = new Set(COLUMN_MENU.map((c) => c.key));
+  const extra = getSettings()
+    .columns.filter((k) => !known.has(k))
+    .map((k) => ({ key: k, label: k }));
+  return [...COLUMN_MENU, ...extra].map((c) => ({
+    label: c.label,
+    type: 'checkbox' as const,
+    checked: shown.has(c.key),
+    enabled: hasOpenDocument(),
+    click: () => mainWindow?.webContents.send(IpcEvents.menuToggleColumn, c.key),
+  }));
+}
+
 function buildMenu(): void {
   const isMac = process.platform === 'darwin';
   const docEnabled = hasOpenDocument();
@@ -605,6 +641,8 @@ function buildMenu(): void {
   template.push({
     label: 'View',
     submenu: [
+      { label: 'Columns', submenu: columnMenuItems() },
+      { type: 'separator' },
       {
         label: 'Toggle Light / Dark Theme',
         accelerator: 'CmdOrCtrl+Shift+L',
@@ -729,6 +767,7 @@ function registerIpc(): void {
     [IpcChannels.updateSettings]: (req) => {
       const s = updateSettings(req.patch);
       store.setEditConfig({ citeKeyFormat: s.citeKeyFormat, defaultEntryType: s.defaultEntryType });
+      if (req.patch.columns) buildMenu(); // refresh View→Columns checkmarks
       return s;
     },
     [IpcChannels.readAttachment]: (req) => {

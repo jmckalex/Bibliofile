@@ -83,6 +83,8 @@ export const IpcEvents = {
   showPreferences: 'bibdesk:event:showPreferences',
   /** A native-menu item that acts on renderer state (see {@link MenuCommand}). */
   menuCommand: 'bibdesk:event:menuCommand',
+  /** View→Columns toggle: payload is the column key to show/hide. */
+  menuToggleColumn: 'bibdesk:event:menuToggleColumn',
 } as const;
 
 /** Union of all request/response channel-name string-literal values. */

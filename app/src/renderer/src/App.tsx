@@ -371,10 +371,12 @@ export function App() {
         setDuplicatesOpen,
       });
     });
+    const unsubCols = api.onMenuToggleColumn((key) => void getStore().getState().toggleColumn(key));
     return () => {
       unsubOpen();
       unsubPrefs();
       unsubMenu();
+      unsubCols();
     };
   }, [onDocumentOpened]);
 

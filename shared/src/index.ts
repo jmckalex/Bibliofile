@@ -94,6 +94,7 @@ export {
   type FieldTypeSettings,
   type Settings,
   DEFAULT_SETTINGS,
+  BUILTIN_COLUMNS,
   type GetSettingsRequest,
   type UpdateSettingsRequest,
   type ReadAttachmentRequest,

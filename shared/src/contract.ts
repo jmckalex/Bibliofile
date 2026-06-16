@@ -100,6 +100,7 @@ export interface IpcEventMap {
   [IpcEvents.documentClosed]: ClosedDocument;
   [IpcEvents.showPreferences]: null;
   [IpcEvents.menuCommand]: MenuCommand;
+  [IpcEvents.menuToggleColumn]: string;
 }
 
 /** Request payload type for a given request/response channel. */

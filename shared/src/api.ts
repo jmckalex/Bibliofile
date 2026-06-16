@@ -143,6 +143,9 @@ export interface BibDeskApi {
   /** Subscribe to native-menu commands that act on renderer state. Returns unsubscribe. */
   onMenuCommand(listener: (command: MenuCommand) => void): Unsubscribe;
 
+  /** Subscribe to View→Columns toggles (payload = column key). Returns unsubscribe. */
+  onMenuToggleColumn(listener: (key: string) => void): Unsubscribe;
+
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,
    * CLI arg, or macOS `open-file`). Returns an unsubscribe function.

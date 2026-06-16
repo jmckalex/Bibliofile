@@ -42,33 +42,40 @@ function HeaderIcon({ icon, title }: { icon: IconDefinition; title: string }) {
   return <FontAwesomeIcon icon={icon} title={title} aria-label={title} />;
 }
 
-// Mixed accessor (string) + display (icon) columns. TanStack types `columns` as
-// `ColumnDef<TData, any>[]`; the per-column TValue variance means `unknown` would
-// reject the string accessors, so `any` is the sanctioned widening here.
+// TanStack types `columns` as `ColumnDef<TData, any>[]`; mixing string accessors
+// with display columns means the per-column TValue varies, so `any` is the
+// sanctioned widening here.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const columns: ColumnDef<PublicationRow, any>[] = [
-  col.accessor('citeKey', {
+type Col = ColumnDef<PublicationRow, any>;
+
+/** The builtin (non-field) columns, keyed by their settings column id. */
+const BUILTIN_DEFS: Record<string, Col> = {
+  citeKey: col.accessor('citeKey', {
+    id: 'citeKey',
     header: 'Cite Key',
     meta: { width: 160, cellClass: 'bd-td--mono' } satisfies ColMeta,
   }),
-  col.accessor('type', {
+  type: col.accessor('type', {
+    id: 'type',
     header: 'Type',
     meta: { width: 96, cellClass: 'bd-td--type' } satisfies ColMeta,
   }),
-  col.accessor('authorsDisplay', {
+  authors: col.accessor('authorsDisplay', {
+    id: 'authors',
     header: 'Authors',
     meta: { width: 240, grow: true } satisfies ColMeta,
   }),
-  col.accessor('title', {
+  title: col.accessor('title', {
+    id: 'title',
     header: 'Title',
     meta: { width: 360, grow: true } satisfies ColMeta,
   }),
-  col.accessor('year', {
+  year: col.accessor('year', {
+    id: 'year',
     header: 'Year',
     meta: { width: 72, cellClass: 'bd-td--year' } satisfies ColMeta,
   }),
-  // Icon columns: presence/boolean indicators rendered with FontAwesome (free).
-  col.display({
+  keywords: col.display({
     id: 'keywords',
     header: () => <HeaderIcon icon={faKey} title="Keywords" />,
     meta: { width: 34, cellClass: 'bd-td--icon' } satisfies ColMeta,
@@ -77,7 +84,7 @@ const columns: ColumnDef<PublicationRow, any>[] = [
         <FontAwesomeIcon className="bd-icon bd-icon--key" icon={faKey} title="Has keywords" />
       ) : null,
   }),
-  col.display({
+  attachments: col.display({
     id: 'attachments',
     header: () => <HeaderIcon icon={faPaperclip} title="Attachments" />,
     meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
@@ -92,7 +99,7 @@ const columns: ColumnDef<PublicationRow, any>[] = [
       );
     },
   }),
-  col.display({
+  read: col.display({
     id: 'read',
     header: () => <HeaderIcon icon={faSquareCheck} title="Read" />,
     meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
@@ -107,7 +114,31 @@ const columns: ColumnDef<PublicationRow, any>[] = [
       );
     },
   }),
-];
+  rating: col.display({
+    id: 'rating',
+    header: 'Rating',
+    meta: { width: 80, cellClass: 'bd-td--rating' } satisfies ColMeta,
+    cell: ({ row }) => {
+      const n = row.original.rating;
+      return n > 0 ? <span title={`${n}/5`}>{'★'.repeat(n)}</span> : null;
+    },
+  }),
+};
+
+/** Build the ordered TanStack column list from the configured column keys. */
+function buildColumns(keys: readonly string[]): Col[] {
+  return keys.map(
+    (key) =>
+      BUILTIN_DEFS[key] ??
+      // A non-builtin key is a BibTeX field name → text column over row.extra.
+      col.display({
+        id: key,
+        header: key,
+        meta: { width: 160, grow: true } satisfies ColMeta,
+        cell: ({ row }) => row.original.extra?.[key] ?? '',
+      }),
+  );
+}
 
 function flexFor(meta: ColMeta | undefined): string {
   const width = meta?.width ?? 120;
@@ -126,8 +157,10 @@ export function PublicationsTable() {
   const setSort = useStore((s) => s.setSort);
   const loading = useStore((s) => s.loading);
   const citeTemplate = useStore((s) => s.settings.citeCommandTemplate);
+  const columnKeys = useStore((s) => s.settings.columns);
 
   const data = useMemo(() => visibleRows(rows, query, ftsIds), [rows, query, ftsIds]);
+  const columns = useMemo(() => buildColumns(columnKeys), [columnKeys]);
 
   const table = useReactTable({
     data,

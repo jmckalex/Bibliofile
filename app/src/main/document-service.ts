@@ -340,11 +340,11 @@ function attachmentCountOf(item: BibItem): number {
 }
 
 /** Project a {@link BibItem} into a thin {@link PublicationRow}. */
-export function toPublicationRow(item: BibItem): PublicationRow {
+export function toPublicationRow(item: BibItem, extraFields?: readonly string[]): PublicationRow {
   // Rating fields hold a small integer (0–5); clamp defensively for display.
   const ratingRaw = parseInt(item.stringValueOfField('Rating', false).trim(), 10);
   const rating = Number.isFinite(ratingRaw) ? Math.max(0, Math.min(5, ratingRaw)) : 0;
-  return {
+  const row: PublicationRow = {
     id: item.id,
     citeKey: item.citeKey,
     type: item.type, // already lowercased by the model
@@ -356,6 +356,12 @@ export function toPublicationRow(item: BibItem): PublicationRow {
     read: item.triStateValueOfField('Read'),
     rating,
   };
+  if (extraFields && extraFields.length > 0) {
+    const extra: Record<string, string> = {};
+    for (const name of extraFields) extra[name] = toDisplay(item.stringValueOfField(name, true));
+    return { ...row, extra };
+  }
+  return row;
 }
 
 /** Comparator factory: case-insensitive numeric-aware string comparison. */
@@ -395,7 +401,8 @@ function rowSortValue(row: PublicationRow, key: string): string {
     case 'rating':
       return String(row.rating);
     default:
-      return row.citeKey;
+      // An extra-field column sorts by its display value; else fall back to key.
+      return row.extra?.[key] ?? row.citeKey;
   }
 }
 
@@ -942,8 +949,8 @@ export class DocumentStore {
       }
     }
 
-    // 2) project to rows
-    const rows = items.map(toPublicationRow);
+    // 2) project to rows (including any configured extra-field columns)
+    const rows = items.map((it) => toPublicationRow(it, req.extraFields));
 
     // 3) sort (default cite key asc)
     const sortKey = req.sort?.key ?? 'citeKey';

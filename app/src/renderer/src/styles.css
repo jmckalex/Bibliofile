@@ -464,6 +464,48 @@ body {
   border-top: 1px solid var(--bd-border);
 }
 
+/* ---- Columns manager (Preferences) ------------------------------------- */
+
+.bd-cols {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--bd-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bd-cols__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--bd-border);
+}
+
+.bd-cols__row:last-child {
+  border-bottom: 0;
+}
+
+.bd-cols__btns {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.bd-cols__add {
+  display: flex;
+  gap: 8px;
+}
+
+.bd-cols__add .bd-select {
+  flex: 0 0 auto;
+}
+
+.bd-cols__add .bd-input {
+  flex: 1 1 auto;
+}
+
 /* ---- Find Duplicates modal --------------------------------------------- */
 
 .bd-dup__summary {

@@ -161,6 +161,27 @@ describe('document-service: BD test.bib', () => {
     expect(res.warnings.join(' ')).toMatch(/no bibtex entries/i);
   });
 
+  it('listPublications populates extra-field columns (de-TeXified)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Title = {T}, Journal = {J. of {T}ests}, Volume = {12}}',
+      '/tmp/cols.bib',
+    );
+    const res = store.listPublications({
+      documentId,
+      offset: 0,
+      limit: -1,
+      extraFields: ['Journal', 'Volume'],
+    });
+    const row = res.rows[0]!;
+    expect(row.extra).toBeDefined();
+    expect(row.extra!['Journal']).toBe('J. of Tests'); // protective braces stripped
+    expect(row.extra!['Volume']).toBe('12');
+    // Without extraFields, no extra map is attached.
+    const plain = store.listPublications({ documentId, offset: 0, limit: -1 });
+    expect(plain.rows[0]!.extra).toBeUndefined();
+  });
+
   it('exportText: whole library vs a selected subset (BibTeX)', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText(BIB, FIXTURE);

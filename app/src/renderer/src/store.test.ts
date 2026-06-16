@@ -96,6 +96,7 @@ function makeFakeApi() {
     findDuplicates: async () => ({ groups: [], total: 0 }),
     pathForFile: () => '',
     onMenuCommand: (): Unsubscribe => () => {},
+    onMenuToggleColumn: (): Unsubscribe => () => {},
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
     onShowPreferences: (): Unsubscribe => () => {},

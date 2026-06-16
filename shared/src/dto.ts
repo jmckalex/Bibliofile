@@ -201,6 +201,8 @@ export interface ListPublicationsRequest {
   readonly sort?: SortSpec;
   /** When present, restrict rows to members of this group (see {@link GroupNode}). */
   readonly groupId?: string;
+  /** Extra (non-builtin) field names to include in each row's `extra` map. */
+  readonly extraFields?: readonly string[];
 }
 
 /**
@@ -228,8 +230,10 @@ export interface PublicationRow {
   readonly attachmentCount: number;
   /** Tri-state of the `Read` boolean field: 1 on, -1 off, 0 unset (checkbox column). */
   readonly read: -1 | 0 | 1;
-  /** Rating field value 0–5, or 0 when absent (star column; reserved for future use). */
+  /** Rating field value 0–5, or 0 when absent (star column). */
   readonly rating: number;
+  /** Display values for any user-configured extra-field columns (de-TeXified). */
+  readonly extra?: Readonly<Record<string, string>>;
 }
 
 /** Response payload for a publications listing. */
@@ -558,9 +562,28 @@ export interface Settings {
    * `%K` expands to the comma-joined cite key(s); e.g. `\cite{%K}`, `\citep{%K}`.
    */
   readonly citeCommandTemplate: string;
+  /**
+   * Ordered list of table column keys. Builtin keys: `citeKey`, `type`, `authors`,
+   * `title`, `year`, `keywords`, `attachments`, `read`, `rating`. Any other key is
+   * treated as a BibTeX field name and shown as a text column.
+   */
+  readonly columns: readonly string[];
   /** Field-type classification overrides. */
   readonly fieldTypes: FieldTypeSettings;
 }
+
+/** Builtin (non-field) table column keys. */
+export const BUILTIN_COLUMNS = [
+  'citeKey',
+  'type',
+  'authors',
+  'title',
+  'year',
+  'keywords',
+  'attachments',
+  'read',
+  'rating',
+] as const;
 
 /** Factory-default preferences (mirror the bundled BibDesk defaults). */
 export const DEFAULT_SETTINGS: Settings = {
@@ -569,6 +592,7 @@ export const DEFAULT_SETTINGS: Settings = {
   citeKeyFormat: '%a1:%Y%u2',
   defaultEntryType: 'article',
   citeCommandTemplate: '\\cite{%K}',
+  columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],
   fieldTypes: {
     person: ['Author', 'Editor'],
     localFile: ['Local-Url'],

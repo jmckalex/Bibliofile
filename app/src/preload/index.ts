@@ -140,6 +140,11 @@ const api: BibDeskApi = {
     ipcRenderer.on(IpcEvents.menuCommand, handler);
     return () => ipcRenderer.removeListener(IpcEvents.menuCommand, handler);
   },
+  onMenuToggleColumn(listener: (key: string) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, key: string): void => listener(key);
+    ipcRenderer.on(IpcEvents.menuToggleColumn, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.menuToggleColumn, handler);
+  },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);
     ipcRenderer.on(IpcEvents.documentOpened, handler);

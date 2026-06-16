@@ -5,8 +5,112 @@
  * how the model treats person / URL / rating / boolean / citation fields).
  */
 
-import { CITATION_STYLES, type Settings } from '@bibdesk/shared';
+import { useState } from 'react';
+import { CITATION_STYLES, BUILTIN_COLUMNS, type Settings } from '@bibdesk/shared';
 import { useStore } from './store.js';
+
+const COLUMN_LABELS: Record<string, string> = {
+  citeKey: 'Cite Key',
+  type: 'Type',
+  authors: 'Authors',
+  title: 'Title',
+  year: 'Year',
+  keywords: 'Keywords',
+  attachments: 'Attachments',
+  read: 'Read',
+  rating: 'Rating',
+};
+
+/** Column manager: reorder, remove, and add table columns (builtin or field). */
+function ColumnsSection({
+  columns,
+  save,
+}: {
+  columns: readonly string[];
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const [field, setField] = useState('');
+
+  const set = (next: string[]): void => void save({ columns: next });
+  const move = (i: number, d: -1 | 1): void => {
+    const j = i + d;
+    if (j < 0 || j >= columns.length) return;
+    const next = [...columns];
+    [next[i], next[j]] = [next[j]!, next[i]!];
+    set(next);
+  };
+  const remove = (key: string): void => set(columns.filter((c) => c !== key));
+  const add = (key: string): void => {
+    const k = key.trim();
+    if (k && !columns.includes(k)) set([...columns, k]);
+  };
+
+  const availableBuiltins = BUILTIN_COLUMNS.filter((c) => !columns.includes(c));
+
+  return (
+    <section className="bd-prefs__section">
+      <h3>Columns</h3>
+      <ul className="bd-cols">
+        {columns.map((key, i) => (
+          <li className="bd-cols__row" key={key}>
+            <span className="bd-cols__name">{COLUMN_LABELS[key] ?? key}</span>
+            <span className="bd-cols__btns">
+              <button type="button" className="bd-btn bd-btn--small" disabled={i === 0} onClick={() => move(i, -1)} title="Move up">
+                ↑
+              </button>
+              <button
+                type="button"
+                className="bd-btn bd-btn--small"
+                disabled={i === columns.length - 1}
+                onClick={() => move(i, 1)}
+                title="Move down"
+              >
+                ↓
+              </button>
+              <button type="button" className="bd-field__del" onClick={() => remove(key)} title="Remove column">
+                ×
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="bd-cols__add">
+        {availableBuiltins.length > 0 && (
+          <select
+            className="bd-input bd-select"
+            value=""
+            onChange={(e) => {
+              if (e.target.value) add(e.target.value);
+            }}
+          >
+            <option value="">Add column…</option>
+            {availableBuiltins.map((c) => (
+              <option key={c} value={c}>
+                {COLUMN_LABELS[c] ?? c}
+              </option>
+            ))}
+          </select>
+        )}
+        <input
+          className="bd-input"
+          placeholder="Add a field (e.g. Journal)"
+          value={field}
+          onChange={(e) => setField(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              add(field);
+              setField('');
+            }
+          }}
+        />
+      </div>
+      <p className="bd-prefs__hint">
+        Drag-reorder isn’t needed — use ↑/↓. Any BibTeX field name works as a column. The{' '}
+        <strong>View → Columns</strong> menu toggles these too.
+      </p>
+    </section>
+  );
+}
 
 const ENTRY_TYPES = [
   'article', 'book', 'inbook', 'incollection', 'inproceedings', 'conference',
@@ -94,7 +198,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
-            <h3>Citations</h3>
+            <h3>Cite command (TeX)</h3>
             <label className="bd-prefs__row">
               <span>Drag / Copy cite</span>
               <input
@@ -114,6 +218,8 @@ export function Preferences({ onClose }: { onClose: () => void }) {
               <code>\citep&#123;%K&#125;</code>.
             </p>
           </section>
+
+          <ColumnsSection columns={settings.columns} save={save} />
 
           <section className="bd-prefs__section">
             <h3>New entries</h3>

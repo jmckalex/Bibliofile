@@ -25,7 +25,7 @@ import type {
   Settings,
   SortDirection,
 } from '@bibdesk/shared';
-import { DEFAULT_SETTINGS } from '@bibdesk/shared';
+import { DEFAULT_SETTINGS, BUILTIN_COLUMNS } from '@bibdesk/shared';
 
 /** Apply the chosen theme to the document root (`system` follows the OS). */
 export function applyTheme(theme: Settings['theme']): void {
@@ -167,6 +167,8 @@ export interface ViewerState {
   loadSettings: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
+  /** Show/hide one table column key (builtin or field name); persists + reloads. */
+  toggleColumn: (key: string) => Promise<void>;
 }
 
 const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
@@ -234,16 +236,20 @@ export function createStore(api: BibDeskApi) {
     },
 
     loadPublications: async () => {
-      const { documentId, selectedGroupId, sort } = get();
+      const { documentId, selectedGroupId, sort, settings } = get();
       if (!documentId) return;
       set({ loading: true, error: undefined });
       try {
+        const extraFields = settings.columns.filter(
+          (c) => !(BUILTIN_COLUMNS as readonly string[]).includes(c),
+        );
         const res = await api.listPublications({
           documentId,
           offset: 0,
           limit: -1,
           sort,
           ...(selectedGroupId ? { groupId: selectedGroupId } : {}),
+          ...(extraFields.length ? { extraFields } : {}),
         });
         set({ rows: [...res.rows], total: res.total, loading: false });
       } catch (err) {
@@ -470,12 +476,20 @@ export function createStore(api: BibDeskApi) {
         const settings = await api.updateSettings({ patch });
         set({ settings });
         applyTheme(settings.theme);
+        // a column change alters which extra fields each row carries → reload
+        if (patch.columns) await get().loadPublications();
         // re-fetch the open detail so a changed default citation style etc. shows
         const { selectedItemId } = get();
         if (selectedItemId) await get().selectItem(selectedItemId);
       } catch (err) {
         set({ error: errorMessage(err) });
       }
+    },
+
+    toggleColumn: async (key) => {
+      const cols = get().settings.columns;
+      const next = cols.includes(key) ? cols.filter((c) => c !== key) : [...cols, key];
+      await get().saveSettings({ columns: next });
     },
   }));
 }
