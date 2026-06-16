@@ -62,6 +62,33 @@ describe('document-service: BD test.bib', () => {
     expect(toDisplay("{\\'E}cole")).toBe('École');
   });
 
+  it('toDisplay preserves braces INSIDE math spans (for MathJax)', () => {
+    // braces outside math are stripped; braces inside $…$ are kept verbatim
+    expect(toDisplay('the mass $m_{e}$ of {the} electron')).toBe(
+      'the mass $m_{e}$ of the electron',
+    );
+    expect(toDisplay('$\\frac{a}{b}$')).toBe('$\\frac{a}{b}$');
+    // display math $$…$$
+    expect(toDisplay('$$\\sum_{i}^{n} x_i$$ and {protected}')).toBe(
+      '$$\\sum_{i}^{n} x_i$$ and protected',
+    );
+  });
+
+  it('buildPreviewHtml emits a themeable card with semantic classes', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    const { rows } = store.listPublications({ documentId, offset: 0, limit: -1 });
+    const target = rows.find((r) => r.citeKey === 'math.DG/0106179')!;
+    const detail = store.getItemDetail({ documentId, itemId: target.id });
+    const html = detail.previewHtml!;
+    expect(html).toContain('class="bd-card"');
+    expect(html).toContain('data-type="article"');
+    expect(html).toContain('bd-card__title');
+    expect(html).toContain('Higgs fields');
+    expect(html).toContain('bd-chip'); // has a URL and a file attachment
+    expect(html).not.toContain('style='); // themeable via CSS, no inline styles
+  });
+
   it('lists at least the Library group with the full count', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText(BIB, FIXTURE);

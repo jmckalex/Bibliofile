@@ -62,6 +62,9 @@ importers:
       '@tanstack/react-virtual':
         specifier: ^3.10.9
         version: 3.14.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      mathjax:
+        specifier: ^3.2.2
+        version: 3.2.2
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -1229,6 +1232,9 @@ packages:
   matcher@3.0.0:
     resolution: {integrity: sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng==}
     engines: {node: '>=10'}
+
+  mathjax@3.2.2:
+    resolution: {integrity: sha512-Bt+SSVU8eBG27zChVewOicYs7Xsdt40qm4+UpHyX7k0/O9NliPc+x77k1/FEsPsjKPZGJvtRZM1vO+geW0OhGw==}
 
   mimic-response@1.0.1:
     resolution: {integrity: sha512-j5EctnkH7amfV/q5Hgmoal1g2QHFJRraOtmx0JpIqkxhBhI/lJSl1nMpQ45hVarwNETOoWEimndZ4QK0RHxuxQ==}
@@ -2675,6 +2681,8 @@ snapshots:
     dependencies:
       escape-string-regexp: 4.0.0
     optional: true
+
+  mathjax@3.2.2: {}
 
   mimic-response@1.0.1: {}
 

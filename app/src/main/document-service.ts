@@ -356,11 +356,30 @@ function escapeHtml(s: string): string {
  * Remove BibTeX case-protection / grouping braces for DISPLAY, preserving an
  * escaped literal brace (`\{`/`\}`). BibDesk strips these when showing values in
  * the table/preview (e.g. `{C}alabi-{Y}au` → `Calabi-Yau`, `{{Higgs…}}` → `Higgs…`).
+ *
+ * Math-aware: braces INSIDE a `$…$` or `$$…$$` span are left untouched, so TeX
+ * math (`$\frac{a}{b}$`) survives intact for the preview pane's MathJax pass.
  */
 function stripDisplayBraces(s: string): string {
   let out = '';
+  let inMath = false;
   for (let i = 0; i < s.length; i++) {
     const c = s[i]!;
+    if (c === '$') {
+      if (s[i + 1] === '$') {
+        inMath = !inMath;
+        out += '$$';
+        i++;
+        continue;
+      }
+      inMath = !inMath;
+      out += '$';
+      continue;
+    }
+    if (inMath) {
+      out += c;
+      continue;
+    }
     if (c === '\\' && (s[i + 1] === '{' || s[i + 1] === '}')) {
       out += s[i + 1];
       i++;
@@ -479,49 +498,72 @@ export function toItemDetail(item: BibItem): ItemDetail {
   };
 }
 
+/** Split a Keywords/Annote-style field into individual tags (`,`/`;`-separated). */
+function splitKeywords(raw: string): string[] {
+  return raw
+    .split(/[;,]/)
+    .map((k) => toDisplay(k).trim())
+    .filter((k) => k.length > 0);
+}
+
 /**
- * A small, self-contained, safe typographic HTML card for the preview pane —
- * an early taste of the "beautiful views" goal. All interpolated values are
- * de-TeXified and HTML-escaped; styling is inline so the renderer needs no
- * stylesheet to show it. Returns undefined when the item has no displayable
- * content at all.
+ * Semantic, themeable HTML card for the preview pane (the "beautiful views"
+ * goal). Emits CLASS-based markup (styled by the renderer's CSS, so it themes +
+ * supports dark mode) rather than inline styles. Title/abstract keep any `$…$`
+ * math spans intact for the renderer's MathJax pass. All interpolated text is
+ * de-TeXified (math-aware) and HTML-escaped. Returns undefined when empty.
  */
 export function buildPreviewHtml(item: BibItem): string | undefined {
   const title = toDisplay(item.stringValueOfField(FieldNames.Title, true));
   const authors = formatAuthorsDisplay(item);
   const journal = toDisplay(
-    item.stringValueOfField('Journal', true) ||
-      item.stringValueOfField('Booktitle', true),
+    item.stringValueOfField('Journal', true) || item.stringValueOfField('Booktitle', true),
   );
   const year = item.stringValueOfField(FieldNames.Year, true);
+  const volume = item.stringValueOfField('Volume', true);
+  const pages = toDisplay(item.stringValueOfField('Pages', true));
+  const doi = item.stringValueOfField('Doi', true).trim();
+  const url = item.stringValueOfField('Url', true).trim();
+  const abstract = toDisplay(item.stringValueOfField('Abstract', true));
+  const keywords = splitKeywords(item.stringValueOfField('Keywords', true));
+  const fileCount = itemFiles(item).length;
 
   if (!title && !authors && !journal && !year) return undefined;
 
-  const parts: string[] = [];
-  parts.push('<article class="bibdesk-preview" style="font-family:Georgia,\'Times New Roman\',serif;line-height:1.45;color:#1a1a1a;max-width:46rem">');
-  if (title) {
-    parts.push(
-      `<h1 style="font-size:1.35rem;font-weight:600;margin:0 0 .35rem">${escapeHtml(title)}</h1>`,
-    );
-  }
-  if (authors) {
-    parts.push(
-      `<p class="authors" style="font-style:italic;color:#444;margin:0 0 .5rem">${escapeHtml(authors)}</p>`,
-    );
-  }
+  const p: string[] = [];
+  p.push(`<article class="bd-card" data-type="${escapeHtml(item.type)}">`);
+  p.push(`<div class="bd-card__type">${escapeHtml(item.type)}</div>`);
+  if (title) p.push(`<h1 class="bd-card__title">${escapeHtml(title)}</h1>`);
+  if (authors) p.push(`<p class="bd-card__authors">${escapeHtml(authors)}</p>`);
+
   const meta: string[] = [];
-  if (journal) meta.push(`<span class="journal">${escapeHtml(journal)}</span>`);
-  if (year) meta.push(`<span class="year">${escapeHtml(year)}</span>`);
-  if (meta.length) {
-    parts.push(
-      `<p class="meta" style="color:#666;margin:0;font-size:.95rem">${meta.join(' &middot; ')}</p>`,
+  if (journal) meta.push(`<span class="bd-card__journal">${escapeHtml(journal)}</span>`);
+  if (volume) meta.push(`<span>vol.&nbsp;${escapeHtml(volume)}</span>`);
+  if (pages) meta.push(`<span>pp.&nbsp;${escapeHtml(pages)}</span>`);
+  if (year) meta.push(`<span class="bd-card__year">${escapeHtml(year)}</span>`);
+  if (meta.length) p.push(`<p class="bd-card__venue">${meta.join('<span class="bd-card__sep">·</span>')}</p>`);
+
+  const chips: string[] = [];
+  if (doi) chips.push(`<span class="bd-chip bd-chip--doi">DOI ${escapeHtml(doi)}</span>`);
+  if (url) chips.push(`<span class="bd-chip bd-chip--url">URL</span>`);
+  if (fileCount > 0)
+    chips.push(
+      `<span class="bd-chip bd-chip--files">📎 ${fileCount} ${fileCount === 1 ? 'file' : 'files'}</span>`,
+    );
+  if (chips.length) p.push(`<div class="bd-card__chips">${chips.join('')}</div>`);
+
+  if (keywords.length) {
+    p.push(
+      `<div class="bd-card__tags">${keywords
+        .map((k) => `<span class="bd-tag">${escapeHtml(k)}</span>`)
+        .join('')}</div>`,
     );
   }
-  parts.push(
-    `<p class="citekey" style="color:#999;margin:.6rem 0 0;font-family:ui-monospace,Menlo,monospace;font-size:.8rem">${escapeHtml(item.citeKey)} &middot; ${escapeHtml(item.type)}</p>`,
-  );
-  parts.push('</article>');
-  return parts.join('');
+
+  if (abstract) p.push(`<p class="bd-card__abstract">${escapeHtml(abstract)}</p>`);
+  p.push(`<p class="bd-card__citekey">${escapeHtml(item.citeKey)}</p>`);
+  p.push('</article>');
+  return p.join('');
 }
 
 // ---------------------------------------------------------------------------

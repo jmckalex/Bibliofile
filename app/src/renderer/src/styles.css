@@ -38,6 +38,26 @@
   --bd-radius: 6px;
 }
 
+:root[data-theme='dark'] {
+  --bd-bg: #14171c;
+  --bd-surface: #1b1f27;
+  --bd-surface-alt: #232833;
+  --bd-sidebar-bg: #181c23;
+  --bd-header-bg: #1b1f27;
+
+  --bd-text: #e6e9ef;
+  --bd-text-muted: #9aa3b2;
+  --bd-text-faint: #6b7280;
+
+  --bd-border: #2b313c;
+  --bd-border-strong: #3a4150;
+  --bd-accent: #6ea8fe;
+  --bd-accent-soft: #233047;
+  --bd-selected: #2a3a57;
+  --bd-hover: #232833;
+  --bd-warning: #fbbf24;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -333,6 +353,143 @@ body {
 
 .bd-preview :where(p, h1, h2, h3) {
   margin: 0 0 6px;
+}
+
+/* ---- Preview card (the "beautiful views" card) ------------------------- */
+
+.bd-card {
+  --bd-card-accent: var(--bd-accent);
+  font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  line-height: 1.5;
+  border-left: 3px solid var(--bd-card-accent);
+  padding-left: 12px;
+}
+
+/* entry-type accent colours */
+.bd-card[data-type='article'] { --bd-card-accent: #2563eb; }
+.bd-card[data-type='book'] { --bd-card-accent: #7c3aed; }
+.bd-card[data-type='incollection'],
+.bd-card[data-type='inbook'] { --bd-card-accent: #9333ea; }
+.bd-card[data-type='inproceedings'],
+.bd-card[data-type='conference'],
+.bd-card[data-type='proceedings'] { --bd-card-accent: #0891b2; }
+.bd-card[data-type='phdthesis'],
+.bd-card[data-type='mastersthesis'] { --bd-card-accent: #16a34a; }
+.bd-card[data-type='techreport'] { --bd-card-accent: #ca8a04; }
+.bd-card[data-type='misc'],
+.bd-card[data-type='unpublished'] { --bd-card-accent: #6b7280; }
+
+.bd-card__type {
+  display: inline-block;
+  font-family: var(--bd-font);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bd-card-accent);
+  margin-bottom: 4px;
+}
+
+.bd-card__title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+  color: var(--bd-text);
+}
+
+.bd-card__authors {
+  font-style: italic;
+  color: var(--bd-text-muted);
+  margin: 0 0 0.4rem;
+}
+
+.bd-card__venue {
+  font-family: var(--bd-font);
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.bd-card__journal { font-style: italic; }
+.bd-card__sep { margin: 0 6px; opacity: 0.5; }
+
+.bd-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--bd-font);
+  margin-bottom: 8px;
+}
+
+.bd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  background: var(--bd-surface-alt);
+  border: 1px solid var(--bd-border);
+  color: var(--bd-text-muted);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-chip--doi { color: var(--bd-accent); border-color: var(--bd-accent-soft); }
+.bd-chip--files { color: var(--bd-warning); }
+
+.bd-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-family: var(--bd-font);
+  margin-bottom: 8px;
+}
+
+.bd-tag {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background: var(--bd-accent-soft);
+  color: var(--bd-accent);
+}
+
+.bd-card__abstract {
+  font-size: 0.95rem;
+  color: var(--bd-text);
+  margin: 8px 0 0;
+}
+
+.bd-card__citekey {
+  font-family: var(--bd-mono);
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-faint);
+  margin: 10px 0 0;
+}
+
+/* MathJax SVG should inherit the surrounding colour */
+.bd-card mjx-container svg { color: currentColor; }
+
+/* ---- Theme toggle ------------------------------------------------------ */
+
+.bd-theme-toggle {
+  border: 1px solid var(--bd-border-strong);
+  background: var(--bd-surface-alt);
+  color: var(--bd-text-muted);
+  border-radius: 999px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  align-self: center;
+}
+
+.bd-theme-toggle:hover {
+  color: var(--bd-text);
+  border-color: var(--bd-accent);
 }
 
 .bd-detail__citekey {

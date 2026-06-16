@@ -96,17 +96,29 @@ function createWindow(): BrowserWindow {
     win.webContents.on('render-process-gone', (_e, details) =>
       console.error(`[smoke] render-process-gone: ${details.reason}`),
     );
+    const capture = (): void => {
+      win.webContents
+        .capturePage()
+        .then((img) => {
+          writeFileSync(smokePath, img.toPNG());
+          console.log(`[smoke] captured ${smokePath}`);
+        })
+        .catch((err) => console.error('[smoke] capture failed:', err))
+        .finally(() => app.quit());
+    };
     win.webContents.once('did-finish-load', () => {
+      // Wait for data to load, select the first row (so the detail/preview card
+      // is visible), wait for the detail fetch + MathJax typeset, then capture.
       setTimeout(() => {
-        win.webContents
-          .capturePage()
-          .then((img) => {
-            writeFileSync(smokePath, img.toPNG());
-            console.log(`[smoke] captured ${smokePath}`);
-          })
-          .catch((err) => console.error('[smoke] capture failed:', err))
-          .finally(() => app.quit());
-      }, 2500);
+        // plain-string payload so the main-process tsc never typechecks DOM globals
+        const dark = process.env.BIBDESK_SMOKE_DARK
+          ? "document.querySelector('.bd-theme-toggle')?.click();"
+          : '';
+        void win.webContents
+          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark} true`)
+          .catch(() => undefined)
+          .finally(() => setTimeout(capture, 1800));
+      }, 1800);
     });
   }
 

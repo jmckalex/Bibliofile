@@ -14,24 +14,25 @@
   },
   "dependencies": {
     "@bibdesk/bibtex": "workspace:*",
-    "@bibdesk/model": "workspace:*",
-    "@bibdesk/groups": "workspace:*",
-    "@bibdesk/names": "workspace:*",
-    "@bibdesk/tex": "workspace:*",
     "@bibdesk/formats": "workspace:*",
+    "@bibdesk/groups": "workspace:*",
+    "@bibdesk/model": "workspace:*",
+    "@bibdesk/names": "workspace:*",
     "@bibdesk/shared": "workspace:*",
+    "@bibdesk/tex": "workspace:*",
+    "@tanstack/react-table": "^8.20.5",
+    "@tanstack/react-virtual": "^3.10.9",
+    "mathjax": "^3.2.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "zustand": "^5.0.2",
-    "@tanstack/react-table": "^8.20.5",
-    "@tanstack/react-virtual": "^3.10.9"
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
     "electron": "^33.2.1",
     "electron-vite": "^2.3.0",
-    "vite": "^5.4.11",
-    "@vitejs/plugin-react": "^4.3.4",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1"
+    "vite": "^5.4.11"
   }
 }

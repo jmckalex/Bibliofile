@@ -4,8 +4,10 @@
  * muted + badged), then the attachments list.
  */
 
+import { useEffect, useRef } from 'react';
 import type { ItemDetail, ItemFile } from '@bibdesk/shared';
 import { useStore } from './store.js';
+import { typesetMath } from './mathjax.js';
 
 function fileIcon(kind: ItemFile['kind']): string {
   return kind === 'url' ? '🔗' : '📄';
@@ -13,8 +15,14 @@ function fileIcon(kind: ItemFile['kind']): string {
 
 function PreviewCard({ html }: { html: string }) {
   // main HTML-escapes field values before composing this snippet, so it is
-  // trusted-but-sanitized; render it directly.
-  return <div className="bd-preview" dangerouslySetInnerHTML={{ __html: html }} />;
+  // trusted-but-sanitized; render it directly, then run MathJax over any $…$.
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (ref.current && html.includes('$')) void typesetMath(ref.current);
+  }, [html]);
+  return (
+    <div className="bd-preview" ref={ref} dangerouslySetInnerHTML={{ __html: html }} />
+  );
 }
 
 function Fields({ detail }: { detail: ItemDetail }) {

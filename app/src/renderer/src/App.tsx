@@ -7,11 +7,46 @@
  * groups + publications), and clean up the subscription on unmount.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { filterRows, useStore } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { DetailPane } from './DetailPane.js';
+
+type Theme = 'light' | 'dark';
+
+function readInitialTheme(): Theme {
+  try {
+    const saved = localStorage.getItem('bd-theme');
+    if (saved === 'dark' || saved === 'light') return saved;
+  } catch {
+    /* ignore */
+  }
+  return 'light';
+}
+
+function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>(readInitialTheme);
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    try {
+      localStorage.setItem('bd-theme', theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
+  return (
+    <button
+      type="button"
+      className="bd-theme-toggle"
+      title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+      aria-label="Toggle colour theme"
+      onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+    >
+      {theme === 'dark' ? '☀' : '☾'}
+    </button>
+  );
+}
 
 function SearchBox() {
   const query = useStore((s) => s.query);
@@ -53,6 +88,7 @@ function Header() {
         </span>
       )}
       <SearchBox />
+      <ThemeToggle />
     </header>
   );
 }
