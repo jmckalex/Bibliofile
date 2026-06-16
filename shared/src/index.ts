@@ -112,6 +112,8 @@ export {
   type FindDuplicatesResult,
   type DuplicateGroup,
   type DuplicateEntry,
+  type FieldSuggestionsRequest,
+  type FieldSuggestionsResponse,
   type MenuCommand,
 } from './dto.js';
 

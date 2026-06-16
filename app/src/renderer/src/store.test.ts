@@ -94,6 +94,7 @@ function makeFakeApi() {
     importFiles: async () => ({ dirty: true, addedIds: [], warnings: [] }),
     findReplace: async () => ({ matches: [], total: 0, applied: false, dirty: false }),
     findDuplicates: async () => ({ groups: [], total: 0 }),
+    fieldSuggestions: async () => ({ values: [] }),
     pathForFile: () => '',
     onMenuCommand: (): Unsubscribe => () => {},
     onMenuToggleColumn: (): Unsubscribe => () => {},

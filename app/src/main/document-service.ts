@@ -1297,6 +1297,32 @@ export class DocumentStore {
     return [];
   }
 
+  /**
+   * Distinct existing values for a field across the library, for editor
+   * autocomplete. Keyword-like fields (`Keywords`) and citation fields are split
+   * into their individual comma/semicolon-separated tokens. Values are deduped
+   * case-insensitively, sorted, and capped.
+   */
+  fieldSuggestions(documentId: string, field: string): { values: string[] } {
+    const doc = this.requireDoc(documentId);
+    const lower = field.toLowerCase();
+    const tokenized = lower === 'keywords' || sharedTypeManager.isCitationField(field);
+    const seen = new Map<string, string>(); // lowercased -> first-seen original
+    for (const item of doc.library.items) {
+      const raw = item.stringValueOfField(field, false).trim();
+      if (!raw) continue;
+      const parts = tokenized ? raw.split(/[,;]/).map((p) => p.trim()) : [raw];
+      for (const p of parts) {
+        if (!p) continue;
+        const k = p.toLowerCase();
+        if (!seen.has(k)) seen.set(k, p);
+        if (seen.size >= 500) break;
+      }
+      if (seen.size >= 500) break;
+    }
+    return { values: [...seen.values()].sort((a, b) => a.localeCompare(b)) };
+  }
+
   /** True if the document has unsaved edits. */
   isDirty(documentId: string): boolean {
     return this.requireDoc(documentId).dirty;

@@ -484,6 +484,19 @@ export interface FindReplaceResult {
   readonly error?: string;
 }
 
+// --- Field-value autocomplete -----------------------------------------------
+
+/** Request distinct existing values for a field (for editor autocomplete). */
+export interface FieldSuggestionsRequest {
+  readonly documentId: DocumentId;
+  readonly field: string;
+}
+
+/** Distinct values (deduped, sorted, capped) seen in the library for a field. */
+export interface FieldSuggestionsResponse {
+  readonly values: readonly string[];
+}
+
 // --- Find Duplicates --------------------------------------------------------
 
 /** Request a duplicate scan of a document. */

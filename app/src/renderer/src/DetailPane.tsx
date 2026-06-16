@@ -52,12 +52,20 @@ function PreviewCard({ html }: { html: string }) {
 /** One editable field row (uncontrolled; commits on blur / Enter). */
 function FieldRow({ itemId, field }: { itemId: string; field: ItemField }) {
   const edit = useStore((s) => s.edit);
+  const fieldSuggestions = useStore((s) => s.fieldSuggestions);
   const long = field.name.toLowerCase() === 'abstract' || field.rawValue.length > 60;
+  const [suggestions, setSuggestions] = useState<readonly string[]>([]);
+  const listId = `dl-${itemId}-${field.name}`;
 
   const commit = (value: string): void => {
     if (value !== field.rawValue) {
       void edit({ kind: 'setField', itemId, field: field.name, value });
     }
+  };
+
+  // Fetch existing values for this field on first focus (autocomplete).
+  const loadSuggestions = (): void => {
+    if (suggestions.length === 0) void fieldSuggestions(field.name).then(setSuggestions);
   };
 
   return (
@@ -79,12 +87,21 @@ function FieldRow({ itemId, field }: { itemId: string; field: ItemField }) {
           <input
             key={`${itemId}:${field.name}`}
             className="bd-input"
+            list={listId}
             defaultValue={field.rawValue}
+            onFocus={loadSuggestions}
             onBlur={(e) => commit(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') e.currentTarget.blur();
             }}
           />
+        )}
+        {suggestions.length > 0 && (
+          <datalist id={listId}>
+            {suggestions.map((v) => (
+              <option key={v} value={v} />
+            ))}
+          </datalist>
         )}
         {!field.isInherited && (
           <button

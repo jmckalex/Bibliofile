@@ -163,6 +163,8 @@ export interface ViewerState {
   findReplace: (opts: Omit<FindReplaceRequest, 'documentId' | 'groupId'>) => Promise<FindReplaceResult>;
   /** Scan the document for duplicate entries. */
   findDuplicates: () => Promise<FindDuplicatesResult>;
+  /** Distinct existing values for a field (editor autocomplete). */
+  fieldSuggestions: (field: string) => Promise<readonly string[]>;
   /** Load preferences from main and apply the theme. */
   loadSettings: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
@@ -458,6 +460,17 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         set({ error: errorMessage(err) });
         return { groups: [], total: 0 };
+      }
+    },
+
+    fieldSuggestions: async (field) => {
+      const { documentId } = get();
+      if (!documentId || !field) return [];
+      try {
+        const res = await api.fieldSuggestions({ documentId, field });
+        return res.values;
+      } catch {
+        return [];
       }
     },
 

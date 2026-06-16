@@ -117,6 +117,21 @@ describe('document-service: BD test.bib', () => {
     expect(text).toContain('color theory'); // Note field untouched (Title-only scope)
   });
 
+  it('fieldSuggestions dedupes values and tokenizes keywords', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      [
+        '@article{a, Journal = {Nature}, Keywords = {physics, optics}}',
+        '@article{b, Journal = {Nature}, Keywords = {optics, lasers}}',
+        '@article{c, Journal = {Science}}',
+      ].join('\n'),
+      '/tmp/sug.bib',
+    );
+    expect(store.fieldSuggestions(documentId, 'Journal').values).toEqual(['Nature', 'Science']);
+    // Keywords are split into individual, deduped tags (sorted).
+    expect(store.fieldSuggestions(documentId, 'Keywords').values).toEqual(['lasers', 'optics', 'physics']);
+  });
+
   it('findDuplicates groups identical cite keys and equivalent content', () => {
     const store = new DocumentStore();
     // Two entries that are content-equivalent (same type + fields) with different

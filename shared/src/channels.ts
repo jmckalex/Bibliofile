@@ -68,6 +68,8 @@ export const IpcChannels = {
   findReplace: 'bibdesk:findReplace',
   /** Scan a document for duplicate entries (cite-key + equivalent content). */
   findDuplicates: 'bibdesk:findDuplicates',
+  /** Distinct existing values for a field (editor autocomplete). */
+  fieldSuggestions: 'bibdesk:fieldSuggestions',
 } as const;
 
 /**

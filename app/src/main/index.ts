@@ -794,6 +794,7 @@ function registerIpc(): void {
     [IpcChannels.importFiles]: (req) => store.importFiles(req.documentId, req.paths),
     [IpcChannels.findReplace]: (req) => store.findReplace(req),
     [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
+    [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -865,6 +866,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.findDuplicates, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.findDuplicates](req),
+  );
+  ipcMain.handle(IpcChannels.fieldSuggestions, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.fieldSuggestions](req),
   );
 }
 

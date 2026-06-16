@@ -37,6 +37,8 @@ import type {
   FindReplaceResult,
   FindDuplicatesRequest,
   FindDuplicatesResult,
+  FieldSuggestionsRequest,
+  FieldSuggestionsResponse,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -133,6 +135,9 @@ export interface BibDeskApi {
 
   /** Scan the document for duplicate entries (identical cite keys + equivalent content). */
   findDuplicates(request: FindDuplicatesRequest): Promise<FindDuplicatesResult>;
+
+  /** Distinct existing values for a field (autocomplete in the field editors). */
+  fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse>;
 
   /**
    * Resolve a dropped {@link File} to its absolute filesystem path (Electron's
