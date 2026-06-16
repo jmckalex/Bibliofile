@@ -31,6 +31,8 @@ import {
   type ListMacrosResponse,
   type SaveDocumentRequest,
   type SaveDocumentResult,
+  type FormatCitationRequest,
+  type FormatCitationResult,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -60,6 +62,9 @@ const api: BibDeskApi = {
   },
   saveDocument(request: SaveDocumentRequest): Promise<SaveDocumentResult> {
     return ipcRenderer.invoke(IpcChannels.saveDocument, request);
+  },
+  formatCitation(request: FormatCitationRequest): Promise<FormatCitationResult> {
+    return ipcRenderer.invoke(IpcChannels.formatCitation, request);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

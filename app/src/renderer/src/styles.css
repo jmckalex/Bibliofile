@@ -583,6 +583,47 @@ button.bd-chip {
   margin-bottom: 6px;
 }
 
+.bd-detail__section--inline {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+/* ---- Formatted citation ------------------------------------------------ */
+
+.bd-cite {
+  margin: 4px 0 10px;
+  padding: 8px 10px;
+  background: var(--bd-surface-alt);
+  border: 1px solid var(--bd-border);
+  border-radius: var(--bd-radius);
+}
+
+.bd-cite__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.bd-cite__style {
+  width: auto;
+  flex: none;
+  padding: 1px 6px;
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-cite__body {
+  font-size: var(--bd-fs-sm);
+  line-height: 1.5;
+  color: var(--bd-text);
+}
+
+.bd-cite__body a {
+  color: var(--bd-accent);
+}
+
 .bd-fields {
   display: grid;
   grid-template-columns: minmax(80px, max-content) 1fr;

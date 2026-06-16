@@ -20,6 +20,8 @@
     "@bibdesk/names": "workspace:*",
     "@bibdesk/shared": "workspace:*",
     "@bibdesk/tex": "workspace:*",
+    "@citation-js/core": "^0.7.21",
+    "@citation-js/plugin-csl": "^0.7.22",
     "@tanstack/react-table": "^8.20.5",
     "@tanstack/react-virtual": "^3.10.9",
     "mathjax": "^3.2.2",

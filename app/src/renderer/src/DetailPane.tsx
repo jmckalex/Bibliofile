@@ -10,7 +10,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ItemDetail, ItemField, ItemFile } from '@bibdesk/shared';
+import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { typesetMath } from './mathjax.js';
 
@@ -138,6 +138,54 @@ function AddFieldRow({ itemId }: { itemId: string }) {
   );
 }
 
+/** Formatted CSL citation with a style picker. Refetches on edit (detail change). */
+function CitationBlock({ detail }: { detail: ItemDetail }) {
+  const documentId = useStore((s) => s.documentId);
+  const [styleId, setStyleId] = useState('apa');
+  const [html, setHtml] = useState('');
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!documentId) return;
+    let active = true;
+    void window.bibdesk
+      ?.formatCitation({ documentId, itemId: detail.id, styleId })
+      .then((r) => {
+        if (active) setHtml(r.html);
+      });
+    return () => {
+      active = false;
+    };
+  }, [documentId, detail, styleId]);
+
+  useEffect(() => {
+    if (bodyRef.current && html.includes('$')) void typesetMath(bodyRef.current);
+  }, [html]);
+
+  return (
+    <div className="bd-cite">
+      <div className="bd-cite__head">
+        <span className="bd-detail__section bd-detail__section--inline">Citation</span>
+        <select
+          className="bd-input bd-select bd-cite__style"
+          value={styleId}
+          onChange={(e) => setStyleId(e.target.value)}
+          aria-label="Citation style"
+        >
+          {CITATION_STYLES.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      {html && (
+        <div className="bd-cite__body" ref={bodyRef} dangerouslySetInnerHTML={{ __html: html }} />
+      )}
+    </div>
+  );
+}
+
 function Identity({ detail }: { detail: ItemDetail }) {
   const edit = useStore((s) => s.edit);
   const types = ENTRY_TYPES.includes(detail.type) ? ENTRY_TYPES : [detail.type, ...ENTRY_TYPES];
@@ -240,6 +288,7 @@ export function DetailPane() {
   return (
     <div className="bd-detail">
       {detail.previewHtml && <PreviewCard html={detail.previewHtml} />}
+      <CitationBlock detail={detail} />
       <Identity detail={detail} />
       <Fields detail={detail} />
       <Attachments detail={detail} />

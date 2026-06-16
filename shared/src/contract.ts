@@ -11,6 +11,8 @@ import type {
   CloseDocumentRequest,
   ClosedDocument,
   EditResult,
+  FormatCitationRequest,
+  FormatCitationResult,
   GetItemDetailRequest,
   ItemDetail,
   ListGroupsRequest,
@@ -51,6 +53,7 @@ export interface IpcContract {
   [IpcChannels.applyEdit]: IpcEntry<ApplyEditRequest, EditResult>;
   [IpcChannels.listMacros]: IpcEntry<ListMacrosRequest, ListMacrosResponse>;
   [IpcChannels.saveDocument]: IpcEntry<SaveDocumentRequest, SaveDocumentResult>;
+  [IpcChannels.formatCitation]: IpcEntry<FormatCitationRequest, FormatCitationResult>;
 }
 
 /**

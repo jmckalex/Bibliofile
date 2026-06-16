@@ -35,6 +35,7 @@ import {
   isComplex,
 } from '@bibdesk/model';
 import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT } from '@bibdesk/formats';
+import type { Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import {
   Condition,
@@ -672,6 +673,39 @@ function buildCategoryGroups(library: BibLibrary, documentId: string): CategoryB
 }
 
 // ---------------------------------------------------------------------------
+// CSL-JSON mapping (for formatted citations)
+// ---------------------------------------------------------------------------
+
+/** BibTeX entry type → CSL-JSON type. */
+const CSL_TYPE: Record<string, string> = {
+  article: 'article-journal',
+  book: 'book',
+  inbook: 'chapter',
+  incollection: 'chapter',
+  inproceedings: 'paper-conference',
+  conference: 'paper-conference',
+  proceedings: 'book',
+  phdthesis: 'thesis',
+  mastersthesis: 'thesis',
+  techreport: 'report',
+  manual: 'book',
+  misc: 'document',
+  unpublished: 'manuscript',
+  booklet: 'pamphlet',
+};
+
+/** Parsed author → CSL-JSON name object (family/given/particle/suffix, or literal). */
+function toCslName(a: Author): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (a.last) out.family = a.last;
+  if (a.first) out.given = a.first;
+  if (a.von) out['non-dropping-particle'] = a.von;
+  if (a.jr) out.suffix = a.jr;
+  if (!out.family && a.name) out.literal = a.name; // corporate / mononym
+  return out;
+}
+
+// ---------------------------------------------------------------------------
 // DocumentStore — open documents keyed by documentId
 // ---------------------------------------------------------------------------
 
@@ -949,6 +983,45 @@ export class DocumentStore {
         return { dirty: true };
       }
     }
+  }
+
+  /**
+   * Map one item to a CSL-JSON object (for citation-js / formatted citations).
+   * Reuses the parsed author/editor names and de-TeXified field text. Returns a
+   * plain object (no citeproc dependency here — formatting lives in `csl.ts`).
+   */
+  cslItemFor(documentId: string, itemId: string): Record<string, unknown> {
+    const doc = this.requireDoc(documentId);
+    const item = this.itemOf(doc, itemId);
+    const disp = (f: string): string => toDisplay(item.stringValueOfField(f, true));
+    const raw = (f: string): string => item.stringValueOfField(f, true).trim();
+
+    const csl: Record<string, unknown> = {
+      id: item.citeKey || item.id,
+      type: CSL_TYPE[item.type] ?? 'document',
+    };
+    const set = (key: string, value: string): void => {
+      if (value) csl[key] = value;
+    };
+    set('title', disp(FieldNames.Title));
+    set('container-title', disp('Journal') || disp('Booktitle'));
+    set('volume', raw('Volume'));
+    set('issue', raw('Number'));
+    set('page', disp('Pages').replace(/--/g, '–'));
+    set('publisher', disp('Publisher'));
+    set('publisher-place', disp('Address'));
+    set('DOI', raw('Doi'));
+    set('URL', raw('Url'));
+    set('abstract', disp('Abstract'));
+
+    const authors = item.authors().map(toCslName);
+    if (authors.length) csl.author = authors;
+    const editors = item.editors().map(toCslName);
+    if (editors.length) csl.editor = editors;
+
+    const year = parseInt(raw(FieldNames.Year), 10);
+    if (!Number.isNaN(year)) csl.issued = { 'date-parts': [[year]] };
+    return csl;
   }
 
   /** List the document's file-level `@string` macros, in dependency order. */

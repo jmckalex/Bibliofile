@@ -35,6 +35,7 @@ import {
 } from '@bibdesk/shared';
 
 import { DocumentStore } from './document-service.js';
+import { formatCitation } from './csl.js';
 
 // ---------------------------------------------------------------------------
 // Process-wide singletons
@@ -320,6 +321,14 @@ function registerIpc(): void {
       }
       return res;
     },
+    [IpcChannels.formatCitation]: (req) => {
+      try {
+        const html = formatCitation(store.cslItemFor(req.documentId, req.itemId), req.styleId);
+        return { styleId: req.styleId, html };
+      } catch (e) {
+        return { styleId: req.styleId, html: '', error: e instanceof Error ? e.message : String(e) };
+      }
+    },
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -349,6 +358,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.saveDocument, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.saveDocument](req),
+  );
+  ipcMain.handle(IpcChannels.formatCitation, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.formatCitation](req),
   );
 }
 

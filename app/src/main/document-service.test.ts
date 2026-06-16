@@ -304,6 +304,22 @@ describe('document-service: BD test.bib', () => {
     expect(macros.find((m) => m.name.toLowerCase() === 'jacm')).toBeUndefined();
   });
 
+  it('cslItemFor maps a BibItem to CSL-JSON', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    const id = store
+      .listPublications({ documentId, offset: 0, limit: -1 })
+      .rows.find((r) => r.citeKey === 'chen-complex')!.id;
+    const csl = store.cslItemFor(documentId, id) as Record<string, unknown>;
+    expect(csl.type).toBe('article-journal');
+    expect(csl.id).toBe('chen-complex');
+    expect(String(csl.title)).toContain('Calabi-Yau'); // braces stripped
+    expect(csl.issued).toEqual({ 'date-parts': [[1999]] });
+    const authors = csl.author as Array<Record<string, string>>;
+    expect(authors[0]?.family).toBe('Chen');
+    expect(authors[0]?.given).toBe('Jingyi');
+  });
+
   it('throws on unknown documentId / itemId', () => {
     const store = new DocumentStore();
     expect(() => store.listPublications({ documentId: 'nope', offset: 0, limit: 10 })).toThrow();

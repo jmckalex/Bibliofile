@@ -77,6 +77,10 @@ export {
   type ListMacrosResponse,
   type SaveDocumentRequest,
   type SaveDocumentResult,
+  type CitationStyle,
+  CITATION_STYLES,
+  type FormatCitationRequest,
+  type FormatCitationResult,
 } from './dto.js';
 
 // --- Renderer-facing bridge -------------------------------------------------

@@ -143,6 +143,38 @@ export interface SaveDocumentResult {
   readonly path: string;
 }
 
+// --- Formatted citations (CSL) ----------------------------------------------
+
+/** A selectable CSL citation style. */
+export interface CitationStyle {
+  readonly id: string;
+  readonly label: string;
+}
+
+/** The CSL styles the app offers (bundled offline by citation-js plugin-csl). */
+export const CITATION_STYLES: readonly CitationStyle[] = [
+  { id: 'apa', label: 'APA' },
+  { id: 'vancouver', label: 'Vancouver' },
+  { id: 'harvard1', label: 'Harvard' },
+];
+
+/** Request to format one item as a styled citation. */
+export interface FormatCitationRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+  /** CSL style id from {@link CITATION_STYLES}. */
+  readonly styleId: string;
+}
+
+/** Result: the formatted citation as an HTML string. */
+export interface FormatCitationResult {
+  readonly styleId: string;
+  /** Formatted bibliography entry (HTML); empty when formatting failed. */
+  readonly html: string;
+  /** Failure reason when `html` is empty. */
+  readonly error?: string;
+}
+
 // --- List publications ------------------------------------------------------
 
 /** Sort direction for a publications listing. */

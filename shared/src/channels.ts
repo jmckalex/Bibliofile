@@ -40,6 +40,8 @@ export const IpcChannels = {
   listMacros: 'bibdesk:listMacros',
   /** Save a document to disk (explicit save + backup). */
   saveDocument: 'bibdesk:saveDocument',
+  /** Format one item as a CSL-styled citation (HTML). */
+  formatCitation: 'bibdesk:formatCitation',
 } as const;
 
 /**

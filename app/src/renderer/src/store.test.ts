@@ -76,6 +76,7 @@ function makeFakeApi() {
     applyEdit: async () => ({ dirty: true }),
     listMacros: async () => ({ macros: [] }),
     saveDocument: async (r) => ({ documentId: r.documentId, path: '/tmp/test.bib' }),
+    formatCitation: async (r) => ({ styleId: r.styleId, html: '<div>cite</div>' }),
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
   };

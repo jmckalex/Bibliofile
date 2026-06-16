@@ -12,6 +12,8 @@ import type {
   CloseDocumentRequest,
   ClosedDocument,
   EditResult,
+  FormatCitationRequest,
+  FormatCitationResult,
   GetItemDetailRequest,
   ItemDetail,
   ListGroupsRequest,
@@ -64,6 +66,9 @@ export interface BibDeskApi {
 
   /** Save the document to disk (explicit save + `.bak` backup). */
   saveDocument(request: SaveDocumentRequest): Promise<SaveDocumentResult>;
+
+  /** Format one item as a CSL-styled citation (HTML). */
+  formatCitation(request: FormatCitationRequest): Promise<FormatCitationResult>;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,
