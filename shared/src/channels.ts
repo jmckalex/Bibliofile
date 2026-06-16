@@ -50,6 +50,8 @@ export const IpcChannels = {
   searchOnline: 'bibdesk:searchOnline',
   /** Import an online result as a new entry. */
   importOnline: 'bibdesk:importOnline',
+  /** Full-text search a document (SQLite FTS5). */
+  ftsSearch: 'bibdesk:ftsSearch',
 } as const;
 
 /**

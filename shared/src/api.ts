@@ -15,6 +15,8 @@ import type {
   EditResult,
   FormatCitationRequest,
   FormatCitationResult,
+  FtsSearchRequest,
+  FtsSearchResponse,
   GetItemDetailRequest,
   ImportOnlineRequest,
   ItemDetail,
@@ -86,6 +88,9 @@ export interface BibDeskApi {
 
   /** Import an online result into the document as a new entry. */
   importOnline(request: ImportOnlineRequest): Promise<EditResult>;
+
+  /** Full-text search the document (SQLite FTS5; falls back when unavailable). */
+  ftsSearch(request: FtsSearchRequest): Promise<FtsSearchResponse>;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

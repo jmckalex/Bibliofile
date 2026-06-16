@@ -89,6 +89,8 @@ export {
   type SearchOnlineRequest,
   type SearchOnlineResponse,
   type ImportOnlineRequest,
+  type FtsSearchRequest,
+  type FtsSearchResponse,
 } from './dto.js';
 
 // --- Renderer-facing bridge -------------------------------------------------

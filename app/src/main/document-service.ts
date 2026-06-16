@@ -46,6 +46,8 @@ import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT } from '@bibdesk/formats';
 import type { Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
+import { FtsIndex } from './fts.js';
+import { extractPdfText } from './pdf-text.js';
 import {
   Condition,
   Filter,
@@ -764,8 +766,25 @@ interface OpenDoc {
   readonly itemsById: Map<string, BibItem>;
   /** Live crossref store; new items are bound to it. */
   readonly crossrefStore: LibraryCrossrefStore;
+  /** SQLite FTS5 full-text index (field text + extracted PDF text). */
+  readonly fts: FtsIndex;
+  /** itemId → extracted PDF text from its attachments (filled lazily). */
+  readonly pdfText: Map<string, string>;
+  /** True once attachment PDF text has been indexed for this document. */
+  attachmentsIndexed: boolean;
   /** Unsaved-changes flag, set by edits and cleared on save. */
   dirty: boolean;
+}
+
+/** Concatenated searchable text for an item (field text + any indexed PDF text). */
+function itemSearchText(item: BibItem, pdfText: string): string {
+  const parts: string[] = [item.citeKey, item.type];
+  for (const name of item.fieldNames()) {
+    if (BDSK_FILE_RE.test(name)) continue; // skip base64 attachment blobs
+    parts.push(detexify(item.stringValueOfField(name, false)));
+  }
+  if (pdfText) parts.push(pdfText);
+  return parts.join(' \n ');
 }
 
 /** Process-unique temp-file suffix counter (avoids Date.now/random). */
@@ -794,16 +813,28 @@ export class DocumentStore {
     const { opened, library, crossrefStore } = result;
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
-    this.docs.set(opened.documentId, {
+    const fts = new FtsIndex();
+    const pdfText = new Map<string, string>();
+    fts.rebuild(library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') })));
+    const doc: OpenDoc = {
       documentId: opened.documentId,
       path: opened.path,
       library,
       groups: groupsFromLibrary(library),
       itemsById,
       crossrefStore,
+      fts,
+      pdfText,
+      attachmentsIndexed: false,
       dirty: false,
-    });
+    };
+    this.docs.set(opened.documentId, doc);
     return opened;
+  }
+
+  /** Re-index one item's full-text entry (field text + any cached PDF text). */
+  private reindex(doc: OpenDoc, item: BibItem): void {
+    doc.fts.upsert(item.id, itemSearchText(item, doc.pdfText.get(item.id) ?? ''));
   }
 
   /** Recompute the dynamic Author/Keyword category groups for the current state. */
@@ -973,6 +1004,45 @@ export class DocumentStore {
   }
 
   /**
+   * Full-text search via SQLite FTS5; returns matching item ids best-match first.
+   * `available` is false when the native index couldn't load (caller should fall
+   * back to a client-side substring filter).
+   */
+  ftsSearch(documentId: string, query: string): { available: boolean; ids: string[] } {
+    const doc = this.requireDoc(documentId);
+    const ids = doc.fts.search(query).filter((id) => doc.itemsById.has(id));
+    return { available: doc.fts.available, ids };
+  }
+
+  /**
+   * Extract text from local PDF attachments and fold it into the full-text index
+   * (best-effort, once per document). Intended to run in the background after a
+   * document opens; the field-text index already works immediately.
+   */
+  async indexAttachments(documentId: string): Promise<void> {
+    const doc = this.docs.get(documentId);
+    if (!doc || doc.attachmentsIndexed || !doc.fts.available) return;
+    doc.attachmentsIndexed = true;
+    const stripScheme = (u: string): string => u.replace(/^file:\/\/(localhost)?/i, '');
+    const baseDir = doc.path ? dirname(doc.path) : '';
+    for (const item of doc.library.items) {
+      let added = '';
+      for (const f of itemFiles(item, doc.library, doc.path)) {
+        if (f.kind !== 'file' || !/\.pdf$/i.test(f.url)) continue;
+        const p = stripScheme(f.url);
+        const abs = isAbsolute(p) ? p : baseDir ? resolve(baseDir, p) : p;
+        if (!existsSync(abs)) continue;
+        const text = await extractPdfText(abs);
+        if (text) added += ` \n ${text}`;
+      }
+      if (added) {
+        doc.pdfText.set(item.id, (doc.pdfText.get(item.id) ?? '') + added);
+        this.reindex(doc, item);
+      }
+    }
+  }
+
+  /**
    * Set (or, when `rawValue` is empty, remove) a field on an item, mark the
    * document dirty, and return the item's refreshed detail. `rawValue` is the
    * raw BibTeX field text (not the de-TeXified display form); it is stored as a
@@ -990,6 +1060,7 @@ export class DocumentStore {
     if (rawValue === '') item.removeField(fieldName);
     else item.setField(fieldName, rawValue);
     doc.dirty = true;
+    this.reindex(doc, item);
     return this.detailFor(doc, item);
   }
 
@@ -1066,6 +1137,7 @@ export class DocumentStore {
         const idx = doc.library.items.indexOf(item);
         if (idx >= 0) doc.library.items.splice(idx, 1);
         doc.itemsById.delete(item.id);
+        doc.fts.remove(item.id);
         doc.dirty = true;
         return { dirty: true };
       }
@@ -1182,9 +1254,10 @@ export class DocumentStore {
     );
   }
 
-  /** Mark dirty and return the affected item's refreshed detail. */
+  /** Mark dirty, re-index for search, and return the affected item's detail. */
   private dirtyDetail(doc: OpenDoc, item: BibItem): EditResult {
     doc.dirty = true;
+    this.reindex(doc, item);
     return { dirty: true, affectedItemId: item.id, detail: this.detailFor(doc, item) };
   }
 

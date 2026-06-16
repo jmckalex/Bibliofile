@@ -15,7 +15,7 @@ import type {
   PublicationRow,
   Unsubscribe,
 } from '@bibdesk/shared';
-import { createStore, filterRows } from './store.js';
+import { createStore, filterRows, visibleRows } from './store.js';
 
 const DOC: OpenedDocument = {
   documentId: 'doc-1',
@@ -83,6 +83,7 @@ function makeFakeApi() {
     removeAttachment: async () => ({ dirty: true }),
     searchOnline: async () => ({ results: [] }),
     importOnline: async () => ({ dirty: true }),
+    ftsSearch: async () => ({ available: false, ids: [] }),
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
   };
@@ -195,5 +196,21 @@ describe('filterRows', () => {
     expect(filterRows(ALL_ROWS, 'b. author').map((r) => r.id)).toEqual(['i1']);
     expect(filterRows(ALL_ROWS, '2021').map((r) => r.id)).toEqual(['i3']);
     expect(filterRows(ALL_ROWS, 'zzz')).toHaveLength(0);
+  });
+});
+
+describe('visibleRows', () => {
+  it('returns all rows when the query is empty', () => {
+    expect(visibleRows(ALL_ROWS, '', null)).toHaveLength(3);
+    expect(visibleRows(ALL_ROWS, '', ['i1'])).toHaveLength(3); // ftsIds ignored w/o query
+  });
+
+  it('falls back to substring filter when no FTS ids', () => {
+    expect(visibleRows(ALL_ROWS, 'alpha', null).map((r) => r.id)).toEqual(['i2']);
+  });
+
+  it('orders by FTS relevance and drops non-matches when ftsIds present', () => {
+    const out = visibleRows(ALL_ROWS, 'anything', ['i3', 'i1']);
+    expect(out.map((r) => r.id)).toEqual(['i3', 'i1']); // i2 excluded; order = ftsIds
   });
 });

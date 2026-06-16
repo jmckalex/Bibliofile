@@ -8,7 +8,7 @@
  */
 
 import { useEffect, useState } from 'react';
-import { filterRows, useStore } from './store.js';
+import { useStore, visibleRows } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { DetailPane } from './DetailPane.js';
@@ -99,13 +99,14 @@ function Footer() {
   const total = useStore((s) => s.total);
   const rows = useStore((s) => s.rows);
   const query = useStore((s) => s.query);
+  const ftsIds = useStore((s) => s.ftsIds);
   const selectedGroupId = useStore((s) => s.selectedGroupId);
   const groups = useStore((s) => s.groups);
   const loading = useStore((s) => s.loading);
   const error = useStore((s) => s.error);
 
   const groupName = groups.find((g) => g.id === selectedGroupId)?.name;
-  const filtered = query.trim() ? filterRows(rows, query).length : total;
+  const filtered = query.trim() ? visibleRows(rows, query, ftsIds).length : total;
   const countLabel =
     filtered === total
       ? `${total} ${total === 1 ? 'row' : 'rows'}`

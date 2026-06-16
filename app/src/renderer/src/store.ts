@@ -49,6 +49,25 @@ export function filterRows(
   );
 }
 
+/**
+ * The rows to display for the current query. With no query → all rows. When
+ * full-text results (`ftsIds`) are available, intersect the current rows with
+ * them in relevance order (this is how PDF-text / abstract / notes matches
+ * surface). Otherwise fall back to the client-side substring {@link filterRows}.
+ */
+export function visibleRows(
+  rows: readonly PublicationRow[],
+  query: string,
+  ftsIds: readonly string[] | null,
+): PublicationRow[] {
+  if (!query.trim()) return [...rows];
+  if (ftsIds) {
+    const order = new Map(ftsIds.map((id, i) => [id, i]));
+    return rows.filter((r) => order.has(r.id)).sort((a, b) => order.get(a.id)! - order.get(b.id)!);
+  }
+  return filterRows(rows, query);
+}
+
 export interface ViewerState {
   /** Active document, set once `documentOpened` fires. */
   documentId?: string;
@@ -71,8 +90,10 @@ export interface ViewerState {
   /** Current table sort (default: cite key asc). */
   sort: SortState;
 
-  /** Live search query (client-side substring filter over loaded rows). */
+  /** Live search query. */
   query: string;
+  /** Full-text (FTS5) result ids in relevance order, or null to use the substring filter. */
+  ftsIds: string[] | null;
 
   /** Document-level `@string` macros (for the macro editor). */
   macros: MacroDef[];
@@ -100,8 +121,8 @@ export interface ViewerState {
   selectByCiteKey: (citeKey: string) => Promise<void>;
   /** Toggle sort on a column key (asc⇄desc) and reload. */
   setSort: (key: string) => Promise<void>;
-  /** Set the live search query (client-side; no reload). */
-  setQuery: (query: string) => void;
+  /** Set the live search query; runs a full-text search (falls back to substring). */
+  setQuery: (query: string) => Promise<void>;
   /** Apply one edit command, then refresh the affected views + dirty state. */
   edit: (command: EditCommand) => Promise<void>;
   /** Save the document to disk (explicit save + backup). */
@@ -131,6 +152,7 @@ export function createStore(api: BibDeskApi) {
     groups: [],
     sort: DEFAULT_SORT,
     query: '',
+    ftsIds: null,
     macros: [],
     dirty: false,
     saving: false,
@@ -151,6 +173,8 @@ export function createStore(api: BibDeskApi) {
         total: 0,
         groups: [],
         sort: DEFAULT_SORT,
+        query: '',
+        ftsIds: null,
         macros: [],
         dirty: false,
         error: undefined,
@@ -234,7 +258,20 @@ export function createStore(api: BibDeskApi) {
       await get().loadPublications();
     },
 
-    setQuery: (query) => set({ query }),
+    setQuery: async (query) => {
+      // Show the substring fallback immediately; refine with FTS results when ready.
+      set({ query, ftsIds: null });
+      const { documentId } = get();
+      if (!documentId || !query.trim()) return;
+      try {
+        const res = await api.ftsSearch({ documentId, query });
+        // ignore stale responses if the query changed while awaiting
+        if (get().query !== query) return;
+        set({ ftsIds: res.available ? [...res.ids] : null });
+      } catch {
+        set({ ftsIds: null });
+      }
+    },
 
     edit: async (command) => {
       const { documentId } = get();

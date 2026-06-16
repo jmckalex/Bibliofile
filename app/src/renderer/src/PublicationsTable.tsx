@@ -17,7 +17,7 @@ import {
 import type { ColumnDef } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { PublicationRow } from '@bibdesk/shared';
-import { filterRows, useStore } from './store.js';
+import { useStore, visibleRows } from './store.js';
 
 const ROW_HEIGHT = 28;
 
@@ -65,13 +65,14 @@ function flexFor(meta: ColMeta | undefined): string {
 export function PublicationsTable() {
   const rows = useStore((s) => s.rows);
   const query = useStore((s) => s.query);
+  const ftsIds = useStore((s) => s.ftsIds);
   const selectedItemId = useStore((s) => s.selectedItemId);
   const sort = useStore((s) => s.sort);
   const selectItem = useStore((s) => s.selectItem);
   const setSort = useStore((s) => s.setSort);
   const loading = useStore((s) => s.loading);
 
-  const data = useMemo(() => filterRows(rows, query), [rows, query]);
+  const data = useMemo(() => visibleRows(rows, query, ftsIds), [rows, query, ftsIds]);
 
   const table = useReactTable({
     data,

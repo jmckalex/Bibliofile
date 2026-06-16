@@ -38,6 +38,8 @@ import {
   type SearchOnlineRequest,
   type SearchOnlineResponse,
   type ImportOnlineRequest,
+  type FtsSearchRequest,
+  type FtsSearchResponse,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -82,6 +84,9 @@ const api: BibDeskApi = {
   },
   importOnline(request: ImportOnlineRequest): Promise<EditResult> {
     return ipcRenderer.invoke(IpcChannels.importOnline, request);
+  },
+  ftsSearch(request: FtsSearchRequest): Promise<FtsSearchResponse> {
+    return ipcRenderer.invoke(IpcChannels.ftsSearch, request);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

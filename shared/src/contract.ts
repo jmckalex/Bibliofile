@@ -14,6 +14,8 @@ import type {
   EditResult,
   FormatCitationRequest,
   FormatCitationResult,
+  FtsSearchRequest,
+  FtsSearchResponse,
   GetItemDetailRequest,
   ImportOnlineRequest,
   ItemDetail,
@@ -63,6 +65,7 @@ export interface IpcContract {
   [IpcChannels.removeAttachment]: IpcEntry<RemoveAttachmentRequest, EditResult>;
   [IpcChannels.searchOnline]: IpcEntry<SearchOnlineRequest, SearchOnlineResponse>;
   [IpcChannels.importOnline]: IpcEntry<ImportOnlineRequest, EditResult>;
+  [IpcChannels.ftsSearch]: IpcEntry<FtsSearchRequest, FtsSearchResponse>;
 }
 
 /**

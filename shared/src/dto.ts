@@ -370,6 +370,21 @@ export interface ImportOnlineRequest {
   readonly result: OnlineResult;
 }
 
+// --- Full-text search (SQLite FTS5) -----------------------------------------
+
+/** Request a full-text search over a document. */
+export interface FtsSearchRequest {
+  readonly documentId: DocumentId;
+  readonly query: string;
+}
+
+/** Full-text search results: matching item ids, best-match first. */
+export interface FtsSearchResponse {
+  /** False if the native FTS index is unavailable (caller should fall back). */
+  readonly available: boolean;
+  readonly ids: readonly ItemId[];
+}
+
 /**
  * Full detail of one publication for the detail/preview pane. `fields` are the
  * display field rows, `files` the attachments, and `previewHtml` an optional

@@ -374,6 +374,20 @@ describe('document-service: BD test.bib', () => {
     expect(detail.fields.find((f) => f.name === 'Title')?.value).toBe('An Imported Paper');
   });
 
+  it('ftsSearch finds entries by field text (SQLite FTS5)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    const res = store.ftsSearch(documentId, 'gerbes');
+    if (!res.available) return; // native FTS not loadable for this ABI → skip
+    expect(res.ids.length).toBeGreaterThanOrEqual(1);
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    const keys = res.ids.map((id) => rows.find((r) => r.id === id)?.citeKey ?? '');
+    // "gerbes" appears in the two math.DG entry titles
+    expect(keys.some((k) => k.startsWith('math.DG'))).toBe(true);
+    // a word that doesn't occur returns nothing
+    expect(store.ftsSearch(documentId, 'zzzznotaword').ids).toEqual([]);
+  });
+
   it('throws on unknown documentId / itemId', () => {
     const store = new DocumentStore();
     expect(() => store.listPublications({ documentId: 'nope', offset: 0, limit: 10 })).toThrow();

@@ -148,6 +148,8 @@ function openPath(path: string): OpenedDocument {
     mainWindow.setRepresentedFilename?.(opened.path);
   }
   notifyDocumentOpened(opened);
+  // Index attachment PDF text in the background; field-text search works already.
+  void store.indexAttachments(opened.documentId);
   return opened;
 }
 
@@ -359,6 +361,7 @@ function registerIpc(): void {
     },
     [IpcChannels.importOnline]: (req) =>
       store.importEntry(req.documentId, req.result.entryType, req.result.fields),
+    [IpcChannels.ftsSearch]: (req) => store.ftsSearch(req.documentId, req.query),
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -403,6 +406,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.importOnline, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.importOnline](req),
+  );
+  ipcMain.handle(IpcChannels.ftsSearch, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.ftsSearch](req),
   );
 }
 
