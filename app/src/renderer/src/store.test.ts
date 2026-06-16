@@ -73,6 +73,9 @@ function makeFakeApi() {
     },
     getItemDetail: async () => DETAIL,
     openExternal: async () => ({ ok: true }),
+    applyEdit: async () => ({ dirty: true }),
+    listMacros: async () => ({ macros: [] }),
+    saveDocument: async (r) => ({ documentId: r.documentId, path: '/tmp/test.bib' }),
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
   };

@@ -34,6 +34,12 @@ export const IpcChannels = {
   getItemDetail: 'bibdesk:getItemDetail',
   /** Open a URL or local file in the OS default handler. */
   openExternal: 'bibdesk:openExternal',
+  /** Apply one edit command (mutate the in-memory model). */
+  applyEdit: 'bibdesk:applyEdit',
+  /** List a document's `@string` macros. */
+  listMacros: 'bibdesk:listMacros',
+  /** Save a document to disk (explicit save + backup). */
+  saveDocument: 'bibdesk:saveDocument',
 } as const;
 
 /**

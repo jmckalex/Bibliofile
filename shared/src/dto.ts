@@ -80,6 +80,69 @@ export interface OpenExternalResult {
   readonly error?: string;
 }
 
+// --- Editing ----------------------------------------------------------------
+
+/**
+ * A single mutation applied to an open document. The renderer sends one of these
+ * via `applyEdit`; main mutates the in-memory model and marks the doc dirty.
+ * Field `value`s are raw BibTeX field text (not the de-TeXified display form).
+ */
+export type EditCommand =
+  | { readonly kind: 'setField'; readonly itemId: ItemId; readonly field: string; readonly value: string }
+  | { readonly kind: 'removeField'; readonly itemId: ItemId; readonly field: string }
+  | { readonly kind: 'setCiteKey'; readonly itemId: ItemId; readonly citeKey: string }
+  | { readonly kind: 'setType'; readonly itemId: ItemId; readonly entryType: string }
+  | { readonly kind: 'generateCiteKey'; readonly itemId: ItemId }
+  | { readonly kind: 'addEntry'; readonly entryType: string }
+  | { readonly kind: 'duplicateEntry'; readonly itemId: ItemId }
+  | { readonly kind: 'deleteEntry'; readonly itemId: ItemId }
+  | { readonly kind: 'setMacro'; readonly name: string; readonly value: string }
+  | { readonly kind: 'removeMacro'; readonly name: string };
+
+/** Request to apply one {@link EditCommand} to a document. */
+export interface ApplyEditRequest {
+  readonly documentId: DocumentId;
+  readonly command: EditCommand;
+}
+
+/** Outcome of an edit: the new dirty state and (when relevant) the affected item. */
+export interface EditResult {
+  readonly dirty: boolean;
+  /** Item the edit focused on (for re-selection); absent for deletes/macros. */
+  readonly affectedItemId?: ItemId;
+  /** Refreshed detail of the affected item, when one applies. */
+  readonly detail?: ItemDetail;
+}
+
+/** A document-level `@string` macro definition. */
+export interface MacroDef {
+  readonly name: string;
+  /** Raw BibTeX value text (literal or `a # b` concatenation). */
+  readonly value: string;
+}
+
+/** Request to list a document's `@string` macros. */
+export interface ListMacrosRequest {
+  readonly documentId: DocumentId;
+}
+
+/** A document's file-level macros, in dependency order. */
+export interface ListMacrosResponse {
+  readonly macros: readonly MacroDef[];
+}
+
+/** Request to save a document (optionally to a new path = Save As). */
+export interface SaveDocumentRequest {
+  readonly documentId: DocumentId;
+  readonly targetPath?: string;
+}
+
+/** Result of a save: where it was written. */
+export interface SaveDocumentResult {
+  readonly documentId: DocumentId;
+  readonly path: string;
+}
+
 // --- List publications ------------------------------------------------------
 
 /** Sort direction for a publications listing. */

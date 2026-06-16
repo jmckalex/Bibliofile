@@ -27,8 +27,14 @@ import { parse, serialize, type BibLibrary, type GroupRecord } from '@bibdesk/bi
 import {
   type BibItem,
   type PublicationStore,
+  type FieldValue,
   FieldNames,
+  createBibItem,
+  sharedTypeManager,
+  complexValueToBibTeX,
+  isComplex,
 } from '@bibdesk/model';
+import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT } from '@bibdesk/formats';
 import { detexify } from '@bibdesk/tex';
 import {
   Condition,
@@ -55,6 +61,13 @@ import type {
   ItemFile,
   PublicationRow,
   ParseWarning,
+  ApplyEditRequest,
+  EditResult,
+  ListMacrosRequest,
+  ListMacrosResponse,
+  MacroDef,
+  SaveDocumentRequest,
+  SaveDocumentResult,
 } from '@bibdesk/shared';
 
 // ---------------------------------------------------------------------------
@@ -67,6 +80,8 @@ export interface OpenDocumentResult {
   readonly opened: OpenedDocument;
   /** The retained parsed library (kept in the store; not sent over IPC). */
   readonly library: BibLibrary;
+  /** Live crossref store (resolves parents against the current item list). */
+  readonly crossrefStore: LibraryCrossrefStore;
 }
 
 // ---------------------------------------------------------------------------
@@ -74,20 +89,16 @@ export interface OpenDocumentResult {
 // ---------------------------------------------------------------------------
 
 /**
- * Case-insensitive cite-key lookup over a library's items, used to resolve
- * crossref parents. BibDesk's `itemForCiteKey:` returns the FIRST item when keys
- * collide, so we build the map in file order and keep the first occurrence.
+ * Case-insensitive cite-key lookup used to resolve crossref parents. Resolves
+ * LIVE against the current item list (a getter), so adding/deleting entries or
+ * renaming cite keys during editing is reflected without rebuilding. BibDesk's
+ * `itemForCiteKey:` returns the FIRST match on a collision, so we do too.
  */
 class LibraryCrossrefStore implements PublicationStore {
-  private readonly byLowerKey = new Map<string, BibItem>();
-  constructor(items: readonly BibItem[]) {
-    for (const item of items) {
-      const k = item.citeKey.toLowerCase();
-      if (!this.byLowerKey.has(k)) this.byLowerKey.set(k, item);
-    }
-  }
+  constructor(private readonly getItems: () => readonly BibItem[]) {}
   itemForCiteKey(citeKey: string): BibItem | undefined {
-    return this.byLowerKey.get(citeKey.toLowerCase());
+    const k = citeKey.toLowerCase();
+    return this.getItems().find((i) => i.citeKey.toLowerCase() === k);
   }
 }
 
@@ -118,8 +129,9 @@ export function openLibraryFromText(
   const library = parse(text);
 
   // Wire crossref resolution: the bibtex parser does NOT bind a store, so
-  // inheritance / isFieldInherited would be inert without this.
-  const store = new LibraryCrossrefStore(library.items);
+  // inheritance / isFieldInherited would be inert without this. The store is
+  // live (closes over library.items) so later edits stay consistent.
+  const store = new LibraryCrossrefStore(() => library.items);
   for (const item of library.items) item.setStore(store);
 
   const documentId = nextDocumentId();
@@ -132,7 +144,7 @@ export function openLibraryFromText(
     itemCount: library.items.length,
     warnings,
   };
-  return { opened, library };
+  return { opened, library, crossrefStore: store };
 }
 
 /**
@@ -661,12 +673,10 @@ interface OpenDoc {
   readonly library: BibLibrary;
   /** Typed membership groups (library + parsed static/smart). */
   readonly groups: Group[];
-  /** Dynamic author/keyword category sidebar nodes. */
-  readonly categoryNodes: GroupNode[];
-  /** groupId → member item-id set, for both category sections and their children. */
-  readonly categoryMembers: Map<string, Set<string>>;
   /** id -> BibItem index for O(1) detail lookups. */
   readonly itemsById: Map<string, BibItem>;
+  /** Live crossref store; new items are bound to it. */
+  readonly crossrefStore: LibraryCrossrefStore;
   /** Unsaved-changes flag, set by edits and cleared on save. */
   dirty: boolean;
 }
@@ -694,21 +704,24 @@ export class DocumentStore {
 
   /** Retain an open result in the store and return its summary. */
   private retain(result: OpenDocumentResult): OpenedDocument {
-    const { opened, library } = result;
+    const { opened, library, crossrefStore } = result;
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
-    const cat = buildCategoryGroups(library, opened.documentId);
     this.docs.set(opened.documentId, {
       documentId: opened.documentId,
       path: opened.path,
       library,
       groups: groupsFromLibrary(library),
-      categoryNodes: cat.nodes,
-      categoryMembers: cat.members,
       itemsById,
+      crossrefStore,
       dirty: false,
     });
     return opened;
+  }
+
+  /** Recompute the dynamic Author/Keyword category groups for the current state. */
+  private categoriesOf(doc: OpenDoc): CategoryBuild {
+    return buildCategoryGroups(doc.library, doc.documentId);
   }
 
   /** True if a document id is currently open. */
@@ -734,7 +747,7 @@ export class DocumentStore {
     // 1) membership filter
     let items: readonly BibItem[] = doc.library.items;
     if (req.groupId && req.groupId !== this.libraryGroupId(doc)) {
-      const categoryMembers = doc.categoryMembers.get(req.groupId);
+      const categoryMembers = this.categoriesOf(doc).members.get(req.groupId);
       const group = doc.groups.find((g) => g.id === req.groupId);
       if (categoryMembers) {
         // author/keyword category group: precomputed member set
@@ -800,8 +813,8 @@ export class DocumentStore {
       });
     }
 
-    // Dynamic Author / Keyword category sections.
-    groups.push(...doc.categoryNodes);
+    // Dynamic Author / Keyword category sections (recomputed for current state).
+    groups.push(...this.categoriesOf(doc).nodes);
 
     return { groups };
   }
@@ -840,6 +853,107 @@ export class DocumentStore {
     return toItemDetail(item);
   }
 
+  /**
+   * Apply one {@link EditCommand}: mutate the in-memory model, mark the document
+   * dirty, and return the outcome (the affected item's refreshed detail when one
+   * applies). Structural commands (add/duplicate/delete) and macro commands carry
+   * no `detail`/affected item beyond what is created.
+   */
+  applyEdit(req: ApplyEditRequest): EditResult {
+    const doc = this.requireDoc(req.documentId);
+    const cmd = req.command;
+    switch (cmd.kind) {
+      case 'setField': {
+        const item = this.itemOf(doc, cmd.itemId);
+        if (cmd.value === '') item.removeField(cmd.field);
+        else item.setField(cmd.field, cmd.value);
+        return this.dirtyDetail(doc, item);
+      }
+      case 'removeField': {
+        const item = this.itemOf(doc, cmd.itemId);
+        item.removeField(cmd.field);
+        return this.dirtyDetail(doc, item);
+      }
+      case 'setCiteKey': {
+        const item = this.itemOf(doc, cmd.itemId);
+        item.setCiteKey(cmd.citeKey);
+        return this.dirtyDetail(doc, item);
+      }
+      case 'setType': {
+        const item = this.itemOf(doc, cmd.itemId);
+        item.setType(cmd.entryType);
+        return this.dirtyDetail(doc, item);
+      }
+      case 'generateCiteKey': {
+        const item = this.itemOf(doc, cmd.itemId);
+        const existing = doc.library.items.filter((i) => i !== item).map((i) => i.citeKey);
+        item.setCiteKey(generateCiteKey(DEFAULT_CITE_KEY_FORMAT, item, existing));
+        return this.dirtyDetail(doc, item);
+      }
+      case 'addEntry': {
+        const item = createBibItem({
+          type: cmd.entryType || 'misc',
+          citeKey: this.uniqueCiteKey(doc, 'untitled'),
+          macroResolver: doc.library.macroResolver,
+          typeManager: sharedTypeManager,
+          store: doc.crossrefStore,
+        });
+        doc.library.items.push(item);
+        doc.itemsById.set(item.id, item);
+        return this.dirtyDetail(doc, item);
+      }
+      case 'duplicateEntry': {
+        const src = this.itemOf(doc, cmd.itemId);
+        const fields: Record<string, FieldValue> = {};
+        for (const name of src.fieldNames()) {
+          const v = src.rawValueOfField(name);
+          if (v !== undefined) fields[name] = v;
+        }
+        const item = createBibItem({
+          type: src.type,
+          citeKey: this.uniqueCiteKey(doc, `${src.citeKey}-copy`),
+          fields,
+          macroResolver: doc.library.macroResolver,
+          typeManager: sharedTypeManager,
+          store: doc.crossrefStore,
+        });
+        doc.library.items.push(item);
+        doc.itemsById.set(item.id, item);
+        return this.dirtyDetail(doc, item);
+      }
+      case 'deleteEntry': {
+        const item = this.itemOf(doc, cmd.itemId);
+        const idx = doc.library.items.indexOf(item);
+        if (idx >= 0) doc.library.items.splice(idx, 1);
+        doc.itemsById.delete(item.id);
+        doc.dirty = true;
+        return { dirty: true };
+      }
+      case 'setMacro': {
+        this.fileTier(doc).define(cmd.name, cmd.value);
+        doc.dirty = true;
+        return { dirty: true };
+      }
+      case 'removeMacro': {
+        this.fileTier(doc).undefine(cmd.name);
+        doc.dirty = true;
+        return { dirty: true };
+      }
+    }
+  }
+
+  /** List the document's file-level `@string` macros, in dependency order. */
+  listMacros(req: ListMacrosRequest): ListMacrosResponse {
+    const doc = this.requireDoc(req.documentId);
+    const macros: MacroDef[] = this.fileTier(doc)
+      .orderedLocalDefinitions()
+      .map((d) => ({
+        name: d.name,
+        value: isComplex(d.value) ? complexValueToBibTeX(d.value) : String(d.value),
+      }));
+    return { macros };
+  }
+
   /** Re-serialize the (possibly edited) in-memory library back to BibTeX text. */
   serializeDocument(documentId: string): string {
     return serialize(this.requireDoc(documentId).library);
@@ -873,6 +987,32 @@ export class DocumentStore {
     const doc = this.docs.get(documentId);
     if (!doc) throw new Error(`Unknown documentId: ${documentId}`);
     return doc;
+  }
+
+  private itemOf(doc: OpenDoc, itemId: string): BibItem {
+    const item = doc.itemsById.get(itemId);
+    if (!item) throw new Error(`Unknown itemId: ${itemId}`);
+    return item;
+  }
+
+  /** Mark dirty and return the affected item's refreshed detail. */
+  private dirtyDetail(doc: OpenDoc, item: BibItem): EditResult {
+    doc.dirty = true;
+    return { dirty: true, affectedItemId: item.id, detail: toItemDetail(item) };
+  }
+
+  /** The file-level (`@string`) macro tier (parent of the document tier). */
+  private fileTier(doc: OpenDoc) {
+    return doc.library.macroResolver.parent ?? doc.library.macroResolver;
+  }
+
+  /** A cite key based on `base`, suffixed `-1`, `-2`… until unique in the doc. */
+  private uniqueCiteKey(doc: OpenDoc, base: string): string {
+    const have = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
+    if (!have.has(base.toLowerCase())) return base;
+    let n = 1;
+    while (have.has(`${base}-${n}`.toLowerCase())) n++;
+    return `${base}-${n}`;
   }
 
   /** Stable, per-document id for the synthetic Library group. */

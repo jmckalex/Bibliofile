@@ -11,7 +11,7 @@
  * only. The renderer talks exclusively to `window.bibdesk` (see preload).
  */
 
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { existsSync, writeFileSync } from 'node:fs';
 
 import {
@@ -310,6 +310,16 @@ function registerIpc(): void {
     [IpcChannels.listGroups]: (req) => store.listGroups(req),
     [IpcChannels.getItemDetail]: (req) => store.getItemDetail(req),
     [IpcChannels.openExternal]: (req) => openExternalTarget(req),
+    [IpcChannels.applyEdit]: (req) => store.applyEdit(req),
+    [IpcChannels.listMacros]: (req) => store.listMacros(req),
+    [IpcChannels.saveDocument]: (req) => {
+      const res = store.saveDocument(req.documentId, req.targetPath);
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.setTitle(`${basename(res.path)} — BibDesk`);
+        mainWindow.setRepresentedFilename?.(res.path);
+      }
+      return res;
+    },
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -330,6 +340,15 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.openExternal, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.openExternal](req),
+  );
+  ipcMain.handle(IpcChannels.applyEdit, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.applyEdit](req),
+  );
+  ipcMain.handle(IpcChannels.listMacros, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.listMacros](req),
+  );
+  ipcMain.handle(IpcChannels.saveDocument, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.saveDocument](req),
   );
 }
 

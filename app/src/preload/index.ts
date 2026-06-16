@@ -25,6 +25,12 @@ import {
   type ItemDetail,
   type OpenExternalRequest,
   type OpenExternalResult,
+  type ApplyEditRequest,
+  type EditResult,
+  type ListMacrosRequest,
+  type ListMacrosResponse,
+  type SaveDocumentRequest,
+  type SaveDocumentResult,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -45,6 +51,15 @@ const api: BibDeskApi = {
   },
   openExternal(request: OpenExternalRequest): Promise<OpenExternalResult> {
     return ipcRenderer.invoke(IpcChannels.openExternal, request);
+  },
+  applyEdit(request: ApplyEditRequest): Promise<EditResult> {
+    return ipcRenderer.invoke(IpcChannels.applyEdit, request);
+  },
+  listMacros(request: ListMacrosRequest): Promise<ListMacrosResponse> {
+    return ipcRenderer.invoke(IpcChannels.listMacros, request);
+  },
+  saveDocument(request: SaveDocumentRequest): Promise<SaveDocumentResult> {
+    return ipcRenderer.invoke(IpcChannels.saveDocument, request);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

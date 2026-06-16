@@ -7,18 +7,24 @@
 
 import type { IpcChannels, IpcEvents } from './channels.js';
 import type {
+  ApplyEditRequest,
   CloseDocumentRequest,
   ClosedDocument,
+  EditResult,
   GetItemDetailRequest,
   ItemDetail,
   ListGroupsRequest,
   ListGroupsResponse,
+  ListMacrosRequest,
+  ListMacrosResponse,
   ListPublicationsRequest,
   ListPublicationsResponse,
   OpenDocumentRequest,
   OpenedDocument,
   OpenExternalRequest,
   OpenExternalResult,
+  SaveDocumentRequest,
+  SaveDocumentResult,
 } from './dto.js';
 
 /** One entry in the contract: the request payload and the response payload. */
@@ -42,6 +48,9 @@ export interface IpcContract {
   [IpcChannels.listGroups]: IpcEntry<ListGroupsRequest, ListGroupsResponse>;
   [IpcChannels.getItemDetail]: IpcEntry<GetItemDetailRequest, ItemDetail>;
   [IpcChannels.openExternal]: IpcEntry<OpenExternalRequest, OpenExternalResult>;
+  [IpcChannels.applyEdit]: IpcEntry<ApplyEditRequest, EditResult>;
+  [IpcChannels.listMacros]: IpcEntry<ListMacrosRequest, ListMacrosResponse>;
+  [IpcChannels.saveDocument]: IpcEntry<SaveDocumentRequest, SaveDocumentResult>;
 }
 
 /**

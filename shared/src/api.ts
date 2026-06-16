@@ -8,17 +8,23 @@
  */
 
 import type {
+  ApplyEditRequest,
   CloseDocumentRequest,
   ClosedDocument,
+  EditResult,
   GetItemDetailRequest,
   ItemDetail,
   ListGroupsRequest,
   ListGroupsResponse,
+  ListMacrosRequest,
+  ListMacrosResponse,
   ListPublicationsRequest,
   ListPublicationsResponse,
   OpenedDocument,
   OpenExternalRequest,
   OpenExternalResult,
+  SaveDocumentRequest,
+  SaveDocumentResult,
 } from './dto.js';
 
 /** Unsubscribe handle returned by the event-subscription methods. */
@@ -49,6 +55,15 @@ export interface BibDeskApi {
 
   /** Open a URL in the browser, or a local file in its default app. */
   openExternal(request: OpenExternalRequest): Promise<OpenExternalResult>;
+
+  /** Apply one edit command to a document; resolves with the new dirty state. */
+  applyEdit(request: ApplyEditRequest): Promise<EditResult>;
+
+  /** List a document's `@string` macros (for the macro editor). */
+  listMacros(request: ListMacrosRequest): Promise<ListMacrosResponse>;
+
+  /** Save the document to disk (explicit save + `.bak` backup). */
+  saveDocument(request: SaveDocumentRequest): Promise<SaveDocumentResult>;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

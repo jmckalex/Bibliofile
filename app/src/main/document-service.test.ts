@@ -229,6 +229,81 @@ describe('document-service: BD test.bib', () => {
     expect(reopened.itemCount).toBe(3);
   });
 
+  it('applyEdit: add / duplicate / delete entries and edit cite keys', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    const idOf = (citeKey: string) =>
+      store.listPublications({ documentId, offset: 0, limit: -1 }).rows.find(
+        (r) => r.citeKey === citeKey,
+      )!.id;
+
+    // add a new entry
+    const added = store.applyEdit({ documentId, command: { kind: 'addEntry', entryType: 'book' } });
+    expect(added.dirty).toBe(true);
+    expect(added.affectedItemId).toBeDefined();
+    expect(store.listPublications({ documentId, offset: 0, limit: -1 }).total).toBe(4);
+
+    // set a field + cite key on the new entry
+    store.applyEdit({
+      documentId,
+      command: { kind: 'setField', itemId: added.affectedItemId!, field: 'Title', value: 'A New Book' },
+    });
+    store.applyEdit({
+      documentId,
+      command: { kind: 'setCiteKey', itemId: added.affectedItemId!, citeKey: 'new-book' },
+    });
+    const newRow = store
+      .listPublications({ documentId, offset: 0, limit: -1 })
+      .rows.find((r) => r.id === added.affectedItemId);
+    expect(newRow?.citeKey).toBe('new-book');
+    expect(newRow?.title).toBe('A New Book');
+
+    // duplicate it -> unique cite key
+    const dup = store.applyEdit({
+      documentId,
+      command: { kind: 'duplicateEntry', itemId: added.affectedItemId! },
+    });
+    expect(store.listPublications({ documentId, offset: 0, limit: -1 }).total).toBe(5);
+    const dupRow = store
+      .listPublications({ documentId, offset: 0, limit: -1 })
+      .rows.find((r) => r.id === dup.affectedItemId);
+    expect(dupRow?.citeKey).toBe('new-book-copy');
+    expect(dupRow?.title).toBe('A New Book');
+
+    // delete the duplicate
+    store.applyEdit({ documentId, command: { kind: 'deleteEntry', itemId: dup.affectedItemId! } });
+    expect(store.listPublications({ documentId, offset: 0, limit: -1 }).total).toBe(4);
+    // original chen-complex still present
+    expect(idOf('chen-complex')).toBeDefined();
+  });
+
+  it('applyEdit: generateCiteKey derives a key from author+year', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    const target = store
+      .listPublications({ documentId, offset: 0, limit: -1 })
+      .rows.find((r) => r.citeKey === 'chen-complex')!;
+    const res = store.applyEdit({
+      documentId,
+      command: { kind: 'generateCiteKey', itemId: target.id },
+    });
+    const newKey = res.detail!.citeKey;
+    // Chen, 1999 -> a key containing the author surname and the year
+    expect(newKey.toLowerCase()).toContain('chen');
+    expect(newKey).toContain('1999');
+  });
+
+  it('applyEdit: macros can be set, listed, and removed', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    store.applyEdit({ documentId, command: { kind: 'setMacro', name: 'jacm', value: 'J. ACM' } });
+    let macros = store.listMacros({ documentId }).macros;
+    expect(macros.find((m) => m.name.toLowerCase() === 'jacm')?.value).toBe('J. ACM');
+    store.applyEdit({ documentId, command: { kind: 'removeMacro', name: 'jacm' } });
+    macros = store.listMacros({ documentId }).macros;
+    expect(macros.find((m) => m.name.toLowerCase() === 'jacm')).toBeUndefined();
+  });
+
   it('throws on unknown documentId / itemId', () => {
     const store = new DocumentStore();
     expect(() => store.listPublications({ documentId: 'nope', offset: 0, limit: 10 })).toThrow();

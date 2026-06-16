@@ -69,6 +69,14 @@ export {
   type ItemField,
   type ItemFile,
   type ItemDetail,
+  type EditCommand,
+  type ApplyEditRequest,
+  type EditResult,
+  type MacroDef,
+  type ListMacrosRequest,
+  type ListMacrosResponse,
+  type SaveDocumentRequest,
+  type SaveDocumentResult,
 } from './dto.js';
 
 // --- Renderer-facing bridge -------------------------------------------------
