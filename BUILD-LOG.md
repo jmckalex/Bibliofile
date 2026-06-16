@@ -25,6 +25,19 @@ Times are local. Newest entries appended at the bottom of each section.
 | A2 | `app/src/main` — Electron main, open .bib, read API over IPC | ✅ done (7 tests) |
 | A3 | `app/src/renderer` — React + Zustand + TanStack viewer | ✅ done (11 app tests) |
 | — | **Read-only viewer GUI smoke test** | ✅ passed (screenshot: `docs/viewer-bd-test.png`) |
+| S5 | Viewer polish: search, display de-brace, column widths | ✅ done (`cc1add4`) |
+| S6 | Beautiful preview pane: MathJax, chips/tags, dark mode | ✅ done (`83f2a18`) |
+| S5.5 | Author/Keyword category groups in sidebar | ✅ done (`90a7757`) |
+| S+ | Clickable external links (DOI/URL/attachments) | ✅ done (`fb80bc1`) |
+| S7 | Editing + round-trip save (read→write) | ⏳ next |
+
+**Current state (resume here):** `pnpm test` = **1254 green**, `pnpm -r build` clean. The
+headless core + a feature-rich read-only viewer are done and GUI-smoke-verified (light +
+dark screenshots in `docs/`). The next roadmap item is **Stage 7 — editing + round-trip
+save** (see the bottom of this file). The app's data logic is the pure
+`app/src/main/document-service.ts` (unit-tested); the Electron shell + IPC are thin.
+GUI smoke: `cd app && BIBDESK_OPEN=<abs.bib> BIBDESK_SMOKE=/tmp/x.png [BIBDESK_SMOKE_DARK=1]
+node_modules/.bin/electron .` (selects first row, captures, quits).
 
 Dependency graph: B1 → {C1, C2, C7, T1} → C3 → {C4, C5, C6} → {A1 → A2 → A3}.
 C4 gated on C1+C3.
@@ -268,7 +281,22 @@ Delivered (the user's #1 "richer/more beautiful views" goal):
   `docs/viewer-stage6-dark.png` — both show MathJax-rendered ∑/π² in the card.
 - 1252 repo tests; `pnpm -r build` clean. MathJax added as the only new dep (Apache-2.0).
 
+## Post-Stage-6 additions
+
+- **Author/Keyword category groups** (`90a7757`) — dynamic sidebar sections computed from the
+  library; precomputed membership for O(1) filtering. `app/src/main/document-service.ts`.
+- **Clickable external links** (`fb80bc1`) — new `openExternal` IPC channel; main uses
+  `shell.openExternal` (URLs; bare DOI→doi.org) / `shell.openPath` (files). DOI/URL chips +
+  attachment rows are clickable.
+
 ## Next (Stage 7 — editing + round-trip save) — pending
+
+Turn read-only → read-write. Sketch: add `updateField`/`saveDocument` IPC; mutate `BibItem`
+via the model's change events; **serialize + write `.bib`** (the C4 serializer already
+round-trips — keep a backup / write-temp-then-rename for safety); generate cite keys via
+`@bibdesk/formats`. ⚠ The save path must reconcile the **C4↔C6 group-escaping seam** (one
+owner of escaping) and should be validated by a parse→edit→serialize→re-parse round-trip
+test before ever writing a user's real library. Autosave/undo can follow.
 - Orchestrator wires electron-vite and runs `dev` once to smoke-test loading
   `/Users/jalex/Source/BibDesk/bibdesk/Scripting/BD test.bib`. Electron binary is ready.
 
