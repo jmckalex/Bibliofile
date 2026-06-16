@@ -544,8 +544,14 @@ export function buildPreviewHtml(item: BibItem): string | undefined {
   if (meta.length) p.push(`<p class="bd-card__venue">${meta.join('<span class="bd-card__sep">·</span>')}</p>`);
 
   const chips: string[] = [];
-  if (doi) chips.push(`<span class="bd-chip bd-chip--doi">DOI ${escapeHtml(doi)}</span>`);
-  if (url) chips.push(`<span class="bd-chip bd-chip--url">URL</span>`);
+  if (doi)
+    chips.push(
+      `<button type="button" class="bd-chip bd-chip--doi" data-open-url="${escapeHtml(doi)}">DOI ${escapeHtml(doi)}</button>`,
+    );
+  if (url)
+    chips.push(
+      `<button type="button" class="bd-chip bd-chip--url" data-open-url="${escapeHtml(url)}">URL</button>`,
+    );
   if (fileCount > 0)
     chips.push(
       `<span class="bd-chip bd-chip--files">📎 ${fileCount} ${fileCount === 1 ? 'file' : 'files'}</span>`,

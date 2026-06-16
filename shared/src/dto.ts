@@ -63,6 +63,23 @@ export interface ClosedDocument {
   readonly documentId: DocumentId;
 }
 
+// --- Open external ----------------------------------------------------------
+
+/** Request to open a URL (browser) or local file (OS default app). */
+export interface OpenExternalRequest {
+  /** A URL (`http(s)://`, `doi:`/bare DOI handled by main) or a local file path. */
+  readonly target: string;
+  /** Whether `target` is a remote URL or a local file. */
+  readonly kind: 'url' | 'file';
+}
+
+/** Result of an open-external request. */
+export interface OpenExternalResult {
+  readonly ok: boolean;
+  /** Failure reason when `ok` is false. */
+  readonly error?: string;
+}
+
 // --- List publications ------------------------------------------------------
 
 /** Sort direction for a publications listing. */

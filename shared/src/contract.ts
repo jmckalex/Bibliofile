@@ -17,6 +17,8 @@ import type {
   ListPublicationsResponse,
   OpenDocumentRequest,
   OpenedDocument,
+  OpenExternalRequest,
+  OpenExternalResult,
 } from './dto.js';
 
 /** One entry in the contract: the request payload and the response payload. */
@@ -39,6 +41,7 @@ export interface IpcContract {
   >;
   [IpcChannels.listGroups]: IpcEntry<ListGroupsRequest, ListGroupsResponse>;
   [IpcChannels.getItemDetail]: IpcEntry<GetItemDetailRequest, ItemDetail>;
+  [IpcChannels.openExternal]: IpcEntry<OpenExternalRequest, OpenExternalResult>;
 }
 
 /**

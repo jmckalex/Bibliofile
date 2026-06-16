@@ -23,6 +23,8 @@ import {
   type ListGroupsResponse,
   type GetItemDetailRequest,
   type ItemDetail,
+  type OpenExternalRequest,
+  type OpenExternalResult,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -40,6 +42,9 @@ const api: BibDeskApi = {
   },
   getItemDetail(request: GetItemDetailRequest): Promise<ItemDetail> {
     return ipcRenderer.invoke(IpcChannels.getItemDetail, request);
+  },
+  openExternal(request: OpenExternalRequest): Promise<OpenExternalResult> {
+    return ipcRenderer.invoke(IpcChannels.openExternal, request);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

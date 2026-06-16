@@ -17,6 +17,8 @@ import type {
   ListPublicationsRequest,
   ListPublicationsResponse,
   OpenedDocument,
+  OpenExternalRequest,
+  OpenExternalResult,
 } from './dto.js';
 
 /** Unsubscribe handle returned by the event-subscription methods. */
@@ -44,6 +46,9 @@ export interface BibDeskApi {
 
   /** Fetch one item's full detail for the detail/preview pane. */
   getItemDetail(request: GetItemDetailRequest): Promise<ItemDetail>;
+
+  /** Open a URL in the browser, or a local file in its default app. */
+  openExternal(request: OpenExternalRequest): Promise<OpenExternalResult>;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

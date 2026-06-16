@@ -72,6 +72,7 @@ function makeFakeApi() {
       return { rows: sorted, total: sorted.length };
     },
     getItemDetail: async () => DETAIL,
+    openExternal: async () => ({ ok: true }),
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
   };

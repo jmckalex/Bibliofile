@@ -440,6 +440,16 @@ body {
 .bd-chip--doi { color: var(--bd-accent); border-color: var(--bd-accent-soft); }
 .bd-chip--files { color: var(--bd-warning); }
 
+button.bd-chip {
+  font-family: var(--bd-font);
+  cursor: pointer;
+}
+
+.bd-chip[data-open-url]:hover {
+  border-color: var(--bd-accent);
+  color: var(--bd-accent);
+}
+
 .bd-card__tags {
   display: flex;
   flex-wrap: wrap;
@@ -563,6 +573,25 @@ body {
   align-items: center;
   gap: 8px;
   padding: 4px 0;
+}
+
+.bd-file__btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font: inherit;
+  color: var(--bd-text);
+  cursor: pointer;
+  padding: 0;
+}
+
+.bd-file__btn:hover .bd-file__name {
+  color: var(--bd-accent);
+  text-decoration: underline;
 }
 
 .bd-file__icon {

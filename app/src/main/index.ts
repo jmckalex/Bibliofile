@@ -20,6 +20,7 @@ import {
   ipcMain,
   dialog,
   Menu,
+  shell,
   type MenuItemConstructorOptions,
   type IpcMainInvokeEvent,
 } from 'electron';
@@ -29,6 +30,8 @@ import {
   IpcEvents,
   type IpcHandlers,
   type OpenedDocument,
+  type OpenExternalRequest,
+  type OpenExternalResult,
 } from '@bibdesk/shared';
 
 import { DocumentStore } from './document-service.js';
@@ -271,6 +274,32 @@ function buildMenu(): void {
 // IPC handler registration (full contract coverage via IpcHandlers)
 // ---------------------------------------------------------------------------
 
+/**
+ * Open a URL (browser) or local file (default app). URLs are restricted to
+ * http(s)/mailto (with bare-DOI → doi.org rewriting); file:// is stripped to a
+ * path. Returns a result rather than throwing so the renderer can show a hint.
+ */
+async function openExternalTarget(req: OpenExternalRequest): Promise<OpenExternalResult> {
+  try {
+    if (req.kind === 'url') {
+      let url = req.target.trim();
+      if (/^10\.\d{4,9}\//.test(url)) url = `https://doi.org/${url}`; // bare DOI
+      if (!/^(https?:|mailto:)/i.test(url)) {
+        return { ok: false, error: 'Unsupported URL scheme' };
+      }
+      await shell.openExternal(url);
+      return { ok: true };
+    }
+    let p = req.target.trim();
+    const fileScheme = /^file:\/\/(localhost)?/i;
+    if (fileScheme.test(p)) p = decodeURI(p.replace(fileScheme, ''));
+    const err = await shell.openPath(p);
+    return err ? { ok: false, error: err } : { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 function registerIpc(): void {
   // The handler set is typed by IpcHandlers so every channel is covered and the
   // request/response shapes are checked against the contract.
@@ -280,6 +309,7 @@ function registerIpc(): void {
     [IpcChannels.listPublications]: (req) => store.listPublications(req),
     [IpcChannels.listGroups]: (req) => store.listGroups(req),
     [IpcChannels.getItemDetail]: (req) => store.getItemDetail(req),
+    [IpcChannels.openExternal]: (req) => openExternalTarget(req),
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -297,6 +327,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.getItemDetail, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.getItemDetail](req),
+  );
+  ipcMain.handle(IpcChannels.openExternal, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.openExternal](req),
   );
 }
 

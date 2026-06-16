@@ -32,6 +32,8 @@ export const IpcChannels = {
   listGroups: 'bibdesk:listGroups',
   /** Get the full detail (fields + files + preview) of one item. */
   getItemDetail: 'bibdesk:getItemDetail',
+  /** Open a URL or local file in the OS default handler. */
+  openExternal: 'bibdesk:openExternal',
 } as const;
 
 /**

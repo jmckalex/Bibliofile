@@ -54,6 +54,8 @@ export {
   type OpenedDocument,
   type CloseDocumentRequest,
   type ClosedDocument,
+  type OpenExternalRequest,
+  type OpenExternalResult,
   type SortDirection,
   type SortSpec,
   type ListPublicationsRequest,
