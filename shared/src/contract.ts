@@ -1,0 +1,76 @@
+/**
+ * The typed IPC contract: a single source of truth mapping each channel name to
+ * its request and response payload types. Both the main process (`ipcMain.handle`)
+ * and the preload bridge (`ipcRenderer.invoke`) constrain themselves against this
+ * map so handler signatures and call sites are checked end-to-end.
+ */
+
+import type { IpcChannels, IpcEvents } from './channels.js';
+import type {
+  CloseDocumentRequest,
+  ClosedDocument,
+  GetItemDetailRequest,
+  ItemDetail,
+  ListGroupsRequest,
+  ListGroupsResponse,
+  ListPublicationsRequest,
+  ListPublicationsResponse,
+  OpenDocumentRequest,
+  OpenedDocument,
+} from './dto.js';
+
+/** One entry in the contract: the request payload and the response payload. */
+export interface IpcEntry<Req, Res> {
+  readonly request: Req;
+  readonly response: Res;
+}
+
+/**
+ * Request/response contract. Keyed by the channel-name string-literal *values*
+ * from {@link IpcChannels} so a handler/invoker can be typed as
+ * `IpcContract[typeof IpcChannels.openDocument]`.
+ */
+export interface IpcContract {
+  [IpcChannels.openDocument]: IpcEntry<OpenDocumentRequest, OpenedDocument>;
+  [IpcChannels.closeDocument]: IpcEntry<CloseDocumentRequest, ClosedDocument>;
+  [IpcChannels.listPublications]: IpcEntry<
+    ListPublicationsRequest,
+    ListPublicationsResponse
+  >;
+  [IpcChannels.listGroups]: IpcEntry<ListGroupsRequest, ListGroupsResponse>;
+  [IpcChannels.getItemDetail]: IpcEntry<GetItemDetailRequest, ItemDetail>;
+}
+
+/**
+ * Event (push) contract. Keyed by the channel-name values from
+ * {@link IpcEvents}; the value is the single payload `webContents.send` carries.
+ */
+export interface IpcEventMap {
+  [IpcEvents.documentOpened]: OpenedDocument;
+  [IpcEvents.documentClosed]: ClosedDocument;
+}
+
+/** Request payload type for a given request/response channel. */
+export type RequestOf<C extends keyof IpcContract> = IpcContract[C]['request'];
+
+/** Response payload type for a given request/response channel. */
+export type ResponseOf<C extends keyof IpcContract> =
+  IpcContract[C]['response'];
+
+/** Payload type for a given event channel. */
+export type EventPayloadOf<C extends keyof IpcEventMap> = IpcEventMap[C];
+
+/**
+ * Shape of a main-process handler for a channel, mirroring the function passed to
+ * `ipcMain.handle`. Returns the response (or a promise of it); the leading
+ * `IpcInvokeEvent` from Electron is intentionally elided here (this package is
+ * Electron-free) — main wraps these with the real event arg.
+ */
+export type IpcHandler<C extends keyof IpcContract> = (
+  request: RequestOf<C>,
+) => ResponseOf<C> | Promise<ResponseOf<C>>;
+
+/** A complete, type-checked set of handlers, one per request/response channel. */
+export type IpcHandlers = {
+  [C in keyof IpcContract]: IpcHandler<C>;
+};

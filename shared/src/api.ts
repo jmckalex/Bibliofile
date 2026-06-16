@@ -1,0 +1,68 @@
+/**
+ * The renderer-facing bridge interface: what the preload script exposes on
+ * `window.bibdesk` via `contextBridge.exposeInMainWorld`. The renderer programs
+ * exclusively against this interface and never touches `ipcRenderer` or raw
+ * channel names; the preload implements it by forwarding to `ipcRenderer.invoke`
+ * (for the async methods) and `ipcRenderer.on` (for the event subscriptions),
+ * all type-checked against {@link IpcContract} / {@link IpcEventMap}.
+ */
+
+import type {
+  CloseDocumentRequest,
+  ClosedDocument,
+  GetItemDetailRequest,
+  ItemDetail,
+  ListGroupsRequest,
+  ListGroupsResponse,
+  ListPublicationsRequest,
+  ListPublicationsResponse,
+  OpenedDocument,
+} from './dto.js';
+
+/** Unsubscribe handle returned by the event-subscription methods. */
+export type Unsubscribe = () => void;
+
+/**
+ * The async + event API surface exposed to the renderer. All methods return
+ * promises that resolve with structured-clone-safe DTOs (or reject if main
+ * throws — e.g. unknown document id, file read error).
+ */
+export interface BibDeskApi {
+  /** Open a `.bib` file by absolute path. Resolves once parsed. */
+  openDocument(path: string): Promise<OpenedDocument>;
+
+  /** Close a previously opened document and release its resources. */
+  closeDocument(request: CloseDocumentRequest): Promise<ClosedDocument>;
+
+  /** Fetch a page/range of publication rows for the virtualized table. */
+  listPublications(
+    request: ListPublicationsRequest,
+  ): Promise<ListPublicationsResponse>;
+
+  /** Fetch the groups sidebar tree (flat list joined via `parentId`). */
+  listGroups(request: ListGroupsRequest): Promise<ListGroupsResponse>;
+
+  /** Fetch one item's full detail for the detail/preview pane. */
+  getItemDetail(request: GetItemDetailRequest): Promise<ItemDetail>;
+
+  /**
+   * Subscribe to "document opened" notifications (e.g. file→open from the menu,
+   * CLI arg, or macOS `open-file`). Returns an unsubscribe function.
+   */
+  onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe;
+
+  /** Subscribe to "document closed" notifications. Returns an unsubscribe fn. */
+  onDocumentClosed(listener: (doc: ClosedDocument) => void): Unsubscribe;
+}
+
+/**
+ * Global augmentation so the renderer can use `window.bibdesk` with full types
+ * once the preload has exposed it. Import this module anywhere in the renderer
+ * (e.g. a single `import '@bibdesk/shared'`) to pull in the declaration.
+ */
+declare global {
+  interface Window {
+    /** The BibDesk bridge, present only after preload runs. */
+    bibdesk: BibDeskApi;
+  }
+}
