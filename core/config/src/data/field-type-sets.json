@@ -1,0 +1,10 @@
+{
+  "Boolean fields": ["Read"],
+  "Citation fields": ["Cited-By", "Cites"],
+  "Default Fields": ["Keywords"],
+  "Local File Fields": ["Local-Url"],
+  "Person fields": ["Author", "Editor"],
+  "Rating fields": ["Rating"],
+  "Remote URL Fields": ["Url", "Doi", "Citeseerurl"],
+  "Three state fields": []
+}
