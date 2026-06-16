@@ -15,9 +15,9 @@ Times are local. Newest entries appended at the bottom of each section.
 | B1 | Bootstrap monorepo (pnpm workspace, TS strict, Vitest, ESLint/Prettier, stubs, deps) | ✅ done |
 | C1 | `core/tex` — TeXify/deTeXify codec | ✅ done (719 tests) |
 | C2 | `core/names` — BibTeX name splitting + display variants | ✅ done (88 tests) |
-| C7 | `core/config` — TypeInfo/Preferences → JSON config | 🔄 running |
+| C7 | `core/config` — TypeInfo/Preferences → JSON config | ✅ done (26 tests) |
 | T1 | golden round-trip test harness + fixtures (`core/bibtex/test`) | 🔄 running |
-| C3 | `core/model` — BibItem/ComplexValue/TypeManager/MacroResolver/crossref | ⏳ pending |
+| C3 | `core/model` — BibItem/ComplexValue/TypeManager/MacroResolver/crossref | 🔄 running |
 | C4 | `core/bibtex` — custom round-trip parser + serializer (keystone) | ⏳ pending |
 | C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | ⏳ pending |
 | C6 | `core/groups` — taxonomy + smart-group predicate evaluator | ⏳ pending |
@@ -103,10 +103,24 @@ bdsk-file blobs), TS 5.9, Vitest 2.1, ESLint 9 flat + typescript-eslint 8 + pret
   `sortableName` — add Author-vs-Editor field tiebreaker + empty-author-last when the
   BibItem layer wires authors to fields; (b) only the fuzzy equivalence path exists —
   add the `matchAuthorNamesExactly` exact-mode branch when the preferences layer lands.
-- **C7 `core/config`, T1 golden harness** — still running (background, disjoint dirs).
-  T1 writes only in `core/bibtex/test/` and leaves the `src/index.ts` stub for C4.
+- **C7 `core/config` — DONE & committed (`b1a3bfc`).** `typeinfo.json` (types, required/
+  optional fields, 22 tag maps) + the 8 field-type default arrays + typed case-insensitive
+  accessors. 26 tests, tsc clean. **Handoff to C3 (TypeManager):** field-type arrays are
+  factory defaults (layer user values on top via `fieldTypeSetMeta` keys); C3 owns the
+  hardcoded code-level sets (noteFields/numericFields/titleFields/containerFields/
+  invalidGroupFields/singleValuedGroupFields); URL/local-file fields must NOT be TeXified
+  on save; C3 implements the user-TypeInfo overlay (15 standard types stay protected).
+
+### Wave 2 (in progress)
+
+- **C3 `core/model`** — launched (background). Builds BibItem, FieldValue/ComplexValue/
+  StringNode, TypeManager (from C7), MacroResolver (3-tier + topological + events),
+  crossref inheritance (+ booktitle workaround, chain/cycle guard), equality/equivalence/
+  hash, pure-TS change-event layer. Depends on tex+names+config (all committed).
+- **T1 golden harness** — still running (Wave 1, independent; feeds C4).
 
 ## Next step
 
-Barrier on C2 + C7 (both feed C3). When green + committed, spawn **C3 `core/model`**
-(Wave 2). T1 (golden harness) lands independently; C4 (Wave 3) turns it green.
+Barrier on C3 (+ land T1). Then Wave 3: **C4 `core/bibtex`** (keystone parser/serializer;
+gated on C1+C3; must turn T1's round-trip suite green) + **C5 `core/formats`** + **C6
+`core/groups`** in parallel. A1 (`shared` IPC types) can start during Wave 3.
