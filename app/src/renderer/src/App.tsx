@@ -18,6 +18,7 @@ import { MacroEditor } from './MacroEditor.js';
 import { OnlineSearch } from './OnlineSearch.js';
 import { Preferences } from './Preferences.js';
 import { FindReplace } from './FindReplace.js';
+import { FindDuplicates } from './FindDuplicates.js';
 
 function ThemeToggle() {
   const theme = useStore((s) => s.settings.theme);
@@ -181,6 +182,7 @@ interface ModalSetters {
   setOnlineOpen: (v: boolean) => void;
   setPrefsOpen: (v: boolean) => void;
   setFindReplaceOpen: (v: boolean) => void;
+  setDuplicatesOpen: (v: boolean) => void;
 }
 
 /**
@@ -230,6 +232,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     }
     case 'findReplace':
       modals.setFindReplaceOpen(true);
+      return;
+    case 'findDuplicates':
+      modals.setDuplicatesOpen(true);
       return;
     case 'toggleTheme': {
       const isDark =
@@ -282,6 +287,7 @@ export function App() {
   const [onlineOpen, setOnlineOpen] = useState(false);
   const [prefsOpen, setPrefsOpen] = useState(false);
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
+  const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
@@ -362,6 +368,7 @@ export function App() {
         setOnlineOpen,
         setPrefsOpen,
         setFindReplaceOpen,
+        setDuplicatesOpen,
       });
     });
     return () => {
@@ -391,6 +398,7 @@ export function App() {
       {onlineOpen && <OnlineSearch onClose={() => setOnlineOpen(false)} />}
       {prefsOpen && <Preferences onClose={() => setPrefsOpen(false)} />}
       {findReplaceOpen && <FindReplace onClose={() => setFindReplaceOpen(false)} />}
+      {duplicatesOpen && <FindDuplicates onClose={() => setDuplicatesOpen(false)} />}
       {dragging && hasDoc && (
         <div className="bd-drop-overlay" aria-hidden="true">
           <div className="bd-drop-overlay__msg">Drop .bib or files to import</div>

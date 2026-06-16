@@ -52,6 +52,8 @@ import {
   type ImportResult,
   type FindReplaceRequest,
   type FindReplaceResult,
+  type FindDuplicatesRequest,
+  type FindDuplicatesResult,
   type MenuCommand,
 } from '@bibdesk/shared';
 
@@ -126,6 +128,9 @@ const api: BibDeskApi = {
   },
   findReplace(request: FindReplaceRequest): Promise<FindReplaceResult> {
     return ipcRenderer.invoke(IpcChannels.findReplace, request);
+  },
+  findDuplicates(request: FindDuplicatesRequest): Promise<FindDuplicatesResult> {
+    return ipcRenderer.invoke(IpcChannels.findDuplicates, request);
   },
   pathForFile(file: File): string {
     return webUtils.getPathForFile(file);

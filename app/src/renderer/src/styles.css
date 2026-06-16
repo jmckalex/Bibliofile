@@ -464,6 +464,64 @@ body {
   border-top: 1px solid var(--bd-border);
 }
 
+/* ---- Find Duplicates modal --------------------------------------------- */
+
+.bd-dup__summary {
+  color: var(--bd-text-muted);
+  font-weight: 400;
+}
+
+.bd-dup__group {
+  margin-bottom: 12px;
+  border: 1px solid var(--bd-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bd-dup__kind {
+  padding: 5px 10px;
+  background: var(--bd-accent-soft);
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-dup__entries {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bd-dup__entry {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+.bd-dup__entry:hover {
+  background: var(--bd-row-hover, rgba(0, 0, 0, 0.05));
+}
+
+.bd-dup__entry code {
+  flex: 0 0 auto;
+  font-family: var(--bd-mono);
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-accent);
+}
+
+.bd-dup__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ---- Drag-and-drop import overlay -------------------------------------- */
 
 .bd-drop-overlay {

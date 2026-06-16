@@ -35,6 +35,8 @@ import type {
   ImportResult,
   FindReplaceRequest,
   FindReplaceResult,
+  FindDuplicatesRequest,
+  FindDuplicatesResult,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -128,6 +130,9 @@ export interface BibDeskApi {
 
   /** Find/replace over field values; preview (apply=false) or perform (apply=true). */
   findReplace(request: FindReplaceRequest): Promise<FindReplaceResult>;
+
+  /** Scan the document for duplicate entries (identical cite keys + equivalent content). */
+  findDuplicates(request: FindDuplicatesRequest): Promise<FindDuplicatesResult>;
 
   /**
    * Resolve a dropped {@link File} to its absolute filesystem path (Electron's

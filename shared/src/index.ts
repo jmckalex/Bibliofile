@@ -107,6 +107,10 @@ export {
   type FindReplaceRequest,
   type FindReplaceMatch,
   type FindReplaceResult,
+  type FindDuplicatesRequest,
+  type FindDuplicatesResult,
+  type DuplicateGroup,
+  type DuplicateEntry,
   type MenuCommand,
 } from './dto.js';
 

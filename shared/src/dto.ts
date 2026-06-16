@@ -480,6 +480,34 @@ export interface FindReplaceResult {
   readonly error?: string;
 }
 
+// --- Find Duplicates --------------------------------------------------------
+
+/** Request a duplicate scan of a document. */
+export interface FindDuplicatesRequest {
+  readonly documentId: DocumentId;
+}
+
+/** One entry within a duplicate group (light display info for the picker). */
+export interface DuplicateEntry {
+  readonly id: ItemId;
+  readonly citeKey: string;
+  readonly title: string;
+}
+
+/** A set of entries considered duplicates of one another. */
+export interface DuplicateGroup {
+  /** `citeKey` = identical cite keys; `content` = equivalent field content. */
+  readonly kind: 'citeKey' | 'content';
+  readonly entries: readonly DuplicateEntry[];
+}
+
+/** Result of a duplicate scan over a document. */
+export interface FindDuplicatesResult {
+  readonly groups: readonly DuplicateGroup[];
+  /** Total number of entries involved in any duplicate group. */
+  readonly total: number;
+}
+
 // --- Full-text search (SQLite FTS5) -----------------------------------------
 
 /** Request a full-text search over a document. */
@@ -602,6 +630,7 @@ export type MenuCommand =
   | 'addAttachment'
   | 'online'
   | 'editMacros'
+  | 'findDuplicates'
   // Edit / clipboard (operate on the selection)
   | 'find'
   | 'findReplace'

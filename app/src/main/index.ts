@@ -581,6 +581,11 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('generateCiteKey'),
       },
+      {
+        label: 'Find Duplicates…',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('findDuplicates'),
+      },
       { type: 'separator' },
       {
         label: 'Add File Attachment…',
@@ -745,6 +750,7 @@ function registerIpc(): void {
     [IpcChannels.pasteEntries]: (req) => store.importBibtexText(req.documentId, req.text),
     [IpcChannels.importFiles]: (req) => store.importFiles(req.documentId, req.paths),
     [IpcChannels.findReplace]: (req) => store.findReplace(req),
+    [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -813,6 +819,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.findReplace, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.findReplace](req),
+  );
+  ipcMain.handle(IpcChannels.findDuplicates, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.findDuplicates](req),
   );
 }
 

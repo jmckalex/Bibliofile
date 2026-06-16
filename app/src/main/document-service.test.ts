@@ -117,6 +117,26 @@ describe('document-service: BD test.bib', () => {
     expect(text).toContain('color theory'); // Note field untouched (Title-only scope)
   });
 
+  it('findDuplicates groups identical cite keys and equivalent content', () => {
+    const store = new DocumentStore();
+    // Two entries that are content-equivalent (same type + fields) with different
+    // keys, plus a distinct third entry.
+    const { documentId } = store.openText(
+      [
+        '@article{one, Author = {A. Smith}, Title = {Widgets}, Year = {2020}}',
+        '@article{two, Author = {A. Smith}, Title = {Widgets}, Year = {2020}}',
+        '@book{three, Author = {B. Jones}, Title = {Gadgets}, Year = {2019}}',
+      ].join('\n'),
+      '/tmp/dup.bib',
+    );
+    const res = store.findDuplicates(documentId);
+    // 'one' and 'two' are equivalent content; 'three' is unique.
+    const content = res.groups.find((g) => g.kind === 'content');
+    expect(content).toBeDefined();
+    expect(content!.entries.map((e) => e.citeKey).sort()).toEqual(['one', 'two']);
+    expect(res.total).toBe(2);
+  });
+
   it('findReplace reports an invalid regex instead of throwing', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {x}}', '/tmp/fr.bib');

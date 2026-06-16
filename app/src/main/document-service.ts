@@ -42,6 +42,8 @@ import {
   sharedTypeManager,
   complexValueToBibTeX,
   isComplex,
+  equivalenceKey,
+  itemsEquivalent,
 } from '@bibdesk/model';
 import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT } from '@bibdesk/formats';
 import type { Author } from '@bibdesk/names';
@@ -84,6 +86,8 @@ import type {
   FindReplaceRequest,
   FindReplaceResult,
   FindReplaceMatch,
+  FindDuplicatesResult,
+  DuplicateGroup,
   SaveDocumentRequest,
   SaveDocumentResult,
 } from '@bibdesk/shared';
@@ -1211,6 +1215,68 @@ export class DocumentStore {
 
     if (mutated) doc.dirty = true;
     return { matches, total, applied: req.apply, dirty: doc.dirty };
+  }
+
+  /**
+   * Scan for duplicate entries: (1) entries sharing a cite key (case-insensitive)
+   * and (2) entries with **equivalent content** — bucketed by the model's
+   * `equivalenceKey` (type + required/optional field hash) then confirmed pairwise
+   * with `itemsEquivalent` so hash collisions don't produce false groups.
+   */
+  findDuplicates(documentId: string): FindDuplicatesResult {
+    const doc = this.requireDoc(documentId);
+    const groups: DuplicateGroup[] = [];
+    const involved = new Set<string>();
+
+    const entryOf = (item: BibItem): { id: string; citeKey: string; title: string } => ({
+      id: item.id,
+      citeKey: item.citeKey,
+      title: toDisplay(item.stringValueOfField(FieldNames.Title, true)),
+    });
+
+    // (1) identical cite keys
+    const byKey = new Map<string, BibItem[]>();
+    for (const it of doc.library.items) {
+      const k = it.citeKey.trim().toLowerCase();
+      if (!k) continue;
+      const arr = byKey.get(k);
+      if (arr) arr.push(it);
+      else byKey.set(k, [it]);
+    }
+    for (const arr of byKey.values()) {
+      if (arr.length < 2) continue;
+      groups.push({ kind: 'citeKey', entries: arr.map(entryOf) });
+      for (const it of arr) involved.add(it.id);
+    }
+
+    // (2) equivalent content — bucket by hash, then split into mutually-equivalent
+    // sub-groups (a bucket can hold accidental hash collisions).
+    const byEq = new Map<string, BibItem[]>();
+    for (const it of doc.library.items) {
+      const k = equivalenceKey(it, sharedTypeManager);
+      const arr = byEq.get(k);
+      if (arr) arr.push(it);
+      else byEq.set(k, [it]);
+    }
+    for (const bucket of byEq.values()) {
+      if (bucket.length < 2) continue;
+      const subgroups: BibItem[][] = [];
+      for (const it of bucket) {
+        const g = subgroups.find((sg) => itemsEquivalent(sg[0]!, it, sharedTypeManager));
+        if (g) g.push(it);
+        else subgroups.push([it]);
+      }
+      for (const sg of subgroups) {
+        if (sg.length < 2) continue;
+        // Skip if this exact set is already reported as a cite-key duplicate.
+        if (sg.every((it) => involved.has(it.id)) && sg.length === byKey.get(sg[0]!.citeKey.trim().toLowerCase())?.length)
+          continue;
+        groups.push({ kind: 'content', entries: sg.map(entryOf) });
+        for (const it of sg) involved.add(it.id);
+      }
+    }
+
+    return { groups, total: involved.size };
   }
 
   /** Items in scope for an operation: a group's members, or the whole library. */

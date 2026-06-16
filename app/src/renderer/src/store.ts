@@ -14,6 +14,7 @@ import type {
   EditCommand,
   FindReplaceRequest,
   FindReplaceResult,
+  FindDuplicatesResult,
   GroupNode,
   ImportResult,
   ItemDetail,
@@ -160,6 +161,8 @@ export interface ViewerState {
   afterImport: (res: ImportResult) => Promise<void>;
   /** Find/replace over field values (scoped to the current group); refresh on apply. */
   findReplace: (opts: Omit<FindReplaceRequest, 'documentId' | 'groupId'>) => Promise<FindReplaceResult>;
+  /** Scan the document for duplicate entries. */
+  findDuplicates: () => Promise<FindDuplicatesResult>;
   /** Load preferences from main and apply the theme. */
   loadSettings: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
@@ -439,6 +442,17 @@ export function createStore(api: BibDeskApi) {
         if (sel) await get().selectItem(sel); // refresh the detail pane
       }
       return res;
+    },
+
+    findDuplicates: async () => {
+      const { documentId } = get();
+      if (!documentId) return { groups: [], total: 0 };
+      try {
+        return await api.findDuplicates({ documentId });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+        return { groups: [], total: 0 };
+      }
     },
 
     loadSettings: async () => {

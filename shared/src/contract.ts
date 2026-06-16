@@ -34,6 +34,8 @@ import type {
   ImportResult,
   FindReplaceRequest,
   FindReplaceResult,
+  FindDuplicatesRequest,
+  FindDuplicatesResult,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -86,6 +88,7 @@ export interface IpcContract {
   [IpcChannels.pasteEntries]: IpcEntry<PasteEntriesRequest, ImportResult>;
   [IpcChannels.importFiles]: IpcEntry<ImportFilesRequest, ImportResult>;
   [IpcChannels.findReplace]: IpcEntry<FindReplaceRequest, FindReplaceResult>;
+  [IpcChannels.findDuplicates]: IpcEntry<FindDuplicatesRequest, FindDuplicatesResult>;
 }
 
 /**
