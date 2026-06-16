@@ -241,7 +241,34 @@ strip braces for display; (b) Year column too narrow — tune column widths.
 
 ---
 
-## Stage 5 (post-viewer, user-authorized) — IN PROGRESS
+## Stage 5 (post-viewer) — visible polish DONE (`cc1add4`)
+
+Delivered: (a) **display transform** — de-TeXify + strip BibTeX protective braces for
+titles/fields/preview (`{C}alabi-{Y}au`→`Calabi-Yau`; URL/file fields shown raw); (b) **live
+search box** (client-side `filterRows` across all columns; filtered count in footer); (c)
+**column widths** — fixed Cite Key/Type/Year (no collapse → Year stops truncating),
+Authors/Title grow. 15 app tests; full build clean; GUI re-smoke screenshot
+`docs/viewer-stage5.png`. **Deferred to a later pass** (lower visible value on BD test.bib):
+multi-column sort, user-customizable columns, rating/boolean/file-badge cell renderers,
+category/author groups, keyboard row nav.
+
+## Stage 6 — beautiful preview pane + MathJax — DONE (`83f2a18`)
+
+Delivered (the user's #1 "richer/more beautiful views" goal):
+- **Themeable preview card** (semantic CSS classes, no inline styles): entry-type accent
+  colour, title, italic authors, venue line (journal·vol·pp·year), **DOI/URL/files chips**,
+  **keyword tags**, abstract, citekey.
+- **MathJax v3** (tex-svg, Apache-2.0, **offline**-bundled via Vite `?url` — no CDN) renders
+  inline `$…$` and display `$$…$$` math in title + abstract. `toDisplay` brace-stripping is
+  **math-aware** (braces inside `$…$` preserved, so `$\frac{a}{b}$` stays intact).
+- **Dark theme** via `:root[data-theme='dark']` CSS-variable overrides + a header theme
+  toggle (persisted to localStorage).
+- `docs/math-demo.bib` demo fixture; the smoke hook now selects the first row (and optionally
+  toggles dark) to capture the preview. **Screenshots:** `docs/viewer-stage6-light.png`,
+  `docs/viewer-stage6-dark.png` — both show MathJax-rendered ∑/π² in the card.
+- 1252 repo tests; `pnpm -r build` clean. MathJax added as the only new dep (Apache-2.0).
+
+## Next (Stage 7 — editing + round-trip save) — pending
 - Orchestrator wires electron-vite and runs `dev` once to smoke-test loading
   `/Users/jalex/Source/BibDesk/bibdesk/Scripting/BD test.bib`. Electron binary is ready.
 
