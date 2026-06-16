@@ -12,7 +12,7 @@
  */
 
 import { join } from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 
 import {
   app,
@@ -59,7 +59,9 @@ function createWindow(): BrowserWindow {
     show: false,
     title: 'BibDesk',
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      // electron-vite emits the preload as ESM `index.mjs` (this package is
+      // type:module). Electron 33 loads an ESM preload when sandbox is off.
+      preload: join(__dirname, '../preload/index.mjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
@@ -74,6 +76,38 @@ function createWindow(): BrowserWindow {
     void win.loadURL(devUrl);
   } else {
     void win.loadFile(join(__dirname, '../renderer/index.html'));
+  }
+
+  // Dev-only smoke hook: when BIBDESK_SMOKE points at a PNG path, wait for the
+  // renderer to load + fetch its data, capture the window, write the image, then
+  // quit. Used by the orchestrator's headless GUI smoke test; no effect in normal
+  // runs (env var unset).
+  const smokePath = process.env.BIBDESK_SMOKE;
+  if (smokePath) {
+    win.webContents.on('console-message', (_e, level, message) =>
+      console.log(`[smoke][renderer:${level}] ${message}`),
+    );
+    win.webContents.on('did-fail-load', (_e, code, desc) =>
+      console.error(`[smoke] did-fail-load ${code} ${desc}`),
+    );
+    win.webContents.on('preload-error', (_e, p, err) =>
+      console.error(`[smoke] preload-error ${p}: ${err.message}`),
+    );
+    win.webContents.on('render-process-gone', (_e, details) =>
+      console.error(`[smoke] render-process-gone: ${details.reason}`),
+    );
+    win.webContents.once('did-finish-load', () => {
+      setTimeout(() => {
+        win.webContents
+          .capturePage()
+          .then((img) => {
+            writeFileSync(smokePath, img.toPNG());
+            console.log(`[smoke] captured ${smokePath}`);
+          })
+          .catch((err) => console.error('[smoke] capture failed:', err))
+          .finally(() => app.quit());
+      }, 2500);
+    });
   }
 
   return win;
