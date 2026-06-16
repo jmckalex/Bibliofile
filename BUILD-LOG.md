@@ -339,6 +339,47 @@ field editor (current field editor stores literal strings; macros are edited in 
 
 ---
 
+## Session progress (batch 2 + inserts) — DONE so far
+
+Stages 8–12 done & committed: **8** multiple attachments (Bdsk-File-N, real-library validated),
+**9** online CrossRef/arXiv, **10** markdown abstracts, **11** markdown notes w/ `[[cross-refs]]` +
+inline `<iframe>`, **12** SQLite FTS5 full-text + PDF text (better-sqlite3, Electron-verified;
+`rebuild-native.mjs` switches Node/Electron ABI). Plus, user-inserted: **comprehensive
+TeXinfo-quality Help manual** (`docs/help/00–08`) + **Help menu** (in-app manual window), and a
+**Preferences pane** (theme, default CSL style, cite-key format, default entry type, field-type
+sets → TypeManager). `pnpm test` = 1286 green; `pnpm -r build` clean. Screenshots in `docs/`.
+
+## Design topics raised (awaiting direction) — 2026-06-16
+
+- **PDF preview:** not yet built. We open attachments externally + extract PDF text (pdfjs-dist)
+  for FTS — so PDF.js is already a dep and can render pages. Easy to add an in-app PDF.js viewer.
+- **Template language (Mustache?):** replace BibDesk's hand-rolled RTF template syntax. Recommend
+  Mustache (mustache.js, MIT, logic-less, safe) or Handlebars (helpers) over porting BibDesk's
+  syntax; emit HTML (themeable). Default templates for the preview card + export, user-editable.
+  Not BibDesk-`.template`-compatible (different language) — could add a translator later.
+- **Scripting + Claude agent:** locked decision = JS plugin API everywhere (+ native hooks). Build
+  the sandboxed plugin API over the data model (the stubbed `plugins-sdk` pkg) first; then an
+  in-app **Claude assistant** (Folio-style) whose tools ARE that plugin API — it can query/mutate
+  the library and write+run scripts. Needs decisions: Anthropic API key handling (safeStorage),
+  model (latest Claude), approval UX for mutations.
+
+## Roadmap batch 2 (user-requested 2026-06-16, in this order)
+
+8. **Attachments (multiple)** — `Bdsk-File-N` blobs (relativePath, BibDesk-compatible); add via
+   dialog (multi-select), remove, open. Prereq for FTS PDF text.
+9. **Online** — CrossRef + arXiv search/import (main process; no CORS). Import as new entries.
+10. **Markdown abstract** — render abstract markdown (`marked` MIT + sanitize) + MathJax in preview.
+11. **Notes w/ cross-refs** — markdown notes (`Annote` field) with `[[citeKey]]` hyperlinks that
+    select the linked entry.
+12. **SQLite FTS5 search** — `better-sqlite3` + FTS5 (rebuilt for Electron); index field text +
+    **PDF text** (`pdfjs-dist`) from attachments.
+13. **Editing depth** — undo stack + autosave option; person/date field-type editors.
+14. **Export** — BibTeX/RIS/HTML/RTF + copy-as.
+15. **Plan scripting** — design the JS plugin API (PLAN Phase 8); plan only.
+
+Design choices (logged): notes in `Annote`; markdown via `marked`+sanitizer; online CrossRef+arXiv
+first; FTS better-sqlite3 (native, electron-rebuild). Each stage committed + GUI-smoke-verified.
+
 ## Extended roadmap (post-viewer) — USER-AUTHORIZED beyond charter scope
 
 On 2026-06-16 the user authorized continuing past "core + read-only viewer": *"If the
