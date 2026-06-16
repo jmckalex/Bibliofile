@@ -51,6 +51,9 @@ let mainWindow: BrowserWindow | null = null;
 /** A `.bib` path requested before the window/renderer was ready. */
 let pendingOpenPath: string | null = null;
 
+/** Most recently opened document id (used by the smoke-test FTS self-check). */
+let lastDocumentId: string | null = null;
+
 // ---------------------------------------------------------------------------
 // Window creation + renderer loading
 // ---------------------------------------------------------------------------
@@ -102,6 +105,15 @@ function createWindow(): BrowserWindow {
       console.error(`[smoke] render-process-gone: ${details.reason}`),
     );
     const capture = (): void => {
+      // FTS self-test: prove SQLite FTS5 (better-sqlite3) loaded under Electron.
+      if (lastDocumentId) {
+        try {
+          const r = store.ftsSearch(lastDocumentId, 'basel');
+          console.log(`[smoke] fts available=${r.available} hits("basel")=${r.ids.length}`);
+        } catch (e) {
+          console.log('[smoke] fts self-test error:', e instanceof Error ? e.message : String(e));
+        }
+      }
       win.webContents
         .capturePage()
         .then((img) => {
@@ -147,6 +159,7 @@ function openPath(path: string): OpenedDocument {
     mainWindow.setTitle(`${opened.displayName} — BibDesk`);
     mainWindow.setRepresentedFilename?.(opened.path);
   }
+  lastDocumentId = opened.documentId;
   notifyDocumentOpened(opened);
   // Index attachment PDF text in the background; field-text search works already.
   void store.indexAttachments(opened.documentId);

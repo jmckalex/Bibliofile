@@ -10,7 +10,9 @@
     "build:app": "electron-vite build",
     "start": "electron-vite preview",
     "build": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "rebuild:electron": "node ../scripts/rebuild-native.mjs electron",
+    "rebuild:node": "node ../scripts/rebuild-native.mjs node"
   },
   "dependencies": {
     "@bibdesk/bibtex": "workspace:*",
