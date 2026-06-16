@@ -150,8 +150,17 @@ BIBDESK_OPEN=/Users/me/research/library.bib pnpm --filter @bibdesk/app dev
 
 ## 1.4 The window at a glance
 
-Once a library is open, the window is organised into a header, a toolbar, three
-side-by-side panes, and a status-bar footer.
+Above everything sits the **application menu bar** (the **BibDesk** /
+**File** / **Edit** / **Publication** / **View** / **Window** / **Help** menus —
+on macOS this lives in the system menu bar at the top of the screen; on Windows
+and Linux it is attached to the window). The menus hold every command in the app,
+each with its keyboard shortcut where it has one. The most-used commands are
+*also* reachable from the toolbar, but the menu bar is the complete inventory. The
+full menu-and-shortcut reference is in
+[Shortcuts & reference](09-shortcuts-and-reference.md).
+
+Once a library is open, the window itself is organised into a header, a toolbar,
+three side-by-side panes, and a status-bar footer.
 
 ![Library view with category groups](../viewer-category-groups.png)
 
@@ -205,7 +214,7 @@ when a library is open. From left to right:
 | **⧉ Duplicate** | Copy the selected entry. | Disabled until you select a row. The copy gets a `…-copy` cite key (made unique). |
 | **🗑 Delete** | Remove the selected entry. | Disabled until you select a row. |
 | *(spacer)* | — | Pushes the remaining buttons to the right. |
-| **🌐 Online…** | Search online databases and import results. | Opens the online-search dialog. See [Online search](07-online-search.md). |
+| **🌐 Online…** | Search online databases and import results. | Opens the online-search dialog. See [Online search](08-online-search.md). |
 | **@string…** | Edit the library's `@string` macros. | Opens the macro editor. See [Editing entries](03-editing-entries.md). |
 | **Save** | Write changes to disk. | See below. Also bound to **Cmd/Ctrl+S**. |
 
@@ -257,12 +266,18 @@ something goes wrong, an `Error: …` message.
 
 ## 1.5 Light and dark themes
 
-The **☾ / ☀** button in the header toggles between light and dark appearance.
+There are three ways to set the appearance, and they all change the same
+preference:
 
-- When you are in **light** mode the button shows the **☾** moon (click it to go
-  dark).
-- When you are in **dark** mode the button shows the **☀** sun (click it to go
-  light).
+- The **☾ / ☀** button in the header toggles between light and dark. In **light**
+  mode the button shows the **☾** moon (click it to go dark); in **dark** mode it
+  shows the **☀** sun (click it to go light).
+- **View → Toggle Light / Dark Theme** (**⌘⇧L** / **Ctrl+Shift+L**) does the same
+  thing from the menu bar.
+- **Preferences → Appearance → Theme** offers three explicit choices:
+  **System**, **Light**, and **Dark**. The **System** setting (the default)
+  follows your operating system's light/dark mode automatically, switching with
+  it; **Light** and **Dark** pin the appearance regardless of the OS.
 
 ![Light theme](../viewer-stage6-light.png)
 
@@ -270,11 +285,11 @@ The **☾ / ☀** button in the header toggles between light and dark appearance
 
 ### 1.5.1 How the theme is stored
 
-Your choice is **persisted in the browser-style local storage** of the Electron
-renderer, under the key `bd-theme` (its value is the string `light` or `dark`).
-Because of this:
+Your choice is **persisted with the application's other preferences** (in a
+`settings.json` file in the per-user application-data folder), so:
 
-- The application reopens in the theme you last used.
+- The application reopens in the theme you last used (and **System** keeps
+  tracking the OS afterwards).
 - The theme is a **per-installation, application-wide** preference — it is *not*
   written into your `.bib` file, so switching themes never marks your document
   dirty and never changes a single byte of your library.
@@ -327,18 +342,19 @@ chapter of this manual goes deeper into one part of it.
 | Chapter | What it covers |
 | --- | --- |
 | **[1. Getting started](01-getting-started.md)** | This chapter: what the app is, opening a library, the window anatomy, themes, and a first-session walkthrough. |
-| **[2. Browsing & searching](02-browsing-and-searching.md)** | The publications table (columns, sorting, virtualization, selection), the live search filter, and the groups sidebar (Library, Static/Smart groups, and the dynamic Author/Keyword categories). |
-| **[3. Editing entries](03-editing-entries.md)** | Editing fields, cite keys, and entry types in the detail pane; adding, duplicating, and deleting entries; the `@string` macro editor; crossref inheritance; and saving with backups. |
-| **[4. Attachments](04-attachments.md)** | Attaching, opening, and removing files (`Bdsk-File-N` blobs), and how attachment paths are stored relative to the document. |
+| **[2. Browsing & searching](02-browsing-and-searching.md)** | The publications table (configurable columns, the icon columns, sorting, virtualization, selection), the live search filter, **Find Duplicates**, and the groups sidebar (Library, Static/Smart groups, and the dynamic Author/Keyword categories). |
+| **[3. Editing entries](03-editing-entries.md)** | Editing fields (with autocomplete), cite keys, and entry types in the detail pane; adding, duplicating, and deleting entries; generating cite keys; **Find & Replace**; the **Copy** commands and cite drag-out; the `@string` macro editor; crossref inheritance; and saving with backups. |
+| **[4. Attachments](04-attachments.md)** | Attaching, opening (including the in-app **PDF preview**), and removing files (`Bdsk-File-N` blobs); how attachment paths are stored relative to the document; and **AutoFile** into a Papers folder. |
 | **[5. Notes & abstracts](05-notes-and-abstracts.md)** | Writing abstracts and per-entry notes in Markdown, and the `[[citeKey]]` cross-reference links between entries. |
-| **[6. Preview & citations](06-preview-and-citations.md)** | The typeset preview card, entry-type colour coding, keyword tags, MathJax math, clickable links, and formatted CSL citations (APA/Vancouver/Harvard). |
-| **[7. Online search](07-online-search.md)** | Searching online databases inside the app and importing results as new entries. |
-| **[8. Shortcuts & reference](08-shortcuts-and-reference.md)** | Keyboard shortcuts, how your data is stored, and current limitations and troubleshooting. |
+| **[6. Preview & citations](06-preview-and-citations.md)** | The typeset preview card, entry-type colour coding, keyword tags, MathJax math, clickable links, formatted CSL citations (APA/Vancouver/Harvard), and the clipboard copy commands. |
+| **[7. Importing & exporting](07-importing-and-exporting.md)** | Pasting BibTeX, drag-and-drop, importing BibTeX/RIS files, and exporting to BibTeX/RIS/CSV/HTML. |
+| **[8. Online search](08-online-search.md)** | Searching online databases inside the app and importing results as new entries. |
+| **[9. Shortcuts & reference](09-shortcuts-and-reference.md)** | The full menu bar, keyboard shortcuts, how your data is stored, and current limitations and troubleshooting. |
 
 ## See also
 
 - [Browsing & searching](02-browsing-and-searching.md) — your next stop: finding
   your way around an open library.
 - [Editing entries](03-editing-entries.md) — when you are ready to change things.
-- [Shortcuts & reference](08-shortcuts-and-reference.md) — the quick-reference
+- [Shortcuts & reference](09-shortcuts-and-reference.md) — the quick-reference
   card and troubleshooting.

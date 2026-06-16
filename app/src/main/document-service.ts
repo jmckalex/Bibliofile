@@ -1550,6 +1550,13 @@ export class DocumentStore {
     return this.requireDoc(documentId).dirty;
   }
 
+  /** Resolve a cite key (case-insensitive) to an item id, or undefined. */
+  itemIdForCiteKey(documentId: string, citeKey: string): string | undefined {
+    const doc = this.requireDoc(documentId);
+    const lower = citeKey.trim().toLowerCase();
+    return doc.library.items.find((i) => i.citeKey.toLowerCase() === lower)?.id;
+  }
+
   /**
    * Full-text search via SQLite FTS5; returns matching item ids best-match first.
    * `available` is false when the native index couldn't load (caller should fall

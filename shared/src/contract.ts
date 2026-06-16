@@ -42,6 +42,10 @@ import type {
   AutoFileRequest,
   AutoFileResult,
   ChooseFolderResponse,
+  AgentKeyStatus,
+  AgentSetKeyRequest,
+  AgentRunRequest,
+  AgentRunResponse,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -99,6 +103,10 @@ export interface IpcContract {
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;
   [IpcChannels.autoFile]: IpcEntry<AutoFileRequest, AutoFileResult>;
   [IpcChannels.chooseFolder]: IpcEntry<Record<string, never>, ChooseFolderResponse>;
+  [IpcChannels.agentKeyStatus]: IpcEntry<Record<string, never>, AgentKeyStatus>;
+  [IpcChannels.agentSetKey]: IpcEntry<AgentSetKeyRequest, AgentKeyStatus>;
+  [IpcChannels.agentRun]: IpcEntry<AgentRunRequest, AgentRunResponse>;
+  [IpcChannels.agentReset]: IpcEntry<{ documentId: string }, { ok: true }>;
 }
 
 /**

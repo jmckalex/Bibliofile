@@ -76,6 +76,14 @@ export const IpcChannels = {
   autoFile: 'bibdesk:autoFile',
   /** Open a folder picker (e.g. choosing the Papers folder). */
   chooseFolder: 'bibdesk:chooseFolder',
+  /** Whether the Anthropic API key is stored (Claude assistant). */
+  agentKeyStatus: 'bibdesk:agentKeyStatus',
+  /** Store/clear the Anthropic API key (via safeStorage). */
+  agentSetKey: 'bibdesk:agentSetKey',
+  /** Run one assistant turn for the open document. */
+  agentRun: 'bibdesk:agentRun',
+  /** Reset the assistant conversation for a document. */
+  agentReset: 'bibdesk:agentReset',
 } as const;
 
 /**

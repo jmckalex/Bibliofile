@@ -43,6 +43,10 @@ import type {
   AutoFileRequest,
   AutoFileResult,
   ChooseFolderResponse,
+  AgentKeyStatus,
+  AgentSetKeyRequest,
+  AgentRunRequest,
+  AgentRunResponse,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -151,6 +155,18 @@ export interface BibDeskApi {
 
   /** Open a native folder picker (e.g. the Papers folder). Resolves to {path|null}. */
   chooseFolder(): Promise<ChooseFolderResponse>;
+
+  /** Whether the Anthropic API key is stored (Claude assistant). */
+  agentKeyStatus(): Promise<AgentKeyStatus>;
+
+  /** Store (or clear, with an empty key) the Anthropic API key via safeStorage. */
+  agentSetKey(request: AgentSetKeyRequest): Promise<AgentKeyStatus>;
+
+  /** Send one message to the assistant for the open document. */
+  agentRun(request: AgentRunRequest): Promise<AgentRunResponse>;
+
+  /** Reset the assistant conversation for a document. */
+  agentReset(request: { documentId: string }): Promise<{ ok: true }>;
 
   /**
    * Resolve a dropped {@link File} to its absolute filesystem path (Electron's

@@ -60,6 +60,10 @@ import {
   type AutoFileRequest,
   type AutoFileResult,
   type ChooseFolderResponse,
+  type AgentKeyStatus,
+  type AgentSetKeyRequest,
+  type AgentRunRequest,
+  type AgentRunResponse,
   type MenuCommand,
 } from '@bibdesk/shared';
 
@@ -149,6 +153,18 @@ const api: BibDeskApi = {
   },
   chooseFolder(): Promise<ChooseFolderResponse> {
     return ipcRenderer.invoke(IpcChannels.chooseFolder, {});
+  },
+  agentKeyStatus(): Promise<AgentKeyStatus> {
+    return ipcRenderer.invoke(IpcChannels.agentKeyStatus, {});
+  },
+  agentSetKey(request: AgentSetKeyRequest): Promise<AgentKeyStatus> {
+    return ipcRenderer.invoke(IpcChannels.agentSetKey, request);
+  },
+  agentRun(request: AgentRunRequest): Promise<AgentRunResponse> {
+    return ipcRenderer.invoke(IpcChannels.agentRun, request);
+  },
+  agentReset(request: { documentId: string }): Promise<{ ok: true }> {
+    return ipcRenderer.invoke(IpcChannels.agentReset, request);
   },
   pathForFile(file: File): string {
     return webUtils.getPathForFile(file);

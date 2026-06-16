@@ -118,6 +118,10 @@ export {
   type AutoFileRequest,
   type AutoFileResult,
   type ChooseFolderResponse,
+  type AgentKeyStatus,
+  type AgentSetKeyRequest,
+  type AgentRunRequest,
+  type AgentRunResponse,
   type MenuCommand,
 } from './dto.js';
 

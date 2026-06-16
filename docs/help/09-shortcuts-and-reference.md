@@ -1,38 +1,123 @@
 # Shortcuts & Reference
 
-This is the reference chapter: the complete list of keyboard shortcuts and
-mouse actions, an explanation of the on-disk file format and exactly how the app
-preserves and normalises it, a map of where every kind of data is stored, a
-reference for the BibTeX fields the app treats specially, notes on citations, an
-honest account of current limitations, a glossary, and general troubleshooting.
+This is the reference chapter: the complete menu bar, the keyboard shortcuts and
+mouse actions, the Preferences, an explanation of the on-disk file format and
+exactly how the app preserves and normalises it, a map of where every kind of
+data is stored, a reference for the BibTeX fields the app treats specially, notes
+on citations, an honest account of current limitations, a glossary, and general
+troubleshooting.
 
 Use it as a lookup. The earlier chapters teach the workflows; this one nails
 down the details.
 
-## Keyboard shortcuts
+## The menu bar
 
-The app deliberately keeps its keyboard surface small. The list below is
-**complete** — these are the only keys bound. Anything not listed here has no
-shortcut.
+Every command lives in the application menu bar — on macOS in the system menu bar
+at the top of the screen; on Windows and Linux attached to the window. The
+toolbar duplicates a few of the most common commands, but the menus are the full
+inventory. Items marked *(needs an open library)* are greyed out until a `.bib`
+file is open.
 
-| Action | macOS | Windows / Linux | Where it works |
+### BibDesk menu (macOS only)
+
+On Windows and Linux these items live elsewhere: **Preferences…** moves to the
+**File** menu, and Quit is the standard window/system command.
+
+| Item | Shortcut | What it does |
+| --- | --- | --- |
+| About BibDesk | — | Standard about box |
+| Preferences… | ⌘, | Open [Preferences](#preferences) |
+| Services / Hide / Quit | platform defaults | Standard macOS application roles |
+
+### File menu
+
+| Item | macOS | Win/Linux | What it does |
 | --- | --- | --- | --- |
-| **Open** a `.bib` file | ⌘O | Ctrl+O | Application menu (**File → Open…**) — a true menu accelerator |
-| **Save** the library | ⌘S | Ctrl+S | Anywhere in the window — a global key handler |
-| **Commit** a field edit | Enter | Enter | While editing a single-line field, the cite key, or the *New field* row |
-| **Run** an online search | Enter | Enter | While the cursor is in the online-search query box |
+| New Publication | ⌘N | Ctrl+N | Add a new entry *(needs an open library)* |
+| Open… | ⌘O | Ctrl+O | Open a `.bib` file |
+| Open Recent | — | — | Re-open a recently used library |
+| Save | ⌘S | Ctrl+S | Write changes to disk *(needs an open library)* |
+| Save As… | ⇧⌘S | Shift+Ctrl+S | Save the library under a new name and keep editing it there *(needs an open library)* |
+| Revert to Saved | — | — | Discard unsaved changes and reload the last saved version *(needs an open library)* |
+| Show in Finder / Show in File Manager | — | — | Reveal the open `.bib` file in your file manager *(needs an open library)* |
+| Import → From File (BibTeX / RIS)… | ⇧⌘I | Shift+Ctrl+I | Import `.bib`/`.ris` files (see [Importing & Exporting](07-importing-and-exporting.md)) *(needs an open library)* |
+| Import → Search Online (CrossRef / arXiv)… | ⇧⌘O | Shift+Ctrl+O | Open [online search](08-online-search.md) *(needs an open library)* |
+| Export → BibTeX… / RIS… / CSV… / HTML… | — | — | Export the whole library to that format *(needs an open library)* |
 
-> **Note:** **Open** is the *only* item with a real menu accelerator. **Save**
-> is handled by a window-wide key listener rather than a menu item — there is
-> **no File → Save** entry in the menu bar. The standard platform roles in the
-> **Edit**, **View**, and **Window** menus (and Quit/Hide on macOS) carry their
-> usual system shortcuts, but the app defines no application-specific keys beyond
-> those above.
+### Edit menu
 
-> **Tip:** Don't go looking for shortcuts to create, duplicate, or delete
-> entries, to switch theme, or to focus the search box — there aren't any. Those
-> are mouse actions (below). This is by design while the app is young; see
-> [Limitations](#limitations--not-yet).
+The first block (Undo, Redo, Cut, Copy, Paste, Paste and Match Style, Delete,
+Select All) are the standard platform editing roles with their usual system
+shortcuts; they apply to text fields. The app-specific commands are:
+
+| Item | macOS | Win/Linux | What it does |
+| --- | --- | --- | --- |
+| Paste Publication | ⇧⌘V | Shift+Ctrl+V | Import BibTeX from the clipboard as new entries *(needs an open library)* |
+| Find… | ⌘F | Ctrl+F | Focus the search box *(needs an open library)* |
+| Find & Replace… | ⌥⌘F | Alt+Ctrl+F | Open [Find & Replace](03-editing-entries.md#find--replace) across field values *(needs an open library)* |
+| Copy Cite Key | ⌥⌘K | Alt+Ctrl+K | Copy the selected entry's bare cite key *(needs an open library)* |
+| Copy Citation | — | — | Copy the formatted CSL citation as text *(needs an open library)* |
+| Copy as BibTeX | ⌥⌘B | Alt+Ctrl+B | Copy the selected entry's BibTeX source *(needs an open library)* |
+| Copy \cite{…} | ⌥⌘C | Alt+Ctrl+C | Copy a `\cite{…}` command using your cite-command template *(needs an open library)* |
+
+### Publication menu
+
+Every item needs an open library.
+
+| Item | macOS | Win/Linux | What it does |
+| --- | --- | --- | --- |
+| New Publication | ⌘N | Ctrl+N | Add a new entry |
+| Duplicate | ⇧⌘D | Shift+Ctrl+D | Copy the selected entry under a new cite key |
+| Delete Publication | — | — | Delete the selected entry |
+| Generate Cite Key | ⌘K | Ctrl+K | Generate a cite key for the selected entry |
+| Find Duplicates… | — | — | Open [Find Duplicates](02-browsing-and-searching.md#26-finding-duplicates) |
+| Add File Attachment… | — | — | Attach a file to the selected entry |
+| AutoFile Linked Files | — | — | [AutoFile](04-attachments.md#autofile-organising-linked-files) the selected entry's attachments |
+| Macros (@string)… | — | — | Open the `@string` macro editor |
+
+### View menu
+
+| Item | macOS | Win/Linux | What it does |
+| --- | --- | --- | --- |
+| Columns → (submenu of checkboxes) | — | — | Show/hide table columns (see [Configuring the columns](02-browsing-and-searching.md#226-configuring-the-columns)) |
+| Toggle Light / Dark Theme | ⌘⇧L | Ctrl+Shift+L | Switch between light and dark appearance |
+| Actual Size / Zoom In / Zoom Out | ⌘0 / ⌘+ / ⌘− | Ctrl+0 / Ctrl+ / Ctrl− | Standard zoom roles |
+| Toggle Full Screen / Reload / Toggle Developer Tools | platform defaults | platform defaults | Standard window roles |
+
+### Window and Help menus
+
+The **Window** menu holds the standard Minimize/Zoom/Close roles. The **Help**
+menu's **BibDesk Help** item (F1 on Windows/Linux) opens this manual in its own
+window.
+
+## Keyboard shortcuts (quick list)
+
+The app-specific accelerators, gathered in one place (macOS first; on Windows and
+Linux ⌘ is Ctrl, ⌥ is Alt):
+
+| Shortcut | Command |
+| --- | --- |
+| ⌘O | Open… |
+| ⌘N | New Publication |
+| ⌘S | Save |
+| ⇧⌘S | Save As… |
+| ⇧⌘I | Import → From File (BibTeX / RIS)… |
+| ⇧⌘O | Import → Search Online… |
+| ⇧⌘V | Paste Publication |
+| ⌘F | Find (focus search) |
+| ⌥⌘F | Find & Replace… |
+| ⌥⌘K | Copy Cite Key |
+| ⌥⌘B | Copy as BibTeX |
+| ⌥⌘C | Copy \cite{…} |
+| ⇧⌘D | Duplicate |
+| ⌘K | Generate Cite Key |
+| ⌘⇧L | Toggle Light / Dark Theme |
+| ⌘, | Preferences… |
+| Enter | Commit a single-line field edit / the cite key / the *New field* row; run an online search; run a Find preview |
+
+> **Note:** **Save** also works from anywhere in the window, including while the
+> focus is in a field. The standard Edit/View/Window roles (cut, copy, paste,
+> zoom, minimize, and so on) keep their usual platform shortcuts.
 
 ### Mouse and click actions
 
@@ -43,20 +128,23 @@ useful ones:
 | --- | --- |
 | **Select an entry** | Click its row in the publications table; the detail pane updates |
 | **Sort the table** | Click a **column header**; click the same header again to flip ascending/descending (a ▲/▼ marks the active column) |
+| **Drag out a citation** | Drag a row into a TeX editor (or any text field) to insert a `\cite{…}` |
 | **Filter by group** | Click a group in the left sidebar (Library, a Static/Smart group, or an Author/Keyword category) |
 | **Clear the group filter** | Click **📚 Library** |
 | **Filter by text** | Type in the **search box** at the top-right (full-text search; substring fallback) |
-| **Edit a field** | Click its value, type, then press **Enter** (long values open a multi-line box — click away to commit) |
+| **Edit a field** | Click its value, type, then press **Enter** (long values open a multi-line box — click away to commit); pick from the autocomplete list |
 | **Add a field** | Fill the **New field** row and press **Enter** or click **+** |
 | **Remove a field** | Click the **×** at the end of its row (or clear the value and commit) |
 | **Switch theme** | Click the **☾ / ☀** toggle in the header (light ⇄ dark) |
-| **Open a link / file** | Click a DOI/URL chip or an attachment in the detail pane |
+| **Open a link / file** | Click a DOI/URL chip or an attachment (PDFs open in the in-app preview) |
 | **Jump to a cross-referenced note** | Click a `[[citeKey]]` link inside a rendered note |
+| **Import by drag-and-drop** | Drag `.bib`/`.ris`/PDF/other files onto the window |
 
-Cross-references for these: sorting and filtering are covered in
-[Browsing & Searching](02-browsing-and-searching.md); field editing in
-[Editing Entries](03-editing-entries.md); links and `[[citeKey]]` notes in
-[Notes & Abstracts](05-notes-and-abstracts.md) and
+Cross-references for these: sorting, filtering, and columns are covered in
+[Browsing & Searching](02-browsing-and-searching.md); field editing and the copy
+commands in [Editing Entries](03-editing-entries.md); importing and exporting in
+[Importing & Exporting](07-importing-and-exporting.md); links and `[[citeKey]]`
+notes in [Notes & Abstracts](05-notes-and-abstracts.md) and
 [Preview & Citations](06-preview-and-citations.md).
 
 ## File format & fidelity
@@ -122,7 +210,9 @@ byte-for-byte as you typed it. Expect these normalisations every time you save:
 
 ### Saving and backups
 
-Saving is **explicit** — there is **no autosave**. When you save:
+Saving is **explicit by default** (there is no autosave unless you enable
+**Preferences → Saving → Autosave**). Whether you save manually or autosave does
+it for you, the write is the same. When you save:
 
 1. The in-memory library is serialised to BibTeX text.
 2. If the target file already exists, it is copied to **`<your-file>.bib.bak`**
@@ -150,7 +240,8 @@ file.
 | **Keywords** (the tag categories) | The `Keywords` field | Yes |
 | File **attachments** | `Bdsk-File-N` fields (relative paths) | Yes (move the files too — see [Attachments](04-attachments.md)) |
 | Document window/display state | The `@bibdesk_info` block | Yes |
-| **Theme** (light/dark choice) | The OS / browser `localStorage` (key `bd-theme`) | **No** — a per-machine preference |
+| **Preferences** (theme, default style, cite-key & cite-command formats, columns, Papers folder, AutoFile format, autosave, default entry type, field-type overrides) | A `settings.json` file in the per-user application-data folder | **No** — a per-installation preference |
+| **Read** / **Rating** | The `Read` / `Rating` fields | Yes |
 | **Search/filter** state | In memory only; nothing persisted | n/a |
 
 > **Note:** Full-text search uses an **in-memory SQLite FTS5 index** built when a
@@ -178,7 +269,9 @@ appear.
 | `Url` | Remote link | Shown as a clickable **URL** chip; opens in your browser. Not TeXified. Only `http`/`https`/`mailto` schemes are honoured. |
 | `Local-Url`, `Local-File`, `File` | Local link | Treated as a local file attachment in the detail pane (opens in the OS default app). Not TeXified. |
 | `Bdsk-File-N` | Managed attachment | The app's own attachment links; shown in the **Attachments** section, hidden from the generic field list. |
-| `Keywords` | Tag list | Split on `,`/`;` into pills in the preview and into the dynamic **Keyword** category groups. |
+| `Keywords` | Tag list | Split on `,`/`;` into pills in the preview, the dynamic **Keyword** category groups, and the 🔑 keyword column. |
+| `Read` | Tri-state flag | Drives the **Read** icon column (read / unread / unset). A value such as `1` or `yes` means read; `0` or `no` means explicitly unread. |
+| `Rating` | 0–5 number | Drives the optional **Rating** star column. |
 | `Abstract` | Markdown | Rendered as Markdown (with math) in the preview card. |
 | `Annote` | Markdown notes | Edited/rendered in the **Notes** section (with `[[citeKey]]` links and safe iframes); hidden from the generic field list. |
 | `Crossref` | Inheritance link | Names a parent entry's cite key; the child inherits the parent's fields (shown **(inherited)**). Editing an inherited value creates a local override. |
@@ -197,16 +290,39 @@ The detail pane renders a live, formatted citation for the selected entry using
 **CSL** (the Citation Style Language) via the **citeproc-js** engine, entirely
 offline — no network call is made to format a citation.
 
-- Pick a style from the dropdown: **APA**, **Vancouver**, or **Harvard**.
+- Pick a style from the dropdown: **APA**, **Vancouver**, or **Harvard**. Set the
+  one you start in under **Preferences → Citations → Default style**.
 - The citation **updates as you edit** the entry's fields, so it always reflects
   the current data.
 - It's meant for copying a properly formatted reference into an email, a
-  document, or a reading list.
+  document, or a reading list — use **Edit → Copy Citation** to put it on the
+  clipboard, or **Edit → Copy as BibTeX** for the raw source.
 
 Behind the scenes the app maps each entry to CSL-JSON (entry type → CSL type;
 parsed authors/editors → CSL name objects; `Pages` en-dashes normalised; `Doi`,
 `Url`, `Abstract`, and the venue carried across). Only the three styles above are
 bundled. See [Preview & Citations](06-preview-and-citations.md).
+
+## Preferences
+
+Open **Preferences** with **⌘,** / **Ctrl+,** (the item is in the **BibDesk** menu
+on macOS, the **File** menu on Windows/Linux). All settings are saved in a
+`settings.json` file in the per-user application-data folder, so they apply to
+every library and persist across sessions — none of them is written into your
+`.bib`. The pane is organised into these sections:
+
+| Section | Setting | Default | What it controls |
+| --- | --- | --- | --- |
+| **Appearance** | Theme | **System** | Light/Dark/System (System follows the OS) |
+| **Citations** | Default style | **APA** | The CSL style the citation block starts in (APA / Vancouver / Harvard) |
+| **Cite keys** | Format | `%a1:%Y%u2` | The format the **Generate** cite-key command uses |
+| **Cite command (TeX)** | Drag / Copy cite | `\cite{%K}` | The template used by drag-out and **Copy \cite{…}**; `%K` = the cite key |
+| **Columns** | (list + add/remove/reorder) | Cite Key, Type, Authors, Title, Year, Keywords, Attachments, Read | The table columns and their order (see [Browsing & Searching](02-browsing-and-searching.md#226-configuring-the-columns)) |
+| **AutoFile** | Papers folder | *(empty)* | Where [AutoFile](04-attachments.md#autofile-organising-linked-files) moves attachments (AutoFile is off until this is set) |
+| **AutoFile** | File name | `%a1/%Y%u0` | The file-name format AutoFile applies |
+| **Saving** | Autosave | **off** | When on, saves automatically a moment after each edit |
+| **New entries** | Default type | `article` | The entry type the **New** button/command creates |
+| **Field types** | Person / Remote URL / Local file / Rating / Boolean / Tri-state / Citation fields | (sensible defaults) | Which field names the app treats specially — e.g. which fields are people, which are URLs, which is the `Rating` field, which is the `Read` boolean |
 
 ## Limitations / not-yet
 
@@ -216,34 +332,43 @@ your `.bib` file; they're missing conveniences, not data hazards.
 
 - **No undo stack.** Edits apply immediately to the in-memory model; there is no
   multi-step undo/redo. Your safety net is explicit save plus the `.bib.bak`
-  backup — if you make a mess, you can reload the file (or fall back to the
-  backup) instead of saving.
-- **No autosave.** Saving is explicit (⌘S / Ctrl+S). Unsaved imports and edits
-  are lost if you quit without saving.
-- **Field editing is raw text only.** There are no dedicated person, date,
-  rating, boolean, or URL field editors yet — every field is edited as its
-  literal BibTeX string. (Macros are edited in the **@string…** modal; the field
-  editor itself stores literal strings, not macro/complex values.)
+  backup, and **File → Revert to Saved** to reload the last saved version — so if
+  you make a mess, reload (or fall back to the backup) instead of saving.
+- **Autosave is opt-in.** Saving is explicit by default (⌘S / Ctrl+S); unsaved
+  imports and edits are lost if you quit without saving. You can turn on
+  **Preferences → Saving → Autosave** to have the app save for you after each
+  edit.
+- **Field editing is raw text only.** Every field is edited as its literal BibTeX
+  string (with autocomplete from existing values); there are no dedicated person,
+  date, rating, or boolean *field editors* yet, and the **Read**/**Rating** icon
+  columns reflect their fields but aren't click-to-toggle. Macros are edited in
+  the **@string…** modal; the field editor stores literal strings, not
+  macro/complex values.
+- **Multi-row selection is limited.** Most commands act on the single selected
+  entry — a `\cite{…}` drag-out or copy produces one key at a time even though the
+  template format supports `\cite{key1,key2}`.
 - **Moved-attachment recovery is macOS-only and not yet wired up.** macOS
   BibDesk stores an Apple "bookmark" beside each attachment that can re-find a
   file after it's moved or renamed. This app **preserves** that bookmark
   untouched but resolves attachments only by their stored **relative path** —
-  so a file that has been moved may not open until you fix the path or re-add
+  so a file that has been moved may not open until you fix the path,
+  [AutoFile](04-attachments.md#autofile-organising-linked-files) it, or re-add
   it. See [Attachments](04-attachments.md#compatibility-with-macos-bibdesk).
 - **URL and Script groups are not evaluated.** They are preserved on disk and
   appear in the sidebar, but in this app they have no live membership (URL
-  groups don't fetch; Script groups don't execute).
-- **Only three citation styles.** APA, Vancouver, and Harvard. There is no style
-  picker beyond those yet.
+  groups don't fetch; Script groups don't execute), and there is no in-app
+  editor for creating or editing groups (you manage group definitions in BibDesk
+  or by hand).
+- **Only three citation styles.** APA, Vancouver, and Harvard. There is no
+  arbitrary-CSL import or style browser beyond those yet.
 - **Full-text search needs the native component.** Search uses a SQLite FTS5
   index (field text + PDF text). It relies on a native module that must be built
   for the app's runtime; if a build doesn't include it, search silently falls back
   to a substring filter over the visible columns. Developers enable it with `pnpm
   --filter @bibdesk/app rebuild:electron`.
-- **Only three citation styles** (APA, Vancouver, Harvard) and **no undo/autosave
-  yet.**
-- **Other planned-but-absent features.** Export (RIS/HTML/RTF/copy-as) and a
-  scriptable plugin API are on the roadmap but not in this build.
+- **Find Duplicates is review-only.** It finds and navigates to duplicates but
+  does not merge or delete them for you; clean them up by hand.
+- **A scriptable plugin API** is on the roadmap but not in this build.
 
 ## Glossary
 
@@ -286,9 +411,10 @@ bookmark for files made in macOS BibDesk).
 ## Troubleshooting
 
 **A change didn't stick.**
-Editing is explicit-save. If the **Save** button shows its unsaved-changes dot,
-your edits are still only in memory — press **⌘S** / **Ctrl+S** (or click
-**Save**) to write them.
+Editing is explicit-save by default. If the **Save** button shows its
+unsaved-changes dot, your edits are still only in memory — press **⌘S** /
+**Ctrl+S** (or click **Save**) to write them. (Turn on **Preferences → Saving →
+Autosave** to have this done for you.)
 
 **An attachment won't open.**
 The file has probably been **moved, renamed, or deleted**, or it's referenced by
@@ -304,12 +430,13 @@ That's the canonical normalisation pass (lower-cased field names, sorted fields,
 **Online search fails.**
 Almost always a **connectivity** issue — check your internet connection (and any
 proxy/VPN/firewall) and retry. See
-[Online Search → Troubleshooting](07-online-search.md#troubleshooting).
+[Online Search → Troubleshooting](08-online-search.md#troubleshooting).
 
-**The theme reset on another machine.**
-The light/dark choice is stored per machine in `localStorage` (`bd-theme`), not
-in the `.bib` file, so it doesn't travel with your library. Set it again on the
-new machine.
+**The theme (or another preference) reset on another machine.**
+Preferences — including the light/dark theme — are stored per installation in a
+`settings.json` file, not in the `.bib` file, so they don't travel with your
+library. Set them again on the new machine. (If your theme is set to **System**,
+it follows that machine's OS appearance.)
 
 **A DOI or URL chip didn't open.**
 Only `http`, `https`, and `mailto` links are honoured (a bare DOI is rewritten
@@ -320,7 +447,10 @@ fix the value in the editor.
 
 - [Getting Started](01-getting-started.md) — the window at a glance.
 - [Editing Entries](03-editing-entries.md) — fields, cite keys, types, macros,
-  and saving.
-- [Attachments](04-attachments.md) — `Bdsk-File` storage and portability.
-- [Online Search](07-online-search.md) — importing new entries.
+  Find & Replace, the copy commands, and saving.
+- [Attachments](04-attachments.md) — `Bdsk-File` storage, the PDF preview, and
+  AutoFile.
+- [Importing & Exporting](07-importing-and-exporting.md) — paste, drag-and-drop,
+  import, and export.
+- [Online Search](08-online-search.md) — importing new entries.
 - [Preview & Citations](06-preview-and-citations.md) — the CSL citation block.

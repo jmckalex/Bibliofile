@@ -263,6 +263,25 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
+            <h3>Claude Assistant</h3>
+            <label className="bd-prefs__row">
+              <span>Model</span>
+              <input
+                key={settings.agentModel}
+                className="bd-input bd-input--mono"
+                defaultValue={settings.agentModel}
+                onBlur={(e) => {
+                  if (e.target.value !== settings.agentModel) void save({ agentModel: e.target.value });
+                }}
+              />
+            </label>
+            <p className="bd-prefs__hint">
+              The assistant (Tools → Claude Assistant, ⌘J) uses your Anthropic API key, stored
+              encrypted on this device. It reads the library freely and asks before any change.
+            </p>
+          </section>
+
+          <section className="bd-prefs__section">
             <h3>Saving</h3>
             <label className="bd-prefs__row">
               <span>Autosave</span>

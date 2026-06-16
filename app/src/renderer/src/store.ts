@@ -10,6 +10,7 @@
 
 import { createStore as createZustandStore, useStore as useZustandStore } from 'zustand';
 import type {
+  AgentRunResponse,
   BibDeskApi,
   EditCommand,
   FindReplaceRequest,
@@ -175,6 +176,8 @@ export interface ViewerState {
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
   /** Show/hide one table column key (builtin or field name); persists + reloads. */
   toggleColumn: (key: string) => Promise<void>;
+  /** Send one message to the Claude assistant; reloads the table if it mutated. */
+  agentSend: (message: string) => Promise<AgentRunResponse>;
 }
 
 const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
@@ -531,6 +534,20 @@ export function createStore(api: BibDeskApi) {
       const cols = get().settings.columns;
       const next = cols.includes(key) ? cols.filter((c) => c !== key) : [...cols, key];
       await get().saveSettings({ columns: next });
+    },
+
+    agentSend: async (message) => {
+      const { documentId } = get();
+      if (!documentId) return { reply: '', toolLog: [], mutated: false, error: 'No document open.' };
+      const res = await api.agentRun({ documentId, message });
+      if (res.mutated) {
+        set({ dirty: true });
+        await get().loadGroups();
+        await get().loadPublications();
+        const sel = get().selectedItemId;
+        if (sel) await get().selectItem(sel);
+      }
+      return res;
     },
   }));
 }

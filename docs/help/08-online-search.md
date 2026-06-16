@@ -5,7 +5,9 @@ mentioned, the canonical version of a preprint, or the full bibliographic
 record behind a bare DOI. **Online search** lets you query established
 bibliographic databases from inside bibdesk-electron and pull results straight
 into your open library as new entries — no web browser, no copy-and-paste, and
-no hand-typing of author lists.
+no hand-typing of author lists. It is the fourth of the ways to bring references
+in; the other three (pasting BibTeX, drag-and-drop, and importing from a file)
+are covered in [Importing & Exporting](07-importing-and-exporting.md).
 
 This chapter explains what the two built-in sources cover, how to run and read
 a search, exactly which fields each source captures when you import, what
@@ -21,11 +23,13 @@ doesn't behave.
 
 ## Opening online search
 
-Online search lives in a modal window you summon from the toolbar.
+Online search lives in a modal window you can summon two ways.
 
 1. Open a library, or make sure one is already open. (Search has nowhere to
    import to without an open document.)
-2. In the toolbar above the three panes, click the **🌐 Online…** button.
+2. Either click the **🌐 Online…** button in the toolbar above the three panes,
+   or choose **File → Import → Search Online (CrossRef / arXiv)…**
+   (**⇧⌘O** / **Shift+Ctrl+O**).
 3. The **Online search** window opens on top of your library.
 
 To dismiss the window at any time, click the **×** in its header or click the
@@ -233,11 +237,11 @@ Imports live **in memory** until you save, exactly like manual edits. The
   toolbar, to write the new entries into your `.bib` file.
 - As with every save, the app first copies the previous version of the file to
   `<your-file>.bib.bak`, then writes atomically. See
-  [Editing Entries → Saving your changes](03-editing-entries.md#saving-your-changes).
+  [Editing Entries → What a save does](03-editing-entries.md#what-a-save-does-step-by-step).
 
 > **Warning:** If you import several entries and then quit without saving, those
-> entries are lost — there is no autosave. Get into the habit of saving after a
-> round of imports.
+> entries are lost — there is no autosave unless you have turned it on in
+> Preferences. Get into the habit of saving after a round of imports.
 
 ## How it works
 
@@ -270,10 +274,12 @@ the flags reset. Practical consequences:
   the app refuses to reuse a cite key, but they are otherwise duplicates.
 - Before importing, it's worth a quick check of your library. Close the search
   window momentarily, type a title word or the DOI into the main
-  [search box](02-browsing-and-searching.md#live-search), and confirm you don't
-  already have it.
+  [search box](02-browsing-and-searching.md#23-live-search), and confirm you
+  don't already have it.
 - If you do end up with duplicates, delete the extra with **🗑 Delete** (see
-  [Editing Entries](03-editing-entries.md#adding-duplicating-and-deleting-entries)).
+  [Editing Entries](03-editing-entries.md#entry-lifecycle-new-duplicate-delete)),
+  or run **Publication → Find Duplicates…** to catch them in bulk (see
+  [Browsing & Searching](02-browsing-and-searching.md#26-finding-duplicates)).
 
 ## Troubleshooting
 
@@ -323,5 +329,5 @@ missing field by hand in the detail pane — see
   copy before you import.
 - [Notes & Abstracts](05-notes-and-abstracts.md) — the arXiv abstract is
   Markdown-rendered in the preview.
-- [Shortcuts & Reference](08-shortcuts-and-reference.md) — the **Save** shortcut
+- [Shortcuts & Reference](09-shortcuts-and-reference.md) — the **Save** shortcut
   and the field reference.

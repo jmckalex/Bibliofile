@@ -13,7 +13,7 @@
 
 import { basename, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 
 import {
   app,
@@ -22,6 +22,7 @@ import {
   dialog,
   Menu,
   shell,
+  safeStorage,
   type MenuItemConstructorOptions,
   type IpcMainInvokeEvent,
 } from 'electron';
@@ -37,6 +38,7 @@ import {
 } from '@bibdesk/shared';
 
 import { DocumentStore } from './document-service.js';
+import { runAgentTurn } from './agent.js';
 import { formatCitation } from './csl.js';
 import { searchOnline } from './online.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
@@ -678,6 +680,19 @@ function buildMenu(): void {
     ],
   });
 
+  // --- Tools ---
+  template.push({
+    label: 'Tools',
+    submenu: [
+      {
+        label: 'Claude Assistant…',
+        accelerator: 'CmdOrCtrl+J',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('assistant'),
+      },
+    ],
+  });
+
   // --- View ---
   template.push({
     label: 'View',
@@ -743,6 +758,158 @@ async function openExternalTarget(req: OpenExternalRequest): Promise<OpenExterna
     return err ? { ok: false, error: err } : { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Claude assistant: API key (safeStorage), HTTPS call, tool dispatch, approval
+// ---------------------------------------------------------------------------
+
+/** Per-document Anthropic-format conversation history. */
+const agentHistories = new Map<string, unknown[]>();
+
+function agentKeyPath(): string {
+  return join(app.getPath('userData'), 'agent-key.bin');
+}
+
+function hasAgentKey(): boolean {
+  return existsSync(agentKeyPath());
+}
+
+/** Decrypt and return the stored Anthropic key, or null. */
+function loadAgentKey(): string | null {
+  try {
+    if (!hasAgentKey() || !safeStorage.isEncryptionAvailable()) return null;
+    return safeStorage.decryptString(readFileSync(agentKeyPath()));
+  } catch {
+    return null;
+  }
+}
+
+/** Store (or, with an empty string, delete) the Anthropic key, encrypted at rest. */
+function saveAgentKey(key: string): void {
+  const trimmed = key.trim();
+  if (!trimmed) {
+    if (hasAgentKey()) {
+      try {
+        rmSync(agentKeyPath());
+      } catch {
+        /* ignore */
+      }
+    }
+    return;
+  }
+  if (!safeStorage.isEncryptionAvailable()) throw new Error('OS encryption is unavailable.');
+  writeFileSync(agentKeyPath(), safeStorage.encryptString(trimmed));
+}
+
+/** POST to the Anthropic Messages API; returns the parsed body (or an error shape). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function callAnthropic(body: any, apiKey: string): Promise<any> {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      return { error: { message: `HTTP ${res.status}: ${text.slice(0, 400)}` } };
+    }
+    return await res.json();
+  } catch (e) {
+    return { error: { message: e instanceof Error ? e.message : String(e) } };
+  }
+}
+
+/** Ask the user to approve a mutating assistant action (native dialog). */
+async function approveAgentTool(name: string, input: unknown): Promise<boolean> {
+  const result = await dialog.showMessageBox(mainWindow ?? undefined!, {
+    type: 'question',
+    buttons: ['Approve', 'Deny'],
+    defaultId: 0,
+    cancelId: 1,
+    message: `The assistant wants to run “${name}”.`,
+    detail: JSON.stringify(input, null, 2),
+  });
+  return result.response === 0;
+}
+
+/** Execute one assistant tool against the open document; return a string result. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function executeAgentTool(documentId: string, name: string, input: any): string {
+  const idFor = (citeKey: string): string | undefined => store.itemIdForCiteKey(documentId, citeKey);
+  switch (name) {
+    case 'list_entries': {
+      const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+      return (
+        rows
+          .map((r) => `${r.citeKey} — ${r.title || '(untitled)'} (${r.type}${r.year ? ', ' + r.year : ''})`)
+          .join('\n') || '(the library is empty)'
+      );
+    }
+    case 'get_entry': {
+      const id = idFor(input.citeKey);
+      if (!id) return `No entry with cite key "${input.citeKey}".`;
+      const d = store.getItemDetail({ documentId, itemId: id });
+      return `${d.citeKey} [${d.type}]\n` + d.fields.map((f) => `${f.name}: ${f.rawValue}`).join('\n');
+    }
+    case 'search': {
+      const q = String(input.query ?? '').toLowerCase();
+      const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+      const hits = rows.filter((r) =>
+        [r.citeKey, r.title, r.authorsDisplay, r.year].some((v) => v.toLowerCase().includes(q)),
+      );
+      return hits.map((r) => `${r.citeKey} — ${r.title}`).join('\n') || '(no matches)';
+    }
+    case 'find_duplicates': {
+      const res = store.findDuplicates(documentId);
+      if (res.groups.length === 0) return 'No duplicates found.';
+      return res.groups
+        .map((g) => `${g.kind}: ${g.entries.map((e) => e.citeKey).join(', ')}`)
+        .join('\n');
+    }
+    case 'export': {
+      const ids = Array.isArray(input.citeKeys)
+        ? (input.citeKeys as string[]).map(idFor).filter((x): x is string => !!x)
+        : undefined;
+      const text = store.exportText(documentId, input.format, ids);
+      return text.length > 20000 ? text.slice(0, 20000) + '\n…(truncated)' : text;
+    }
+    case 'set_field': {
+      const id = idFor(input.citeKey);
+      if (!id) return `No entry with cite key "${input.citeKey}".`;
+      store.applyEdit({ documentId, command: { kind: 'setField', itemId: id, field: input.field, value: String(input.value ?? '') } });
+      return `Set ${input.field} on ${input.citeKey}.`;
+    }
+    case 'add_entry': {
+      const res = store.importEntry(documentId, String(input.type ?? 'misc'), input.fields ?? {});
+      const key = res.affectedItemId
+        ? store.getItemDetail({ documentId, itemId: res.affectedItemId }).citeKey
+        : '(new)';
+      return `Added entry ${key}.`;
+    }
+    case 'delete_entry': {
+      const id = idFor(input.citeKey);
+      if (!id) return `No entry with cite key "${input.citeKey}".`;
+      store.applyEdit({ documentId, command: { kind: 'deleteEntry', itemId: id } });
+      return `Deleted ${input.citeKey}.`;
+    }
+    case 'generate_cite_key': {
+      const id = idFor(input.citeKey);
+      if (!id) return `No entry with cite key "${input.citeKey}".`;
+      const res = store.applyEdit({ documentId, command: { kind: 'generateCiteKey', itemId: id } });
+      const key = res.affectedItemId
+        ? store.getItemDetail({ documentId, itemId: res.affectedItemId }).citeKey
+        : input.citeKey;
+      return `Cite key is now ${key}.`;
+    }
+    default:
+      return `Unknown tool: ${name}`;
   }
 }
 
@@ -868,6 +1035,34 @@ function registerIpc(): void {
         : await dialog.showOpenDialog(opts);
       return { path: result.canceled || !result.filePaths[0] ? null : result.filePaths[0] };
     },
+    [IpcChannels.agentKeyStatus]: () => ({
+      hasKey: hasAgentKey(),
+      encryptionAvailable: safeStorage.isEncryptionAvailable(),
+    }),
+    [IpcChannels.agentSetKey]: (req) => {
+      saveAgentKey(req.key);
+      return { hasKey: hasAgentKey(), encryptionAvailable: safeStorage.isEncryptionAvailable() };
+    },
+    [IpcChannels.agentReset]: (req) => {
+      agentHistories.delete(req.documentId);
+      return { ok: true };
+    },
+    [IpcChannels.agentRun]: async (req) => {
+      const apiKey = loadAgentKey();
+      if (!apiKey) {
+        return { reply: '', toolLog: [], mutated: false, error: 'No Anthropic API key set (Preferences → Claude Assistant).' };
+      }
+      const history = agentHistories.get(req.documentId) ?? [];
+      history.push({ role: 'user', content: req.message });
+      const result = await runAgentTurn(history, {
+        model: getSettings().agentModel || 'claude-opus-4-8',
+        callModel: (body) => callAnthropic(body, apiKey),
+        executeTool: (name, input) => executeAgentTool(req.documentId, name, input),
+        approve: (name, input) => approveAgentTool(name, input),
+      });
+      agentHistories.set(req.documentId, history);
+      return result;
+    },
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -951,6 +1146,18 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.chooseFolder, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.chooseFolder](req),
+  );
+  ipcMain.handle(IpcChannels.agentKeyStatus, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.agentKeyStatus](req),
+  );
+  ipcMain.handle(IpcChannels.agentSetKey, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.agentSetKey](req),
+  );
+  ipcMain.handle(IpcChannels.agentReset, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.agentReset](req),
+  );
+  ipcMain.handle(IpcChannels.agentRun, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.agentRun](req),
   );
 }
 

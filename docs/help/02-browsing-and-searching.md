@@ -35,8 +35,11 @@ The center pane lists your references, one per row.
 
 ### 2.2.1 The columns
 
-There are five columns. Each is *derived* from your entry's BibTeX fields and
-formatted for reading — the table never shows raw, brace-cluttered BibTeX.
+By default the table shows eight columns: five text columns and three compact
+**icon** columns. Each text column is *derived* from your entry's BibTeX fields
+and formatted for reading — the table never shows raw, brace-cluttered BibTeX.
+The set of columns is **configurable** (see [§2.2.6](#226-configuring-the-columns)),
+so you can add, remove, and reorder them; the defaults are:
 
 | Column | What it shows | Where it comes from |
 | --- | --- | --- |
@@ -45,8 +48,11 @@ formatted for reading — the table never shows raw, brace-cluttered BibTeX.
 | **Authors** | A readable author list. | Parsed from the `Author` field (falling back to `Editor` when there are no authors); names are formatted and joined, with a trailing **et al.** when the field ended in `and others`. |
 | **Title** | The title, cleaned for display. | The `Title` field, *de-TeXified* and stripped of BibTeX protective braces. |
 | **Year** | The publication year. | The `Year` field. |
+| **Keywords** (icon) | A 🔑 key icon when the entry has any keywords. | Non-empty `Keywords` field. |
+| **Attachments** (icon) | A 📎 paperclip (with a small count badge if more than one) when the entry has attached files. | The entry's `Bdsk-File-N` attachments (and a `Local-Url`, if any). |
+| **Read** (icon) | A checked box when the entry is marked read, an empty box when explicitly unread, nothing when unset. | The `Read` field (a tri-state value). |
 
-A few details worth knowing about how the values are produced:
+A few details worth knowing about how the text values are produced:
 
 - **De-TeXifying titles.** TeX escapes are converted to their Unicode
   equivalents and BibTeX *protective braces* are removed for display. For
@@ -74,9 +80,11 @@ A few details worth knowing about how the values are produced:
   `and others`, the display ends in **et al.** When an entry has no `Author`
   field, the `Editor` field is used instead.
 
-> **Note:** The columns are fixed in this version (Cite Key, Type, Authors,
-> Title, Year). User-customisable and additional columns — ratings, file badges,
-> colour labels, and so on — are planned but not yet available.
+> **Note:** The columns shown above are the *defaults*. You can change which
+> columns appear, and their order, from the **View → Columns** menu or the
+> Preferences "Columns" manager — see
+> [§2.2.6](#226-configuring-the-columns). Any BibTeX field can be added as its
+> own column.
 
 ### 2.2.2 Column widths
 
@@ -148,6 +156,71 @@ For everything you can see and do in that pane, see
 > jumps the selection to the linked entry — and if that entry is not in the
 > current group's view, the application automatically switches back to the full
 > Library so it can be selected. See [Notes & abstracts](05-notes-and-abstracts.md).
+
+> **Tip:** You can **drag a row out** of the table into a TeX editor (or any text
+> field) to insert a `\cite{…}` command for that entry, and there are clipboard
+> commands to copy the cite key, a `\cite{…}`, a formatted citation, or the
+> entry's BibTeX. See
+> [Editing entries → Copying entries](03-editing-entries.md#copying-entries-cite-keys-and-citations).
+
+### 2.2.6 Configuring the columns
+
+The table columns are not fixed: you can choose **which** fields appear, in
+**what order**, two ways.
+
+#### From the View → Columns menu (quick toggles)
+
+**View → Columns** opens a checklist of common columns. Each item is a checkbox —
+tick it to show that column, untick it to hide it. The menu offers the eight
+default columns plus quick toggles for **Rating** (a ★ star column), **Journal**,
+**Booktitle**, **Publisher**, **DOI**, **URL**, and **Month**, and it also lists
+any custom field columns you have added. This is the fastest way to show or hide a
+column on the fly.
+
+#### From the Preferences "Columns" manager (add, remove, reorder)
+
+For full control, open **Preferences** (**⌘,** / **Ctrl+,**) and find the
+**Columns** section. It lists your current columns in order, and for each row
+gives you:
+
+- **↑ / ↓** buttons to **move** the column up or down (this is how you reorder —
+  there is no drag-reorder).
+- **×** to **remove** the column.
+
+Below the list, an **Add column…** dropdown adds any of the built-in columns you
+do not yet have, and an **"Add a field (e.g. Journal)"** text box lets you add
+**any BibTeX field name at all** as a column — type the field name and press
+**Enter**. So if your entries carry a custom `Funding` or `Project` field, you can
+surface it as a column.
+
+Your column configuration is saved with the application's other preferences (in
+`settings.json`), so it persists across sessions and applies to every library you
+open. It is *not* stored in any `.bib` file.
+
+#### The icon columns
+
+Three of the default columns are compact **icon** columns rather than text:
+
+- **🔑 Keywords** — shows a key glyph when the entry has a non-empty `Keywords`
+  field (these are the same keywords that drive the
+  [Keywords category groups](#245-the-dynamic-author-and-keyword-categories) and
+  the [preview tags](06-preview-and-citations.md)). The header is a key icon.
+- **📎 Attachments** — shows a paperclip when the entry has attached files, with a
+  small number badge when there is more than one. The count includes the entry's
+  `Bdsk-File-N` attachments (see [Attachments](04-attachments.md)). The header is
+  a paperclip icon.
+- **✓ Read** — a tri-state read marker driven by the entry's `Read` field: a
+  **filled, checked box** when the entry is marked read, an **empty box** when it
+  is explicitly marked unread, and **nothing** when the field is absent. The
+  header is a checked-box icon.
+- **★ Rating** (not shown by default) — when you add the Rating column, it shows
+  the entry's `Rating` field as that many filled stars (out of five).
+
+> **Note:** The icon columns are **display-only indicators** — they reflect the
+> underlying fields but you do not click them to toggle anything. To mark an entry
+> read or rate it, set its `Read` or `Rating` field in the
+> [editor](03-editing-entries.md#editing-fields) (`Read` uses values such as `1`
+> for read; `Rating` is a number 0–5). The columns then update to match.
 
 ## 2.3 Live search
 
@@ -357,7 +430,46 @@ Clearing either control is independent: clear the search box to drop the text
 filter (keeping the group scope), or click **📚 Library** to drop the group scope
 (keeping the search text).
 
-## 2.6 Performance notes for large libraries
+## 2.6 Finding duplicates
+
+Over time — especially after importing from several sources — a library can pick
+up duplicate entries. **Publication → Find Duplicates…** scans the whole library
+and shows you any duplicates it finds, grouped so you can review and clean them
+up.
+
+The command opens a window that runs the scan automatically. Its header shows how
+many duplicate **groups** were found and how many entries are involved (for
+example *"Find Duplicates — 3 groups, 7 entries"*); if there are none, it says
+*"No duplicates found. 🎉"*. Each group is detected one of two ways, and its
+heading tells you which:
+
+- **Identical cite key.** Two or more entries share the same cite key
+  (case-insensitively). This is usually an outright mistake — two records that
+  collided on a key — and BibTeX itself would only see the first of them, so these
+  are worth resolving.
+- **Equivalent content.** Two or more entries are the *same work* even though
+  their cite keys differ — they have the same entry type and matching
+  bibliographic fields. The comparison ignores the cite key, compares the fields
+  that matter for the type, and matches **author names fuzzily** (so `A. Einstein`
+  and `Einstein, Albert` count as the same person), mirroring BibDesk's own
+  duplicate test. This is what catches the same paper imported twice from
+  different databases.
+
+Within each group, every member is listed with its cite key and title. **Click an
+entry** to jump to it: the window closes and that entry is selected in the main
+table (switching back to the full Library first if it was hidden by your current
+group), ready to inspect, edit, or delete.
+
+> **Note:** Find Duplicates is a **review tool**, not an automatic merge. It never
+> changes your library on its own — it only finds and navigates. Once you have
+> clicked through to a duplicate, remove the extra copy with **🗑 Delete** (or
+> **Publication → Delete Publication**), or merge fields by hand. See
+> [Editing entries](03-editing-entries.md#entry-lifecycle-new-duplicate-delete).
+> Before you delete, you can double-check with the
+> [search box](#23-live-search): type a title word or the cite key to see both
+> copies side by side.
+
+## 2.7 Performance notes for large libraries
 
 bibdesk-electron is built to handle large libraries comfortably:
 
@@ -380,7 +492,7 @@ bibdesk-electron is built to handle large libraries comfortably:
 > text is extracted in the background just after a library opens, so PDF matches
 > may appear a moment after the first results.
 
-## 2.7 Tips
+## 2.8 Tips
 
 - **Combine a group with search.** Set the scope with a group, then refine with
   the search box. The footer shows both at once.
@@ -393,8 +505,14 @@ bibdesk-electron is built to handle large libraries comfortably:
 - **Use categories as a quick index.** The Author and Keyword sections are a
   free, always-current index into your library — no tagging discipline required
   beyond filling in the fields you already fill in.
+- **Tailor your columns.** Add the columns you care about (e.g. **Journal** or a
+  custom field) and hide the ones you don't, from **View → Columns** or
+  Preferences. The icon columns at a glance tell you which entries have keywords,
+  attachments, and have been read.
+- **Tidy after importing.** After a big import, run **Publication → Find
+  Duplicates…** to catch the same work pulled in twice.
 
-## 2.8 Troubleshooting
+## 2.9 Troubleshooting
 
 - **"My search isn't finding a word that's in the abstract (or a PDF)."** Full-text
   search covers abstracts, notes, keywords, every other field, and attached-PDF

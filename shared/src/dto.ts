@@ -491,6 +491,36 @@ export interface FindReplaceResult {
   readonly error?: string;
 }
 
+// --- Claude assistant -------------------------------------------------------
+
+/** Whether the user's Anthropic API key is stored (via Electron safeStorage). */
+export interface AgentKeyStatus {
+  readonly hasKey: boolean;
+  /** True if OS-level encryption is available for storing the key. */
+  readonly encryptionAvailable: boolean;
+}
+
+/** Store (or, with an empty string, clear) the Anthropic API key. */
+export interface AgentSetKeyRequest {
+  readonly key: string;
+}
+
+/** Send one user message to the assistant for the open document. */
+export interface AgentRunRequest {
+  readonly documentId: DocumentId;
+  readonly message: string;
+}
+
+/** The assistant's reply for one turn. */
+export interface AgentRunResponse {
+  readonly reply: string;
+  /** Human-readable log of tool calls made this turn. */
+  readonly toolLog: readonly string[];
+  /** True if an approved mutation ran (the renderer should reload). */
+  readonly mutated: boolean;
+  readonly error?: string;
+}
+
 // --- AutoFile ---------------------------------------------------------------
 
 /** AutoFile an item's managed attachments into the Papers folder. */
@@ -615,6 +645,8 @@ export interface Settings {
   readonly autoFileFormat: string;
   /** When true, save automatically a moment after each edit. */
   readonly autosave: boolean;
+  /** Anthropic model id for the Claude assistant (e.g. `claude-opus-4-8`). */
+  readonly agentModel: string;
   /** Field-type classification overrides. */
   readonly fieldTypes: FieldTypeSettings;
 }
@@ -643,6 +675,7 @@ export const DEFAULT_SETTINGS: Settings = {
   papersFolder: '',
   autoFileFormat: '%a1/%Y%u0',
   autosave: false,
+  agentModel: 'claude-opus-4-8',
   fieldTypes: {
     person: ['Author', 'Editor'],
     localFile: ['Local-Url'],
@@ -707,6 +740,7 @@ export type MenuCommand =
   | 'online'
   | 'editMacros'
   | 'findDuplicates'
+  | 'assistant'
   // Edit / clipboard (operate on the selection)
   | 'find'
   | 'findReplace'

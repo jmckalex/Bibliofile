@@ -99,6 +99,30 @@ displayed form looks short.
 > You still edit it as plain text here; see
 > [Notes & Abstracts](05-notes-and-abstracts.md) for the Markdown conventions.
 
+### Field-value autocomplete
+
+When you click into a **single-line** field, the editor offers an autocomplete
+list of values **already used in that same field elsewhere in your library**. As
+you type, the list narrows to matching suggestions; pick one to fill the box. This
+makes consistent data entry effortless — the same journal name, publisher,
+keyword, or series spelled the same way every time.
+
+- The suggestions are drawn from the **distinct existing values** of that field
+  across every entry, gathered the first time you focus the box. So the more
+  consistently you have filled a field in the past, the more useful its
+  completions are.
+- For **`Keywords`** and other multi-value list fields, the suggestions are the
+  individual tokens (split on commas/semicolons), not whole comma-joined strings,
+  so you can complete one keyword at a time.
+- Long fields (the `Abstract`, or anything that opens as a multi-line textarea)
+  do **not** offer completions — there is rarely a useful "existing value" to
+  reuse for free prose.
+
+> **Tip:** Autocomplete is the easiest way to keep a controlled vocabulary. Reuse
+> an existing keyword from the list rather than retyping it, and your
+> [Keyword categories](02-browsing-and-searching.md#245-the-dynamic-author-and-keyword-categories)
+> stay clean instead of fragmenting into near-duplicates.
+
 ### The raw-value model: what you are really editing
 
 This is the single most important thing to understand about the field editor.
@@ -198,25 +222,33 @@ The **Cite Key** is the unique label you use to refer to the entry from LaTeX
 - **To edit it manually**, click the box, type a new key, and press **Enter** (or
   click away). An empty cite key is rejected — the change is ignored and the
   previous key is kept.
-- **To generate one automatically**, click **Generate**.
+- **To generate one automatically**, click **Generate**, or choose
+  **Publication → Generate Cite Key** (**⌘K** / **Ctrl+K**).
 
 #### How Generate works
 
-The **Generate** button derives a cite key from the entry's own fields using
-BibDesk's factory-default format, `%a1:%Y%u2`, which means:
+Generation derives a cite key from the entry's own fields using a configurable
+**cite-key format**. The factory default is `%a1:%Y%u2`, which means:
 
 | Piece | Specifier | Meaning |
 |-------|-----------|---------|
 | First author's last name | `%a1` | The surname of the entry's first author |
 | Literal colon | `:` | A literal `:` separator |
 | Year | `%Y` | The 4-digit year |
-| Uniquifier | `%u2` | A short lowercase suffix added only if needed to avoid a clash |
+| Uniquifier | `%u2` | A short numeric suffix added only if needed to avoid a clash |
 
 So an article by Albert Einstein from 1905 typically generates `Einstein:1905`.
-If that key is already taken by *another* entry, the `%u2` uniquifier appends
-letters (e.g. `Einstein:1905a`) until the key is unique. The entry's *own*
-current key never counts as a collision, so regenerating a key for an entry that
-already owns `Einstein:1905` simply returns `Einstein:1905` again.
+If that key is already taken by *another* entry, the uniquifier appends characters
+until the key is unique. The entry's *own* current key never counts as a
+collision, so regenerating a key for an entry that already owns `Einstein:1905`
+simply returns `Einstein:1905` again.
+
+You can change the format in **Preferences → Cite keys → Format**. The same
+mini-language drives the [AutoFile](04-attachments.md#autofile-organising-linked-files)
+file-name format; common specifiers include `%a`/`%A` (authors, full or
+initials), `%t`/`%T` (title words/characters), `%Y`/`%y` (4- or 2-digit year),
+`%f{Field}` (any field), and `%u`/`%U`/`%n` (a lowercase / uppercase / numeric
+uniquifier).
 
 > **Note:** Generation reads whatever author/year are currently on the entry. If
 > those fields are empty, the generated key will be sparse (just the parts it can
@@ -257,13 +289,21 @@ added to the top of the dropdown so it is not lost.
 ## Entry lifecycle: New, Duplicate, Delete
 
 The toolbar above the three panes operates at the library level. The relevant
-buttons are:
+buttons — each also available from the **Publication** menu, several with a
+keyboard shortcut — are:
 
-| Button | Action | Needs a selection? |
-|--------|--------|--------------------|
-| **＋ New** | Create a fresh, empty entry and select it. | No |
-| **⧉ Duplicate** | Copy the selected entry under a new cite key. | Yes |
-| **🗑 Delete** | Remove the selected entry. | Yes |
+| Button | Menu / shortcut | Action | Needs a selection? |
+|--------|-----------------|--------|--------------------|
+| **＋ New** | **Publication → New Publication** (**⌘N** / **Ctrl+N**) | Create a fresh, empty entry and select it. | No |
+| **⧉ Duplicate** | **Publication → Duplicate** (**⇧⌘D** / **Shift+Ctrl+D**) | Copy the selected entry under a new cite key. | Yes |
+| **🗑 Delete** | **Publication → Delete Publication** | Remove the selected entry. | Yes |
+
+The **Publication** menu also holds **Generate Cite Key** (**⌘K**),
+**Find Duplicates…** (see
+[Browsing & Searching](02-browsing-and-searching.md#26-finding-duplicates)),
+**Add File Attachment…** and **AutoFile Linked Files** (see
+[Attachments](04-attachments.md)), and **Macros (@string)…** (the same macro
+editor as the **@string…** toolbar button).
 
 **Duplicate** and **Delete** are disabled (greyed out) when no entry is selected.
 
@@ -430,10 +470,101 @@ is written into your file's preamble as:
 > itself parse `name # {literal}` concatenations. Manage the abbreviations
 > themselves here in the macro editor.
 
+## Find & Replace
+
+To make the *same* change across many entries — fix a misspelled journal name,
+normalise a publisher, swap one keyword for another, or clean up a recurring
+typo — use **Edit → Find & Replace…** (**⌥⌘F** / **Alt+Ctrl+F**). It searches and
+replaces inside **field values**, across many entries at once, with a preview so
+you can check before committing.
+
+### The Find & Replace window
+
+The window has these controls:
+
+- **Field** — a dropdown that scopes the search to a single field, or to **All
+  fields**. The list offers the common bibliographic fields: `Title`, `Author`,
+  `Editor`, `Journal`, `Booktitle`, `Year`, `Publisher`, `Keywords`, `Abstract`,
+  `Note`, `Annote`, `Doi`, and `Url`. Choose **All fields** to search every field
+  on each entry. (Managed attachment blobs — `Bdsk-File-N` — are always skipped,
+  so a replacement can never corrupt an attachment.)
+- **Find** — the text (or pattern) to look for. Press **Enter** here to run a
+  preview.
+- **Replace** — the text to substitute in.
+- **Regular expression** — when ticked, the **Find** text is treated as a regular
+  expression and **Replace** may use capture-group references like `$1`. When
+  unticked, both are plain literal text.
+- **Case sensitive** — when ticked, matching respects letter case; otherwise it
+  is case-insensitive.
+- **Find** and **Replace All** buttons (see below).
+
+If a group is selected in the sidebar, the window title notes it (e.g.
+*"Find & Replace — in My Smart Group"*), because the operation is **scoped to the
+members of the currently selected group**. With the **📚 Library** group selected,
+that means the whole library. (The scope is the group's full membership — it is
+not narrowed by the live-search box.)
+
+### Preview, then Replace All
+
+Find & Replace is deliberately two-step so you never replace blind:
+
+1. **Preview with the Find button** (or press **Enter** in the Find box). Nothing
+   is changed. The window reports how many occurrences were found and in how many
+   fields — *"N occurrence(s) in M field(s)."* — and lists the matches: each row
+   shows the entry's cite key, the field, and the value **before → after** the
+   replacement, so you can confirm the change is what you intended. (The list
+   shows up to 40 matches, with a "… and N more" line beyond that.)
+2. **Apply with Replace All.** This performs every replacement, marks the library
+   unsaved, and reports *"Replaced N occurrence(s) in M field(s)."* The change is
+   in memory, like any edit — write it to disk with **Save**.
+
+If you typed an invalid regular expression, the window shows *"Invalid pattern:
+…"* and changes nothing, so a bad pattern is safe.
+
+> **Warning:** **Replace All** changes every match in scope in one go. Always run
+> the **Find** preview first and read the before/after list. Because the change is
+> only in memory until you **Save**, you can still back out a regrettable
+> Replace All by reverting (**File → Revert to Saved**) before saving — but once
+> saved, only the `.bib.bak` backup holds the previous version.
+
+## Copying entries, cite keys, and citations
+
+Several **Edit**-menu commands put information about the selected entry on the
+clipboard, and you can also **drag** a row out of the table. These are the bridge
+between your library and a document you are writing.
+
+| Command | Shortcut | What it copies |
+|---------|----------|----------------|
+| **Copy Cite Key** | **⌥⌘K** / **Alt+Ctrl+K** | The bare cite key, e.g. `einstein1905`. |
+| **Copy `\cite{…}`** | **⌥⌘C** / **Alt+Ctrl+C** | A LaTeX citation command for the entry, e.g. `\cite{einstein1905}`. |
+| **Copy Citation** | (no shortcut) | The entry's **formatted citation** (in your chosen CSL style) as plain text — ready to paste into an email or reading list. |
+| **Copy as BibTeX** | **⌥⌘B** / **Alt+Ctrl+B** | The entry's complete BibTeX source. |
+
+### Drag a row to insert a `\cite{…}`
+
+You can also **drag a row** from the publications table directly into a TeX editor
+(or any text field) and drop it to insert a `\cite{…}` command for that entry — no
+copy/paste round-trip. The drag carries the same text that **Copy `\cite{…}`**
+produces.
+
+### The cite-command template
+
+Both the drag-out and **Copy `\cite{…}`** use a configurable **cite-command
+template**, set in **Preferences → Cite command (TeX)**. The default is
+`\cite{%K}`, where **`%K`** is replaced by the cite key. Change it to suit your
+document — for example `\citep{%K}` for `natbib`, or `\autocite{%K}` for
+`biblatex`. (Write `%%` if you ever need a literal percent sign.)
+
+> **Tip:** Set the template once to match the citation command your LaTeX class
+> uses, and every drag-out and **Copy `\cite{…}`** will produce exactly the right
+> markup for your paper.
+
 ## The dirty/save model
 
-Editing in bibdesk-electron is **explicit-save with no autosave**. This section
-explains exactly what that means and why it was chosen.
+Editing in bibdesk-electron is **explicit-save by default**: your changes live in
+memory until you save them. This section explains exactly what that means and why
+it was chosen. (An optional **autosave** can change this — see
+[Optional autosave](#optional-autosave) below.)
 
 ### In-memory edits
 
@@ -482,9 +613,9 @@ When you save, the app:
 > a full history. For real version history, keep your library under version
 > control (e.g. Git) — the plain-text `.bib` format is well suited to it.
 
-### Why no autosave?
+### Why explicit save by default?
 
-Explicit save is intentional:
+Explicit save is the default for good reasons:
 
 - **Predictability.** You decide exactly when the file changes. A burst of edits
   (or a deletion you immediately regret) does not silently hit disk.
@@ -495,12 +626,22 @@ Explicit save is intentional:
   `.bib.bak` snapshot corresponds to a deliberate save point rather than an
   arbitrary autosave instant.
 
-An optional autosave (and an undo stack) are noted as future enhancements; for
-now, get into the habit of pressing Cmd+S when you are happy with a batch of
-changes.
+Until you turn autosave on, get into the habit of pressing Cmd+S when you are
+happy with a batch of changes.
 
-> **Warning:** Quitting or closing the document with unsaved changes discards
-> those changes (they were only in memory). Save first if you want to keep them.
+### Optional autosave
+
+If you prefer the app to write changes for you, turn on **Preferences → Saving →
+Autosave**. With it enabled, the library is saved automatically a moment after
+each edit — the same atomic write with the same `.bib.bak` backup as a manual
+save. It is **off by default**; the considerations above (predictability and safe
+interop with other tools) are why you opt in deliberately rather than getting it
+unasked.
+
+> **Warning:** With autosave **off**, quitting or closing the document with
+> unsaved changes discards those changes (they were only in memory). Save first
+> if you want to keep them. **File → Revert to Saved** also discards unsaved
+> changes, reloading the last saved version from disk.
 
 ## Round-trip fidelity
 
@@ -540,7 +681,7 @@ including a real BibDesk-authored library.
 | ＋ New | Create a new empty `article` entry and select it |
 | ⧉ Duplicate | Copy the selected entry under a new cite key |
 | 🗑 Delete | Delete the selected entry |
-| 🌐 Online… | Open the online search to import entries (see [Online Search](07-online-search.md)) |
+| 🌐 Online… | Open the online search to import entries (see [Online Search](08-online-search.md)) |
 | @string… | Open the `@string` macro editor |
 | Save • / Saved / Saving… | Write unsaved changes to disk (Cmd+S / Ctrl+S) |
 
@@ -548,15 +689,25 @@ including a real BibDesk-authored library.
 
 | Action | How |
 |--------|-----|
-| Edit a field | Click the value, type, press Enter (single-line) or click away (textarea) |
+| Edit a field | Click the value, type, press Enter (single-line) or click away (textarea); pick from the autocomplete list of existing values |
 | Add a field | Type name + value in the **New field** row, press Enter or click + |
 | Remove a field | Click × on the field's row, or clear its value and commit |
 | Override an inherited field | Click the muted (inherited) row and edit it |
 | Edit cite key | Click the Cite Key box, type, press Enter |
-| Generate cite key | Click **Generate** |
+| Generate cite key | Click **Generate**, or **Publication → Generate Cite Key** (Cmd+K) |
 | Change type | Choose from the **Type** dropdown |
 | Edit notes | Click **Edit** in the Notes section |
 | Add/remove attachments | Use the Attachments section (see [Attachments](04-attachments.md)) |
+
+### Library-wide editing commands (menus)
+
+| Action | How |
+|--------|-----|
+| New / Duplicate / Delete | **Publication** menu (Cmd+N / Shift+Cmd+D / Delete Publication) |
+| Find & Replace across fields | **Edit → Find & Replace…** (⌥⌘F / Alt+Ctrl+F) |
+| Copy cite key / `\cite{…}` / citation / BibTeX | **Edit** menu (⌥⌘K / ⌥⌘C / Copy Citation / ⌥⌘B) |
+| Drag a `\cite{…}` into a TeX editor | Drag a table row out and drop it |
+| Edit `@string` macros | **@string…** toolbar button or **Publication → Macros (@string)…** |
 
 ## Troubleshooting
 
@@ -595,9 +746,21 @@ braces deliberately to protect capitalization, and keep them balanced. See
 [The raw-value model](#the-raw-value-model-what-you-are-really-editing).
 
 **"My changes disappeared after I closed the app."**
-There is no autosave. Unsaved (in-memory) changes are discarded on close. Press
-Cmd+S / Ctrl+S — or click **Save** when the button shows **Save •** — before
-quitting.
+Unless you enabled autosave, unsaved (in-memory) changes are discarded on close.
+Press Cmd+S / Ctrl+S — or click **Save** when the button shows **Save •** —
+before quitting. (You can turn on **Preferences → Saving → Autosave** to avoid
+this.)
+
+**"Find & Replace says 'Invalid pattern'."**
+You have ticked **Regular expression** and the **Find** text isn't a valid
+regex. Either fix the pattern, or untick **Regular expression** to search for the
+literal text instead.
+
+**"Replace All changed fewer/more entries than I expected."**
+Find & Replace is scoped to the **currently selected group** (the whole library
+when **📚 Library** is selected), and the **Field** dropdown limits which field is
+searched. Run the **Find** preview first to see exactly which entries and fields
+will change, and check both controls.
 
 ## See also
 
@@ -606,5 +769,6 @@ quitting.
 - [Attachments](04-attachments.md)
 - [Notes & Abstracts](05-notes-and-abstracts.md)
 - [Preview & Citations](06-preview-and-citations.md)
-- [Online Search](07-online-search.md)
-- [Shortcuts & Reference](08-shortcuts-and-reference.md)
+- [Importing & Exporting](07-importing-and-exporting.md)
+- [Online Search](08-online-search.md)
+- [Shortcuts & Reference](09-shortcuts-and-reference.md)

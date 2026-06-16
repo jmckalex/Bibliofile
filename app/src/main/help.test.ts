@@ -15,10 +15,11 @@ describe('help manual', () => {
     const html = buildHelpHtml(dir);
     expect(html).toContain('<nav>');
     expect(html).toContain('BibDesk Help');
-    // chapters present as sections with anchor ids
+    // chapters present as sections with anchor ids (numbering may grow as the
+    // manual gains chapters, so match the reference chapter by name, not number)
     expect(html).toContain('id="00-index"');
     expect(html).toContain('id="01-getting-started"');
-    expect(html).toContain('id="08-shortcuts-and-reference"');
+    expect(html).toMatch(/id="\d\d-shortcuts-and-reference"/);
     // markdown features rendered
     expect(html).toContain('<table>');
     expect(html).toContain('<h1');

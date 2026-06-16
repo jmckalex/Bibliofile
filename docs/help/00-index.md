@@ -18,36 +18,51 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
    library, and a tour of the three-pane window (groups sidebar, publications
    table, detail pane), the header, the toolbar, and light/dark themes.
 2. **[Browsing & Searching](02-browsing-and-searching.md)** — Reading and
-   sorting the publications table, filtering with the live search box, and
-   narrowing your view with the groups sidebar (Library, Static/Smart groups,
+   sorting the publications table, the configurable columns (the **View →
+   Columns** menu and the Preferences manager, including the keyword/attachment/
+   Read icon columns), filtering with the live search box, **Find Duplicates**,
+   and narrowing your view with the groups sidebar (Library, Static/Smart groups,
    and dynamic Author/Keyword categories).
 3. **[Editing Entries](03-editing-entries.md)** — The detail pane as a full
-   editor: changing fields, cite keys, and entry types; adding, duplicating, and
-   deleting entries; `Crossref` inheritance; the `@string` macro editor; and
-   explicit save.
+   editor: changing fields (with field-value autocomplete), cite keys, and entry
+   types; adding, duplicating, and deleting entries; **Generate cite key**;
+   **Find & Replace** across fields; the **Copy** clipboard commands and cite
+   drag-out; `Crossref` inheritance; the `@string` macro editor; and explicit
+   save.
 4. **[Attachments](04-attachments.md)** — Attaching, opening, and removing
-   files; how `Bdsk-File-N` links and relative paths work; keeping a library
-   portable; and macOS BibDesk compatibility.
+   files; the in-app **PDF preview**; **AutoFile** into a Papers folder; how
+   `Bdsk-File-N` links and relative paths work; keeping a library portable; and
+   macOS BibDesk compatibility.
 5. **[Notes & Abstracts](05-notes-and-abstracts.md)** — Writing abstracts and
    per-entry notes in Markdown (with math), plus notes-only extras: `[[citeKey]]`
    cross-references between entries and inline iframe embeds.
 6. **[Preview & Citations](06-preview-and-citations.md)** — The typeset preview
    card (title, venue, chips, keyword tags, rendered abstract) and the live,
    formatted CSL citation block (APA / Vancouver / Harvard), in light or dark
-   mode.
-7. **[Online Search](07-online-search.md)** — Searching CrossRef and arXiv from
+   mode; plus the **Copy Citation** and **Copy as BibTeX** clipboard commands.
+7. **[Importing & Exporting](07-importing-and-exporting.md)** — Getting
+   references in (pasting BibTeX, drag-and-drop, and **File → Import** for BibTeX
+   and RIS files) and out (**File → Export** to BibTeX / RIS / CSV / a styled
+   HTML bibliography).
+8. **[Online Search](08-online-search.md)** — Searching CrossRef and arXiv from
    inside the app and importing results as new entries: the workflow, the fields
    each source captures, and troubleshooting.
-8. **[Shortcuts & Reference](08-shortcuts-and-reference.md)** — The complete
-   keyboard-shortcut and mouse-action reference, the file format and on-save
-   normalisations, where each kind of data is stored, a special-field reference,
-   citations, current limitations, a glossary, and general troubleshooting.
+9. **[Shortcuts & Reference](09-shortcuts-and-reference.md)** — The complete
+   menu-bar, keyboard-shortcut, and mouse-action reference, the file format and
+   on-save normalisations, where each kind of data is stored, a special-field
+   reference, citations, current limitations, a glossary, and general
+   troubleshooting.
 
 ## Conventions used in this manual
 
 - **Key notation.** Keyboard shortcuts are shown for both platforms, macOS
   first: **⌘O** / **Ctrl+O**. ⌘ is the macOS Command key; on Windows and Linux
-  the equivalent is **Ctrl**. **Enter** is the Return/Enter key.
+  the equivalent is **Ctrl**. **⇧** is Shift, **⌥** is Option/Alt — so
+  **⇧⌘I** / **Shift+Ctrl+I** is Shift+Command+I (macOS) or Shift+Ctrl+I
+  (Windows/Linux), and **⌥⌘F** / **Alt+Ctrl+F** is Option+Command+F or
+  Alt+Ctrl+F. **Enter** is the Return/Enter key.
+- **Menu paths** are written with arrows: **File → Import → From File…** means
+  the *From File…* item in the *Import* submenu of the *File* menu.
 - **Interface labels** — buttons, menus, fields, and on-screen text — are in
   **bold**: the **🌐 Online…** button, the **Save** button, the `Author` field.
 - **Literal text** you type or that appears in your file — cite keys, field
@@ -66,7 +81,8 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
 
 > **Tip:** Throughout the app and this manual, remember the golden rule: your
 > `.bib` file is the single source of truth, and **edits are not written until
-> you save** (**⌘S** / **Ctrl+S**). There is no autosave.
+> you save** (**⌘S** / **Ctrl+S**). There is no autosave by default (you can turn
+> one on in Preferences).
 
 ## Getting started quickly
 

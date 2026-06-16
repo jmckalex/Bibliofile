@@ -165,7 +165,25 @@ bundled:
 | **Harvard** | Author–date style widely used across the humanities and sciences |
 
 Pick a style and the citation re-renders immediately in that format. The choice
-applies to the citation block you're looking at.
+applies to the citation block you're looking at. To set the style you'd like to
+start with, choose a **Default style** in
+**Preferences → Citations** (also APA, Vancouver, or Harvard).
+
+### Copying a citation or the BibTeX
+
+The Citation block is for reading, but two **Edit**-menu commands put the entry
+on the clipboard so you can paste it elsewhere:
+
+- **Edit → Copy Citation** copies the **formatted citation** (in the current
+  style) as plain text — ready to drop into an email, a reading list, or a
+  document.
+- **Edit → Copy as BibTeX** (**⌥⌘B** / **Alt+Ctrl+B**) copies the entry's raw
+  **BibTeX source** instead — handy for pasting one entry into another `.bib`
+  file or a LaTeX project.
+
+There are also commands to copy just the cite key or a `\cite{…}` command, and you
+can drag a row out to insert a citation in a TeX editor — see
+[Editing entries → Copying entries](03-editing-entries.md#copying-entries-cite-keys-and-citations).
 
 ### Live updates
 
@@ -302,5 +320,7 @@ there. If nothing opens, the field may be empty or hold a malformed address.
 - [Editing Entries](03-editing-entries.md) — changing the fields and type that
   drive the card and citation.
 - [Attachments](04-attachments.md) — the files behind the 📎 chip.
+- [Importing & Exporting](07-importing-and-exporting.md) — the HTML export
+  produces a styled bibliography; **Copy as BibTeX** copies one entry's source.
 - [Getting Started](01-getting-started.md) — the window layout and the theme
   toggle.

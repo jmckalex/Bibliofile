@@ -577,6 +577,103 @@ body {
   white-space: nowrap;
 }
 
+/* ---- Claude Assistant panel -------------------------------------------- */
+
+.bd-assistant {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  max-width: 90vw;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  background: var(--bd-bg, #fff);
+  border-left: 1px solid var(--bd-border);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+}
+
+.bd-assistant__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bd-border);
+}
+
+.bd-assistant__title {
+  font-weight: 600;
+}
+
+.bd-assistant__setup {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bd-assistant__log {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bd-assistant__hint {
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-msg {
+  padding: 8px 10px;
+  border-radius: 10px;
+  max-width: 92%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bd-msg--user {
+  align-self: flex-end;
+  background: var(--bd-accent);
+  color: #fff;
+}
+
+.bd-msg--assistant {
+  align-self: flex-start;
+  background: var(--bd-accent-soft);
+}
+
+.bd-msg--error {
+  background: #fdecea;
+  color: #b02a16;
+}
+
+.bd-msg--pending {
+  opacity: 0.6;
+}
+
+.bd-msg__tools {
+  font-family: var(--bd-mono);
+  font-size: 11px;
+  color: var(--bd-text-muted);
+  margin-bottom: 4px;
+}
+
+.bd-assistant__compose {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid var(--bd-border);
+}
+
+.bd-assistant__compose .bd-input {
+  flex: 1 1 auto;
+  resize: none;
+}
+
 /* ---- Drag-and-drop import overlay -------------------------------------- */
 
 .bd-drop-overlay {

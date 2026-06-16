@@ -91,6 +91,21 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
 - **Autosave** is opt-in (`Settings.autosave`): a 1.5 s debounce after the doc becomes
   dirty, driven by a renderer effect. *Why:* keep it simple/observable; explicit Save stays.
 
+- **Claude scripting assistant (#4).** A docked chat panel (Tools → Claude Assistant, ⌘J) over
+  the open library. *Key storage:* the user's Anthropic key is encrypted with Electron
+  `safeStorage` and written to `userData/agent-key.bin` — never in settings/plaintext, never sent
+  to the renderer. *Loop:* a provider-agnostic turn loop (`agent.ts`, unit-tested with injected
+  `callModel`/`executeTool`/`approve`) issues Anthropic tool-use rounds; the Electron glue in
+  `index.ts` supplies the real HTTPS call (`fetch` → `api.anthropic.com/v1/messages`), tool
+  dispatch, and approval. *Tools:* read freely (list/get/search/find_duplicates/export); every
+  **mutation** (set_field/add_entry/delete_entry/generate_cite_key) is gated on a **native
+  approval dialog**. *Why native dialog* over a renderer approval protocol: simplest correct gate,
+  and it keeps the loop in main. *Tool execution* goes through `document-service` (applyEdit/
+  importEntry/…) — NOT raw `plugins-sdk` — so dirty/undo/reindex stay consistent; `plugins-sdk`
+  remains the conceptual/stable API. Conversation history lives in main per-document; on a mutating
+  turn the renderer reloads. Default model `claude-opus-4-8` (editable in Preferences). *Revisit:*
+  `app/src/main/agent.ts` (loop + tool schema) + the agent glue in `index.ts`.
+
 ## Deferred this session (with rationale)
 
 - **Smart / static group EDITOR (#10) — deferred, not abandoned.** Creating/editing groups

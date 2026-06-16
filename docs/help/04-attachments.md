@@ -45,12 +45,18 @@ DOI link (🔗). Each distinct target appears once; duplicates are collapsed.
 ## Adding an attachment
 
 1. Select the publication you want to attach files to.
-2. In the **Attachments** section, click **＋ Add**.
+2. In the **Attachments** section, click **＋ Add** (or choose
+   **Publication → Add File Attachment…**).
 3. In the file dialog, choose **one or more** files. You can multi-select
    (Shift-click or Cmd/Ctrl-click) to attach several at once.
 
 Each chosen file is attached to the entry immediately as a new managed
 `Bdsk-File-N` link, and the document is marked **unsaved**.
+
+> **Tip:** You can also **drag a PDF (or any file) onto the window** to create a
+> new entry with that file already attached — handy for importing a folder of
+> papers in one go. See
+> [Importing & exporting → Drag and drop](07-importing-and-exporting.md#73-drag-and-drop).
 
 > **Warning:** Adding an attachment is an in-memory edit, like any other. It is
 > **not written to your `.bib` file until you Save** (**Cmd+S** / **Ctrl+S**).
@@ -67,14 +73,38 @@ Each chosen file is attached to the entry immediately as a new managed
 
 Click an attachment in the list to open it:
 
-- A **📄 file** opens in your operating system's default application for that
-  file type — a PDF in your PDF viewer, an image in your image viewer, a `.csv`
-  in your spreadsheet program, and so on.
+- A **📄 PDF file** opens in the app's **built-in PDF preview** (see below) — you
+  don't have to leave the window to read it.
+- Any **other 📄 file** (an image, a dataset, a `.csv`, …) opens in your operating
+  system's default application for that file type.
 - A **🔗 link** opens the page in your default web browser. A bare DOI is opened
   via `doi.org`.
 
-Opening is handled by the OS, exactly as if you had double-clicked the file in
-your file manager or pasted the URL into your browser.
+Opening a non-PDF file or a link is handled by the OS, exactly as if you had
+double-clicked the file in your file manager or pasted the URL into your browser.
+
+### The in-app PDF preview
+
+When you click a PDF attachment, it opens in a preview window right inside the
+app, so you can read the paper without switching to an external viewer. The
+preview:
+
+- **Shows every page**, stacked in a continuous scrolling view — scroll down to
+  move through the document. The title bar shows the file name and the page
+  count.
+- **Zooms** with the **−** and **+** buttons (the zoom ranges from half size up to
+  three times size).
+- Has an **Open externally** button to hand the PDF to your operating system's
+  default PDF application if you'd rather read it there.
+- Closes with the **×** button or by clicking the dimmed backdrop outside it.
+
+The bytes are read through the same attachment link the rest of this chapter
+describes, so the preview works whenever the file resolves (see
+[How attachments resolve](#how-attachments-resolve)). Only PDF attachments get the
+in-app preview; other file types open in their default app as above.
+
+> **Note:** The PDF preview is read-only — it is for reading, not annotating. Use
+> **Open externally** (or your own PDF app) if you want to highlight or comment.
 
 ## Removing an attachment
 
@@ -241,25 +271,84 @@ link healthy forever:
 > subfolder — is the layout that "just works" everywhere and is also the easiest
 > to back up and share.
 
+## AutoFile: organising linked files
+
+Keeping attachments tidy by hand — naming each PDF consistently and filing it in
+the right place — is tedious. **AutoFile** does it for you: it moves an entry's
+attached files into a single **Papers folder** and renames them by a format you
+choose, then updates the `Bdsk-File-N` links to point at their new homes. It is
+the same idea as BibDesk's AutoFile.
+
+### Setting it up
+
+Before AutoFile can run, tell it where your Papers folder is and how to name
+files, in **Preferences**:
+
+- **AutoFile → Papers folder** — click **Choose…** and pick the folder where
+  filed attachments should live (the **×** clears it). AutoFile is **disabled
+  until this is set**.
+- **AutoFile → File name** — the file-name format. The default is `%a1/%Y%u0`,
+  which files each paper in a *first-author* subfolder and names it by *year*,
+  adding a short disambiguator only when two papers would otherwise collide.
+
+The file-name format uses the same mini-language as the cite-key format (see
+[Editing entries → How Generate works](03-editing-entries.md#how-generate-works)).
+Useful specifiers include `%a1` (first author's surname), `%A` (authors with
+initials), `%Y` / `%y` (4- or 2-digit year), `%t` / `%T` (title characters /
+words), `%f{Field}` (any field's value), a literal `/` to create a subfolder, and
+`%u` / `%U` / `%n` (a lowercase / uppercase / numeric disambiguator added only
+when needed to avoid a name clash). The file's original extension is kept
+automatically.
+
+### Running it
+
+Select an entry and choose **Publication → AutoFile Linked Files**. For that
+entry, each managed file attachment is:
+
+1. **Moved** into the Papers folder, into the subfolder and under the name the
+   format produces (e.g. `Einstein/1905.pdf`). If a file with that name already
+   exists, a disambiguator keeps it unique.
+2. **Re-linked** — the `Bdsk-File-N` link is rewritten to the file's new location
+   (still as a path relative to your `.bib`, so the library stays portable).
+
+AutoFile works on the **selected entry** only, so you can file papers as you add
+them. As with any edit, the change is in memory until you **Save**.
+
+> **Note:** AutoFile **moves** the actual file on disk (copying then deleting if
+> the destination is on a different drive). The original file leaves its old
+> location. This is the point — it consolidates scattered downloads into one
+> well-named library — but be aware it is a real file move, not a copy.
+
+> **Tip:** AutoFile pairs naturally with
+> [drag-and-drop import](07-importing-and-exporting.md#73-drag-and-drop): drop a
+> pile of PDFs to create entries with the files attached where they sit, fill in
+> the author and year, then run AutoFile to move and rename each one into your
+> Papers folder.
+
 ## Attachments and full-text PDF search
 
-A planned feature will index the **text inside your attached PDFs** so you can
-search the actual contents of papers, not just their bibliographic fields. That
-full-text search will rely on exactly the attachment links described in this
-chapter: it can only read a PDF that the app can resolve and open. Keeping your
-files reliably reachable (the [best practices](#best-practices-for-portable-attachments)
-above) therefore also prepares your library to get the most out of full-text
-search when it arrives. See [Browsing & Searching](02-browsing-and-searching.md)
-for the search features available today.
+The app indexes the **text inside your attached PDFs**, so the search box finds
+papers by their actual contents, not just their bibliographic fields. This relies
+on exactly the attachment links described in this chapter: the search index can
+only read a PDF that the app can resolve and open, so keeping your files reliably
+reachable (the [best practices](#best-practices-for-portable-attachments) above,
+or [AutoFile](#autofile-organising-linked-files)) is what lets full-text search
+reach into them. PDF text is extracted in the background shortly after a library
+opens, so PDF matches may appear a moment after the first results. See
+[Browsing & Searching](02-browsing-and-searching.md) for how the search behaves.
 
 ## Quick reference
 
 | Action | How |
 |--------|-----|
-| Add file attachment(s) | Select entry → **＋ Add** in Attachments → pick one or more files |
-| Open an attachment | Click it (file → default app; link → browser) |
+| Add file attachment(s) | Select entry → **＋ Add** in Attachments (or **Publication → Add File Attachment…**) → pick one or more files |
+| Add via drag-and-drop | Drag a PDF/file onto the window → new entry with the file attached |
+| Open a PDF attachment | Click it → opens in the in-app PDF preview (zoom, scroll, **Open externally**) |
+| Open another file / link | Click it (file → default app; link → browser) |
 | Remove a file attachment | Click **×** beside it |
 | Remove a URL/DOI link | Edit/delete the `Url` or `Doi` field in **Fields** |
+| File attachments into the Papers folder | **Publication → AutoFile Linked Files** (set the Papers folder + format in Preferences) |
+| Reveal the `.bib` in your file manager | **File → Show in Finder** (macOS) / **Show in File Manager** |
 | Persist attachment changes | **Save** (Cmd+S / Ctrl+S) — attachments are in memory until saved |
 
 ## Troubleshooting
@@ -291,6 +380,18 @@ edit the `Url`/`Doi` field in the **Fields** section instead.
 The link is taken verbatim from the entry's `Doi`/`Url` field. Correct the field
 value in the **Fields** section.
 
+**"AutoFile says no Papers folder is configured."**
+AutoFile needs a destination folder before it can run. Open **Preferences →
+AutoFile** and choose a **Papers folder** (and, if you like, adjust the **File
+name** format). Then select an entry and run **Publication → AutoFile Linked
+Files** again.
+
+**"The PDF preview won't open / shows an error."**
+The preview reads the file through its attachment link, so the same things that
+stop an attachment opening stop the preview: the file has moved, been renamed, or
+been deleted relative to the `.bib`. Restore the layout or re-add the file. Only
+PDF attachments use the in-app preview; other files open in their default app.
+
 **Cross-machine sync tips.**
 Sync the *whole library folder* (e.g. via Git, Dropbox, or iCloud Drive) rather
 than the `.bib` alone. The plain-text `.bib` plus a `pdfs/` subfolder with
@@ -303,5 +404,7 @@ preserved by this app, so the library stays usable from both.
 - [Editing Entries](03-editing-entries.md)
 - [Getting Started](01-getting-started.md)
 - [Browsing & Searching](02-browsing-and-searching.md)
-- [Online Search](07-online-search.md)
-- [Shortcuts & Reference](08-shortcuts-and-reference.md)
+- [Importing & Exporting](07-importing-and-exporting.md) — dropping a PDF to
+  create an entry with the file attached.
+- [Online Search](08-online-search.md)
+- [Shortcuts & Reference](09-shortcuts-and-reference.md)
