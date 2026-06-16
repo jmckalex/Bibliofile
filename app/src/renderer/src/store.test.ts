@@ -83,6 +83,8 @@ function makeFakeApi() {
     formatCitation: async (r) => ({ styleId: r.styleId, html: '<div>cite</div>' }),
     addAttachment: async () => ({ dirty: true }),
     removeAttachment: async () => ({ dirty: true }),
+    autoFile: async () => ({ moved: 0, errors: [], dirty: true, detail: DETAIL }),
+    chooseFolder: async () => ({ path: null }),
     searchOnline: async () => ({ results: [] }),
     importOnline: async () => ({ dirty: true }),
     ftsSearch: async () => ({ available: false, ids: [] }),

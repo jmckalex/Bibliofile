@@ -40,6 +40,9 @@ import type {
   FindDuplicatesResult,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
+  AutoFileRequest,
+  AutoFileResult,
+  ChooseFolderResponse,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -142,6 +145,12 @@ export interface BibDeskApi {
 
   /** Distinct existing values for a field (autocomplete in the field editors). */
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse>;
+
+  /** AutoFile an item's attachments into the Papers folder; returns refreshed detail. */
+  autoFile(request: AutoFileRequest): Promise<AutoFileResult>;
+
+  /** Open a native folder picker (e.g. the Papers folder). Resolves to {path|null}. */
+  chooseFolder(): Promise<ChooseFolderResponse>;
 
   /**
    * Resolve a dropped {@link File} to its absolute filesystem path (Electron's

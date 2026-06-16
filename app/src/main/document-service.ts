@@ -20,8 +20,16 @@
  * {@link openLibraryFromText} reads no files.
  */
 
-import { copyFileSync, existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { basename, dirname, isAbsolute, relative, resolve } from 'node:path';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { basename, dirname, extname, isAbsolute, join, relative, resolve } from 'node:path';
 
 import {
   parse,
@@ -45,7 +53,7 @@ import {
   equivalenceKey,
   itemsEquivalent,
 } from '@bibdesk/model';
-import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT } from '@bibdesk/formats';
+import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT, parseFormat, LOCAL_FILE_FIELD } from '@bibdesk/formats';
 import type { Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
@@ -543,6 +551,18 @@ export function itemFiles(item: BibItem, lib: BibLibrary, docPath: string): Item
   return out;
 }
 
+/** Return `path`, or `path` with a `-1`, `-2`… suffix until it doesn't exist. */
+function uniquePath(path: string): string {
+  if (!existsSync(path)) return path;
+  const dir = dirname(path);
+  const ext = extname(path);
+  const stem = basename(path, ext);
+  let n = 1;
+  let candidate = join(dir, `${stem}-${n}${ext}`);
+  while (existsSync(candidate)) candidate = join(dir, `${stem}-${++n}${ext}`);
+  return candidate;
+}
+
 /** Display name for an attachment: basename for files, host/last-segment for URLs. */
 function displayNameForUrl(kind: 'file' | 'url', url: string): string {
   // strip a leading file:// scheme for basename extraction
@@ -848,12 +868,24 @@ export class DocumentStore {
   private readonly docs = new Map<string, OpenDoc>();
 
   /** Editing defaults driven by preferences (cite-key format, new-entry type). */
-  private editConfig = { citeKeyFormat: DEFAULT_CITE_KEY_FORMAT, defaultEntryType: 'article' };
+  private editConfig = {
+    citeKeyFormat: DEFAULT_CITE_KEY_FORMAT,
+    defaultEntryType: 'article',
+    papersFolder: '',
+    autoFileFormat: '%a1/%Y%u0',
+  };
 
   /** Apply preference-driven editing defaults. */
-  setEditConfig(c: { citeKeyFormat?: string; defaultEntryType?: string }): void {
+  setEditConfig(c: {
+    citeKeyFormat?: string;
+    defaultEntryType?: string;
+    papersFolder?: string;
+    autoFileFormat?: string;
+  }): void {
     if (c.citeKeyFormat) this.editConfig.citeKeyFormat = c.citeKeyFormat;
     if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
+    if (c.papersFolder !== undefined) this.editConfig.papersFolder = c.papersFolder;
+    if (c.autoFileFormat) this.editConfig.autoFileFormat = c.autoFileFormat;
   }
 
   /** Open from already-loaded text. Retains the library and returns the summary. */
@@ -1037,6 +1069,67 @@ export class DocumentStore {
       doc.library.bdskFiles.set(bdskFileKey(item.id, field), plist);
     }
     return this.dirtyDetail(doc, item);
+  }
+
+  /**
+   * AutoFile an item's managed attachments: move each `Bdsk-File-N` file into the
+   * configured Papers folder, named by the AutoFile format (BDSKFormatParser,
+   * local-file rules), and rewrite the stored relative path. Cross-volume moves
+   * fall back to copy. Returns how many files moved + per-file errors. Mirrors
+   * BibDesk's "AutoFile Linked File".
+   */
+  autoFile(documentId: string, itemId: string): { moved: number; errors: string[]; detail: ItemDetail } {
+    const doc = this.requireDoc(documentId);
+    const item = this.itemOf(doc, itemId);
+    const papers = this.editConfig.papersFolder;
+    if (!papers) throw new Error('No Papers folder is configured (set one in Preferences).');
+    const baseDir = doc.path ? dirname(doc.path) : '';
+    const errors: string[] = [];
+    let moved = 0;
+
+    for (const name of item.fieldNames()) {
+      if (!BDSK_FILE_RE.test(name)) continue;
+      const plist = doc.library.bdskFiles.get(bdskFileKey(item.id, name));
+      const rel = plist ? relativePathOf(plist) : undefined;
+      if (!rel) continue;
+      const src = baseDir && !isAbsolute(rel) ? resolve(baseDir, rel) : rel;
+      if (!existsSync(src)) {
+        errors.push(`${basename(src)}: file not found`);
+        continue;
+      }
+      const ext = extname(src);
+      const stem = parseFormat(this.editConfig.autoFileFormat, item, LOCAL_FILE_FIELD, {
+        typeManager: sharedTypeManager,
+      });
+      const dest = uniquePath(join(papers, (stem || item.citeKey || 'paper') + ext));
+      try {
+        mkdirSync(dirname(dest), { recursive: true });
+        if (resolve(src) === dest) continue; // already filed
+        try {
+          renameSync(src, dest);
+        } catch {
+          copyFileSync(src, dest); // cross-volume: copy, then drop the original
+          try {
+            unlinkSync(src);
+          } catch {
+            /* leave the original if it can't be removed */
+          }
+        }
+        const newRel = baseDir ? relative(baseDir, dest) : dest;
+        const newPlist = { relativePath: newRel };
+        item.setField(name, encodeBdskFile(newPlist));
+        doc.library.bdskFiles.set(bdskFileKey(item.id, name), newPlist);
+        moved++;
+      } catch (e) {
+        errors.push(`${basename(src)}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+
+    if (moved) {
+      doc.dirty = true;
+      this.reindex(doc, item);
+    }
+    return { moved, errors, detail: this.detailFor(doc, item) };
   }
 
   /**

@@ -218,6 +218,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'addAttachment':
       if (selectedItemId) await store.addAttachment(selectedItemId);
       return;
+    case 'autoFile':
+      if (selectedItemId) await store.autoFile(selectedItemId);
+      return;
     case 'online':
       modals.setOnlineOpen(true);
       return;

@@ -115,6 +115,9 @@ export {
   type DuplicateEntry,
   type FieldSuggestionsRequest,
   type FieldSuggestionsResponse,
+  type AutoFileRequest,
+  type AutoFileResult,
+  type ChooseFolderResponse,
   type MenuCommand,
 } from './dto.js';
 

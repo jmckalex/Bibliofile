@@ -151,6 +151,8 @@ export interface ViewerState {
   addAttachment: (itemId: string) => Promise<void>;
   /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
   removeAttachment: (itemId: string, field: string) => Promise<void>;
+  /** AutoFile an item's attachments into the Papers folder; refresh detail. */
+  autoFile: (itemId: string) => Promise<void>;
   /** Import an online search result as a new entry; refresh + select it. */
   importOnline: (result: OnlineResult) => Promise<void>;
   /** Paste BibTeX text as new entries; refresh + select the first added. */
@@ -385,6 +387,18 @@ export function createStore(api: BibDeskApi) {
         const res = await api.removeAttachment({ documentId, itemId, field });
         set({ dirty: res.dirty });
         if (res.detail) set({ detail: res.detail });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    autoFile: async (itemId) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const res = await api.autoFile({ documentId, itemId });
+        set({ dirty: res.dirty, detail: res.detail });
+        if (res.errors.length) set({ error: res.errors.join('; ') });
       } catch (err) {
         set({ error: errorMessage(err) });
       }

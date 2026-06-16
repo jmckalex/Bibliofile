@@ -489,6 +489,27 @@ export interface FindReplaceResult {
   readonly error?: string;
 }
 
+// --- AutoFile ---------------------------------------------------------------
+
+/** AutoFile an item's managed attachments into the Papers folder. */
+export interface AutoFileRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+}
+
+/** Result of an AutoFile: how many files moved, per-file errors, refreshed detail. */
+export interface AutoFileResult {
+  readonly moved: number;
+  readonly errors: readonly string[];
+  readonly dirty: boolean;
+  readonly detail: ItemDetail;
+}
+
+/** Response from the folder picker (null when cancelled). */
+export interface ChooseFolderResponse {
+  readonly path: string | null;
+}
+
 // --- Field-value autocomplete -----------------------------------------------
 
 /** Request distinct existing values for a field (for editor autocomplete). */
@@ -586,6 +607,10 @@ export interface Settings {
    * treated as a BibTeX field name and shown as a text column.
    */
   readonly columns: readonly string[];
+  /** Absolute path of the AutoFile "Papers" folder (empty = AutoFile disabled). */
+  readonly papersFolder: string;
+  /** AutoFile destination-name format (BDSKFormatParser; e.g. `%a1/%Y%u0`). */
+  readonly autoFileFormat: string;
   /** Field-type classification overrides. */
   readonly fieldTypes: FieldTypeSettings;
 }
@@ -611,6 +636,8 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultEntryType: 'article',
   citeCommandTemplate: '\\cite{%K}',
   columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],
+  papersFolder: '',
+  autoFileFormat: '%a1/%Y%u0',
   fieldTypes: {
     person: ['Author', 'Editor'],
     localFile: ['Local-Url'],
@@ -671,6 +698,7 @@ export type MenuCommand =
   | 'delete'
   | 'generateCiteKey'
   | 'addAttachment'
+  | 'autoFile'
   | 'online'
   | 'editMacros'
   | 'findDuplicates'

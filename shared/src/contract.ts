@@ -39,6 +39,9 @@ import type {
   FindDuplicatesResult,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
+  AutoFileRequest,
+  AutoFileResult,
+  ChooseFolderResponse,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -94,6 +97,8 @@ export interface IpcContract {
   [IpcChannels.findReplace]: IpcEntry<FindReplaceRequest, FindReplaceResult>;
   [IpcChannels.findDuplicates]: IpcEntry<FindDuplicatesRequest, FindDuplicatesResult>;
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;
+  [IpcChannels.autoFile]: IpcEntry<AutoFileRequest, AutoFileResult>;
+  [IpcChannels.chooseFolder]: IpcEntry<Record<string, never>, ChooseFolderResponse>;
 }
 
 /**

@@ -645,6 +645,11 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('addAttachment'),
       },
+      {
+        label: 'AutoFile Linked Files',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('autoFile'),
+      },
       { type: 'separator' },
       {
         label: 'Macros (@string)…',
@@ -783,7 +788,12 @@ function registerIpc(): void {
     [IpcChannels.getSettings]: () => getSettings(),
     [IpcChannels.updateSettings]: (req) => {
       const s = updateSettings(req.patch);
-      store.setEditConfig({ citeKeyFormat: s.citeKeyFormat, defaultEntryType: s.defaultEntryType });
+      store.setEditConfig({
+        citeKeyFormat: s.citeKeyFormat,
+        defaultEntryType: s.defaultEntryType,
+        papersFolder: s.papersFolder,
+        autoFileFormat: s.autoFileFormat,
+      });
       if (req.patch.columns) buildMenu(); // refresh View→Columns checkmarks
       return s;
     },
@@ -825,6 +835,20 @@ function registerIpc(): void {
     [IpcChannels.findReplace]: (req) => store.findReplace(req),
     [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
     [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
+    [IpcChannels.autoFile]: (req) => {
+      const res = store.autoFile(req.documentId, req.itemId);
+      return { ...res, dirty: store.isDirty(req.documentId) };
+    },
+    [IpcChannels.chooseFolder]: async () => {
+      const opts: Electron.OpenDialogOptions = {
+        title: 'Choose Papers Folder',
+        properties: ['openDirectory', 'createDirectory'],
+      };
+      const result = mainWindow
+        ? await dialog.showOpenDialog(mainWindow, opts)
+        : await dialog.showOpenDialog(opts);
+      return { path: result.canceled || !result.filePaths[0] ? null : result.filePaths[0] };
+    },
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -903,6 +927,12 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.fieldSuggestions, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.fieldSuggestions](req),
   );
+  ipcMain.handle(IpcChannels.autoFile, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.autoFile](req),
+  );
+  ipcMain.handle(IpcChannels.chooseFolder, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.chooseFolder](req),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -953,6 +983,8 @@ if (!gotLock) {
     store.setEditConfig({
       citeKeyFormat: settings.citeKeyFormat,
       defaultEntryType: settings.defaultEntryType,
+      papersFolder: settings.papersFolder,
+      autoFileFormat: settings.autoFileFormat,
     });
     registerIpc();
     buildMenu();

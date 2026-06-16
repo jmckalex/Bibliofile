@@ -464,6 +464,19 @@ body {
   border-top: 1px solid var(--bd-border);
 }
 
+/* ---- AutoFile folder row (Preferences) --------------------------------- */
+
+.bd-prefs__folder {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.bd-prefs__folder .bd-input {
+  flex: 1 1 auto;
+}
+
 /* ---- Columns manager (Preferences) ------------------------------------- */
 
 .bd-cols {

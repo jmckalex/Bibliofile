@@ -57,6 +57,9 @@ import {
   type FindDuplicatesResult,
   type FieldSuggestionsRequest,
   type FieldSuggestionsResponse,
+  type AutoFileRequest,
+  type AutoFileResult,
+  type ChooseFolderResponse,
   type MenuCommand,
 } from '@bibdesk/shared';
 
@@ -140,6 +143,12 @@ const api: BibDeskApi = {
   },
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse> {
     return ipcRenderer.invoke(IpcChannels.fieldSuggestions, request);
+  },
+  autoFile(request: AutoFileRequest): Promise<AutoFileResult> {
+    return ipcRenderer.invoke(IpcChannels.autoFile, request);
+  },
+  chooseFolder(): Promise<ChooseFolderResponse> {
+    return ipcRenderer.invoke(IpcChannels.chooseFolder, {});
   },
   pathForFile(file: File): string {
     return webUtils.getPathForFile(file);

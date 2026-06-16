@@ -3,7 +3,7 @@
  * real BibDesk-authored `BD test.bib` fixture and exercises the full open → rows
  * → groups → detail path the IPC handlers expose.
  */
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -166,6 +166,38 @@ describe('document-service: BD test.bib', () => {
     expect(res.error).toBeTruthy();
     expect(res.total).toBe(0);
     expect(store.isDirty(documentId)).toBe(false);
+  });
+
+  it('autoFile moves a managed attachment into the Papers folder and rewrites the path', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-autofile-'));
+    const docPath = join(dir, 'lib.bib');
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{euler1748, Author = {Leonhard Euler}, Year = {1748}}',
+      docPath,
+    );
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+
+    // A real source file to file away.
+    const incoming = join(dir, 'incoming');
+    mkdirSync(incoming);
+    const src = join(incoming, 'euler.pdf');
+    writeFileSync(src, '%PDF-1.4 test');
+    store.addAttachments(documentId, itemId, [src]);
+
+    const papers = join(dir, 'Papers');
+    store.setEditConfig({ papersFolder: papers, autoFileFormat: '%a1%Y' });
+
+    const res = store.autoFile(documentId, itemId);
+    expect(res.moved).toBe(1);
+    expect(res.errors).toEqual([]);
+    expect(existsSync(src)).toBe(false); // moved out of incoming
+    const filed = readdirSync(papers).filter((f) => f.endsWith('.pdf'));
+    expect(filed).toHaveLength(1); // one PDF now in Papers
+    // The attachment now resolves under Papers/ (the Bdsk-File path was rewritten).
+    const detail = store.getItemDetail({ documentId, itemId });
+    expect(detail.files[0]!.url).toContain(`${join('Papers')}`);
+    expect(detail.files[0]!.url).toContain(filed[0]!);
   });
 
   it('importRisText merges RIS records as new entries', () => {

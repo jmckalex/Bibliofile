@@ -222,6 +222,47 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           <ColumnsSection columns={settings.columns} save={save} />
 
           <section className="bd-prefs__section">
+            <h3>AutoFile</h3>
+            <label className="bd-prefs__row">
+              <span>Papers folder</span>
+              <span className="bd-prefs__folder">
+                <input className="bd-input" readOnly placeholder="(none)" value={settings.papersFolder} />
+                <button
+                  type="button"
+                  className="bd-btn bd-btn--small"
+                  onClick={async () => {
+                    const res = await window.bibdesk?.chooseFolder();
+                    if (res?.path) void save({ papersFolder: res.path });
+                  }}
+                >
+                  Choose…
+                </button>
+                {settings.papersFolder && (
+                  <button type="button" className="bd-field__del" title="Clear" onClick={() => void save({ papersFolder: '' })}>
+                    ×
+                  </button>
+                )}
+              </span>
+            </label>
+            <label className="bd-prefs__row">
+              <span>File name</span>
+              <input
+                key={settings.autoFileFormat}
+                className="bd-input bd-input--mono"
+                defaultValue={settings.autoFileFormat}
+                onBlur={(e) => {
+                  if (e.target.value !== settings.autoFileFormat) void save({ autoFileFormat: e.target.value });
+                }}
+              />
+            </label>
+            <p className="bd-prefs__hint">
+              <strong>Publication → AutoFile Linked Files</strong> moves an entry’s attachments into the
+              Papers folder, named by this format (e.g. <code>%a1/%Y%u0</code> = first-author folder,
+              year + disambiguator).
+            </p>
+          </section>
+
+          <section className="bd-prefs__section">
             <h3>New entries</h3>
             <label className="bd-prefs__row">
               <span>Default type</span>

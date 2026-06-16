@@ -72,6 +72,10 @@ export const IpcChannels = {
   findDuplicates: 'bibdesk:findDuplicates',
   /** Distinct existing values for a field (editor autocomplete). */
   fieldSuggestions: 'bibdesk:fieldSuggestions',
+  /** AutoFile an item's attachments into the Papers folder. */
+  autoFile: 'bibdesk:autoFile',
+  /** Open a folder picker (e.g. choosing the Papers folder). */
+  chooseFolder: 'bibdesk:chooseFolder',
 } as const;
 
 /**
