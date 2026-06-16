@@ -12,6 +12,7 @@
  */
 
 import { basename, join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { existsSync, writeFileSync } from 'node:fs';
 
 import {
@@ -37,6 +38,7 @@ import {
 import { DocumentStore } from './document-service.js';
 import { formatCitation } from './csl.js';
 import { searchOnline } from './online.js';
+import { buildHelpHtml, findHelpDir } from './help.js';
 
 // ---------------------------------------------------------------------------
 // Process-wide singletons
@@ -53,6 +55,45 @@ let pendingOpenPath: string | null = null;
 
 /** Most recently opened document id (used by the smoke-test FTS self-check). */
 let lastDocumentId: string | null = null;
+
+/** The Help manual window (singleton). */
+let helpWindow: BrowserWindow | null = null;
+
+/** Open (or focus) the Help manual window, rendering `docs/help/*.md`. */
+function openHelp(): void {
+  if (helpWindow && !helpWindow.isDestroyed()) {
+    helpWindow.focus();
+    return;
+  }
+  const dir = findHelpDir(app.getAppPath());
+  if (!dir) {
+    void dialog.showMessageBox({ type: 'info', message: 'Help is not available in this build.' });
+    return;
+  }
+  const tmp = join(tmpdir(), 'bibdesk-help.html');
+  writeFileSync(tmp, buildHelpHtml(dir));
+  helpWindow = new BrowserWindow({
+    width: 940,
+    height: 820,
+    title: 'BibDesk Help',
+    webPreferences: { contextIsolation: true, nodeIntegration: false },
+  });
+  void helpWindow.loadFile(tmp);
+  // External links open in the OS browser, not in the help window.
+  helpWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:/i.test(url)) void shell.openExternal(url);
+    return { action: 'deny' };
+  });
+  helpWindow.webContents.on('will-navigate', (e, url) => {
+    if (/^https?:/i.test(url)) {
+      e.preventDefault();
+      void shell.openExternal(url);
+    }
+  });
+  helpWindow.on('closed', () => {
+    helpWindow = null;
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Window creation + renderer loading
@@ -114,7 +155,12 @@ function createWindow(): BrowserWindow {
           console.log('[smoke] fts self-test error:', e instanceof Error ? e.message : String(e));
         }
       }
-      win.webContents
+      // Capture the Help window instead, when smoke-testing Help.
+      const target =
+        process.env.BIBDESK_OPEN_HELP && helpWindow && !helpWindow.isDestroyed()
+          ? helpWindow
+          : win;
+      target.webContents
         .capturePage()
         .then((img) => {
           writeFileSync(smokePath, img.toPNG());
@@ -283,6 +329,16 @@ function buildMenu(): void {
   template.push({ label: 'Edit', role: 'editMenu' });
   template.push({ label: 'View', role: 'viewMenu' });
   template.push({ label: 'Window', role: 'windowMenu' });
+  template.push({
+    role: 'help',
+    submenu: [
+      {
+        label: 'BibDesk Help',
+        accelerator: isMac ? undefined : 'F1',
+        click: () => openHelp(),
+      },
+    ],
+  });
 
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
@@ -477,5 +533,7 @@ if (!gotLock) {
     const startup = pendingOpenPath ?? startupOpenPath();
     pendingOpenPath = null;
     if (startup) openPathWhenReady(startup);
+
+    if (process.env.BIBDESK_OPEN_HELP) setTimeout(openHelp, 600);
   });
 }
