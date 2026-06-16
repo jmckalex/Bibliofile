@@ -17,11 +17,11 @@ Times are local. Newest entries appended at the bottom of each section.
 | C2 | `core/names` — BibTeX name splitting + display variants | ✅ done (88 tests) |
 | C7 | `core/config` — TypeInfo/Preferences → JSON config | ✅ done (26 tests) |
 | T1 | golden round-trip test harness + fixtures (`core/bibtex/test`) | ✅ done (56 + 14 skip) |
-| C3 | `core/model` — BibItem/ComplexValue/TypeManager/MacroResolver/crossref | 🔄 running |
-| C4 | `core/bibtex` — custom round-trip parser + serializer (keystone) | ⏳ pending |
-| C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | ⏳ pending |
-| C6 | `core/groups` — taxonomy + smart-group predicate evaluator | ⏳ pending |
-| A1 | `shared` — IPC contract + types | ⏳ pending |
+| C3 | `core/model` — BibItem/ComplexValue/TypeManager/MacroResolver/crossref | ✅ done (120 tests) |
+| C4 | `core/bibtex` — custom round-trip parser + serializer (keystone) | 🔄 running |
+| C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | 🔄 running |
+| C6 | `core/groups` — taxonomy + smart-group predicate evaluator | 🔄 running |
+| A1 | `shared` — IPC contract + types | 🔄 running |
 | A2 | `app/src/main` — Electron main, open .bib, read API over IPC | ⏳ pending |
 | A3 | `app/src/renderer` — React + Zustand + TanStack viewer | ⏳ pending |
 
@@ -146,8 +146,24 @@ bdsk-file blobs), TS 5.9, Vitest 2.1, ESLint 9 flat + typescript-eslint 8 + pret
 - **Activate:** change `describe.skip` → `describe` in `core/bibtex/test/roundtrip.test.ts`
   (single edit, marked `TODO(C4)`).
 
+### Wave 2 — DONE
+
+- **C3 `core/model` — DONE & committed (`c4835e4`).** 120 tests. Full keystone domain layer
+  (see API in the agent report). Repo-wide barrier check green: `pnpm -r build` exit 0 (all
+  10 packages typecheck); `pnpm test` = 1009 passed | 14 skipped (T1 contract awaiting C4).
+
+### Wave 3 (in progress) — launched in parallel (disjoint dirs)
+
+- **C4 `core/bibtex`** (keystone) — custom parser+serializer; must flip T1's 14 skipped
+  round-trip tests to green. Emits raw group records `{kind, data}` for C6/app to type.
+- **C5 `core/formats`** — BDSKFormatParser cite-key/autofile mini-language, CRC32, sanitizers.
+- **C6 `core/groups`** — group taxonomy + BDSKFilter/Condition evaluator; consumes/produces
+  the same serialized-plist group shapes C4 emits (Static/Smart/URL/Script).
+- **A1 `shared`** — typed IPC contract + clone-safe DTOs (PublicationRow/GroupNode/ItemDetail).
+
 ## Next step
 
-Barrier on C3 (+ land T1). Then Wave 3: **C4 `core/bibtex`** (keystone parser/serializer;
-gated on C1+C3; must turn T1's round-trip suite green) + **C5 `core/formats`** + **C6
-`core/groups`** in parallel. A1 (`shared` IPC types) can start during Wave 3.
+Barrier on C4/C5/C6/A1. Integrate + repo-wide green (incl. T1 round-trip now active).
+Then Wave 4 read-only viewer: A2 (`app/src/main` — open .bib → core → IPC) → A3
+(`app/src/renderer` — React/Zustand/TanStack table + groups sidebar + detail card), then
+electron-vite dev smoke test on `Scripting/BD test.bib`.
