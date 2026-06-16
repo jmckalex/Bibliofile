@@ -26,8 +26,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = join(HERE, 'fixtures');
 const read = (rel: string): string => readFileSync(join(FIXTURES_DIR, rel), 'utf-8');
 
-// TODO(C4): remove .skip once parse/serialize are implemented in core/bibtex/src
-describe.skip('golden round-trip corpus (C4 contract)', () => {
+describe('golden round-trip corpus (C4 contract)', () => {
   // ----- byte-exact + normalized fixtures: text round-trip -----------------
   for (const entry of FIXTURES.filter((f) => f.mode !== 'structural')) {
     it(`round-trips ${entry.file} (${entry.mode})`, () => {

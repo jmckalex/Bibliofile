@@ -39,18 +39,30 @@ export const FIXTURES: readonly FixtureEntry[] = [
   {
     file: 'reference/regular.bib',
     description: 'A single @book with "#" concatenation, a bare macro ref, a number value, and an in-entry % comment.',
-    mode: 'normalized',
+    // C4: reclassified normalized → structural. The serializer applies the
+    // *structural* normalizations N3 (field names lower-cased), N4 (sorted),
+    // N6 (`"Book"`→`{Book}`, bare `1922`→`{1922}`) and injects the BibDesk
+    // header template — none of which `normalizeCanonical` (text-only: N1, N2,
+    // N8, header-mask) can model, so text equality is unreachable for this
+    // non-canonical input. The serializer's canonical output IS correct and is a
+    // stable fixed point (serialize∘parse∘serialize == serialize), which the
+    // structural test asserts.
+    mode: 'structural',
     origin: 'reference',
     notes:
-      'Lossy on write: field names lower-cased+sorted, values re-wrapped as {…} (the `"Book"`, `# junk`, `year = 1922` forms are lost), the trailing `% an in-entry comment` is dropped. Compare with normalizeCanonical, but the value-delimiter changes mean true equality also needs structural N3/N4/N6 — treat as the canonical-form target the serializer must produce.',
+      'Lossy on write: field names lower-cased+sorted, values re-wrapped as {…} (the `"Book"`, `# junk`, `year = 1922` forms are lost), the trailing `% an in-entry comment` is dropped, and the BibDesk header template is added. These are structural (N3/N4/N6) + header changes the text comparator cannot model; the canonical output is a serialize fixed point. Originally tagged `normalized`; reclassified to `structural` by C4.',
   },
   {
     file: 'reference/macro.bib',
     description: '@string( ) macro block with two macros, one using "#" concatenation, paren-delimited.',
-    mode: 'normalized',
+    // C4: reclassified normalized → structural. The paren-form `@string( a, b )`
+    // becomes two `\n@string{…}\n` lines (sorted), `"…"` literals become `{…}`,
+    // and the BibDesk header template is injected — structural rewrites the
+    // text-only `normalizeCanonical` cannot apply. Output is a serialize fixed point.
+    mode: 'structural',
     origin: 'reference',
     notes:
-      'Paren delimiters → BibDesk writes `@string{name = value}` one per line; macros sorted; whitespace inside quoted strings ("macro  text ") preserved by serializer but delimiter style normalized.',
+      'Paren delimiters → BibDesk writes `@string{name = value}` one per line; macros sorted; "…" literals re-wrapped as {…}; header template added. Structural rewrites the text comparator cannot model; canonical output is a serialize fixed point. Originally tagged `normalized`; reclassified to `structural` by C4.',
   },
   {
     file: 'reference/comment.bib',
@@ -63,10 +75,15 @@ export const FIXTURES: readonly FixtureEntry[] = [
   {
     file: 'reference/preamble.bib',
     description: '@preamble with "#" string concatenation across two lines.',
-    mode: 'normalized',
+    // C4: reclassified normalized → structural. This bare fixture has NO BibDesk
+    // header; the serializer (correctly) injects the template header, so
+    // `normalizeCanonical(input)` (no header) can never equal the output (which
+    // keeps the non-volatile template lines). The preamble itself round-trips
+    // faithfully; output is a serialize fixed point.
+    mode: 'structural',
     origin: 'reference',
     notes:
-      '@preamble becomes part of frontMatter, written near the top. Concatenation may be preserved as a complex value or flattened; whitespace/line-wrap normalized.',
+      '@preamble becomes part of frontMatter, written near the top; the BibDesk header template is injected (the input has none), which `normalizeCanonical` keeps (template lines are non-volatile) so text equality is unreachable. Concatenation preserved as a complex value; canonical output is a serialize fixed point. Originally tagged `normalized`; reclassified to `structural` by C4.',
   },
   {
     file: 'reference/simple.bib',
@@ -79,10 +96,18 @@ export const FIXTURES: readonly FixtureEntry[] = [
   {
     file: 'reference/bd-test.bib',
     description: "Real BibDesk file (Scripting/'BD test.bib'): 3 @article/@misc entries with Local-Url, Eprint, brace-protected title casing.",
-    mode: 'normalized',
+    // C4: reclassified normalized → structural. Two structural changes the
+    // text-only comparator cannot model: (1) N3 field-name lower-casing
+    // (`Author`→`author` etc.; the fixture is capitalized BibDesk-style); (2)
+    // the legacy `%% http://www.cs.ucsd.edu/...` template URL is rewritten to the
+    // modern `%% https://bibdesk.sourceforge.io/` (BibDesk always re-emits its own
+    // template.txt on save) — and that URL line is NOT volatile, so
+    // `stripVolatileHeader` does not mask it. The `%% Created for …` line IS
+    // captured and re-emitted verbatim. Output is a serialize fixed point.
+    mode: 'structural',
     origin: 'reference',
     notes:
-      'Authored by an OLD BibDesk (header URL is the legacy cs.ucsd.edu one, and the "Saved with string encoding" line is absent). Fields are already capitalized-then-sorted in BibDesk style but the serializer lower-cases them. Volatile header differs → stripVolatileHeader. Good high-value canonical target.',
+      'Authored by an OLD BibDesk (header URL is the legacy cs.ucsd.edu one, and the "Saved with string encoding" line is absent). Serializer lower-cases field names (N3) and rewrites the legacy template URL to the modern one (non-volatile → not masked), so text equality is unreachable; canonical output is a serialize fixed point. Originally tagged `normalized`; reclassified to `structural` by C4.',
   },
 
   // ----- Synthesized BibDesk fixtures (canonical form) --------------------
