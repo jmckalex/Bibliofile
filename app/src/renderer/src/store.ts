@@ -18,8 +18,20 @@ import type {
   OnlineResult,
   OpenedDocument,
   PublicationRow,
+  Settings,
   SortDirection,
 } from '@bibdesk/shared';
+import { DEFAULT_SETTINGS } from '@bibdesk/shared';
+
+/** Apply the chosen theme to the document root (`system` follows the OS). */
+export function applyTheme(theme: Settings['theme']): void {
+  const dark =
+    theme === 'dark' ||
+    (theme === 'system' &&
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+}
 
 /** The fixed id of the always-present "library" group (selected by default). */
 function findDefaultGroupId(groups: readonly GroupNode[]): string | undefined {
@@ -95,6 +107,8 @@ export interface ViewerState {
   /** Full-text (FTS5) result ids in relevance order, or null to use the substring filter. */
   ftsIds: string[] | null;
 
+  /** Application preferences. */
+  settings: Settings;
   /** Document-level `@string` macros (for the macro editor). */
   macros: MacroDef[];
   /** True when there are unsaved edits. */
@@ -135,6 +149,10 @@ export interface ViewerState {
   removeAttachment: (itemId: string, field: string) => Promise<void>;
   /** Import an online search result as a new entry; refresh + select it. */
   importOnline: (result: OnlineResult) => Promise<void>;
+  /** Load preferences from main and apply the theme. */
+  loadSettings: () => Promise<void>;
+  /** Patch preferences, persist via main, and re-apply the theme. */
+  saveSettings: (patch: Partial<Settings>) => Promise<void>;
 }
 
 const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
@@ -153,6 +171,7 @@ export function createStore(api: BibDeskApi) {
     sort: DEFAULT_SORT,
     query: '',
     ftsIds: null,
+    settings: DEFAULT_SETTINGS,
     macros: [],
     dirty: false,
     saving: false,
@@ -356,6 +375,29 @@ export function createStore(api: BibDeskApi) {
         await get().loadGroups();
         await get().loadPublications();
         if (res.affectedItemId) set({ selectedItemId: res.affectedItemId, detail: res.detail });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    loadSettings: async () => {
+      try {
+        const settings = await api.getSettings({});
+        set({ settings });
+        applyTheme(settings.theme);
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    saveSettings: async (patch) => {
+      try {
+        const settings = await api.updateSettings({ patch });
+        set({ settings });
+        applyTheme(settings.theme);
+        // re-fetch the open detail so a changed default citation style etc. shows
+        const { selectedItemId } = get();
+        if (selectedItemId) await get().selectItem(selectedItemId);
       } catch (err) {
         set({ error: errorMessage(err) });
       }

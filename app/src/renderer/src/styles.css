@@ -993,3 +993,45 @@ button.bd-chip {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ---- Preferences ------------------------------------------------------- */
+
+.bd-prefs__section {
+  padding: 6px 0 12px;
+  border-bottom: 1px solid var(--bd-border);
+}
+
+.bd-prefs__section:last-child {
+  border-bottom: none;
+}
+
+.bd-prefs__section h3 {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bd-prefs__row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  align-items: center;
+  gap: 10px;
+  margin: 5px 0;
+}
+
+.bd-prefs__row > span {
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-prefs__row .bd-select {
+  width: auto;
+  justify-self: start;
+  min-width: 160px;
+}
+
+.bd-prefs__hint {
+  margin: 4px 0 6px;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-faint);
+}

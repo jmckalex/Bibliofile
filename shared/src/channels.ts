@@ -52,6 +52,10 @@ export const IpcChannels = {
   importOnline: 'bibdesk:importOnline',
   /** Full-text search a document (SQLite FTS5). */
   ftsSearch: 'bibdesk:ftsSearch',
+  /** Read application preferences. */
+  getSettings: 'bibdesk:getSettings',
+  /** Update (patch) application preferences. */
+  updateSettings: 'bibdesk:updateSettings',
 } as const;
 
 /**
@@ -63,6 +67,8 @@ export const IpcEvents = {
   documentOpened: 'bibdesk:event:documentOpened',
   /** A document was closed and its id is no longer valid. */
   documentClosed: 'bibdesk:event:documentClosed',
+  /** Request the renderer to open the Preferences pane (from the menu). */
+  showPreferences: 'bibdesk:event:showPreferences',
 } as const;
 
 /** Union of all request/response channel-name string-literal values. */

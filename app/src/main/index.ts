@@ -39,6 +39,7 @@ import { DocumentStore } from './document-service.js';
 import { formatCitation } from './csl.js';
 import { searchOnline } from './online.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
+import { getSettings, loadSettings, updateSettings } from './settings.js';
 
 // ---------------------------------------------------------------------------
 // Process-wide singletons
@@ -223,6 +224,11 @@ function notifyDocumentOpened(opened: OpenedDocument): void {
   }
 }
 
+/** Ask the renderer to open the Preferences pane. */
+function openPreferences(): void {
+  mainWindow?.webContents.send(IpcEvents.showPreferences, null);
+}
+
 /** Open a path now if the window exists, else stash it for after launch. */
 function openPathWhenReady(path: string): void {
   if (mainWindow) {
@@ -296,11 +302,19 @@ function buildMenu(): void {
   const isMac = process.platform === 'darwin';
   const template: MenuItemConstructorOptions[] = [];
 
+  const prefsItem: MenuItemConstructorOptions = {
+    label: 'Preferences…',
+    accelerator: 'CmdOrCtrl+,',
+    click: () => openPreferences(),
+  };
+
   if (isMac) {
     template.push({
       label: app.name,
       submenu: [
         { role: 'about' },
+        { type: 'separator' },
+        prefsItem,
         { type: 'separator' },
         { role: 'hide' },
         { role: 'hideOthers' },
@@ -322,6 +336,7 @@ function buildMenu(): void {
         },
       },
       { type: 'separator' },
+      ...(isMac ? [] : [prefsItem, { type: 'separator' as const }]),
       isMac ? { role: 'close' } : { role: 'quit' },
     ],
   });
@@ -431,6 +446,12 @@ function registerIpc(): void {
     [IpcChannels.importOnline]: (req) =>
       store.importEntry(req.documentId, req.result.entryType, req.result.fields),
     [IpcChannels.ftsSearch]: (req) => store.ftsSearch(req.documentId, req.query),
+    [IpcChannels.getSettings]: () => getSettings(),
+    [IpcChannels.updateSettings]: (req) => {
+      const s = updateSettings(req.patch);
+      store.setEditConfig({ citeKeyFormat: s.citeKeyFormat, defaultEntryType: s.defaultEntryType });
+      return s;
+    },
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -479,6 +500,12 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.ftsSearch, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.ftsSearch](req),
   );
+  ipcMain.handle(IpcChannels.getSettings, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.getSettings](req),
+  );
+  ipcMain.handle(IpcChannels.updateSettings, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.updateSettings](req),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -525,6 +552,11 @@ if (!gotLock) {
   });
 
   void app.whenReady().then(() => {
+    const settings = loadSettings();
+    store.setEditConfig({
+      citeKeyFormat: settings.citeKeyFormat,
+      defaultEntryType: settings.defaultEntryType,
+    });
     registerIpc();
     buildMenu();
     mainWindow = createWindow();
@@ -535,5 +567,6 @@ if (!gotLock) {
     if (startup) openPathWhenReady(startup);
 
     if (process.env.BIBDESK_OPEN_HELP) setTimeout(openHelp, 600);
+    if (process.env.BIBDESK_OPEN_PREFS) setTimeout(openPreferences, 1400);
   });
 }

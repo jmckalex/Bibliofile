@@ -14,38 +14,23 @@ import { PublicationsTable } from './PublicationsTable.js';
 import { DetailPane } from './DetailPane.js';
 import { MacroEditor } from './MacroEditor.js';
 import { OnlineSearch } from './OnlineSearch.js';
-
-type Theme = 'light' | 'dark';
-
-function readInitialTheme(): Theme {
-  try {
-    const saved = localStorage.getItem('bd-theme');
-    if (saved === 'dark' || saved === 'light') return saved;
-  } catch {
-    /* ignore */
-  }
-  return 'light';
-}
+import { Preferences } from './Preferences.js';
 
 function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(readInitialTheme);
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem('bd-theme', theme);
-    } catch {
-      /* ignore */
-    }
-  }, [theme]);
+  const theme = useStore((s) => s.settings.theme);
+  const save = useStore((s) => s.saveSettings);
+  const isDark =
+    theme === 'dark' ||
+    (theme === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
   return (
     <button
       type="button"
       className="bd-theme-toggle"
-      title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+      title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
       aria-label="Toggle colour theme"
-      onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
+      onClick={() => void save({ theme: isDark ? 'light' : 'dark' })}
     >
-      {theme === 'dark' ? '☀' : '☾'}
+      {isDark ? '☀' : '☾'}
     </button>
   );
 }
@@ -130,11 +115,12 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
   const selectedItemId = useStore((s) => s.selectedItemId);
   const dirty = useStore((s) => s.dirty);
   const saving = useStore((s) => s.saving);
+  const defaultType = useStore((s) => s.settings.defaultEntryType);
   const hasDoc = useStore((s) => s.documentId !== undefined);
   if (!hasDoc) return null;
   return (
     <div className="bd-toolbar">
-      <button type="button" className="bd-btn" onClick={() => void edit({ kind: 'addEntry', entryType: 'article' })}>
+      <button type="button" className="bd-btn" onClick={() => void edit({ kind: 'addEntry', entryType: defaultType })}>
         ＋ New
       </button>
       <button
@@ -174,17 +160,27 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
 
 export function App() {
   const onDocumentOpened = useStore((s) => s.onDocumentOpened);
+  const loadSettings = useStore((s) => s.loadSettings);
   const save = useStore((s) => s.save);
   const [macrosOpen, setMacrosOpen] = useState(false);
   const [onlineOpen, setOnlineOpen] = useState(false);
+  const [prefsOpen, setPrefsOpen] = useState(false);
+
+  useEffect(() => {
+    void loadSettings();
+  }, [loadSettings]);
 
   useEffect(() => {
     const api = window.bibdesk;
     if (!api) return;
-    const unsub = api.onDocumentOpened((doc) => {
+    const unsubOpen = api.onDocumentOpened((doc) => {
       void onDocumentOpened(doc);
     });
-    return unsub;
+    const unsubPrefs = api.onShowPreferences(() => setPrefsOpen(true));
+    return () => {
+      unsubOpen();
+      unsubPrefs();
+    };
   }, [onDocumentOpened]);
 
   // Cmd/Ctrl+S saves.
@@ -217,6 +213,7 @@ export function App() {
       <Footer />
       {macrosOpen && <MacroEditor onClose={() => setMacrosOpen(false)} />}
       {onlineOpen && <OnlineSearch onClose={() => setOnlineOpen(false)} />}
+      {prefsOpen && <Preferences onClose={() => setPrefsOpen(false)} />}
     </div>
   );
 }

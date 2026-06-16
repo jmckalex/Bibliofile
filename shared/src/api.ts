@@ -23,6 +23,9 @@ import type {
   RemoveAttachmentRequest,
   SearchOnlineRequest,
   SearchOnlineResponse,
+  GetSettingsRequest,
+  UpdateSettingsRequest,
+  Settings,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -91,6 +94,15 @@ export interface BibDeskApi {
 
   /** Full-text search the document (SQLite FTS5; falls back when unavailable). */
   ftsSearch(request: FtsSearchRequest): Promise<FtsSearchResponse>;
+
+  /** Read the current application preferences. */
+  getSettings(request: GetSettingsRequest): Promise<Settings>;
+
+  /** Update preferences with a partial patch; resolves with the merged settings. */
+  updateSettings(request: UpdateSettingsRequest): Promise<Settings>;
+
+  /** Subscribe to "open Preferences" requests from the menu. Returns unsubscribe. */
+  onShowPreferences(listener: () => void): Unsubscribe;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

@@ -22,6 +22,9 @@ import type {
   RemoveAttachmentRequest,
   SearchOnlineRequest,
   SearchOnlineResponse,
+  GetSettingsRequest,
+  UpdateSettingsRequest,
+  Settings,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -66,6 +69,8 @@ export interface IpcContract {
   [IpcChannels.searchOnline]: IpcEntry<SearchOnlineRequest, SearchOnlineResponse>;
   [IpcChannels.importOnline]: IpcEntry<ImportOnlineRequest, EditResult>;
   [IpcChannels.ftsSearch]: IpcEntry<FtsSearchRequest, FtsSearchResponse>;
+  [IpcChannels.getSettings]: IpcEntry<GetSettingsRequest, Settings>;
+  [IpcChannels.updateSettings]: IpcEntry<UpdateSettingsRequest, Settings>;
 }
 
 /**
@@ -75,6 +80,7 @@ export interface IpcContract {
 export interface IpcEventMap {
   [IpcEvents.documentOpened]: OpenedDocument;
   [IpcEvents.documentClosed]: ClosedDocument;
+  [IpcEvents.showPreferences]: null;
 }
 
 /** Request payload type for a given request/response channel. */

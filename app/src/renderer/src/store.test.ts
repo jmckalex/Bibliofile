@@ -15,6 +15,7 @@ import type {
   PublicationRow,
   Unsubscribe,
 } from '@bibdesk/shared';
+import { DEFAULT_SETTINGS } from '@bibdesk/shared';
 import { createStore, filterRows, visibleRows } from './store.js';
 
 const DOC: OpenedDocument = {
@@ -84,8 +85,11 @@ function makeFakeApi() {
     searchOnline: async () => ({ results: [] }),
     importOnline: async () => ({ dirty: true }),
     ftsSearch: async () => ({ available: false, ids: [] }),
+    getSettings: async () => DEFAULT_SETTINGS,
+    updateSettings: async (r) => ({ ...DEFAULT_SETTINGS, ...r.patch }),
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
+    onShowPreferences: (): Unsubscribe => () => {},
   };
   return { api, calls };
 }

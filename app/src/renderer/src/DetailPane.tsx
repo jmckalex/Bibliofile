@@ -141,7 +141,8 @@ function AddFieldRow({ itemId }: { itemId: string }) {
 /** Formatted CSL citation with a style picker. Refetches on edit (detail change). */
 function CitationBlock({ detail }: { detail: ItemDetail }) {
   const documentId = useStore((s) => s.documentId);
-  const [styleId, setStyleId] = useState('apa');
+  const defaultStyle = useStore((s) => s.settings.defaultCiteStyle);
+  const [styleId, setStyleId] = useState(defaultStyle);
   const [html, setHtml] = useState('');
   const bodyRef = useRef<HTMLDivElement>(null);
 

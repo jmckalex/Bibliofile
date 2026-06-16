@@ -798,6 +798,15 @@ let __tmpSeq = 0;
 export class DocumentStore {
   private readonly docs = new Map<string, OpenDoc>();
 
+  /** Editing defaults driven by preferences (cite-key format, new-entry type). */
+  private editConfig = { citeKeyFormat: DEFAULT_CITE_KEY_FORMAT, defaultEntryType: 'article' };
+
+  /** Apply preference-driven editing defaults. */
+  setEditConfig(c: { citeKeyFormat?: string; defaultEntryType?: string }): void {
+    if (c.citeKeyFormat) this.editConfig.citeKeyFormat = c.citeKeyFormat;
+    if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
+  }
+
   /** Open from already-loaded text. Retains the library and returns the summary. */
   openText(text: string, path: string): OpenedDocument {
     return this.retain(openLibraryFromText(text, path));
@@ -991,7 +1000,7 @@ export class DocumentStore {
       store: doc.crossrefStore,
     });
     const existing = doc.library.items.map((i) => i.citeKey);
-    const generated = generateCiteKey(DEFAULT_CITE_KEY_FORMAT, item, existing);
+    const generated = generateCiteKey(this.editConfig.citeKeyFormat, item, existing);
     if (generated) item.setCiteKey(this.uniqueCiteKey(doc, generated));
     doc.library.items.push(item);
     doc.itemsById.set(item.id, item);
@@ -1098,12 +1107,12 @@ export class DocumentStore {
       case 'generateCiteKey': {
         const item = this.itemOf(doc, cmd.itemId);
         const existing = doc.library.items.filter((i) => i !== item).map((i) => i.citeKey);
-        item.setCiteKey(generateCiteKey(DEFAULT_CITE_KEY_FORMAT, item, existing));
+        item.setCiteKey(generateCiteKey(this.editConfig.citeKeyFormat, item, existing));
         return this.dirtyDetail(doc, item);
       }
       case 'addEntry': {
         const item = createBibItem({
-          type: cmd.entryType || 'misc',
+          type: cmd.entryType || this.editConfig.defaultEntryType,
           citeKey: this.uniqueCiteKey(doc, 'untitled'),
           macroResolver: doc.library.macroResolver,
           typeManager: sharedTypeManager,

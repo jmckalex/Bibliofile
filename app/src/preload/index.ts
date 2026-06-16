@@ -40,6 +40,9 @@ import {
   type ImportOnlineRequest,
   type FtsSearchRequest,
   type FtsSearchResponse,
+  type GetSettingsRequest,
+  type UpdateSettingsRequest,
+  type Settings,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -87,6 +90,17 @@ const api: BibDeskApi = {
   },
   ftsSearch(request: FtsSearchRequest): Promise<FtsSearchResponse> {
     return ipcRenderer.invoke(IpcChannels.ftsSearch, request);
+  },
+  getSettings(request: GetSettingsRequest): Promise<Settings> {
+    return ipcRenderer.invoke(IpcChannels.getSettings, request);
+  },
+  updateSettings(request: UpdateSettingsRequest): Promise<Settings> {
+    return ipcRenderer.invoke(IpcChannels.updateSettings, request);
+  },
+  onShowPreferences(listener: () => void): Unsubscribe {
+    const handler = (): void => listener();
+    ipcRenderer.on(IpcEvents.showPreferences, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.showPreferences, handler);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

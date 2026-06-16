@@ -385,6 +385,65 @@ export interface FtsSearchResponse {
   readonly ids: readonly ItemId[];
 }
 
+// --- Preferences ------------------------------------------------------------
+
+/** User-overridable field-type classification sets (BibDesk's field-type prefs). */
+export interface FieldTypeSettings {
+  /** Fields holding people (parsed as authors). */
+  readonly person: readonly string[];
+  /** Local file-path fields. */
+  readonly localFile: readonly string[];
+  /** Remote URL fields. */
+  readonly remoteURL: readonly string[];
+  /** Star-rating (0–5) fields. */
+  readonly rating: readonly string[];
+  /** Boolean (checkbox) fields. */
+  readonly boolean: readonly string[];
+  /** Tri-state fields. */
+  readonly triState: readonly string[];
+  /** Citation (cite-key list) fields. */
+  readonly citation: readonly string[];
+}
+
+/** Application preferences (persisted; the BibDesk-equivalent options this app has). */
+export interface Settings {
+  /** UI theme. `system` follows the OS appearance. */
+  readonly theme: 'light' | 'dark' | 'system';
+  /** Default CSL style id for the citation preview (from {@link CITATION_STYLES}). */
+  readonly defaultCiteStyle: string;
+  /** Cite-key generation format (BDSKFormatParser mini-language, e.g. `%a1:%Y%u2`). */
+  readonly citeKeyFormat: string;
+  /** Entry type used by the toolbar **New** button. */
+  readonly defaultEntryType: string;
+  /** Field-type classification overrides. */
+  readonly fieldTypes: FieldTypeSettings;
+}
+
+/** Factory-default preferences (mirror the bundled BibDesk defaults). */
+export const DEFAULT_SETTINGS: Settings = {
+  theme: 'system',
+  defaultCiteStyle: 'apa',
+  citeKeyFormat: '%a1:%Y%u2',
+  defaultEntryType: 'article',
+  fieldTypes: {
+    person: ['Author', 'Editor'],
+    localFile: ['Local-Url'],
+    remoteURL: ['Url', 'Doi', 'Citeseerurl'],
+    rating: ['Rating'],
+    boolean: ['Read'],
+    triState: [],
+    citation: ['Cited-By', 'Cites'],
+  },
+};
+
+/** Request to read the current settings (no payload). */
+export type GetSettingsRequest = Readonly<Record<string, never>>;
+
+/** Request to update settings: a partial patch merged over the current values. */
+export interface UpdateSettingsRequest {
+  readonly patch: Partial<Settings>;
+}
+
 /**
  * Full detail of one publication for the detail/preview pane. `fields` are the
  * display field rows, `files` the attachments, and `previewHtml` an optional

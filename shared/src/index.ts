@@ -91,6 +91,11 @@ export {
   type ImportOnlineRequest,
   type FtsSearchRequest,
   type FtsSearchResponse,
+  type FieldTypeSettings,
+  type Settings,
+  DEFAULT_SETTINGS,
+  type GetSettingsRequest,
+  type UpdateSettingsRequest,
 } from './dto.js';
 
 // --- Renderer-facing bridge -------------------------------------------------
