@@ -30,16 +30,37 @@ Times are local. Newest entries appended at the bottom of each section.
 | S5.5 | Author/Keyword category groups in sidebar | ✅ done (`90a7757`) |
 | S+ | Clickable external links (DOI/URL/attachments) | ✅ done (`fb80bc1`) |
 | S7 | Editing + round-trip save (read→write) | ✅ done (7a–7d) |
+| F8 | Attachments (`Bdsk-File-N`, multiple; add/remove/open) | ✅ done |
+| F9 | Online search/import (CrossRef + arXiv) | ✅ done |
+| F10 | Markdown abstracts (marked + MathJax) | ✅ done |
+| F11 | Markdown notes (`Annote`) + `[[citeKey]]` cross-refs + inline `<iframe>` | ✅ done |
+| F12 | SQLite **FTS5** full-text search incl. PDF text (better-sqlite3 + pdfjs) | ✅ done |
+| H | Help manual (`docs/help/00–08`) + in-app Help window | ✅ done |
+| P | Preferences pane (theme, CSL style, cite-key format, field-type sets) | ✅ done |
+| PDF | In-app PDF.js attachment preview | ✅ done (`0831b95`) |
+| IC | FontAwesome table icon columns (keywords/attachments/Read) | ✅ done (`35288bf`) |
+| MENU | Full BibDesk-style native menu bar | ✅ done (`326c6ba`) |
+| IMP | Paste BibTeX + drag-and-drop import | ✅ done (`4eb6b7e`) |
 
-**Current state (resume here):** `pnpm test` = **1261 green**, `pnpm -r build` clean. The
-headless core + a **full read/write editor** are done and GUI-smoke-verified. The app is now
-a working bibliography editor: open → browse/search/group → edit fields/cite-keys/types,
-add/duplicate/delete entries, edit `@string` macros, → explicit **Save** (Cmd+S, atomic +
-`.bak`). Beautiful MathJax preview + **formatted CSL citations** (citeproc-js). The app's
-data logic is the pure `app/src/main/document-service.ts` (unit-tested); the Electron shell +
-IPC are thin. GUI smoke: `cd app && BIBDESK_OPEN=<abs.bib> BIBDESK_SMOKE=/tmp/x.png
-[BIBDESK_SMOKE_DARK=1] node_modules/.bin/electron .` (selects first row, captures, quits).
-Screenshots in `docs/`: viewer-bd-test, viewer-stage5/6-*, category-groups, editing, citation.
+**Current state (resume here):** `pnpm -r test` = **1288 passing** (+2 FTS tests skipped on the
+Node test ABI; flip with `app` script `rebuild:node`/`rebuild:electron`), `pnpm -r build` clean.
+The headless core + a **full read/write bibliography manager** are done and GUI-smoke-verified.
+Capabilities: open → browse/search/group → edit fields/cite-keys/types, add/duplicate/delete
+entries, edit `@string` macros → explicit **Save** (atomic + `.bak`), **Save As**, **Revert**,
+**Export BibTeX**. **Paste BibTeX** + **drag-and-drop** import (`.bib` merge, file→entry+attach).
+Multiple **attachments** (`Bdsk-File-N`) with add/remove/open + **in-app PDF preview**. **Online**
+CrossRef/arXiv import. **Markdown** abstracts (MathJax) and notes with `[[citeKey]]` cross-refs +
+inline `<iframe>`. **SQLite FTS5** full-text search incl. extracted PDF text. **Groups** sidebar
+(library/static/smart/category/author) — read/filter/count. **Preferences**, **Help** manual,
+**full native menus**, **FontAwesome icon columns**, light/dark theme, **formatted CSL citations**
+(citation-js — see license note under "Decisions to confirm"). The data logic is the pure
+`app/src/main/document-service.ts` (unit-tested); the Electron shell + IPC are thin. GUI smoke:
+`cd app && BIBDESK_OPEN=<abs.bib> BIBDESK_SMOKE=/tmp/x.png [BIBDESK_SMOKE_DARK=1 |
+BIBDESK_OPEN_PDF=1 | BIBDESK_SMOKE_PASTE='@article{…}'] node_modules/.bin/electron .`.
+Screenshots in `docs/`. **Remaining roadmap** (tracked in the task list / FEATURE-SURVEY.md):
+Handlebars templates+export, editing depth (undo/autosave), smart-group editor, find&replace,
+find duplicates, column config, field autocomplete, RIS import, AutoFile, plugin API → Claude
+assistant.
 
 Dependency graph: B1 → {C1, C2, C7, T1} → C3 → {C4, C5, C6} → {A1 → A2 → A3}.
 C4 gated on C1+C3.
@@ -98,8 +119,17 @@ bdsk-file blobs), TS 5.9, Vitest 2.1, ESLint 9 flat + typescript-eslint 8 + pret
 
 - Working title/package scope is `bibdesk-electron` / `@bibdesk/*` (placeholder per charter §2).
 - electron-builder `appId` is a placeholder (`org.placeholder.bibdesk-electron`).
-- **electron** runtime binary: its postinstall download was skipped (pnpm build-script gate).
-  Will be resolved before the Wave-4 GUI smoke test; core waves don't need it.
+- ~~**electron** runtime binary postinstall skipped~~ — **RESOLVED**: electron runs; all GUI
+  smoke tests pass.
+- ~~Stage 6 ships hand-rolled + KaTeX preview only; no CSL engine (citeproc-js is AGPL/CPAL)~~ —
+  **SUPERSEDED**: formatted CSL citations now use **citation-js** (`@citation-js/core` MIT +
+  `@citation-js/plugin-csl`), whose CSL engine **bundles citeproc-js (CPAL-1.0 / AGPL-dual)**.
+  This is the one dependency outside the charter's MIT/BSD/Apache/ISC preference; it was accepted
+  to get real CSL output (see the note in `app/src/main/csl.ts`). Math rendering uses **MathJax**
+  (Apache-2.0), not KaTeX, per the user. If the CPAL dependency is unacceptable, swap to a
+  permissive CSL processor or hand-rolled styles — `csl.ts` is the single integration point.
+- **FontAwesome Free** icons (table columns): code MIT, icons CC BY 4.0, fonts SIL OFL — all
+  permissive; user explicitly requested the FontAwesome set.
 
 ## Blockers
 
@@ -291,7 +321,7 @@ Delivered (the user's #1 "richer/more beautiful views" goal):
   `shell.openExternal` (URLs; bare DOI→doi.org) / `shell.openPath` (files). DOI/URL chips +
   attachment rows are clickable.
 
-## Stage 7 — editing + round-trip save — IN PROGRESS
+## Stage 7 — editing + round-trip save — DONE (see "Stage 7 — DONE" below)
 
 **User-locked decisions (2026-06-16):**
 1. **Save = explicit Cmd+S + backup.** Write-temp-then-rename; keep a `.bak` of the prior
@@ -326,8 +356,10 @@ written, which the save path does not do.
   cite-key + Generate, type dropdown, add/remove field, entry-CRUD toolbar, `@string` macro
   modal, Cmd+S save + dirty indicator.
 - **7d `8201fe4`** formatted citations — BibItem→CSL-JSON (reuses parsed names) +
-  citeproc-js/CSL (offline, bundled) with an APA/Vancouver/Harvard picker in the detail pane,
-  MathJax over citation math. citeproc-js is AGPL — the one non-permissive dep, user-accepted.
+  **citation-js** (`@citation-js/core` MIT + `@citation-js/plugin-csl`, whose CSL engine bundles
+  citeproc-js, CPAL-1.0/AGPL) (offline, bundled) with an APA/Vancouver/Harvard picker in the
+  detail pane, MathJax over citation math. The bundled citeproc-js is the one non-permissive
+  dep — user-accepted (see "Decisions to confirm").
 
 **Stage 7 acceptance:** the app round-trips real edits to disk (verified by tests + the
 serializer golden suite); GUI editor verified (`docs/viewer-editing.png`,
@@ -347,7 +379,7 @@ inline `<iframe>`, **12** SQLite FTS5 full-text + PDF text (better-sqlite3, Elec
 `rebuild-native.mjs` switches Node/Electron ABI). Plus, user-inserted: **comprehensive
 TeXinfo-quality Help manual** (`docs/help/00–08`) + **Help menu** (in-app manual window), and a
 **Preferences pane** (theme, default CSL style, cite-key format, default entry type, field-type
-sets → TypeManager). `pnpm test` = 1286 green; `pnpm -r build` clean. Screenshots in `docs/`.
+sets → TypeManager). `pnpm -r test` = **1288 passing** (current); `pnpm -r build` clean. Screenshots in `docs/`.
 
 ## PDF preview — DONE (2026-06-16)
 
@@ -449,11 +481,11 @@ stages (each a runnable, tested, committed increment; stop-anywhere safe). Locke
   attachment badges, entry-type color coding, keyword tags, theming via CSS vars + dark
   mode, search highlighting. **MathJax** (Apache-2.0; user-requested over KaTeX) for inline
   `$…$` math in titles/abstracts.
-  ⚠ **Flag (decision-to-confirm):** formatted CSL bibliographies need a citation processor;
-  **citeproc-js is CPAL/AGPL — NOT permissive** (violates charter §2 MIT/BSD/Apache/ISC).
-  So I will NOT add citeproc-js. Stage 6 ships hand-rolled + KaTeX HTML preview only; the
-  CSL-engine choice (accept AGPL citeproc-js / find a permissive CSL processor / hand-roll a
-  few common styles) is left for the user. No GPL/AGPL/CC-BY-NC deps added.
+  ⚠ **Flag (decision-to-confirm) — SUPERSEDED (see top "Decisions to confirm"):** this note said
+  Stage 6 would ship MathJax preview only and NOT add citeproc-js. In the end **citation-js**
+  (which bundles citeproc-js, CPAL/AGPL) WAS added in Stage 7d to produce real formatted CSL
+  citations, accepted by the user. MathJax (not KaTeX) is used for math. `csl.ts` is the single
+  swap point if the CPAL dependency must go.
 - **Stage 7 — Editing + round-trip SAVE (PLAN Phase 3 slice).** Turn read-only → read-write:
   per-field-type editor form (string/person/date/rating/bool/url/crossref), mutate via the
   model's change events, **serialize + write `.bib`** (the serializer already round-trips),
