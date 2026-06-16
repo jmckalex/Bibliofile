@@ -1,0 +1,19 @@
+{
+  "name": "@bibdesk/tex",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "TeXify/deTeXify codec: CharacterConversion table + accent algorithm (NFC/NFD). Platform-agnostic.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

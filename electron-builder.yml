@@ -1,0 +1,16 @@
+# Packaging config only — no packaging run this session.
+appId: org.placeholder.bibdesk-electron
+productName: BibDesk
+directories:
+  output: release
+  buildResources: build
+files:
+  - 'app/out/**/*'
+mac:
+  target: [dmg, zip]
+  category: public.app-category.productivity
+win:
+  target: [nsis]
+linux:
+  target: [AppImage, deb]
+  category: Office

@@ -1,0 +1,37 @@
+{
+  "name": "@bibdesk/app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Electron shell: main process, preload, and React renderer (read-only viewer this session).",
+  "main": "out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build:app": "electron-vite build",
+    "start": "electron-vite preview",
+    "build": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@bibdesk/bibtex": "workspace:*",
+    "@bibdesk/model": "workspace:*",
+    "@bibdesk/groups": "workspace:*",
+    "@bibdesk/names": "workspace:*",
+    "@bibdesk/tex": "workspace:*",
+    "@bibdesk/formats": "workspace:*",
+    "@bibdesk/shared": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.2",
+    "@tanstack/react-table": "^8.20.5",
+    "@tanstack/react-virtual": "^3.10.9"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-vite": "^2.3.0",
+    "vite": "^5.4.11",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1"
+  }
+}

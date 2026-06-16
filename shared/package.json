@@ -1,0 +1,19 @@
+{
+  "name": "@bibdesk/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "IPC contracts + shared TS types between Electron main and renderer.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@bibdesk/names",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "BibTeX name splitting (Patashnik first/von/last/jr) + display variants. Platform-agnostic.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@bibdesk/tex": "workspace:*"
+  },
+  "devDependencies": {}
+}
