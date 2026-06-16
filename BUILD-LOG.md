@@ -22,8 +22,8 @@ Times are local. Newest entries appended at the bottom of each section.
 | C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | ✅ done (94 tests) |
 | C6 | `core/groups` — taxonomy + smart-group predicate evaluator | ✅ done (106 tests) |
 | A1 | `shared` — IPC contract + types | ✅ done (12 tests) |
-| A2 | `app/src/main` — Electron main, open .bib, read API over IPC | 🔄 running |
-| A3 | `app/src/renderer` — React + Zustand + TanStack viewer | ⏳ pending |
+| A2 | `app/src/main` — Electron main, open .bib, read API over IPC | ✅ done (7 tests) |
+| A3 | `app/src/renderer` — React + Zustand + TanStack viewer | 🔄 running |
 
 Dependency graph: B1 → {C1, C2, C7, T1} → C3 → {C4, C5, C6} → {A1 → A2 → A3}.
 C4 gated on C1+C3.
@@ -204,15 +204,17 @@ Per-package: tex 719 · names 88 · config 26 · model 120 · bibtex 70 · forma
 ## Next step — Wave 4 (read-only Electron viewer)
 
 Core is done. Build the viewer in the `app` package:
-- **A2 `app/src/main` + `src/preload`** — open a `.bib` via `@bibdesk/bibtex` parse →
-  `BibLibrary`; hold items in main; implement the `@bibdesk/shared` `IpcHandlers` over
-  `ipcMain.handle`; format `PublicationRow`s (authorsDisplay via names, title TeX-strip via
-  tex, type lowercased, year from `Year`); build `GroupNode`s (Library + parsed groups via
-  C6 adapter — apply escaping once); `getItemDetail` (fields + isInherited via model, files,
-  optional previewHtml). Preload exposes `window.bibdesk: BibDeskApi`. file→open + CLI-arg +
-  macOS `open-file`.
+- **A2 `app/src/main` + `src/preload` — DONE & committed (`67a5d36`).** Pure
+  `document-service.ts` (parse → DTO projection; `PublicationRow`/`GroupNode`/`ItemDetail`;
+  typographic `previewHtml`; group escaping applied once) + thin Electron shell (BrowserWindow,
+  `ipcMain.handle` per channel, CLI/`BIBDESK_OPEN`/macOS open-file/File-menu open,
+  single-instance lock) + preload `window.bibdesk`. 7 headless tests green on BD test.bib;
+  `tsc -p tsconfig.node.json` clean. NOTE: the A2 agent stalled (watchdog) after writing
+  main+service; the **orchestrator finished the preload + test + verification** and added
+  `app/vitest.config.ts` (the scaffold hadn't given `app` one).
 - **A3 `app/src/renderer`** — React + Zustand + TanStack virtual table (Cite Key, Type,
   Authors, Title, Year), groups sidebar (read-only), selection → detail panel + preview card.
+  RUNNING.
 - Orchestrator wires electron-vite and runs `dev` once to smoke-test loading
   `/Users/jalex/Source/BibDesk/bibdesk/Scripting/BD test.bib`. Electron binary is ready.
 
@@ -234,7 +236,8 @@ stages (each a runnable, tested, committed increment; stop-anywhere safe). Locke
 - **Stage 6 — Beautiful preview pane (PLAN Phase 5 slice; the user's #1 stated goal).**
   Native HTML/CSS typographic entry cards: title/author/venue hierarchy, DOI/URL chips,
   attachment badges, entry-type color coding, keyword tags, theming via CSS vars + dark
-  mode, search highlighting. **KaTeX** (MIT) for inline `$…$` math in titles/abstracts.
+  mode, search highlighting. **MathJax** (Apache-2.0; user-requested over KaTeX) for inline
+  `$…$` math in titles/abstracts.
   ⚠ **Flag (decision-to-confirm):** formatted CSL bibliographies need a citation processor;
   **citeproc-js is CPAL/AGPL — NOT permissive** (violates charter §2 MIT/BSD/Apache/ISC).
   So I will NOT add citeproc-js. Stage 6 ships hand-rolled + KaTeX HTML preview only; the
