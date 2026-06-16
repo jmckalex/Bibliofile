@@ -14,7 +14,7 @@ Times are local. Newest entries appended at the bottom of each section.
 |------|------|-------|
 | B1 | Bootstrap monorepo (pnpm workspace, TS strict, Vitest, ESLint/Prettier, stubs, deps) | ✅ done |
 | C1 | `core/tex` — TeXify/deTeXify codec | ✅ done (719 tests) |
-| C2 | `core/names` — BibTeX name splitting + display variants | 🔄 running |
+| C2 | `core/names` — BibTeX name splitting + display variants | ✅ done (88 tests) |
 | C7 | `core/config` — TypeInfo/Preferences → JSON config | 🔄 running |
 | T1 | golden round-trip test harness + fixtures (`core/bibtex/test`) | 🔄 running |
 | C3 | `core/model` — BibItem/ComplexValue/TypeManager/MacroResolver/crossref | ⏳ pending |
@@ -96,8 +96,14 @@ bdsk-file blobs), TS 5.9, Vitest 2.1, ESLint 9 flat + typescript-eslint 8 + pret
   handling; math-span passthrough. 719 tests pass, tsc clean. Public API: `detexify`,
   `texify` (+ lower-level `texifyCore`/`detexifyCore`, `texifyChar`, dictionaries/tables).
   One-way/lossy by design: ligatures, smart quotes, en/em dashes, `°`/`±`/`•`, NBSP.
-- **C2 `core/names`, C7 `core/config`, T1 golden harness** — launched as parallel
-  background agents (disjoint dirs). C2 depends on C1's `detexify` (now on disk).
+- **C2 `core/names` — DONE & committed (`1c821da`).** `splitNameList`, `parseName`
+  (first/von/last/jr), `makeAuthor` (normalized/sortable/abbreviated/fuzzy variants),
+  author equality/equivalence/sort. 88 tests, tsc clean. Uses `@bibdesk/tex` detexify.
+  **Integration notes for C3/C4:** (a) `compareAuthorsForSort` compares only
+  `sortableName` — add Author-vs-Editor field tiebreaker + empty-author-last when the
+  BibItem layer wires authors to fields; (b) only the fuzzy equivalence path exists —
+  add the `matchAuthorNamesExactly` exact-mode branch when the preferences layer lands.
+- **C7 `core/config`, T1 golden harness** — still running (background, disjoint dirs).
   T1 writes only in `core/bibtex/test/` and leaves the `src/index.ts` stub for C4.
 
 ## Next step
