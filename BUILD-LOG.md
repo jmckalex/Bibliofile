@@ -16,7 +16,7 @@ Times are local. Newest entries appended at the bottom of each section.
 | C1 | `core/tex` — TeXify/deTeXify codec | ✅ done (719 tests) |
 | C2 | `core/names` — BibTeX name splitting + display variants | ✅ done (88 tests) |
 | C7 | `core/config` — TypeInfo/Preferences → JSON config | ✅ done (26 tests) |
-| T1 | golden round-trip test harness + fixtures (`core/bibtex/test`) | 🔄 running |
+| T1 | golden round-trip test harness + fixtures (`core/bibtex/test`) | ✅ done (56 + 14 skip) |
 | C3 | `core/model` — BibItem/ComplexValue/TypeManager/MacroResolver/crossref | 🔄 running |
 | C4 | `core/bibtex` — custom round-trip parser + serializer (keystone) | ⏳ pending |
 | C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | ⏳ pending |
@@ -117,7 +117,34 @@ bdsk-file blobs), TS 5.9, Vitest 2.1, ESLint 9 flat + typescript-eslint 8 + pret
   StringNode, TypeManager (from C7), MacroResolver (3-tier + topological + events),
   crossref inheritance (+ booktitle workaround, chain/cycle guard), equality/equivalence/
   hash, pure-TS change-event layer. Depends on tex+names+config (all committed).
-- **T1 golden harness** — still running (Wave 1, independent; feeds C4).
+- **T1 golden harness — DONE & committed (`4ea0fe7`).** 12 fixtures (6 btparse +
+  `BD test.bib` copied read-only; 5 synthesized BibDesk-canonical). Reusable runner
+  (`test/roundtrip.ts`) with byte-exact/normalized/structural modes + normalizers per
+  subsystem-12 §2. `harness.test.ts` 56 green; `roundtrip.test.ts` 14 `describe.skip`.
+  `src/index.ts` stub intact.
+
+### >>> C4 CONTRACT (what core/bibtex MUST satisfy to turn T1 green) <<<
+
+- Keep exact entry points `parse(text): BibLibrary` and `serialize(lib): string`
+  (harness imports from `../src/index`). `serialize(parse("")) === ""` (no header when empty).
+- Canonical serializer write order & format (from `BibDocument.m`/`BibItem.m`):
+  header template `%% This BibTeX bibliography file was created using BibDesk.\n%% https://bibdesk.sourceforge.io/`
+  → `\n%% Created for … \n\n` → `\n%% Saved with string encoding … \n\n` →
+  `@bibdesk_info{document_info,…}` → `\n@string{name = value}\n` (sorted) → entries
+  (`\n\n`-separated; `,\n\t field = {value}`; field names lower-cased; fields sorted
+  case-insensitively; `bdsk-file-N`/`bdsk-url-N` forced LAST; values always `{…}`-wrapped;
+  empty fields dropped) → the 4 group `@comment` blocks → trailing `\n`.
+- Group blocks order **Static, Smart, URL, Script**; each: prefix `\n\n@comment{BibDesk <LABEL> Groups{\n`
+  + UTF-8 XML plist (`<?xml…><plist version="1.0"><array>…</array></plist>\n`) + suffix `}}`.
+  Payload dict keys emitted ALPHABETICALLY. (Static: `{group name, keys}`; Smart:
+  `{conditions:[{comparison,key,value,version}], conjunction, group name}`; URL: `{URL, group name}`;
+  Script: `{group name, script arguments, script path, script type}`.)
+- `bdsk-file-N` = base64 of a binary plist (`YnBsaXN0` prefix) — decode/encode via bplist libs.
+- The 5 synthesized fixtures are tagged **byte-exact** assuming the SAME volatile header
+  (user/date/encoding). If C4 regenerates the header dynamically, flip those manifest entries
+  to `normalized` — the harness already masks header lines via `stripVolatileHeader`.
+- **Activate:** change `describe.skip` → `describe` in `core/bibtex/test/roundtrip.test.ts`
+  (single edit, marked `TODO(C4)`).
 
 ## Next step
 
