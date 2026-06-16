@@ -29,15 +29,17 @@ Times are local. Newest entries appended at the bottom of each section.
 | S6 | Beautiful preview pane: MathJax, chips/tags, dark mode | ✅ done (`83f2a18`) |
 | S5.5 | Author/Keyword category groups in sidebar | ✅ done (`90a7757`) |
 | S+ | Clickable external links (DOI/URL/attachments) | ✅ done (`fb80bc1`) |
-| S7 | Editing + round-trip save (read→write) | ⏳ next |
+| S7 | Editing + round-trip save (read→write) | ✅ done (7a–7d) |
 
-**Current state (resume here):** `pnpm test` = **1254 green**, `pnpm -r build` clean. The
-headless core + a feature-rich read-only viewer are done and GUI-smoke-verified (light +
-dark screenshots in `docs/`). The next roadmap item is **Stage 7 — editing + round-trip
-save** (see the bottom of this file). The app's data logic is the pure
-`app/src/main/document-service.ts` (unit-tested); the Electron shell + IPC are thin.
-GUI smoke: `cd app && BIBDESK_OPEN=<abs.bib> BIBDESK_SMOKE=/tmp/x.png [BIBDESK_SMOKE_DARK=1]
-node_modules/.bin/electron .` (selects first row, captures, quits).
+**Current state (resume here):** `pnpm test` = **1261 green**, `pnpm -r build` clean. The
+headless core + a **full read/write editor** are done and GUI-smoke-verified. The app is now
+a working bibliography editor: open → browse/search/group → edit fields/cite-keys/types,
+add/duplicate/delete entries, edit `@string` macros, → explicit **Save** (Cmd+S, atomic +
+`.bak`). Beautiful MathJax preview + **formatted CSL citations** (citeproc-js). The app's
+data logic is the pure `app/src/main/document-service.ts` (unit-tested); the Electron shell +
+IPC are thin. GUI smoke: `cd app && BIBDESK_OPEN=<abs.bib> BIBDESK_SMOKE=/tmp/x.png
+[BIBDESK_SMOKE_DARK=1] node_modules/.bin/electron .` (selects first row, captures, quits).
+Screenshots in `docs/`: viewer-bd-test, viewer-stage5/6-*, category-groups, editing, citation.
 
 Dependency graph: B1 → {C1, C2, C7, T1} → C3 → {C4, C5, C6} → {A1 → A2 → A3}.
 C4 gated on C1+C3.
@@ -289,14 +291,49 @@ Delivered (the user's #1 "richer/more beautiful views" goal):
   `shell.openExternal` (URLs; bare DOI→doi.org) / `shell.openPath` (files). DOI/URL chips +
   attachment rows are clickable.
 
-## Next (Stage 7 — editing + round-trip save) — pending
+## Stage 7 — editing + round-trip save — IN PROGRESS
 
-Turn read-only → read-write. Sketch: add `updateField`/`saveDocument` IPC; mutate `BibItem`
-via the model's change events; **serialize + write `.bib`** (the C4 serializer already
-round-trips — keep a backup / write-temp-then-rename for safety); generate cite keys via
-`@bibdesk/formats`. ⚠ The save path must reconcile the **C4↔C6 group-escaping seam** (one
-owner of escaping) and should be validated by a parse→edit→serialize→re-parse round-trip
-test before ever writing a user's real library. Autosave/undo can follow.
+**User-locked decisions (2026-06-16):**
+1. **Save = explicit Cmd+S + backup.** Write-temp-then-rename; keep a `.bak` of the prior
+   file. No autosave.
+2. **Edit scope = full CRUD + @string macros + crossref.** Add/duplicate/delete entries,
+   edit all field types, `@string` macro editor, crossref UI with inheritance display,
+   cite-key generation via `@bibdesk/formats`.
+3. **CSL = accept AGPL citeproc-js** (the single allowed non-permissive dep, user's explicit
+   choice) for formatted-citation styles. BibTeX→CSL-JSON mapping + style picker in preview.
+
+Increments (each committed; keep tree green):
+- **7a — headless save infra:** `serializeDocument`/`saveDocument(backup)` in
+  document-service (write-temp→rename + `.bak`); parse→edit→serialize→reparse test. SAFE first.
+- **7b — edit/save IPC:** updateField/add/remove/setCiteKey/generateCiteKey/setType/
+  addEntry/deleteEntry/duplicateEntry/setMacro/setCrossref/saveDocument + dirty event.
+- **7c — renderer editing UI:** inline field editors, entry CRUD, macro editor, crossref UI,
+  dirty indicator + Cmd+S.
+- **7d — citeproc-js/CSL:** BibItem→CSL-JSON, style picker, formatted citation in preview.
+
+Note: C4 parse→serialize round-trips groups self-consistently (it owns both escape + unescape),
+so the C4↔C6 seam does NOT affect save fidelity; it only matters if C6's serialized output is
+written, which the save path does not do.
+
+### Stage 7 — DONE (all sub-stages)
+
+- **7a `7..`** save infra — `serializeDocument`/`saveDocument` (atomic temp+rename, `.bak`),
+  `updateField`, `isDirty`; parse→edit→serialize→reparse + save-with-backup tests.
+- **7b `608ea14`** edit IPC — `applyEdit` (EditCommand union: field/citeKey/type/generateCiteKey/
+  add/duplicate/delete entry, set/remove macro), `listMacros`, `saveDocument`. Live crossref
+  store; categories recomputed on demand.
+- **7c `d09f6f9`** editing UI — inline-editable fields (raw value via `ItemField.rawValue`),
+  cite-key + Generate, type dropdown, add/remove field, entry-CRUD toolbar, `@string` macro
+  modal, Cmd+S save + dirty indicator.
+- **7d `8201fe4`** formatted citations — BibItem→CSL-JSON (reuses parsed names) +
+  citeproc-js/CSL (offline, bundled) with an APA/Vancouver/Harvard picker in the detail pane,
+  MathJax over citation math. citeproc-js is AGPL — the one non-permissive dep, user-accepted.
+
+**Stage 7 acceptance:** the app round-trips real edits to disk (verified by tests + the
+serializer golden suite); GUI editor verified (`docs/viewer-editing.png`,
+`docs/viewer-citation.png`). Deferred/next: autosave & undo stack (explicit-save chosen for
+now); person/date field-type-specific editors; complex-string/macro-aware value editing in the
+field editor (current field editor stores literal strings; macros are edited in the macro modal).
 - Orchestrator wires electron-vite and runs `dev` once to smoke-test loading
   `/Users/jalex/Source/BibDesk/bibdesk/Scripting/BD test.bib`. Electron binary is ready.
 
