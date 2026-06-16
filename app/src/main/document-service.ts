@@ -317,8 +317,23 @@ export function formatAuthorsDisplay(item: BibItem): string {
   return others ? `${joined} et al.` : joined;
 }
 
+/**
+ * Count an item's local file attachments without needing the library: each
+ * `Bdsk-File-N` field is one managed attachment, plus a `Local-Url` if present.
+ * (Remote `Url`/`Doi` are not counted — the paperclip means "has a local file".)
+ */
+function attachmentCountOf(item: BibItem): number {
+  let n = 0;
+  for (const name of item.fieldNames()) if (BDSK_FILE_RE.test(name)) n++;
+  if (item.stringValueOfField('Local-Url', false).trim()) n++;
+  return n;
+}
+
 /** Project a {@link BibItem} into a thin {@link PublicationRow}. */
 export function toPublicationRow(item: BibItem): PublicationRow {
+  // Rating fields hold a small integer (0–5); clamp defensively for display.
+  const ratingRaw = parseInt(item.stringValueOfField('Rating', false).trim(), 10);
+  const rating = Number.isFinite(ratingRaw) ? Math.max(0, Math.min(5, ratingRaw)) : 0;
   return {
     id: item.id,
     citeKey: item.citeKey,
@@ -326,6 +341,10 @@ export function toPublicationRow(item: BibItem): PublicationRow {
     authorsDisplay: formatAuthorsDisplay(item),
     title: toDisplay(item.stringValueOfField(FieldNames.Title, true)),
     year: item.stringValueOfField(FieldNames.Year, true),
+    hasKeywords: item.stringValueOfField('Keywords', false).trim().length > 0,
+    attachmentCount: attachmentCountOf(item),
+    read: item.triStateValueOfField('Read'),
+    rating,
   };
 }
 
@@ -354,6 +373,17 @@ function rowSortValue(row: PublicationRow, key: string): string {
       return row.title;
     case 'year':
       return row.year;
+    // Icon columns: project the numeric/boolean flag to a numeric string so the
+    // numeric-aware comparator orders them (rows without the flag sort together).
+    case 'keywords':
+      return row.hasKeywords ? '1' : '0';
+    case 'attachments':
+    case 'files':
+      return String(row.attachmentCount).padStart(4, '0');
+    case 'read':
+      return String(row.read + 1); // -1,0,1 -> 0,1,2
+    case 'rating':
+      return String(row.rating);
     default:
       return row.citeKey;
   }

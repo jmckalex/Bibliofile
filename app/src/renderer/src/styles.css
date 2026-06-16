@@ -381,6 +381,47 @@ body {
   color: var(--bd-text-muted);
 }
 
+/* ---- Icon columns (FontAwesome presence/boolean indicators) ------------ */
+
+.bd-td--icon {
+  padding: 0 4px;
+  text-align: center;
+  overflow: visible;
+}
+
+/* Header glyphs sit centered like their cells. */
+.bd-th .svg-inline--fa {
+  opacity: 0.75;
+}
+
+.bd-icon {
+  font-size: 12px;
+  color: var(--bd-text-muted);
+}
+
+.bd-icon--key {
+  color: #c79a2e; /* amber — reads as a brass key, distinct from the blue accent */
+}
+
+.bd-icon--clip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.bd-icon__count {
+  font-size: var(--bd-fs-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.bd-icon--checked {
+  color: var(--bd-accent);
+}
+
+.bd-icon--unchecked {
+  opacity: 0.5;
+}
+
 /* ---- Detail pane ------------------------------------------------------- */
 
 .bd-detail {

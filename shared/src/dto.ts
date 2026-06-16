@@ -222,6 +222,14 @@ export interface PublicationRow {
   readonly title: string;
   /** Year column — display string (may be empty when absent/unparseable). */
   readonly year: string;
+  /** True when the entry has a non-empty `Keywords` field (key-icon column). */
+  readonly hasKeywords: boolean;
+  /** Number of local file attachments (`Bdsk-File-N` + `Local-Url`); paperclip column. */
+  readonly attachmentCount: number;
+  /** Tri-state of the `Read` boolean field: 1 on, -1 off, 0 unset (checkbox column). */
+  readonly read: -1 | 0 | 1;
+  /** Rating field value 0–5, or 0 when absent (star column; reserved for future use). */
+  readonly rating: number;
 }
 
 /** Response payload for a publications listing. */

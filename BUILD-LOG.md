@@ -365,6 +365,17 @@ Guarded the constructor → FTS degrades to `available=false` instead of blockin
 Also rebuilt the addon for the Electron ABI and made `rebuild-native.mjs` probe both `lib` and
 Homebrew's `libexec/lib` node-gyp layouts. FTS verified live under Electron (`fts available=true`).
 
+## Table column icons — DONE (2026-06-16)
+
+FontAwesome **free** SVG icons (official `@fortawesome/*` React packages — no webfonts) as
+narrow indicator columns: **key** when an entry has `Keywords`, **paperclip** (+count) for local
+file attachments (`Bdsk-File-N` + `Local-Url`), **checkbox** for the `Read` boolean (✓ when on,
+empty box when explicitly off, blank when unset). `PublicationRow` gained `hasKeywords`,
+`attachmentCount`, `read` (tri-state), `rating` (reserved); computed in `toPublicationRow` from the
+item's fields (no library needed). Columns are header-click sortable (`rowSortValue` extended).
+Tested (`toPublicationRow` flags) + GUI-smoke-verified. FontAwesome Free licensing: code MIT, icons
+CC BY 4.0, fonts SIL OFL — all permissive (user explicitly requested the FontAwesome set).
+
 ## Decisions (user, 2026-06-16)
 
 - **Next: PDF preview** — in-app PDF.js viewer for attachments (pdfjs-dist already a dep). ✅ DONE

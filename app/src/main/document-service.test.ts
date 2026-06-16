@@ -55,6 +55,38 @@ describe('document-service: BD test.bib', () => {
     expect(chen.title).toContain('Calabi-Yau'); // {C}alabi-{Y}au -> Calabi-Yau
   });
 
+  it('projects icon-column flags (keywords, attachments, read, rating)', () => {
+    const store = new DocumentStore();
+    const FLAGS = `
+@article{flagged,
+  Author = {A. Author},
+  Title = {Flagged entry},
+  Keywords = {alpha, beta},
+  Read = {Yes},
+  Rating = {4},
+  Local-Url = {file:///tmp/x.pdf},
+  Bdsk-File-1 = {ignored-blob}}
+
+@book{bare,
+  Author = {B. Author},
+  Title = {Bare entry}}
+`;
+    const { documentId } = store.openText(FLAGS, '/tmp/flags.bib');
+    const { rows } = store.listPublications({ documentId, offset: 0, limit: -1 });
+
+    const flagged = rows.find((r) => r.citeKey === 'flagged')!;
+    expect(flagged.hasKeywords).toBe(true);
+    expect(flagged.read).toBe(1);
+    expect(flagged.rating).toBe(4);
+    expect(flagged.attachmentCount).toBe(2); // Local-Url + Bdsk-File-1
+
+    const bare = rows.find((r) => r.citeKey === 'bare')!;
+    expect(bare.hasKeywords).toBe(false);
+    expect(bare.read).toBe(0); // unset -> tri-state 0
+    expect(bare.rating).toBe(0);
+    expect(bare.attachmentCount).toBe(0);
+  });
+
   it('toDisplay de-TeXifies and strips protective braces', () => {
     expect(toDisplay('{{Higgs fields}}')).toBe('Higgs fields');
     expect(toDisplay('a product of {C}alabi-{Y}au surfaces')).toBe(

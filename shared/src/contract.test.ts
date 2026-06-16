@@ -68,6 +68,10 @@ const sampleRow: PublicationRow = {
   authorsDisplay: 'D. E. Knuth',
   title: 'Literate Programming',
   year: '1984',
+  hasKeywords: true,
+  attachmentCount: 1,
+  read: 1,
+  rating: 0,
 };
 
 const sampleGroup: GroupNode = {

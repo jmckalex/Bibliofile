@@ -16,6 +16,10 @@ import {
 } from '@tanstack/react-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import { faKey, faPaperclip, faSquareCheck } from '@fortawesome/free-solid-svg-icons';
+import { faSquare } from '@fortawesome/free-regular-svg-icons';
 import type { PublicationRow } from '@bibdesk/shared';
 import { useStore, visibleRows } from './store.js';
 
@@ -32,7 +36,16 @@ interface ColMeta {
   cellClass?: string;
 }
 
-const columns: ColumnDef<PublicationRow, string>[] = [
+/** A FontAwesome glyph used as a column header, with an accessible tooltip. */
+function HeaderIcon({ icon, title }: { icon: IconDefinition; title: string }) {
+  return <FontAwesomeIcon icon={icon} title={title} aria-label={title} />;
+}
+
+// Mixed accessor (string) + display (icon) columns. TanStack types `columns` as
+// `ColumnDef<TData, any>[]`; the per-column TValue variance means `unknown` would
+// reject the string accessors, so `any` is the sanctioned widening here.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const columns: ColumnDef<PublicationRow, any>[] = [
   col.accessor('citeKey', {
     header: 'Cite Key',
     meta: { width: 160, cellClass: 'bd-td--mono' } satisfies ColMeta,
@@ -52,6 +65,46 @@ const columns: ColumnDef<PublicationRow, string>[] = [
   col.accessor('year', {
     header: 'Year',
     meta: { width: 72, cellClass: 'bd-td--year' } satisfies ColMeta,
+  }),
+  // Icon columns: presence/boolean indicators rendered with FontAwesome (free).
+  col.display({
+    id: 'keywords',
+    header: () => <HeaderIcon icon={faKey} title="Keywords" />,
+    meta: { width: 34, cellClass: 'bd-td--icon' } satisfies ColMeta,
+    cell: ({ row }) =>
+      row.original.hasKeywords ? (
+        <FontAwesomeIcon className="bd-icon bd-icon--key" icon={faKey} title="Has keywords" />
+      ) : null,
+  }),
+  col.display({
+    id: 'attachments',
+    header: () => <HeaderIcon icon={faPaperclip} title="Attachments" />,
+    meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
+    cell: ({ row }) => {
+      const n = row.original.attachmentCount;
+      if (n <= 0) return null;
+      return (
+        <span className="bd-icon bd-icon--clip" title={`${n} attachment${n === 1 ? '' : 's'}`}>
+          <FontAwesomeIcon icon={faPaperclip} />
+          {n > 1 && <span className="bd-icon__count">{n}</span>}
+        </span>
+      );
+    },
+  }),
+  col.display({
+    id: 'read',
+    header: () => <HeaderIcon icon={faSquareCheck} title="Read" />,
+    meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
+    // 1 = read (checked), -1 = explicitly unread (empty box), 0 = unset (blank).
+    cell: ({ row }) => {
+      const r = row.original.read;
+      if (r === 0) return null;
+      return r === 1 ? (
+        <FontAwesomeIcon className="bd-icon bd-icon--checked" icon={faSquareCheck} title="Read" />
+      ) : (
+        <FontAwesomeIcon className="bd-icon bd-icon--unchecked" icon={faSquare} title="Unread" />
+      );
+    },
   }),
 ];
 
