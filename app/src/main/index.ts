@@ -505,10 +505,23 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => void revertToSaved(),
       },
+      {
+        label: isMac ? 'Show in Finder' : 'Show in File Manager',
+        enabled: docEnabled,
+        click: () => {
+          if (lastDocumentId) shell.showItemInFolder(store.summarize(lastDocumentId).path);
+        },
+      },
       { type: 'separator' },
       {
         label: 'Import',
         submenu: [
+          {
+            label: 'From File (BibTeX / RIS)…',
+            accelerator: 'Shift+CmdOrCtrl+I',
+            enabled: docEnabled,
+            click: () => sendMenuCommand('importFile'),
+          },
           {
             label: 'Search Online (CrossRef / arXiv)…',
             accelerator: 'Shift+CmdOrCtrl+O',
@@ -792,6 +805,23 @@ function registerIpc(): void {
     },
     [IpcChannels.pasteEntries]: (req) => store.importBibtexText(req.documentId, req.text),
     [IpcChannels.importFiles]: (req) => store.importFiles(req.documentId, req.paths),
+    [IpcChannels.importDialog]: async (req) => {
+      const opts: Electron.OpenDialogOptions = {
+        title: 'Import',
+        properties: ['openFile', 'multiSelections'],
+        filters: [
+          { name: 'Bibliographies', extensions: ['bib', 'ris'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+      };
+      const result = mainWindow
+        ? await dialog.showOpenDialog(mainWindow, opts)
+        : await dialog.showOpenDialog(opts);
+      if (result.canceled || result.filePaths.length === 0) {
+        return { dirty: store.isDirty(req.documentId), addedIds: [], warnings: [] };
+      }
+      return store.importFiles(req.documentId, result.filePaths);
+    },
     [IpcChannels.findReplace]: (req) => store.findReplace(req),
     [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
     [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
@@ -860,6 +890,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.importFiles, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.importFiles](req),
+  );
+  ipcMain.handle(IpcChannels.importDialog, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.importDialog](req),
   );
   ipcMain.handle(IpcChannels.findReplace, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.findReplace](req),

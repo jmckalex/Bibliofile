@@ -435,6 +435,11 @@ export interface ImportFilesRequest {
   readonly paths: readonly string[];
 }
 
+/** Open a file picker (in main) and import the chosen `.bib`/`.ris`/other files. */
+export interface ImportDialogRequest {
+  readonly documentId: DocumentId;
+}
+
 /** Outcome of a paste/file import: the new item ids and any non-fatal warnings. */
 export interface ImportResult {
   readonly dirty: boolean;
@@ -661,6 +666,7 @@ export type MenuCommand =
   // Publication
   | 'newPublication'
   | 'pastePublication'
+  | 'importFile'
   | 'duplicate'
   | 'delete'
   | 'generateCiteKey'

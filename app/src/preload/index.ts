@@ -49,6 +49,7 @@ import {
   type ExportTextResponse,
   type PasteEntriesRequest,
   type ImportFilesRequest,
+  type ImportDialogRequest,
   type ImportResult,
   type FindReplaceRequest,
   type FindReplaceResult,
@@ -127,6 +128,9 @@ const api: BibDeskApi = {
   },
   importFiles(request: ImportFilesRequest): Promise<ImportResult> {
     return ipcRenderer.invoke(IpcChannels.importFiles, request);
+  },
+  importDialog(request: ImportDialogRequest): Promise<ImportResult> {
+    return ipcRenderer.invoke(IpcChannels.importDialog, request);
   },
   findReplace(request: FindReplaceRequest): Promise<FindReplaceResult> {
     return ipcRenderer.invoke(IpcChannels.findReplace, request);

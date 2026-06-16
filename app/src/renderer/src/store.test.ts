@@ -92,6 +92,7 @@ function makeFakeApi() {
     exportText: async () => ({ text: '' }),
     pasteEntries: async () => ({ dirty: true, addedIds: [], warnings: [] }),
     importFiles: async () => ({ dirty: true, addedIds: [], warnings: [] }),
+    importDialog: async () => ({ dirty: false, addedIds: [], warnings: [] }),
     findReplace: async () => ({ matches: [], total: 0, applied: false, dirty: false }),
     findDuplicates: async () => ({ groups: [], total: 0 }),
     fieldSuggestions: async () => ({ values: [] }),

@@ -31,6 +31,7 @@ import type {
   ExportTextResponse,
   PasteEntriesRequest,
   ImportFilesRequest,
+  ImportDialogRequest,
   ImportResult,
   FindReplaceRequest,
   FindReplaceResult,
@@ -89,6 +90,7 @@ export interface IpcContract {
   [IpcChannels.exportText]: IpcEntry<ExportTextRequest, ExportTextResponse>;
   [IpcChannels.pasteEntries]: IpcEntry<PasteEntriesRequest, ImportResult>;
   [IpcChannels.importFiles]: IpcEntry<ImportFilesRequest, ImportResult>;
+  [IpcChannels.importDialog]: IpcEntry<ImportDialogRequest, ImportResult>;
   [IpcChannels.findReplace]: IpcEntry<FindReplaceRequest, FindReplaceResult>;
   [IpcChannels.findDuplicates]: IpcEntry<FindDuplicatesRequest, FindDuplicatesResult>;
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;

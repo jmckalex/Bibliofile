@@ -50,6 +50,7 @@ import type { Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
 import { exportRis, exportCsv, exportHtml } from './export.js';
+import { parseRis } from './ris-import.js';
 import { FtsIndex } from './fts.js';
 import { extractPdfText } from './pdf-text.js';
 import {
@@ -1133,9 +1134,41 @@ export class DocumentStore {
   }
 
   /**
-   * Import dropped files: a `.bib` is parsed and merged; any other file becomes a
-   * new entry (titled by the file name) with the file attached. Per-file read
-   * failures are collected as warnings rather than aborting the whole drop.
+   * Parse RIS `text` (EndNote/Zotero export) and merge its records as new entries.
+   * Cite keys are auto-generated from the cite-key format. Returns the new ids.
+   */
+  importRisText(documentId: string, text: string): ImportResult {
+    const doc = this.requireDoc(documentId);
+    const records = parseRis(text);
+    const addedIds: string[] = [];
+    for (const rec of records) {
+      const fv: Record<string, FieldValue> = {};
+      for (const [k, v] of Object.entries(rec.fields)) if (v) fv[k] = v;
+      const item = createBibItem({
+        type: rec.entryType || 'misc',
+        citeKey: this.uniqueCiteKey(doc, 'imported'),
+        fields: fv,
+        macroResolver: doc.library.macroResolver,
+        typeManager: sharedTypeManager,
+        store: doc.crossrefStore,
+      });
+      const have = doc.library.items.map((i) => i.citeKey);
+      const generated = generateCiteKey(this.editConfig.citeKeyFormat, item, have);
+      if (generated) item.setCiteKey(this.uniqueCiteKey(doc, generated));
+      doc.library.items.push(item);
+      doc.itemsById.set(item.id, item);
+      this.reindex(doc, item);
+      addedIds.push(item.id);
+    }
+    const warnings = addedIds.length ? [] : ['No RIS records found in the text.'];
+    if (addedIds.length) doc.dirty = true;
+    return { dirty: doc.dirty, addedIds, warnings };
+  }
+
+  /**
+   * Import dropped files: a `.bib` is parsed and merged, a `.ris` is RIS-imported;
+   * any other file becomes a new entry (titled by the file name) with the file
+   * attached. Per-file read failures become warnings rather than aborting.
    */
   importFiles(documentId: string, paths: readonly string[]): ImportResult {
     const doc = this.requireDoc(documentId);
@@ -1145,6 +1178,10 @@ export class DocumentStore {
       try {
         if (/\.bib$/i.test(p)) {
           const res = this.importBibtexText(documentId, readFileSync(p, 'utf8'));
+          addedIds.push(...res.addedIds);
+          warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
+        } else if (/\.ris$/i.test(p)) {
+          const res = this.importRisText(documentId, readFileSync(p, 'utf8'));
           addedIds.push(...res.addedIds);
           warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
         } else {

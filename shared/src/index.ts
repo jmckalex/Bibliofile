@@ -104,6 +104,7 @@ export {
   type ExportTextResponse,
   type PasteEntriesRequest,
   type ImportFilesRequest,
+  type ImportDialogRequest,
   type ImportResult,
   type FindReplaceRequest,
   type FindReplaceMatch,

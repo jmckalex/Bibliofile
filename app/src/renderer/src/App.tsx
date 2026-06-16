@@ -203,6 +203,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       if (text.trim()) await store.pasteEntries(text);
       return;
     }
+    case 'importFile':
+      await store.importFromDialog();
+      return;
     case 'duplicate':
       if (selectedItemId) await store.edit({ kind: 'duplicateEntry', itemId: selectedItemId });
       return;

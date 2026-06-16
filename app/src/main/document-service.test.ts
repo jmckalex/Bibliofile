@@ -168,6 +168,29 @@ describe('document-service: BD test.bib', () => {
     expect(store.isDirty(documentId)).toBe(false);
   });
 
+  it('importRisText merges RIS records as new entries', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{seed, Title = {Seed}}', '/tmp/ris.bib');
+    const ris = [
+      'TY  - JOUR',
+      'AU  - Shannon, Claude E.',
+      'TI  - A Mathematical Theory of Communication',
+      'JO  - Bell System Technical Journal',
+      'PY  - 1948',
+      'ER  -',
+    ].join('\n');
+    const res = store.importRisText(documentId, ris);
+    expect(res.addedIds).toHaveLength(1);
+    expect(res.dirty).toBe(true);
+
+    const text = store.serializeDocument(documentId);
+    expect(text.toLowerCase()).toContain('mathematical theory of communication');
+    expect(text).toContain('Shannon');
+    // The new entry got an auto-generated cite key from author+year.
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    expect(rows.some((r) => /shannon/i.test(r.citeKey) || /1948/.test(r.citeKey))).toBe(true);
+  });
+
   it('importBibtexText warns when no entries are found', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {A}}', '/tmp/p.bib');

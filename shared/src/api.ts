@@ -32,6 +32,7 @@ import type {
   ExportTextResponse,
   PasteEntriesRequest,
   ImportFilesRequest,
+  ImportDialogRequest,
   ImportResult,
   FindReplaceRequest,
   FindReplaceResult,
@@ -129,6 +130,9 @@ export interface BibDeskApi {
 
   /** Import dropped files: `.bib` merge; other files become an entry + attachment. */
   importFiles(request: ImportFilesRequest): Promise<ImportResult>;
+
+  /** Open a file picker (in main) and import the chosen `.bib`/`.ris`/other files. */
+  importDialog(request: ImportDialogRequest): Promise<ImportResult>;
 
   /** Find/replace over field values; preview (apply=false) or perform (apply=true). */
   findReplace(request: FindReplaceRequest): Promise<FindReplaceResult>;

@@ -64,6 +64,8 @@ export const IpcChannels = {
   pasteEntries: 'bibdesk:pasteEntries',
   /** Import dropped files (`.bib` merge; other files → entry + attachment). */
   importFiles: 'bibdesk:importFiles',
+  /** Open a file picker (main) and import the chosen `.bib`/`.ris`/other files. */
+  importDialog: 'bibdesk:importDialog',
   /** Find/replace over field values (preview or apply). */
   findReplace: 'bibdesk:findReplace',
   /** Scan a document for duplicate entries (cite-key + equivalent content). */

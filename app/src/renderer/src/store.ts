@@ -157,6 +157,8 @@ export interface ViewerState {
   pasteEntries: (text: string) => Promise<void>;
   /** Import dropped file paths (.bib merge / file→entry); refresh + select. */
   importFiles: (paths: readonly string[]) => Promise<void>;
+  /** Open a file picker (in main) and import the chosen files; refresh + select. */
+  importFromDialog: () => Promise<void>;
   /** Internal: refresh groups/rows + select the first added item after an import. */
   afterImport: (res: ImportResult) => Promise<void>;
   /** Find/replace over field values (scoped to the current group); refresh on apply. */
@@ -419,6 +421,17 @@ export function createStore(api: BibDeskApi) {
       try {
         const res = await api.importFiles({ documentId, paths });
         await get().afterImport(res);
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    importFromDialog: async () => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const res = await api.importDialog({ documentId });
+        if (res.addedIds.length || res.warnings.length) await get().afterImport(res);
       } catch (err) {
         set({ error: errorMessage(err) });
       }
