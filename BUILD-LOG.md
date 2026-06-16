@@ -13,10 +13,10 @@ Times are local. Newest entries appended at the bottom of each section.
 | Task | What | State |
 |------|------|-------|
 | B1 | Bootstrap monorepo (pnpm workspace, TS strict, Vitest, ESLint/Prettier, stubs, deps) | ✅ done |
-| C1 | `core/tex` — TeXify/deTeXify codec | ⏳ pending |
-| C2 | `core/names` — BibTeX name splitting + display variants | ⏳ pending |
-| C7 | `core/config` — TypeInfo/Preferences → JSON config | ⏳ pending |
-| T1 | golden round-trip test harness + fixtures (`core/bibtex/test`) | ⏳ pending |
+| C1 | `core/tex` — TeXify/deTeXify codec | ✅ done (719 tests) |
+| C2 | `core/names` — BibTeX name splitting + display variants | 🔄 running |
+| C7 | `core/config` — TypeInfo/Preferences → JSON config | 🔄 running |
+| T1 | golden round-trip test harness + fixtures (`core/bibtex/test`) | 🔄 running |
 | C3 | `core/model` — BibItem/ComplexValue/TypeManager/MacroResolver/crossref | ⏳ pending |
 | C4 | `core/bibtex` — custom round-trip parser + serializer (keystone) | ⏳ pending |
 | C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | ⏳ pending |
@@ -89,6 +89,18 @@ bdsk-file blobs), TS 5.9, Vitest 2.1, ESLint 9 flat + typescript-eslint 8 + pret
 
 - None.
 
+### Wave 1 (in progress)
+
+- **C1 `core/tex` — DONE & committed (`d9450c9`).** detexify/texify codec; ported
+  CharacterConversion.plist (221 entries) + accent algorithm via NFC/NFD; reserved-char
+  handling; math-span passthrough. 719 tests pass, tsc clean. Public API: `detexify`,
+  `texify` (+ lower-level `texifyCore`/`detexifyCore`, `texifyChar`, dictionaries/tables).
+  One-way/lossy by design: ligatures, smart quotes, en/em dashes, `°`/`±`/`•`, NBSP.
+- **C2 `core/names`, C7 `core/config`, T1 golden harness** — launched as parallel
+  background agents (disjoint dirs). C2 depends on C1's `detexify` (now on disk).
+  T1 writes only in `core/bibtex/test/` and leaves the `src/index.ts` stub for C4.
+
 ## Next step
 
-Spawn Wave 1 (C1, C2, C7, T1) in parallel — disjoint package dirs.
+Barrier on C2 + C7 (both feed C3). When green + committed, spawn **C3 `core/model`**
+(Wave 2). T1 (golden harness) lands independently; C4 (Wave 3) turns it green.
