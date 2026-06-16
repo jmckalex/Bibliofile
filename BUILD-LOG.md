@@ -20,7 +20,7 @@ Times are local. Newest entries appended at the bottom of each section.
 | C3 | `core/model` — BibItem/ComplexValue/TypeManager/MacroResolver/crossref | ✅ done (120 tests) |
 | C4 | `core/bibtex` — custom round-trip parser + serializer (keystone) | 🔄 running |
 | C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | 🔄 running |
-| C6 | `core/groups` — taxonomy + smart-group predicate evaluator | 🔄 running |
+| C6 | `core/groups` — taxonomy + smart-group predicate evaluator | ✅ done (106 tests) |
 | A1 | `shared` — IPC contract + types | ✅ done (12 tests) |
 | A2 | `app/src/main` — Electron main, open .bib, read API over IPC | ⏳ pending |
 | A3 | `app/src/renderer` — React + Zustand + TanStack viewer | ⏳ pending |
@@ -157,8 +157,15 @@ bdsk-file blobs), TS 5.9, Vitest 2.1, ESLint 9 flat + typescript-eslint 8 + pret
 - **C4 `core/bibtex`** (keystone) — custom parser+serializer; must flip T1's 14 skipped
   round-trip tests to green. Emits raw group records `{kind, data}` for C6/app to type.
 - **C5 `core/formats`** — BDSKFormatParser cite-key/autofile mini-language, CRC32, sanitizers.
-- **C6 `core/groups`** — group taxonomy + BDSKFilter/Condition evaluator; consumes/produces
-  the same serialized-plist group shapes C4 emits (Static/Smart/URL/Script).
+- **C6 `core/groups` — DONE & committed (`6b4a065`).** Group union + Filter/Condition
+  evaluator; comparison enums ported from `BDSKCondition.h`; relative-date windows with
+  injectable `now`; `groupFromSerialized`/`toSerialized` for Static/Smart/URL/Script.
+  106 tests. **Notes:** (a) `@bibdesk/names` is NOT in core/groups' deps, so it reimplements
+  `authorsEquivalent` locally against the structural `Author` shape — fine. (b) **C4↔C6
+  reconcile:** C6 unescapes group-plist entities (`%25 %7B %7D %3C %3E %40`) on read /
+  escapes on write; C4 must hand C6 **escaped** `value`/`group name` strings (NOT
+  pre-unescaped), with integer `comparison`/`conjunction`/`version`. Verify when C4 lands;
+  if C4 unescapes itself, drop C6's escape step to avoid double-processing.
 - **A1 `shared` — DONE & committed (`d460936`).** Channel constants (`bibdesk:*`),
   `IpcContract` map + `RequestOf`/`ResponseOf` helpers, `BibDeskApi` bridge interface,
   DTOs (`PublicationRow`, `GroupNode`, `ItemDetail`, `OpenedDocument`). 12 tests.
