@@ -91,6 +91,25 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
 - **Autosave** is opt-in (`Settings.autosave`): a 1.5 s debounce after the doc becomes
   dirty, driven by a renderer effect. *Why:* keep it simple/observable; explicit Save stays.
 
+## Deferred this session (with rationale)
+
+- **Smart / static group EDITOR (#10) — deferred, not abandoned.** Creating/editing groups
+  means writing the BibDesk group-record format back out. Investigating the parser showed each
+  `@comment{BibDesk <Kind> Groups{…}}` block parses to ONE `GroupRecord` whose `data` is an
+  **array of per-group dictionaries**, yet the current `buildGroup`/`listGroups` read
+  `record.data['group name']` as if `data` were a single dict. That means parsed static/smart
+  groups (as opposed to the computed Author/Keyword *category* groups, which are what the demos
+  actually showed) are on an **unverified seam** — and the project's keystone is the byte-faithful
+  round-trip (56+14 golden tests). Building group *mutation* on top of that, without real
+  multi-group fixtures to verify against, risks the round-trip. **Decision:** first verify/fix the
+  record→groups granularity (expand each record's dict-array into N typed groups, with stable
+  `(recordIndex, dictIndex)` ids threaded through `listGroups`/`listPublications`), THEN add
+  create/rename/delete + static add/remove + a smart-condition builder. I chose to spend the
+  remaining time on the Claude assistant (#4) instead — higher user-value, self-contained, and
+  it builds on the already-shipped `plugins-sdk`. *Revisit:* `groupsFromLibrary`/`buildGroup` +
+  `core/bibtex` group round-trip, using a real BibDesk file that has several static AND smart
+  groups as the fixture.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.
