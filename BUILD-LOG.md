@@ -23,7 +23,8 @@ Times are local. Newest entries appended at the bottom of each section.
 | C6 | `core/groups` — taxonomy + smart-group predicate evaluator | ✅ done (106 tests) |
 | A1 | `shared` — IPC contract + types | ✅ done (12 tests) |
 | A2 | `app/src/main` — Electron main, open .bib, read API over IPC | ✅ done (7 tests) |
-| A3 | `app/src/renderer` — React + Zustand + TanStack viewer | 🔄 running |
+| A3 | `app/src/renderer` — React + Zustand + TanStack viewer | ✅ done (11 app tests) |
+| — | **Read-only viewer GUI smoke test** | ✅ passed (screenshot: `docs/viewer-bd-test.png`) |
 
 Dependency graph: B1 → {C1, C2, C7, T1} → C3 → {C4, C5, C6} → {A1 → A2 → A3}.
 C4 gated on C1+C3.
@@ -212,9 +213,35 @@ Core is done. Build the viewer in the `app` package:
   `tsc -p tsconfig.node.json` clean. NOTE: the A2 agent stalled (watchdog) after writing
   main+service; the **orchestrator finished the preload + test + verification** and added
   `app/vitest.config.ts` (the scaffold hadn't given `app` one).
-- **A3 `app/src/renderer`** — React + Zustand + TanStack virtual table (Cite Key, Type,
-  Authors, Title, Year), groups sidebar (read-only), selection → detail panel + preview card.
-  RUNNING.
+- **A3 `app/src/renderer` — DONE & committed (`83b1a04`).** React + Zustand + TanStack
+  virtual table (Cite Key/Type/Authors/Title/Year, header-click sort), 2-level groups
+  sidebar, detail pane (preview card + fields w/ inherited badges + attachments). Zustand
+  store injectable for tests; 11 app tests; tsc web+node clean.
+
+### 🏁 MILESTONE — Read-only viewer COMPLETE + GUI smoke-tested
+
+Fixed a real launch bug: preload is emitted as `index.mjs` (type:module) but main loaded
+`index.js` → blank window; now loads the ESM preload (commit `…` after A3). Built the app
+(`electron-vite build`, all 3 bundles) and launched it HEADLESSLY against
+`Scripting/BD test.bib` via a `BIBDESK_SMOKE` capture hook. **Screenshot proof:**
+`docs/viewer-bd-test.png` — 3-pane UI, Library group (3), virtualized table with all 3
+entries, status bar "Library: 3 rows". Repo-wide: `pnpm -r build` exit 0, `pnpm test` 1246.
+
+**Charter §5 Definition-of-Done — MET:**
+- ✅ `pnpm -r test` green (1246) · ✅ `pnpm -r build` typechecks clean.
+- ✅ Round-trip golden tests pass incl. `BD test.bib`, group `@comment` blocks, `bdsk-file`.
+- ✅ tex/names/formats/groups/model each have substantive unit tests.
+- ✅ Viewer launches & renders `BD test.bib`: table populated, groups listed (GUI smoke
+  passed with screenshot). Detail-pane-on-select is implemented + headlessly tested (the
+  smoke shot shows the pre-selection prompt state).
+- ✅ `BUILD-LOG.md` documents build, decisions, decisions-to-confirm, next steps.
+
+**Cosmetic items folded into Stage 5:** (a) titles show protective braces (`{Higgs…`) —
+strip braces for display; (b) Year column too narrow — tune column widths.
+
+---
+
+## Stage 5 (post-viewer, user-authorized) — IN PROGRESS
 - Orchestrator wires electron-vite and runs `dev` once to smoke-test loading
   `/Users/jalex/Source/BibDesk/bibdesk/Scripting/BD test.bib`. Electron binary is ready.
 
