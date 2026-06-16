@@ -15,6 +15,7 @@ import type {
   GroupNode,
   ItemDetail,
   MacroDef,
+  OnlineResult,
   OpenedDocument,
   PublicationRow,
   SortDirection,
@@ -109,6 +110,8 @@ export interface ViewerState {
   addAttachment: (itemId: string) => Promise<void>;
   /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
   removeAttachment: (itemId: string, field: string) => Promise<void>;
+  /** Import an online search result as a new entry; refresh + select it. */
+  importOnline: (result: OnlineResult) => Promise<void>;
 }
 
 const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
@@ -287,6 +290,20 @@ export function createStore(api: BibDeskApi) {
         const res = await api.removeAttachment({ documentId, itemId, field });
         set({ dirty: res.dirty });
         if (res.detail) set({ detail: res.detail });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    importOnline: async (result) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const res = await api.importOnline({ documentId, result });
+        set({ dirty: res.dirty, selectedGroupId: undefined });
+        await get().loadGroups();
+        await get().loadPublications();
+        if (res.affectedItemId) set({ selectedItemId: res.affectedItemId, detail: res.detail });
       } catch (err) {
         set({ error: errorMessage(err) });
       }

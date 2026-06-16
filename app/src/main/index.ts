@@ -36,6 +36,7 @@ import {
 
 import { DocumentStore } from './document-service.js';
 import { formatCitation } from './csl.js';
+import { searchOnline } from './online.js';
 
 // ---------------------------------------------------------------------------
 // Process-wide singletons
@@ -348,6 +349,16 @@ function registerIpc(): void {
     },
     [IpcChannels.removeAttachment]: (req) =>
       store.removeAttachment(req.documentId, req.itemId, req.field),
+    [IpcChannels.searchOnline]: async (req) => {
+      try {
+        const results = await searchOnline(req.source, req.query);
+        return { results };
+      } catch (e) {
+        return { results: [], error: e instanceof Error ? e.message : String(e) };
+      }
+    },
+    [IpcChannels.importOnline]: (req) =>
+      store.importEntry(req.documentId, req.result.entryType, req.result.fields),
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -386,6 +397,12 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.removeAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.removeAttachment](req),
+  );
+  ipcMain.handle(IpcChannels.searchOnline, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.searchOnline](req),
+  );
+  ipcMain.handle(IpcChannels.importOnline, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.importOnline](req),
   );
 }
 

@@ -16,8 +16,11 @@ import type {
   FormatCitationRequest,
   FormatCitationResult,
   GetItemDetailRequest,
+  ImportOnlineRequest,
   ItemDetail,
   RemoveAttachmentRequest,
+  SearchOnlineRequest,
+  SearchOnlineResponse,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -77,6 +80,12 @@ export interface BibDeskApi {
 
   /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
   removeAttachment(request: RemoveAttachmentRequest): Promise<EditResult>;
+
+  /** Search an online source (CrossRef / arXiv). */
+  searchOnline(request: SearchOnlineRequest): Promise<SearchOnlineResponse>;
+
+  /** Import an online result into the document as a new entry. */
+  importOnline(request: ImportOnlineRequest): Promise<EditResult>;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

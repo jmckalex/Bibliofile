@@ -83,6 +83,12 @@ export {
   type FormatCitationResult,
   type AddAttachmentRequest,
   type RemoveAttachmentRequest,
+  type OnlineSource,
+  ONLINE_SOURCES,
+  type OnlineResult,
+  type SearchOnlineRequest,
+  type SearchOnlineResponse,
+  type ImportOnlineRequest,
 } from './dto.js';
 
 // --- Renderer-facing bridge -------------------------------------------------

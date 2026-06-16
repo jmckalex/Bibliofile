@@ -46,6 +46,10 @@ export const IpcChannels = {
   addAttachment: 'bibdesk:addAttachment',
   /** Remove one managed attachment from an item. */
   removeAttachment: 'bibdesk:removeAttachment',
+  /** Search an online source (CrossRef / arXiv). */
+  searchOnline: 'bibdesk:searchOnline',
+  /** Import an online result as a new entry. */
+  importOnline: 'bibdesk:importOnline',
 } as const;
 
 /**

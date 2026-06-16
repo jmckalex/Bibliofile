@@ -13,6 +13,7 @@ import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { DetailPane } from './DetailPane.js';
 import { MacroEditor } from './MacroEditor.js';
+import { OnlineSearch } from './OnlineSearch.js';
 
 type Theme = 'light' | 'dark';
 
@@ -122,7 +123,7 @@ function Footer() {
   );
 }
 
-function Toolbar({ onOpenMacros }: { onOpenMacros: () => void }) {
+function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onOpenOnline: () => void }) {
   const edit = useStore((s) => s.edit);
   const save = useStore((s) => s.save);
   const selectedItemId = useStore((s) => s.selectedItemId);
@@ -152,6 +153,9 @@ function Toolbar({ onOpenMacros }: { onOpenMacros: () => void }) {
         🗑 Delete
       </button>
       <span className="bd-toolbar__spacer" />
+      <button type="button" className="bd-btn" onClick={onOpenOnline}>
+        🌐 Online…
+      </button>
       <button type="button" className="bd-btn" onClick={onOpenMacros}>
         @string…
       </button>
@@ -171,6 +175,7 @@ export function App() {
   const onDocumentOpened = useStore((s) => s.onDocumentOpened);
   const save = useStore((s) => s.save);
   const [macrosOpen, setMacrosOpen] = useState(false);
+  const [onlineOpen, setOnlineOpen] = useState(false);
 
   useEffect(() => {
     const api = window.bibdesk;
@@ -196,7 +201,7 @@ export function App() {
   return (
     <div className="bd-app">
       <Header />
-      <Toolbar onOpenMacros={() => setMacrosOpen(true)} />
+      <Toolbar onOpenMacros={() => setMacrosOpen(true)} onOpenOnline={() => setOnlineOpen(true)} />
       <div className="bd-panes">
         <aside className="bd-pane">
           <GroupsSidebar />
@@ -210,6 +215,7 @@ export function App() {
       </div>
       <Footer />
       {macrosOpen && <MacroEditor onClose={() => setMacrosOpen(false)} />}
+      {onlineOpen && <OnlineSearch onClose={() => setOnlineOpen(false)} />}
     </div>
   );
 }

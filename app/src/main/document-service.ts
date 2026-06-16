@@ -934,6 +934,30 @@ export class DocumentStore {
     return this.dirtyDetail(doc, item);
   }
 
+  /**
+   * Import a set of BibTeX fields as a new entry (e.g. from an online search),
+   * auto-generating a cite key from the imported author/year. Selects it.
+   */
+  importEntry(documentId: string, entryType: string, fields: Record<string, string>): EditResult {
+    const doc = this.requireDoc(documentId);
+    const fv: Record<string, FieldValue> = {};
+    for (const [k, v] of Object.entries(fields)) if (v) fv[k] = v;
+    const item = createBibItem({
+      type: entryType || 'misc',
+      citeKey: this.uniqueCiteKey(doc, 'imported'),
+      fields: fv,
+      macroResolver: doc.library.macroResolver,
+      typeManager: sharedTypeManager,
+      store: doc.crossrefStore,
+    });
+    const existing = doc.library.items.map((i) => i.citeKey);
+    const generated = generateCiteKey(DEFAULT_CITE_KEY_FORMAT, item, existing);
+    if (generated) item.setCiteKey(this.uniqueCiteKey(doc, generated));
+    doc.library.items.push(item);
+    doc.itemsById.set(item.id, item);
+    return this.dirtyDetail(doc, item);
+  }
+
   /** True if the document has unsaved edits. */
   isDirty(documentId: string): boolean {
     return this.requireDoc(documentId).dirty;

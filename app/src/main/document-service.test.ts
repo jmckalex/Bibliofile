@@ -356,6 +356,24 @@ describe('document-service: BD test.bib', () => {
     expect(d3.files.some((f) => f.field === 'Bdsk-File-1')).toBe(false);
   });
 
+  it('importEntry creates a new entry with a generated cite key', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, FIXTURE);
+    const before = store.listPublications({ documentId, offset: 0, limit: -1 }).total;
+    const res = store.importEntry(documentId, 'article', {
+      Author: 'Smith, Jane',
+      Title: 'An Imported Paper',
+      Year: '2021',
+      Journal: 'J. Imports',
+    });
+    expect(res.dirty).toBe(true);
+    expect(store.listPublications({ documentId, offset: 0, limit: -1 }).total).toBe(before + 1);
+    const detail = res.detail!;
+    expect(detail.citeKey.toLowerCase()).toContain('smith');
+    expect(detail.citeKey).toContain('2021');
+    expect(detail.fields.find((f) => f.name === 'Title')?.value).toBe('An Imported Paper');
+  });
+
   it('throws on unknown documentId / itemId', () => {
     const store = new DocumentStore();
     expect(() => store.listPublications({ documentId: 'nope', offset: 0, limit: 10 })).toThrow();

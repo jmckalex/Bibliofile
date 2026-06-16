@@ -877,3 +877,53 @@ button.bd-chip {
   border-top: 1px solid var(--bd-border);
   padding-top: 8px;
 }
+
+/* ---- Online search ----------------------------------------------------- */
+
+.bd-modal--wide {
+  width: 620px;
+}
+
+.bd-online__bar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--bd-border);
+}
+
+.bd-online__bar .bd-select {
+  flex: none;
+  width: auto;
+}
+
+.bd-online__bar .bd-input {
+  flex: 1;
+}
+
+.bd-online__result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--bd-border);
+}
+
+.bd-online__meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.bd-online__title {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-online__sub {
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

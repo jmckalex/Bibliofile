@@ -79,6 +79,8 @@ function makeFakeApi() {
     formatCitation: async (r) => ({ styleId: r.styleId, html: '<div>cite</div>' }),
     addAttachment: async () => ({ dirty: true }),
     removeAttachment: async () => ({ dirty: true }),
+    searchOnline: async () => ({ results: [] }),
+    importOnline: async () => ({ dirty: true }),
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
   };

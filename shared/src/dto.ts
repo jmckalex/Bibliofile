@@ -325,6 +325,51 @@ export interface RemoveAttachmentRequest {
   readonly field: string;
 }
 
+// --- Online search / import -------------------------------------------------
+
+/** An online bibliographic source. */
+export type OnlineSource = 'crossref' | 'arxiv';
+
+/** The online sources the app offers. */
+export const ONLINE_SOURCES: readonly { id: OnlineSource; label: string }[] = [
+  { id: 'crossref', label: 'CrossRef' },
+  { id: 'arxiv', label: 'arXiv' },
+];
+
+/** One normalised online search result (display fields + BibTeX fields to import). */
+export interface OnlineResult {
+  readonly source: OnlineSource;
+  /** Suggested BibTeX entry type (e.g. `article`). */
+  readonly entryType: string;
+  readonly title: string;
+  /** Display author list. */
+  readonly authorsDisplay: string;
+  readonly year: string;
+  readonly venue?: string;
+  readonly doi?: string;
+  readonly url?: string;
+  /** Canonical BibTeX fields used when importing this result as a new entry. */
+  readonly fields: Readonly<Record<string, string>>;
+}
+
+/** Request to search an online source. */
+export interface SearchOnlineRequest {
+  readonly source: OnlineSource;
+  readonly query: string;
+}
+
+/** Online search results (or an error message). */
+export interface SearchOnlineResponse {
+  readonly results: readonly OnlineResult[];
+  readonly error?: string;
+}
+
+/** Request to import one online result into a document as a new entry. */
+export interface ImportOnlineRequest {
+  readonly documentId: DocumentId;
+  readonly result: OnlineResult;
+}
+
 /**
  * Full detail of one publication for the detail/preview pane. `fields` are the
  * display field rows, `files` the attachments, and `previewHtml` an optional

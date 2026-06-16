@@ -15,8 +15,11 @@ import type {
   FormatCitationRequest,
   FormatCitationResult,
   GetItemDetailRequest,
+  ImportOnlineRequest,
   ItemDetail,
   RemoveAttachmentRequest,
+  SearchOnlineRequest,
+  SearchOnlineResponse,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -58,6 +61,8 @@ export interface IpcContract {
   [IpcChannels.formatCitation]: IpcEntry<FormatCitationRequest, FormatCitationResult>;
   [IpcChannels.addAttachment]: IpcEntry<AddAttachmentRequest, EditResult>;
   [IpcChannels.removeAttachment]: IpcEntry<RemoveAttachmentRequest, EditResult>;
+  [IpcChannels.searchOnline]: IpcEntry<SearchOnlineRequest, SearchOnlineResponse>;
+  [IpcChannels.importOnline]: IpcEntry<ImportOnlineRequest, EditResult>;
 }
 
 /**

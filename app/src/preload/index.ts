@@ -35,6 +35,9 @@ import {
   type FormatCitationResult,
   type AddAttachmentRequest,
   type RemoveAttachmentRequest,
+  type SearchOnlineRequest,
+  type SearchOnlineResponse,
+  type ImportOnlineRequest,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -73,6 +76,12 @@ const api: BibDeskApi = {
   },
   removeAttachment(request: RemoveAttachmentRequest): Promise<EditResult> {
     return ipcRenderer.invoke(IpcChannels.removeAttachment, request);
+  },
+  searchOnline(request: SearchOnlineRequest): Promise<SearchOnlineResponse> {
+    return ipcRenderer.invoke(IpcChannels.searchOnline, request);
+  },
+  importOnline(request: ImportOnlineRequest): Promise<EditResult> {
+    return ipcRenderer.invoke(IpcChannels.importOnline, request);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);
