@@ -12,6 +12,8 @@ import { createStore as createZustandStore, useStore as useZustandStore } from '
 import type {
   BibDeskApi,
   EditCommand,
+  FindReplaceRequest,
+  FindReplaceResult,
   GroupNode,
   ImportResult,
   ItemDetail,
@@ -156,6 +158,8 @@ export interface ViewerState {
   importFiles: (paths: readonly string[]) => Promise<void>;
   /** Internal: refresh groups/rows + select the first added item after an import. */
   afterImport: (res: ImportResult) => Promise<void>;
+  /** Find/replace over field values (scoped to the current group); refresh on apply. */
+  findReplace: (opts: Omit<FindReplaceRequest, 'documentId' | 'groupId'>) => Promise<FindReplaceResult>;
   /** Load preferences from main and apply the theme. */
   loadSettings: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
@@ -418,6 +422,23 @@ export function createStore(api: BibDeskApi) {
       const first = res.addedIds[0];
       if (first) await get().selectItem(first);
       if (res.warnings.length) set({ error: res.warnings.join('; ') });
+    },
+
+    findReplace: async (opts) => {
+      const { documentId, selectedGroupId } = get();
+      if (!documentId) return { matches: [], total: 0, applied: false, dirty: false };
+      const res = await api.findReplace({
+        documentId,
+        ...(selectedGroupId ? { groupId: selectedGroupId } : {}),
+        ...opts,
+      });
+      if (res.applied && res.total > 0) {
+        set({ dirty: res.dirty });
+        await get().loadPublications();
+        const sel = get().selectedItemId;
+        if (sel) await get().selectItem(sel); // refresh the detail pane
+      }
+      return res;
     },
 
     loadSettings: async () => {

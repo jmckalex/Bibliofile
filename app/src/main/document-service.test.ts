@@ -76,6 +76,63 @@ describe('document-service: BD test.bib', () => {
     expect(keys.some((k) => k.startsWith('a-'))).toBe(true); // collision disambiguated
   });
 
+  it('findReplace previews then applies across fields', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Title = {Color of the sky}, Note = {color theory}}\n@book{b, Title = {Colorful}}',
+      '/tmp/fr.bib',
+    );
+
+    // Preview (apply: false) does not mutate.
+    const preview = store.findReplace({
+      documentId,
+      find: 'Color',
+      replace: 'Colour',
+      regex: false,
+      caseSensitive: true,
+      apply: false,
+    });
+    expect(preview.applied).toBe(false);
+    expect(preview.total).toBe(2); // "Color of the sky" + "Colorful" (case-sensitive)
+    expect(preview.matches).toHaveLength(2);
+    expect(store.isDirty(documentId)).toBe(false);
+
+    // Restrict to the Title field, case-insensitive, and apply.
+    const applied = store.findReplace({
+      documentId,
+      field: 'Title',
+      find: 'color',
+      replace: 'colour',
+      regex: false,
+      caseSensitive: false,
+      apply: true,
+    });
+    expect(applied.applied).toBe(true);
+    expect(applied.total).toBe(2);
+    expect(store.isDirty(documentId)).toBe(true);
+
+    const text = store.serializeDocument(documentId);
+    expect(text).toContain('colour of the sky');
+    expect(text).toContain('colourful');
+    expect(text).toContain('color theory'); // Note field untouched (Title-only scope)
+  });
+
+  it('findReplace reports an invalid regex instead of throwing', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {x}}', '/tmp/fr.bib');
+    const res = store.findReplace({
+      documentId,
+      find: '(',
+      replace: 'y',
+      regex: true,
+      caseSensitive: false,
+      apply: true,
+    });
+    expect(res.error).toBeTruthy();
+    expect(res.total).toBe(0);
+    expect(store.isDirty(documentId)).toBe(false);
+  });
+
   it('importBibtexText warns when no entries are found', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {A}}', '/tmp/p.bib');

@@ -381,6 +381,89 @@ body {
   color: var(--bd-text-muted);
 }
 
+/* ---- Find & Replace modal ---------------------------------------------- */
+
+.bd-fr__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.bd-fr__label {
+  width: 72px;
+  flex: 0 0 auto;
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-fr__row .bd-input,
+.bd-fr__row .bd-select {
+  flex: 1 1 auto;
+}
+
+.bd-fr__opts {
+  display: flex;
+  gap: 18px;
+  margin: 4px 0 6px 80px;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+}
+
+.bd-fr__opts label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bd-fr__result {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--bd-border);
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-fr__error {
+  color: var(--bd-danger, #c0392b);
+}
+
+.bd-fr__matches {
+  margin: 8px 0 0;
+  padding-left: 0;
+  list-style: none;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.bd-fr__matches li {
+  padding: 2px 0;
+  border-bottom: 1px solid var(--bd-border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bd-fr__field {
+  color: var(--bd-text-muted);
+}
+
+.bd-fr__before {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.bd-fr__after {
+  color: var(--bd-accent);
+}
+
+.bd-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--bd-border);
+}
+
 /* ---- Drag-and-drop import overlay -------------------------------------- */
 
 .bd-drop-overlay {

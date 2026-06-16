@@ -104,6 +104,9 @@ export {
   type PasteEntriesRequest,
   type ImportFilesRequest,
   type ImportResult,
+  type FindReplaceRequest,
+  type FindReplaceMatch,
+  type FindReplaceResult,
   type MenuCommand,
 } from './dto.js';
 

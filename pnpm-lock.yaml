@@ -185,7 +185,23 @@ importers:
 
   core/tex: {}
 
-  plugins-sdk: {}
+  plugins-sdk:
+    dependencies:
+      '@bibdesk/bibtex':
+        specifier: workspace:*
+        version: link:../core/bibtex
+      '@bibdesk/formats':
+        specifier: workspace:*
+        version: link:../core/formats
+      '@bibdesk/model':
+        specifier: workspace:*
+        version: link:../core/model
+      '@bibdesk/names':
+        specifier: workspace:*
+        version: link:../core/names
+      '@bibdesk/tex':
+        specifier: workspace:*
+        version: link:../core/tex
 
   shared: {}
 

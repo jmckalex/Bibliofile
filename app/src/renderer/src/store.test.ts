@@ -92,6 +92,7 @@ function makeFakeApi() {
     exportText: async () => ({ text: '' }),
     pasteEntries: async () => ({ dirty: true, addedIds: [], warnings: [] }),
     importFiles: async () => ({ dirty: true, addedIds: [], warnings: [] }),
+    findReplace: async () => ({ matches: [], total: 0, applied: false, dirty: false }),
     pathForFile: () => '',
     onMenuCommand: (): Unsubscribe => () => {},
     onDocumentOpened: (): Unsubscribe => () => {},

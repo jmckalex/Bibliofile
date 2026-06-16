@@ -81,6 +81,9 @@ import type {
   MacroDef,
   ExportFormat,
   ImportResult,
+  FindReplaceRequest,
+  FindReplaceResult,
+  FindReplaceMatch,
   SaveDocumentRequest,
   SaveDocumentResult,
 } from '@bibdesk/shared';
@@ -1156,6 +1159,68 @@ export class DocumentStore {
     }
     if (addedIds.length) doc.dirty = true;
     return { dirty: doc.dirty, addedIds, warnings };
+  }
+
+  /**
+   * Find (and optionally replace) text across field values. With `apply: false`
+   * it only reports matches (a preview); with `apply: true` it performs the
+   * replacement, marks the document dirty, and reindexes affected items. Managed
+   * `Bdsk-File-N` blob fields are never searched.
+   */
+  findReplace(req: FindReplaceRequest): FindReplaceResult {
+    const doc = this.requireDoc(req.documentId);
+    if (!req.find) return { matches: [], total: 0, applied: false, dirty: doc.dirty };
+
+    let re: RegExp;
+    try {
+      const pattern = req.regex ? req.find : req.find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      re = new RegExp(pattern, req.caseSensitive ? 'g' : 'gi');
+    } catch (e) {
+      return {
+        matches: [],
+        total: 0,
+        applied: false,
+        dirty: doc.dirty,
+        error: e instanceof Error ? e.message : String(e),
+      };
+    }
+
+    const items = this.membersOf(doc, req.groupId);
+    const matches: FindReplaceMatch[] = [];
+    let total = 0;
+    let mutated = false;
+
+    for (const item of items) {
+      const names = req.field ? [req.field] : item.fieldNames();
+      for (const name of names) {
+        if (BDSK_FILE_RE.test(name)) continue;
+        const before = item.stringValueOfField(name, false);
+        if (!before) continue;
+        const occurrences = before.match(re);
+        if (!occurrences || occurrences.length === 0) continue;
+        const after = before.replace(re, req.replace);
+        total += occurrences.length;
+        matches.push({ itemId: item.id, citeKey: item.citeKey, field: name, before, after, count: occurrences.length });
+        if (req.apply && after !== before) {
+          item.setField(name, after);
+          this.reindex(doc, item);
+          mutated = true;
+        }
+      }
+    }
+
+    if (mutated) doc.dirty = true;
+    return { matches, total, applied: req.apply, dirty: doc.dirty };
+  }
+
+  /** Items in scope for an operation: a group's members, or the whole library. */
+  private membersOf(doc: OpenDoc, groupId?: string): readonly BibItem[] {
+    if (!groupId || groupId === this.libraryGroupId(doc)) return doc.library.items;
+    const categoryMembers = this.categoriesOf(doc).members.get(groupId);
+    if (categoryMembers) return doc.library.items.filter((it) => categoryMembers.has(it.id));
+    const group = doc.groups.find((g) => g.id === groupId);
+    if (group) return doc.library.items.filter((it) => group.containsItem(asEvaluable(it)));
+    return [];
   }
 
   /** True if the document has unsaved edits. */

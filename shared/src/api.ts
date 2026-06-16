@@ -33,6 +33,8 @@ import type {
   PasteEntriesRequest,
   ImportFilesRequest,
   ImportResult,
+  FindReplaceRequest,
+  FindReplaceResult,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -123,6 +125,9 @@ export interface BibDeskApi {
 
   /** Import dropped files: `.bib` merge; other files become an entry + attachment. */
   importFiles(request: ImportFilesRequest): Promise<ImportResult>;
+
+  /** Find/replace over field values; preview (apply=false) or perform (apply=true). */
+  findReplace(request: FindReplaceRequest): Promise<FindReplaceResult>;
 
   /**
    * Resolve a dropped {@link File} to its absolute filesystem path (Electron's

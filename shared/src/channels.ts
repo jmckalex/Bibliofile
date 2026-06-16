@@ -64,6 +64,8 @@ export const IpcChannels = {
   pasteEntries: 'bibdesk:pasteEntries',
   /** Import dropped files (`.bib` merge; other files → entry + attachment). */
   importFiles: 'bibdesk:importFiles',
+  /** Find/replace over field values (preview or apply). */
+  findReplace: 'bibdesk:findReplace',
 } as const;
 
 /**

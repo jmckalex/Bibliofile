@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "JS plugin API surface (stub this session; designed for cross-platform native hooks).",
+  "description": "Pure JS plugin API over an in-memory BibDesk library: query/mutate entries, macros, import/merge, duplicate detection, change events, plus a plugin manifest + manager. Foundation for third-party scripts and the Claude scripting assistant.",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -14,6 +14,12 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@bibdesk/bibtex": "workspace:*",
+    "@bibdesk/model": "workspace:*",
+    "@bibdesk/formats": "workspace:*",
+    "@bibdesk/tex": "workspace:*",
+    "@bibdesk/names": "workspace:*"
+  },
   "devDependencies": {}
 }

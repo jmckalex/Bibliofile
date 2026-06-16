@@ -440,6 +440,46 @@ export interface ImportResult {
   readonly warnings: readonly string[];
 }
 
+// --- Find & Replace ---------------------------------------------------------
+
+/** A find/replace operation over field values (preview when `apply` is false). */
+export interface FindReplaceRequest {
+  readonly documentId: DocumentId;
+  /** Restrict to one field name, or undefined to search every field. */
+  readonly field?: string;
+  readonly find: string;
+  readonly replace: string;
+  /** Treat `find` as a JS regular expression. */
+  readonly regex: boolean;
+  readonly caseSensitive: boolean;
+  /** When true, perform the replacement; when false, only report matches. */
+  readonly apply: boolean;
+  /** Restrict the scope to a group's members (optional). */
+  readonly groupId?: string;
+}
+
+/** One field that matched (with the would-be/after value). */
+export interface FindReplaceMatch {
+  readonly itemId: ItemId;
+  readonly citeKey: string;
+  readonly field: string;
+  readonly before: string;
+  readonly after: string;
+  /** Number of occurrences in this field. */
+  readonly count: number;
+}
+
+/** Outcome of a find/replace: per-field matches and the running totals. */
+export interface FindReplaceResult {
+  readonly matches: readonly FindReplaceMatch[];
+  /** Total number of occurrences across all matched fields. */
+  readonly total: number;
+  readonly applied: boolean;
+  readonly dirty: boolean;
+  /** Set when `find` is an invalid regular expression. */
+  readonly error?: string;
+}
+
 // --- Full-text search (SQLite FTS5) -----------------------------------------
 
 /** Request a full-text search over a document. */
@@ -564,6 +604,7 @@ export type MenuCommand =
   | 'editMacros'
   // Edit / clipboard (operate on the selection)
   | 'find'
+  | 'findReplace'
   | 'copyCiteKey'
   | 'copyCitation'
   | 'copyBibtex'

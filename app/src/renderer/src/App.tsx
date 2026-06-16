@@ -17,6 +17,7 @@ import { DetailPane } from './DetailPane.js';
 import { MacroEditor } from './MacroEditor.js';
 import { OnlineSearch } from './OnlineSearch.js';
 import { Preferences } from './Preferences.js';
+import { FindReplace } from './FindReplace.js';
 
 function ThemeToggle() {
   const theme = useStore((s) => s.settings.theme);
@@ -179,6 +180,7 @@ interface ModalSetters {
   setMacrosOpen: (v: boolean) => void;
   setOnlineOpen: (v: boolean) => void;
   setPrefsOpen: (v: boolean) => void;
+  setFindReplaceOpen: (v: boolean) => void;
 }
 
 /**
@@ -226,6 +228,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       input?.select();
       return;
     }
+    case 'findReplace':
+      modals.setFindReplaceOpen(true);
+      return;
     case 'toggleTheme': {
       const isDark =
         store.settings.theme === 'dark' ||
@@ -276,6 +281,7 @@ export function App() {
   const [macrosOpen, setMacrosOpen] = useState(false);
   const [onlineOpen, setOnlineOpen] = useState(false);
   const [prefsOpen, setPrefsOpen] = useState(false);
+  const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
@@ -351,7 +357,12 @@ export function App() {
     });
     const unsubPrefs = api.onShowPreferences(() => setPrefsOpen(true));
     const unsubMenu = api.onMenuCommand((command) => {
-      void dispatchMenuCommand(command, { setMacrosOpen, setOnlineOpen, setPrefsOpen });
+      void dispatchMenuCommand(command, {
+        setMacrosOpen,
+        setOnlineOpen,
+        setPrefsOpen,
+        setFindReplaceOpen,
+      });
     });
     return () => {
       unsubOpen();
@@ -379,6 +390,7 @@ export function App() {
       {macrosOpen && <MacroEditor onClose={() => setMacrosOpen(false)} />}
       {onlineOpen && <OnlineSearch onClose={() => setOnlineOpen(false)} />}
       {prefsOpen && <Preferences onClose={() => setPrefsOpen(false)} />}
+      {findReplaceOpen && <FindReplace onClose={() => setFindReplaceOpen(false)} />}
       {dragging && hasDoc && (
         <div className="bd-drop-overlay" aria-hidden="true">
           <div className="bd-drop-overlay__msg">Drop .bib or files to import</div>

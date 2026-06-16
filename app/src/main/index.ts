@@ -189,6 +189,13 @@ function createWindow(): BrowserWindow {
               process.env.BIBDESK_SMOKE_PASTE,
             )});window.dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}));})();`
           : '';
+        // optionally fire a native menu command (opens its modal) before capture
+        if (process.env.BIBDESK_SMOKE_MENU) {
+          setTimeout(
+            () => win.webContents.send(IpcEvents.menuCommand, process.env.BIBDESK_SMOKE_MENU),
+            900,
+          );
+        }
         void win.webContents
           .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf}${paste} true`)
           .catch(() => undefined)
@@ -513,6 +520,12 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('find'),
       },
+      {
+        label: 'Find & Replace…',
+        accelerator: 'Alt+CmdOrCtrl+F',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('findReplace'),
+      },
       { type: 'separator' },
       {
         label: 'Copy Cite Key',
@@ -731,6 +744,7 @@ function registerIpc(): void {
     },
     [IpcChannels.pasteEntries]: (req) => store.importBibtexText(req.documentId, req.text),
     [IpcChannels.importFiles]: (req) => store.importFiles(req.documentId, req.paths),
+    [IpcChannels.findReplace]: (req) => store.findReplace(req),
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -796,6 +810,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.importFiles, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.importFiles](req),
+  );
+  ipcMain.handle(IpcChannels.findReplace, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.findReplace](req),
   );
 }
 

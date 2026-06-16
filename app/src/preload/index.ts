@@ -50,6 +50,8 @@ import {
   type PasteEntriesRequest,
   type ImportFilesRequest,
   type ImportResult,
+  type FindReplaceRequest,
+  type FindReplaceResult,
   type MenuCommand,
 } from '@bibdesk/shared';
 
@@ -121,6 +123,9 @@ const api: BibDeskApi = {
   },
   importFiles(request: ImportFilesRequest): Promise<ImportResult> {
     return ipcRenderer.invoke(IpcChannels.importFiles, request);
+  },
+  findReplace(request: FindReplaceRequest): Promise<FindReplaceResult> {
+    return ipcRenderer.invoke(IpcChannels.findReplace, request);
   },
   pathForFile(file: File): string {
     return webUtils.getPathForFile(file);
