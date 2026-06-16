@@ -55,6 +55,35 @@ describe('document-service: BD test.bib', () => {
     expect(chen.title).toContain('Calabi-Yau'); // {C}alabi-{Y}au -> Calabi-Yau
   });
 
+  it('importBibtexText merges pasted entries and disambiguates colliding keys', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {A}}', '/tmp/p.bib');
+    const before = store.listPublications({ documentId, offset: 0, limit: -1 }).total;
+
+    // One fresh key + one that collides with the existing "a".
+    const res = store.importBibtexText(
+      documentId,
+      '@book{newkey, Title = {Fresh}}\n@article{a, Title = {Dup}}',
+    );
+    expect(res.addedIds).toHaveLength(2);
+    expect(res.dirty).toBe(true);
+
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 });
+    expect(rows.total).toBe(before + 2);
+    const keys = rows.rows.map((r) => r.citeKey);
+    expect(keys).toContain('newkey');
+    expect(keys.filter((k) => k === 'a')).toHaveLength(1); // original kept
+    expect(keys.some((k) => k.startsWith('a-'))).toBe(true); // collision disambiguated
+  });
+
+  it('importBibtexText warns when no entries are found', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {A}}', '/tmp/p.bib');
+    const res = store.importBibtexText(documentId, 'just some prose, not bibtex');
+    expect(res.addedIds).toHaveLength(0);
+    expect(res.warnings.join(' ')).toMatch(/no bibtex entries/i);
+  });
+
   it('exportText: whole library vs a selected subset (BibTeX)', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText(BIB, FIXTURE);

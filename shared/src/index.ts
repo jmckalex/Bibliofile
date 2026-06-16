@@ -101,6 +101,9 @@ export {
   type ExportFormat,
   type ExportTextRequest,
   type ExportTextResponse,
+  type PasteEntriesRequest,
+  type ImportFilesRequest,
+  type ImportResult,
   type MenuCommand,
 } from './dto.js';
 

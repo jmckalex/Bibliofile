@@ -13,6 +13,7 @@ import type {
   BibDeskApi,
   EditCommand,
   GroupNode,
+  ImportResult,
   ItemDetail,
   MacroDef,
   OnlineResult,
@@ -149,6 +150,12 @@ export interface ViewerState {
   removeAttachment: (itemId: string, field: string) => Promise<void>;
   /** Import an online search result as a new entry; refresh + select it. */
   importOnline: (result: OnlineResult) => Promise<void>;
+  /** Paste BibTeX text as new entries; refresh + select the first added. */
+  pasteEntries: (text: string) => Promise<void>;
+  /** Import dropped file paths (.bib merge / file→entry); refresh + select. */
+  importFiles: (paths: readonly string[]) => Promise<void>;
+  /** Internal: refresh groups/rows + select the first added item after an import. */
+  afterImport: (res: ImportResult) => Promise<void>;
   /** Load preferences from main and apply the theme. */
   loadSettings: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
@@ -378,6 +385,39 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         set({ error: errorMessage(err) });
       }
+    },
+
+    pasteEntries: async (text) => {
+      const { documentId } = get();
+      if (!documentId || !text.trim()) return;
+      try {
+        const res = await api.pasteEntries({ documentId, text });
+        await get().afterImport(res);
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    importFiles: async (paths) => {
+      const { documentId } = get();
+      if (!documentId || paths.length === 0) return;
+      try {
+        const res = await api.importFiles({ documentId, paths });
+        await get().afterImport(res);
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    afterImport: async (res) => {
+      set({ dirty: res.dirty, selectedGroupId: undefined });
+      await get().loadGroups();
+      await get().loadPublications();
+      // Cleared group => the table now lists the whole library; sync the header.
+      set({ itemCount: get().total });
+      const first = res.addedIds[0];
+      if (first) await get().selectItem(first);
+      if (res.warnings.length) set({ error: res.warnings.join('; ') });
     },
 
     loadSettings: async () => {

@@ -381,6 +381,30 @@ body {
   color: var(--bd-text-muted);
 }
 
+/* ---- Drag-and-drop import overlay -------------------------------------- */
+
+.bd-drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bd-accent) 14%, transparent);
+  border: 3px dashed var(--bd-accent);
+  pointer-events: none;
+}
+
+.bd-drop-overlay__msg {
+  padding: 14px 22px;
+  border-radius: 10px;
+  background: var(--bd-bg, #fff);
+  color: var(--bd-accent);
+  font-size: 16px;
+  font-weight: 600;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+
 /* ---- Icon columns (FontAwesome presence/boolean indicators) ------------ */
 
 .bd-td--icon {

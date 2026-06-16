@@ -7,7 +7,7 @@
  * `ipcRenderer.on` and return an unsubscribe.
  */
 
-import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from 'electron';
 
 import {
   IpcChannels,
@@ -47,6 +47,9 @@ import {
   type ReadAttachmentResponse,
   type ExportTextRequest,
   type ExportTextResponse,
+  type PasteEntriesRequest,
+  type ImportFilesRequest,
+  type ImportResult,
   type MenuCommand,
 } from '@bibdesk/shared';
 
@@ -112,6 +115,15 @@ const api: BibDeskApi = {
   },
   exportText(request: ExportTextRequest): Promise<ExportTextResponse> {
     return ipcRenderer.invoke(IpcChannels.exportText, request);
+  },
+  pasteEntries(request: PasteEntriesRequest): Promise<ImportResult> {
+    return ipcRenderer.invoke(IpcChannels.pasteEntries, request);
+  },
+  importFiles(request: ImportFilesRequest): Promise<ImportResult> {
+    return ipcRenderer.invoke(IpcChannels.importFiles, request);
+  },
+  pathForFile(file: File): string {
+    return webUtils.getPathForFile(file);
   },
   onMenuCommand(listener: (command: MenuCommand) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, command: MenuCommand): void => listener(command);

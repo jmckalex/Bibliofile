@@ -193,6 +193,11 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'newPublication':
       await store.edit({ kind: 'addEntry', entryType: store.settings.defaultEntryType });
       return;
+    case 'pastePublication': {
+      const text = await navigator.clipboard.readText().catch(() => '');
+      if (text.trim()) await store.pasteEntries(text);
+      return;
+    }
     case 'duplicate':
       if (selectedItemId) await store.edit({ kind: 'duplicateEntry', itemId: selectedItemId });
       return;
@@ -256,16 +261,80 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
   }
 }
 
+const BIBTEX_RE = /@\w+\s*\{/;
+
 export function App() {
   const onDocumentOpened = useStore((s) => s.onDocumentOpened);
   const loadSettings = useStore((s) => s.loadSettings);
+  const hasDoc = useStore((s) => s.documentId !== undefined);
   const [macrosOpen, setMacrosOpen] = useState(false);
   const [onlineOpen, setOnlineOpen] = useState(false);
   const [prefsOpen, setPrefsOpen] = useState(false);
+  const [dragging, setDragging] = useState(false);
 
   useEffect(() => {
     void loadSettings();
   }, [loadSettings]);
+
+  // Paste BibTeX into the library (e.g. from Google Scholar). Editable fields
+  // keep their normal paste; a bare paste of `@type{…}` text imports entries.
+  useEffect(() => {
+    const onPaste = (e: ClipboardEvent): void => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      const text = e.clipboardData?.getData('text') ?? '';
+      if (BIBTEX_RE.test(text)) {
+        e.preventDefault();
+        void getStore().getState().pasteEntries(text);
+      }
+    };
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, []);
+
+  // Drag-and-drop import: drop `.bib` files (merge) or PDFs/others (entry+attach)
+  // onto the window; a dragged BibTeX text snippet imports too.
+  useEffect(() => {
+    let depth = 0;
+    const onDragEnter = (e: DragEvent): void => {
+      e.preventDefault();
+      depth++;
+      if (e.dataTransfer?.types.includes('Files') || e.dataTransfer?.types.includes('text/plain'))
+        setDragging(true);
+    };
+    const onDragOver = (e: DragEvent): void => e.preventDefault();
+    const onDragLeave = (e: DragEvent): void => {
+      e.preventDefault();
+      if (--depth <= 0) setDragging(false);
+    };
+    const onDrop = (e: DragEvent): void => {
+      e.preventDefault();
+      depth = 0;
+      setDragging(false);
+      const dt = e.dataTransfer;
+      const api = window.bibdesk;
+      if (!dt || !api) return;
+      const paths = Array.from(dt.files)
+        .map((f) => api.pathForFile(f))
+        .filter(Boolean);
+      if (paths.length) {
+        void getStore().getState().importFiles(paths);
+        return;
+      }
+      const text = dt.getData('text');
+      if (BIBTEX_RE.test(text)) void getStore().getState().pasteEntries(text);
+    };
+    window.addEventListener('dragenter', onDragEnter);
+    window.addEventListener('dragover', onDragOver);
+    window.addEventListener('dragleave', onDragLeave);
+    window.addEventListener('drop', onDrop);
+    return () => {
+      window.removeEventListener('dragenter', onDragEnter);
+      window.removeEventListener('dragover', onDragOver);
+      window.removeEventListener('dragleave', onDragLeave);
+      window.removeEventListener('drop', onDrop);
+    };
+  }, []);
 
   useEffect(() => {
     const api = window.bibdesk;
@@ -303,6 +372,11 @@ export function App() {
       {macrosOpen && <MacroEditor onClose={() => setMacrosOpen(false)} />}
       {onlineOpen && <OnlineSearch onClose={() => setOnlineOpen(false)} />}
       {prefsOpen && <Preferences onClose={() => setPrefsOpen(false)} />}
+      {dragging && hasDoc && (
+        <div className="bd-drop-overlay" aria-hidden="true">
+          <div className="bd-drop-overlay__msg">Drop .bib or files to import</div>
+        </div>
+      )}
     </div>
   );
 }

@@ -415,6 +415,31 @@ export interface ImportOnlineRequest {
   readonly result: OnlineResult;
 }
 
+// --- Paste / drag-and-drop import -------------------------------------------
+
+/** Paste BibTeX text into a document (e.g. an entry copied from Google Scholar). */
+export interface PasteEntriesRequest {
+  readonly documentId: DocumentId;
+  /** Raw BibTeX text containing one or more `@type{…}` entries. */
+  readonly text: string;
+}
+
+/** Import dropped files into a document: `.bib` merge, other files → entry+attach. */
+export interface ImportFilesRequest {
+  readonly documentId: DocumentId;
+  /** Absolute file paths (from the renderer's drop handler). */
+  readonly paths: readonly string[];
+}
+
+/** Outcome of a paste/file import: the new item ids and any non-fatal warnings. */
+export interface ImportResult {
+  readonly dirty: boolean;
+  /** Ids of the newly added entries (for selection); empty when nothing imported. */
+  readonly addedIds: readonly ItemId[];
+  /** Non-fatal messages (e.g. "no entries found", per-file read errors). */
+  readonly warnings: readonly string[];
+}
+
 // --- Full-text search (SQLite FTS5) -----------------------------------------
 
 /** Request a full-text search over a document. */
@@ -524,6 +549,7 @@ export interface ItemDetail {
 export type MenuCommand =
   // Publication
   | 'newPublication'
+  | 'pastePublication'
   | 'duplicate'
   | 'delete'
   | 'generateCiteKey'

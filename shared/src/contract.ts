@@ -29,6 +29,9 @@ import type {
   ReadAttachmentResponse,
   ExportTextRequest,
   ExportTextResponse,
+  PasteEntriesRequest,
+  ImportFilesRequest,
+  ImportResult,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -78,6 +81,8 @@ export interface IpcContract {
   [IpcChannels.updateSettings]: IpcEntry<UpdateSettingsRequest, Settings>;
   [IpcChannels.readAttachment]: IpcEntry<ReadAttachmentRequest, ReadAttachmentResponse>;
   [IpcChannels.exportText]: IpcEntry<ExportTextRequest, ExportTextResponse>;
+  [IpcChannels.pasteEntries]: IpcEntry<PasteEntriesRequest, ImportResult>;
+  [IpcChannels.importFiles]: IpcEntry<ImportFilesRequest, ImportResult>;
 }
 
 /**

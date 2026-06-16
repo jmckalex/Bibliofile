@@ -183,8 +183,14 @@ function createWindow(): BrowserWindow {
         const pdf = process.env.BIBDESK_OPEN_PDF
           ? "setTimeout(()=>document.querySelector('.bd-file__btn')?.click(),1400);"
           : '';
+        // optionally inject a synthetic BibTeX paste to exercise the import path
+        const paste = process.env.BIBDESK_SMOKE_PASTE
+          ? `(()=>{const dt=new DataTransfer();dt.setData('text',${JSON.stringify(
+              process.env.BIBDESK_SMOKE_PASTE,
+            )});window.dispatchEvent(new ClipboardEvent('paste',{clipboardData:dt,bubbles:true,cancelable:true}));})();`
+          : '';
         void win.webContents
-          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf} true`)
+          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf}${paste} true`)
           .catch(() => undefined)
           .finally(() => setTimeout(capture, process.env.BIBDESK_OPEN_PDF ? 4200 : 1800));
       }, 1800);
@@ -495,6 +501,13 @@ function buildMenu(): void {
       { role: 'selectAll' },
       { type: 'separator' },
       {
+        label: 'Paste Publication',
+        accelerator: 'Shift+CmdOrCtrl+V',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('pastePublication'),
+      },
+      { type: 'separator' },
+      {
         label: 'Find…',
         accelerator: 'CmdOrCtrl+F',
         enabled: docEnabled,
@@ -710,6 +723,8 @@ function registerIpc(): void {
         return { text: '', error: e instanceof Error ? e.message : String(e) };
       }
     },
+    [IpcChannels.pasteEntries]: (req) => store.importBibtexText(req.documentId, req.text),
+    [IpcChannels.importFiles]: (req) => store.importFiles(req.documentId, req.paths),
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -769,6 +784,12 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.exportText, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.exportText](req),
+  );
+  ipcMain.handle(IpcChannels.pasteEntries, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.pasteEntries](req),
+  );
+  ipcMain.handle(IpcChannels.importFiles, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.importFiles](req),
   );
 }
 

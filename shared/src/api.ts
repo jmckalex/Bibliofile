@@ -30,6 +30,9 @@ import type {
   ReadAttachmentResponse,
   ExportTextRequest,
   ExportTextResponse,
+  PasteEntriesRequest,
+  ImportFilesRequest,
+  ImportResult,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -114,6 +117,18 @@ export interface BibDeskApi {
 
   /** Serialize a document (or a subset of items) to text — e.g. BibTeX export/copy. */
   exportText(request: ExportTextRequest): Promise<ExportTextResponse>;
+
+  /** Paste BibTeX text into the document as new entries (parse + merge). */
+  pasteEntries(request: PasteEntriesRequest): Promise<ImportResult>;
+
+  /** Import dropped files: `.bib` merge; other files become an entry + attachment. */
+  importFiles(request: ImportFilesRequest): Promise<ImportResult>;
+
+  /**
+   * Resolve a dropped {@link File} to its absolute filesystem path (Electron's
+   * `webUtils.getPathForFile`). Synchronous; renderer-only (the File can't cross IPC).
+   */
+  pathForFile(file: File): string;
 
   /** Subscribe to native-menu commands that act on renderer state. Returns unsubscribe. */
   onMenuCommand(listener: (command: MenuCommand) => void): Unsubscribe;

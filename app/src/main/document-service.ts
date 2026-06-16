@@ -80,6 +80,7 @@ import type {
   ListMacrosResponse,
   MacroDef,
   ExportFormat,
+  ImportResult,
   SaveDocumentRequest,
   SaveDocumentResult,
 } from '@bibdesk/shared';
@@ -1068,6 +1069,93 @@ export class DocumentStore {
     doc.library.items.push(item);
     doc.itemsById.set(item.id, item);
     return this.dirtyDetail(doc, item);
+  }
+
+  /**
+   * Parse BibTeX `text` and merge its entries into the document as new items
+   * (e.g. a pasted Google Scholar entry, or a dropped `.bib`). Cite keys are kept
+   * when free and disambiguated when they collide; managed `Bdsk-File-N` plists
+   * are carried over. Returns the new item ids and any non-fatal warnings.
+   */
+  importBibtexText(documentId: string, text: string): ImportResult {
+    const doc = this.requireDoc(documentId);
+    const warnings: string[] = [];
+    let incoming: BibLibrary;
+    try {
+      incoming = parse(text);
+    } catch (e) {
+      return { dirty: doc.dirty, addedIds: [], warnings: [e instanceof Error ? e.message : String(e)] };
+    }
+    const addedIds: string[] = [];
+    for (const item of incoming.items) {
+      item.setStore(doc.crossrefStore);
+      const key = item.citeKey.trim();
+      const have = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
+      if (!key) {
+        // No key on the pasted entry: generate one from the cite-key format.
+        const base = generateCiteKey(this.editConfig.citeKeyFormat, item, [...have]) || 'imported';
+        item.setCiteKey(this.uniqueCiteKey(doc, base));
+      } else if (have.has(key.toLowerCase())) {
+        // Keep the pasted key but disambiguate against the collision (a -> a-1).
+        item.setCiteKey(this.uniqueCiteKey(doc, key));
+      }
+      // Carry over this item's managed-attachment plists (keyed by the item id,
+      // which is a fresh UUID — no collision with the target library).
+      for (const name of item.fieldNames()) {
+        if (!BDSK_FILE_RE.test(name)) continue;
+        const k = bdskFileKey(item.id, name);
+        const plist = incoming.bdskFiles.get(k);
+        if (plist) doc.library.bdskFiles.set(k, plist);
+      }
+      doc.library.items.push(item);
+      doc.itemsById.set(item.id, item);
+      this.reindex(doc, item);
+      addedIds.push(item.id);
+    }
+    if (addedIds.length === 0) warnings.push('No BibTeX entries found in the pasted text.');
+    else doc.dirty = true;
+    return { dirty: doc.dirty, addedIds, warnings };
+  }
+
+  /**
+   * Import dropped files: a `.bib` is parsed and merged; any other file becomes a
+   * new entry (titled by the file name) with the file attached. Per-file read
+   * failures are collected as warnings rather than aborting the whole drop.
+   */
+  importFiles(documentId: string, paths: readonly string[]): ImportResult {
+    const doc = this.requireDoc(documentId);
+    const addedIds: string[] = [];
+    const warnings: string[] = [];
+    for (const p of paths) {
+      try {
+        if (/\.bib$/i.test(p)) {
+          const res = this.importBibtexText(documentId, readFileSync(p, 'utf8'));
+          addedIds.push(...res.addedIds);
+          warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
+        } else {
+          const title = basename(p).replace(/\.[^.]+$/, '');
+          const item = createBibItem({
+            type: this.editConfig.defaultEntryType || 'misc',
+            citeKey: this.uniqueCiteKey(doc, title || 'imported'),
+            fields: title ? { Title: title } : {},
+            macroResolver: doc.library.macroResolver,
+            typeManager: sharedTypeManager,
+            store: doc.crossrefStore,
+          });
+          const have = doc.library.items.map((i) => i.citeKey);
+          const generated = generateCiteKey(this.editConfig.citeKeyFormat, item, have);
+          if (generated) item.setCiteKey(this.uniqueCiteKey(doc, generated));
+          doc.library.items.push(item);
+          doc.itemsById.set(item.id, item);
+          this.addAttachments(documentId, item.id, [p]); // sets dirty, reindexes
+          addedIds.push(item.id);
+        }
+      } catch (e) {
+        warnings.push(`${basename(p)}: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+    if (addedIds.length) doc.dirty = true;
+    return { dirty: doc.dirty, addedIds, warnings };
   }
 
   /** True if the document has unsaved edits. */

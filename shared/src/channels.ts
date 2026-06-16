@@ -60,6 +60,10 @@ export const IpcChannels = {
   readAttachment: 'bibdesk:readAttachment',
   /** Serialize a document (or a subset of items) to text in a given format. */
   exportText: 'bibdesk:exportText',
+  /** Paste BibTeX text into a document (parse + merge as new entries). */
+  pasteEntries: 'bibdesk:pasteEntries',
+  /** Import dropped files (`.bib` merge; other files → entry + attachment). */
+  importFiles: 'bibdesk:importFiles',
 } as const;
 
 /**
