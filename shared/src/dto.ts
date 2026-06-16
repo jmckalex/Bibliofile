@@ -325,6 +325,20 @@ export interface RemoveAttachmentRequest {
   readonly field: string;
 }
 
+/** Request to read an attachment's bytes (e.g. to preview a PDF in-app). */
+export interface ReadAttachmentRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+  /** The attachment's resolved url/path (from {@link ItemFile.url}). */
+  readonly url: string;
+}
+
+/** Bytes of an attachment, or an error. `data` is structured-clone-safe. */
+export interface ReadAttachmentResponse {
+  readonly data: Uint8Array | null;
+  readonly error?: string;
+}
+
 // --- Online search / import -------------------------------------------------
 
 /** An online bibliographic source. */

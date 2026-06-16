@@ -56,6 +56,8 @@ export const IpcChannels = {
   getSettings: 'bibdesk:getSettings',
   /** Update (patch) application preferences. */
   updateSettings: 'bibdesk:updateSettings',
+  /** Read an attachment's bytes (for in-app PDF preview). */
+  readAttachment: 'bibdesk:readAttachment',
 } as const;
 
 /**

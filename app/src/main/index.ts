@@ -13,7 +13,7 @@
 
 import { basename, join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { existsSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 import {
   app,
@@ -178,10 +178,14 @@ function createWindow(): BrowserWindow {
         const dark = process.env.BIBDESK_SMOKE_DARK
           ? "document.querySelector('.bd-theme-toggle')?.click();"
           : '';
+        // optionally open the first PDF attachment (after the detail pane loads)
+        const pdf = process.env.BIBDESK_OPEN_PDF
+          ? "setTimeout(()=>document.querySelector('.bd-file__btn')?.click(),1400);"
+          : '';
         void win.webContents
-          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark} true`)
+          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf} true`)
           .catch(() => undefined)
-          .finally(() => setTimeout(capture, 1800));
+          .finally(() => setTimeout(capture, process.env.BIBDESK_OPEN_PDF ? 4200 : 1800));
       }, 1800);
     });
   }
@@ -235,6 +239,7 @@ function openPathWhenReady(path: string): void {
     try {
       openPath(path);
     } catch (err) {
+      console.error('[open] failed:', err instanceof Error ? err.stack : String(err));
       void dialog.showMessageBox(mainWindow, {
         type: 'error',
         message: `Could not open ${path}`,
@@ -452,6 +457,15 @@ function registerIpc(): void {
       store.setEditConfig({ citeKeyFormat: s.citeKeyFormat, defaultEntryType: s.defaultEntryType });
       return s;
     },
+    [IpcChannels.readAttachment]: (req) => {
+      const p = store.attachmentPath(req.documentId, req.itemId, req.url);
+      if (!p) return { data: null, error: 'Attachment not found or not readable' };
+      try {
+        return { data: new Uint8Array(readFileSync(p)) };
+      } catch (e) {
+        return { data: null, error: e instanceof Error ? e.message : String(e) };
+      }
+    },
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -505,6 +519,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.updateSettings, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.updateSettings](req),
+  );
+  ipcMain.handle(IpcChannels.readAttachment, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.readAttachment](req),
   );
 }
 

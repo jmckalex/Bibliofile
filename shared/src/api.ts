@@ -26,6 +26,8 @@ import type {
   GetSettingsRequest,
   UpdateSettingsRequest,
   Settings,
+  ReadAttachmentRequest,
+  ReadAttachmentResponse,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -103,6 +105,9 @@ export interface BibDeskApi {
 
   /** Subscribe to "open Preferences" requests from the menu. Returns unsubscribe. */
   onShowPreferences(listener: () => void): Unsubscribe;
+
+  /** Read an attachment's bytes (for the in-app PDF viewer). */
+  readAttachment(request: ReadAttachmentRequest): Promise<ReadAttachmentResponse>;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

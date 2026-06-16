@@ -13,6 +13,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { typesetMath } from './mathjax.js';
+import { PdfViewer } from './PdfViewer.js';
+
+const isPdf = (f: ItemFile): boolean => f.kind === 'file' && /\.pdf$/i.test(f.url);
 
 /** Common BibTeX entry types offered in the type picker. */
 const ENTRY_TYPES = [
@@ -315,7 +318,7 @@ function Fields({ detail }: { detail: ItemDetail }) {
   );
 }
 
-function Attachments({ detail }: { detail: ItemDetail }) {
+function Attachments({ detail, onPreview }: { detail: ItemDetail; onPreview: (f: ItemFile) => void }) {
   const addAttachment = useStore((s) => s.addAttachment);
   const removeAttachment = useStore((s) => s.removeAttachment);
   return (
@@ -340,8 +343,10 @@ function Attachments({ detail }: { detail: ItemDetail }) {
               <button
                 type="button"
                 className="bd-file__btn"
-                title={`Open ${file.url}`}
-                onClick={() => openExternal(file.url, file.kind === 'url' ? 'url' : 'file')}
+                title={isPdf(file) ? `Preview ${file.displayName}` : `Open ${file.url}`}
+                onClick={() =>
+                  isPdf(file) ? onPreview(file) : openExternal(file.url, file.kind === 'url' ? 'url' : 'file')
+                }
               >
                 <span className="bd-file__icon" aria-hidden="true">
                   {fileIcon(file.kind)}
@@ -370,6 +375,7 @@ export function DetailPane() {
   const detail = useStore((s) => s.detail);
   const selectedItemId = useStore((s) => s.selectedItemId);
   const detailLoading = useStore((s) => s.detailLoading);
+  const [pdfFile, setPdfFile] = useState<ItemFile | null>(null);
 
   if (!selectedItemId) {
     return <div className="bd-detail__empty">Select a publication to see and edit its details.</div>;
@@ -385,7 +391,8 @@ export function DetailPane() {
       <Identity detail={detail} />
       <Fields detail={detail} />
       <NotesSection detail={detail} />
-      <Attachments detail={detail} />
+      <Attachments detail={detail} onPreview={setPdfFile} />
+      {pdfFile && <PdfViewer file={pdfFile} onClose={() => setPdfFile(null)} />}
     </div>
   );
 }

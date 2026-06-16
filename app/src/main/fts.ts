@@ -63,11 +63,22 @@ export class FtsIndex {
       this.available = false;
       return;
     }
-    this.db = new Database(':memory:');
-    this.db.exec(
-      "CREATE VIRTUAL TABLE docs USING fts5(id UNINDEXED, body, tokenize='porter unicode61')",
-    );
-    this.available = true;
+    // The native `.node` addon is dlopen'd lazily inside `new Database()`, not by
+    // the `require` above — so an ABI mismatch (Node vs Electron build) or a
+    // missing FTS5 module throws *here*, not in loadDatabase(). Guard it so a
+    // broken FTS backend degrades to unavailable rather than aborting the whole
+    // document open.
+    try {
+      this.db = new Database(':memory:');
+      this.db.exec(
+        "CREATE VIRTUAL TABLE docs USING fts5(id UNINDEXED, body, tokenize='porter unicode61')",
+      );
+      this.available = true;
+    } catch {
+      this.db?.close();
+      this.db = null;
+      this.available = false;
+    }
   }
 
   /** Replace the whole index with the given records (one transaction). */

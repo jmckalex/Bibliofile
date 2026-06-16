@@ -349,9 +349,25 @@ TeXinfo-quality Help manual** (`docs/help/00–08`) + **Help menu** (in-app manu
 **Preferences pane** (theme, default CSL style, cite-key format, default entry type, field-type
 sets → TypeManager). `pnpm test` = 1286 green; `pnpm -r build` clean. Screenshots in `docs/`.
 
+## PDF preview — DONE (2026-06-16)
+
+In-app PDF.js viewer for attachments: `PdfViewer.tsx` (modal overlay, all pages → canvas, zoom
+±, "Open externally", close). Bytes flow main→renderer via a new `readAttachment` IPC channel
+(`store.attachmentPath` validates the URL is genuinely one of the item's file attachments, so the
+renderer can't read arbitrary paths). DetailPane shows an in-app **Preview** button for `*.pdf`
+file attachments; non-PDF files still open externally. GUI-smoke-verified (2-page sample renders).
+Polish deferred: pass `standardFontDataUrl` so base-14-font PDFs don't log a (harmless) warning.
+
+**Regression fixed (same session):** document failed to open at startup — `new Database(':memory:')`
+in `FtsIndex` dlopen's the native addon *lazily* (not at `require`), so an ABI mismatch (better-
+sqlite3 built for Node, not Electron) threw straight out of `openFile` and aborted the whole open.
+Guarded the constructor → FTS degrades to `available=false` instead of blocking document opening.
+Also rebuilt the addon for the Electron ABI and made `rebuild-native.mjs` probe both `lib` and
+Homebrew's `libexec/lib` node-gyp layouts. FTS verified live under Electron (`fts available=true`).
+
 ## Decisions (user, 2026-06-16)
 
-- **Next: PDF preview** — in-app PDF.js viewer for attachments (pdfjs-dist already a dep).
+- **Next: PDF preview** — in-app PDF.js viewer for attachments (pdfjs-dist already a dep). ✅ DONE
 - **Template engine = Handlebars** (when templates land): helpers/conditionals over plain Mustache;
   emit HTML; editable preview + export templates; not BibDesk-`.template`-compatible.
 - **Scripting = plugin API first, then a Claude assistant.** The JS plugin API over the data model

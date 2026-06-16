@@ -1035,3 +1035,62 @@ button.bd-chip {
   font-size: var(--bd-fs-sm);
   color: var(--bd-text-faint);
 }
+
+/* ---- PDF viewer -------------------------------------------------------- */
+
+.bd-pdf {
+  display: flex;
+  flex-direction: column;
+  width: min(1000px, 92vw);
+  height: 92vh;
+  background: var(--bd-surface);
+  border: 1px solid var(--bd-border-strong);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+}
+
+.bd-pdf__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  background: var(--bd-surface-alt);
+  border-bottom: 1px solid var(--bd-border);
+}
+
+.bd-pdf__name {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 50%;
+}
+
+.bd-pdf__pages {
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-pdf__scroll {
+  flex: 1;
+  overflow: auto;
+  background: var(--bd-surface-alt);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.bd-pdf__page {
+  background: #fff;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+  max-width: 100%;
+  height: auto;
+}
+
+.bd-pdf__error {
+  padding: 24px;
+  color: #b91c1c;
+}

@@ -15,6 +15,7 @@
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url)) + '/..';
@@ -22,10 +23,21 @@ const target = (process.argv[2] ?? 'electron').toLowerCase();
 const require = createRequire(resolve(root, 'app/index.js'));
 
 const bsDir = dirname(require.resolve('better-sqlite3/package.json'));
-const nodeGyp = resolve(
-  process.execPath,
-  '../../lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js',
-);
+
+// Locate npm's bundled node-gyp. The relative path from the node binary varies
+// by install layout (Homebrew moved npm under `libexec/lib`), so probe the
+// known candidates instead of assuming one.
+const nodeGyp = [
+  resolve(process.execPath, '../../lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js'),
+  resolve(
+    process.execPath,
+    '../../libexec/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js',
+  ),
+].find((p) => existsSync(p));
+if (!nodeGyp) {
+  console.error('Could not locate npm’s bundled node-gyp. Try: npx @electron/rebuild -w better-sqlite3');
+  process.exit(1);
+}
 
 // Prefer the system toolchain (Xcode libtool/ar/clang) over any Anaconda shims.
 const env = {

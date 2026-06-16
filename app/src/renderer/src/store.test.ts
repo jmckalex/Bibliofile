@@ -87,6 +87,7 @@ function makeFakeApi() {
     ftsSearch: async () => ({ available: false, ids: [] }),
     getSettings: async () => DEFAULT_SETTINGS,
     updateSettings: async (r) => ({ ...DEFAULT_SETTINGS, ...r.patch }),
+    readAttachment: async () => ({ data: null }),
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
     onShowPreferences: (): Unsubscribe => () => {},

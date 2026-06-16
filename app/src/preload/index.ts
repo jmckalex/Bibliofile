@@ -43,6 +43,8 @@ import {
   type GetSettingsRequest,
   type UpdateSettingsRequest,
   type Settings,
+  type ReadAttachmentRequest,
+  type ReadAttachmentResponse,
 } from '@bibdesk/shared';
 
 const api: BibDeskApi = {
@@ -101,6 +103,9 @@ const api: BibDeskApi = {
     const handler = (): void => listener();
     ipcRenderer.on(IpcEvents.showPreferences, handler);
     return () => ipcRenderer.removeListener(IpcEvents.showPreferences, handler);
+  },
+  readAttachment(request: ReadAttachmentRequest): Promise<ReadAttachmentResponse> {
+    return ipcRenderer.invoke(IpcChannels.readAttachment, request);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

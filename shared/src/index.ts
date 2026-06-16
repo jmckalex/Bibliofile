@@ -96,6 +96,8 @@ export {
   DEFAULT_SETTINGS,
   type GetSettingsRequest,
   type UpdateSettingsRequest,
+  type ReadAttachmentRequest,
+  type ReadAttachmentResponse,
 } from './dto.js';
 
 // --- Renderer-facing bridge -------------------------------------------------

@@ -974,6 +974,21 @@ export class DocumentStore {
     return this.dirtyDetail(doc, item);
   }
 
+  /**
+   * Resolve an attachment URL to a readable local path — but only if it is
+   * genuinely one of the item's file attachments (so the renderer can't read
+   * arbitrary files). Returns undefined otherwise.
+   */
+  attachmentPath(documentId: string, itemId: string, url: string): string | undefined {
+    const doc = this.docs.get(documentId);
+    const item = doc?.itemsById.get(itemId);
+    if (!doc || !item) return undefined;
+    const f = itemFiles(item, doc.library, doc.path).find((x) => x.url === url && x.kind === 'file');
+    if (!f) return undefined;
+    const p = f.url.replace(/^file:\/\/(localhost)?/i, '');
+    return existsSync(p) ? p : undefined;
+  }
+
   /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
   removeAttachment(documentId: string, itemId: string, field: string): EditResult {
     const doc = this.requireDoc(documentId);

@@ -25,6 +25,8 @@ import type {
   GetSettingsRequest,
   UpdateSettingsRequest,
   Settings,
+  ReadAttachmentRequest,
+  ReadAttachmentResponse,
   ListGroupsRequest,
   ListGroupsResponse,
   ListMacrosRequest,
@@ -71,6 +73,7 @@ export interface IpcContract {
   [IpcChannels.ftsSearch]: IpcEntry<FtsSearchRequest, FtsSearchResponse>;
   [IpcChannels.getSettings]: IpcEntry<GetSettingsRequest, Settings>;
   [IpcChannels.updateSettings]: IpcEntry<UpdateSettingsRequest, Settings>;
+  [IpcChannels.readAttachment]: IpcEntry<ReadAttachmentRequest, ReadAttachmentResponse>;
 }
 
 /**
