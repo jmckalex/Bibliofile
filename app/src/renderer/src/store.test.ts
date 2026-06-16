@@ -15,7 +15,7 @@ import type {
   PublicationRow,
   Unsubscribe,
 } from '@bibdesk/shared';
-import { createStore } from './store.js';
+import { createStore, filterRows } from './store.js';
 
 const DOC: OpenedDocument = {
   documentId: 'doc-1',
@@ -144,5 +144,32 @@ describe('viewer store', () => {
 
     const last = calls.listPublications.at(-1)!;
     expect(last.sort).toEqual({ key: 'year', direction: 'asc' });
+  });
+
+  it('setQuery stores the query (client-side filter, no reload)', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    const before = calls.listPublications.length;
+
+    store.getState().setQuery('gamma');
+    expect(store.getState().query).toBe('gamma');
+    // filtering is client-side: no extra listPublications round-trip
+    expect(calls.listPublications.length).toBe(before);
+  });
+});
+
+describe('filterRows', () => {
+  it('returns all rows for an empty/whitespace query', () => {
+    expect(filterRows(ALL_ROWS, '')).toHaveLength(3);
+    expect(filterRows(ALL_ROWS, '   ')).toHaveLength(3);
+  });
+
+  it('matches case-insensitively across cite key, type, authors, title, year', () => {
+    expect(filterRows(ALL_ROWS, 'ALPHA').map((r) => r.id)).toEqual(['i2']);
+    expect(filterRows(ALL_ROWS, 'book').map((r) => r.id)).toEqual(['i2']);
+    expect(filterRows(ALL_ROWS, 'b. author').map((r) => r.id)).toEqual(['i1']);
+    expect(filterRows(ALL_ROWS, '2021').map((r) => r.id)).toEqual(['i3']);
+    expect(filterRows(ALL_ROWS, 'zzz')).toHaveLength(0);
   });
 });

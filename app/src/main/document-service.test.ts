@@ -8,7 +8,12 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, it, expect } from 'vitest';
 
-import { DocumentStore, formatAuthorsDisplay, openLibraryFromText } from './document-service.js';
+import {
+  DocumentStore,
+  formatAuthorsDisplay,
+  openLibraryFromText,
+  toDisplay,
+} from './document-service.js';
 
 // The verbatim BD test.bib copied into the repo by the golden-harness task (T1).
 const FIXTURE = fileURLToPath(
@@ -40,6 +45,21 @@ describe('document-service: BD test.bib', () => {
     expect(row!.authorsDisplay).toContain('Stevenson');
     expect(row!.authorsDisplay).toContain(' and ');
     expect(row!.title).toContain('Higgs fields, bundle gerbes and string structures');
+    // protective braces are stripped for display
+    expect(row!.title).not.toContain('{');
+    expect(row!.title).not.toContain('}');
+
+    const chen = rows.find((r) => r.citeKey === 'chen-complex')!;
+    expect(chen.title).toContain('Calabi-Yau'); // {C}alabi-{Y}au -> Calabi-Yau
+  });
+
+  it('toDisplay de-TeXifies and strips protective braces', () => {
+    expect(toDisplay('{{Higgs fields}}')).toBe('Higgs fields');
+    expect(toDisplay('a product of {C}alabi-{Y}au surfaces')).toBe(
+      'a product of Calabi-Yau surfaces',
+    );
+    // accented TeX still decodes via detexify
+    expect(toDisplay("{\\'E}cole")).toBe('École');
   });
 
   it('lists at least the Library group with the full count', () => {

@@ -29,6 +29,23 @@ export interface SortState {
   readonly direction: SortDirection;
 }
 
+/**
+ * Case-insensitive substring filter across a row's display columns. Pure +
+ * exported for unit testing. An empty/whitespace query returns all rows.
+ */
+export function filterRows(
+  rows: readonly PublicationRow[],
+  query: string,
+): PublicationRow[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [...rows];
+  return rows.filter((r) =>
+    `${r.citeKey} ${r.type} ${r.authorsDisplay} ${r.title} ${r.year}`
+      .toLowerCase()
+      .includes(q),
+  );
+}
+
 export interface ViewerState {
   /** Active document, set once `documentOpened` fires. */
   documentId?: string;
@@ -51,6 +68,9 @@ export interface ViewerState {
   /** Current table sort (default: cite key asc). */
   sort: SortState;
 
+  /** Live search query (client-side substring filter over loaded rows). */
+  query: string;
+
   loading: boolean;
   detailLoading: boolean;
   error?: string;
@@ -68,6 +88,8 @@ export interface ViewerState {
   selectItem: (itemId: string) => Promise<void>;
   /** Toggle sort on a column key (asc⇄desc) and reload. */
   setSort: (key: string) => Promise<void>;
+  /** Set the live search query (client-side; no reload). */
+  setQuery: (query: string) => void;
 }
 
 const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
@@ -84,6 +106,7 @@ export function createStore(api: BibDeskApi) {
     total: 0,
     groups: [],
     sort: DEFAULT_SORT,
+    query: '',
     loading: false,
     detailLoading: false,
 
@@ -167,6 +190,8 @@ export function createStore(api: BibDeskApi) {
       set({ sort: { key, direction } });
       await get().loadPublications();
     },
+
+    setQuery: (query) => set({ query }),
   }));
 }
 

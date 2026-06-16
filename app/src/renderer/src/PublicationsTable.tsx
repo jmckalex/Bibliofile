@@ -17,7 +17,7 @@ import {
 import type { ColumnDef } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { PublicationRow } from '@bibdesk/shared';
-import { useStore } from './store.js';
+import { filterRows, useStore } from './store.js';
 
 const ROW_HEIGHT = 28;
 
@@ -26,6 +26,8 @@ const col = createColumnHelper<PublicationRow>();
 interface ColMeta {
   /** Flex-basis width in px. */
   width: number;
+  /** Whether this column absorbs extra horizontal space. */
+  grow?: boolean;
   /** Extra className applied to body cells. */
   cellClass?: string;
 }
@@ -33,41 +35,46 @@ interface ColMeta {
 const columns: ColumnDef<PublicationRow, string>[] = [
   col.accessor('citeKey', {
     header: 'Cite Key',
-    meta: { width: 150, cellClass: 'bd-td--mono' } satisfies ColMeta,
+    meta: { width: 160, cellClass: 'bd-td--mono' } satisfies ColMeta,
   }),
   col.accessor('type', {
     header: 'Type',
-    meta: { width: 90, cellClass: 'bd-td--type' } satisfies ColMeta,
+    meta: { width: 96, cellClass: 'bd-td--type' } satisfies ColMeta,
   }),
   col.accessor('authorsDisplay', {
     header: 'Authors',
-    meta: { width: 220 } satisfies ColMeta,
+    meta: { width: 240, grow: true } satisfies ColMeta,
   }),
   col.accessor('title', {
     header: 'Title',
-    meta: { width: 320 } satisfies ColMeta,
+    meta: { width: 360, grow: true } satisfies ColMeta,
   }),
   col.accessor('year', {
     header: 'Year',
-    meta: { width: 64, cellClass: 'bd-td--year' } satisfies ColMeta,
+    meta: { width: 72, cellClass: 'bd-td--year' } satisfies ColMeta,
   }),
 ];
 
-function flexFor(width: number): string {
-  // grow, shrink, basis — let Title stretch a bit more.
-  return `1 1 ${width}px`;
+function flexFor(meta: ColMeta | undefined): string {
+  const width = meta?.width ?? 120;
+  // Only Authors/Title grow; fixed columns keep their basis (no shrink) so the
+  // narrow Year/Type columns never collapse or truncate their headers.
+  return meta?.grow ? `1 1 ${width}px` : `0 0 ${width}px`;
 }
 
 export function PublicationsTable() {
   const rows = useStore((s) => s.rows);
+  const query = useStore((s) => s.query);
   const selectedItemId = useStore((s) => s.selectedItemId);
   const sort = useStore((s) => s.sort);
   const selectItem = useStore((s) => s.selectItem);
   const setSort = useStore((s) => s.setSort);
   const loading = useStore((s) => s.loading);
 
+  const data = useMemo(() => filterRows(rows, query), [rows, query]);
+
   const table = useReactTable({
-    data: rows,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     manualSorting: true,
@@ -88,23 +95,17 @@ export function PublicationsTable() {
   const headerGroups = table.getHeaderGroups();
   const virtualItems = virtualizer.getVirtualItems();
 
-  const metaWidths = useMemo(
-    () =>
-      table.getAllColumns().map((c) => (c.columnDef.meta as ColMeta | undefined)?.width ?? 120),
-    [table],
-  );
-
   return (
     <div className="bd-table">
       <div className="bd-table__head" role="row">
-        {headerGroups[0]?.headers.map((header, i) => {
+        {headerGroups[0]?.headers.map((header) => {
           const active = sort.key === header.column.id;
           return (
             <div
               key={header.id}
               className="bd-th"
               role="columnheader"
-              style={{ flex: flexFor(metaWidths[i] ?? 120) }}
+              style={{ flex: flexFor(header.column.columnDef.meta as ColMeta | undefined) }}
               onClick={() => onHeaderClick(header.column.id)}
               aria-sort={active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
             >
@@ -137,14 +138,14 @@ export function PublicationsTable() {
                   aria-selected={selected}
                   onClick={() => void selectItem(row.original.id)}
                 >
-                  {row.getVisibleCells().map((cell, i) => {
+                  {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as ColMeta | undefined;
                     return (
                       <div
                         key={cell.id}
                         role="gridcell"
                         className={'bd-td' + (meta?.cellClass ? ' ' + meta.cellClass : '')}
-                        style={{ flex: flexFor(metaWidths[i] ?? 120) }}
+                        style={{ flex: flexFor(meta) }}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </div>

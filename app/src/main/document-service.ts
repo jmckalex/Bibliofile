@@ -300,7 +300,7 @@ export function toPublicationRow(item: BibItem): PublicationRow {
     citeKey: item.citeKey,
     type: item.type, // already lowercased by the model
     authorsDisplay: formatAuthorsDisplay(item),
-    title: detexify(item.stringValueOfField(FieldNames.Title, true)),
+    title: toDisplay(item.stringValueOfField(FieldNames.Title, true)),
     year: item.stringValueOfField(FieldNames.Year, true),
   };
 }
@@ -350,6 +350,42 @@ function escapeHtml(s: string): string {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/**
+ * Remove BibTeX case-protection / grouping braces for DISPLAY, preserving an
+ * escaped literal brace (`\{`/`\}`). BibDesk strips these when showing values in
+ * the table/preview (e.g. `{C}alabi-{Y}au` → `Calabi-Yau`, `{{Higgs…}}` → `Higgs…`).
+ */
+function stripDisplayBraces(s: string): string {
+  let out = '';
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i]!;
+    if (c === '\\' && (s[i + 1] === '{' || s[i + 1] === '}')) {
+      out += s[i + 1];
+      i++;
+      continue;
+    }
+    if (c === '{' || c === '}') continue;
+    out += c;
+  }
+  return out;
+}
+
+/** De-TeXify + strip protective braces — the standard read-only display transform. */
+export function toDisplay(value: string): string {
+  return stripDisplayBraces(detexify(value));
+}
+
+/**
+ * Display value for one field. URL/file/citation/note fields are NOT TeXified on
+ * disk, so we show them raw (de-TeXifying a URL could mangle it); everything else
+ * goes through {@link toDisplay}.
+ */
+function fieldDisplayValue(name: string, raw: string): string {
+  const lower = name.toLowerCase();
+  if (URL_FIELDS_LOCAL.has(lower) || URL_FIELDS_REMOTE.has(lower)) return raw;
+  return toDisplay(raw);
 }
 
 /**
@@ -411,7 +447,7 @@ export function toItemDetail(item: BibItem): ItemDetail {
     emitted.add(name.toLowerCase());
     fields.push({
       name,
-      value: detexify(item.stringValueOfField(name, false)),
+      value: fieldDisplayValue(name, item.stringValueOfField(name, false)),
       isInherited: false,
     });
   }
@@ -427,7 +463,7 @@ export function toItemDetail(item: BibItem): ItemDetail {
       emitted.add(lower);
       fields.push({
         name,
-        value: detexify(item.stringValueOfField(name, true)),
+        value: fieldDisplayValue(name, item.stringValueOfField(name, true)),
         isInherited: true,
       });
     }
@@ -451,9 +487,9 @@ export function toItemDetail(item: BibItem): ItemDetail {
  * content at all.
  */
 export function buildPreviewHtml(item: BibItem): string | undefined {
-  const title = detexify(item.stringValueOfField(FieldNames.Title, true));
+  const title = toDisplay(item.stringValueOfField(FieldNames.Title, true));
   const authors = formatAuthorsDisplay(item);
-  const journal = detexify(
+  const journal = toDisplay(
     item.stringValueOfField('Journal', true) ||
       item.stringValueOfField('Booktitle', true),
   );

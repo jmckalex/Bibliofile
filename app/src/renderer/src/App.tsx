@@ -8,10 +8,30 @@
  */
 
 import { useEffect } from 'react';
-import { useStore } from './store.js';
+import { filterRows, useStore } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { DetailPane } from './DetailPane.js';
+
+function SearchBox() {
+  const query = useStore((s) => s.query);
+  const setQuery = useStore((s) => s.setQuery);
+  const hasDoc = useStore((s) => s.documentId !== undefined);
+  if (!hasDoc) return null;
+  return (
+    <div className="bd-search">
+      <input
+        className="bd-search__input"
+        type="search"
+        placeholder="Filter publications…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        aria-label="Filter publications"
+        spellCheck={false}
+      />
+    </div>
+  );
+}
 
 function Header() {
   const displayName = useStore((s) => s.displayName);
@@ -32,24 +52,32 @@ function Header() {
           ⚠ {warnings} parse {warnings === 1 ? 'warning' : 'warnings'}
         </span>
       )}
+      <SearchBox />
     </header>
   );
 }
 
 function Footer() {
   const total = useStore((s) => s.total);
+  const rows = useStore((s) => s.rows);
+  const query = useStore((s) => s.query);
   const selectedGroupId = useStore((s) => s.selectedGroupId);
   const groups = useStore((s) => s.groups);
   const loading = useStore((s) => s.loading);
   const error = useStore((s) => s.error);
 
   const groupName = groups.find((g) => g.id === selectedGroupId)?.name;
+  const filtered = query.trim() ? filterRows(rows, query).length : total;
+  const countLabel =
+    filtered === total
+      ? `${total} ${total === 1 ? 'row' : 'rows'}`
+      : `${filtered} of ${total} rows`;
 
   return (
     <footer className="bd-footer">
       <span>
         {groupName ? `${groupName}: ` : ''}
-        {total} {total === 1 ? 'row' : 'rows'}
+        {countLabel}
       </span>
       {loading && <span>Loading…</span>}
       {error && <span className="bd-footer__error">Error: {error}</span>}
