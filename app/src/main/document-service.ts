@@ -49,6 +49,7 @@ import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT } from '@bibdesk/formats';
 import type { Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
+import { exportRis, exportCsv, exportHtml } from './export.js';
 import { FtsIndex } from './fts.js';
 import { extractPdfText } from './pdf-text.js';
 import {
@@ -1516,16 +1517,24 @@ export class DocumentStore {
    */
   exportText(documentId: string, format: ExportFormat, itemIds?: readonly string[]): string {
     const doc = this.requireDoc(documentId);
-    if (format !== 'bibtex') {
-      throw new Error(`Export format "${format}" is not supported yet.`);
+    const items: BibItem[] = itemIds
+      ? itemIds.map((id) => doc.itemsById.get(id)).filter((it): it is BibItem => it !== undefined)
+      : [...doc.library.items];
+
+    switch (format) {
+      case 'bibtex':
+        if (!itemIds) return serialize(doc.library);
+        // Subset: emit each selected entry as a standalone block (no header/macros).
+        return items.map((it) => serializeEntry(it, doc.library.bdskFiles)).join('\n\n') + (items.length ? '\n' : '');
+      case 'ris':
+        return exportRis(items);
+      case 'csv':
+        return exportCsv(items);
+      case 'html':
+        return exportHtml(items, basename(doc.path).replace(/\.bib$/i, '') || 'Bibliography');
+      default:
+        throw new Error(`Export format "${format}" is not supported yet.`);
     }
-    if (!itemIds) return serialize(doc.library);
-    // Subset: emit each selected entry as a standalone block (no header/macros).
-    const blocks = itemIds
-      .map((id) => doc.itemsById.get(id))
-      .filter((it): it is BibItem => it !== undefined)
-      .map((it) => serializeEntry(it, doc.library.bdskFiles));
-    return blocks.join('\n\n') + (blocks.length ? '\n' : '');
   }
 
   /**

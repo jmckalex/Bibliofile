@@ -358,7 +358,7 @@ export interface ReadAttachmentResponse {
  * (reuses the round-trip serializer); the others are reserved for the export
  * feature and may be rejected with an error until then.
  */
-export type ExportFormat = 'bibtex' | 'ris' | 'html' | 'rtf';
+export type ExportFormat = 'bibtex' | 'ris' | 'csv' | 'html' | 'rtf';
 
 /** Request serialized text for a whole document, or a subset of its items. */
 export interface ExportTextRequest {

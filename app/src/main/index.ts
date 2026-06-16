@@ -372,11 +372,19 @@ async function revertToSaved(): Promise<void> {
   openPathWhenReady(path);
 }
 
-/** Export the whole library to a file in the given format (BibTeX today). */
-async function exportDocumentAs(format: 'bibtex'): Promise<void> {
+/** File extension for each export format. */
+const EXPORT_EXT: Record<'bibtex' | 'ris' | 'csv' | 'html', string> = {
+  bibtex: 'bib',
+  ris: 'ris',
+  csv: 'csv',
+  html: 'html',
+};
+
+/** Export the whole library to a file in the given format. */
+async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html'): Promise<void> {
   if (!lastDocumentId) return;
   const current = store.summarize(lastDocumentId);
-  const ext = format === 'bibtex' ? 'bib' : format;
+  const ext = EXPORT_EXT[format];
   const base = current.displayName.replace(/\.bib$/i, '');
   const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
     title: 'Export',
@@ -512,14 +520,10 @@ function buildMenu(): void {
       {
         label: 'Export',
         submenu: [
-          {
-            label: 'BibTeX…',
-            enabled: docEnabled,
-            click: () => void exportDocumentAs('bibtex'),
-          },
-          { label: 'RIS…', enabled: false },
-          { label: 'HTML…', enabled: false },
-          { label: 'RTF…', enabled: false },
+          { label: 'BibTeX…', enabled: docEnabled, click: () => void exportDocumentAs('bibtex') },
+          { label: 'RIS…', enabled: docEnabled, click: () => void exportDocumentAs('ris') },
+          { label: 'CSV…', enabled: docEnabled, click: () => void exportDocumentAs('csv') },
+          { label: 'HTML…', enabled: docEnabled, click: () => void exportDocumentAs('html') },
         ],
       },
       { type: 'separator' },

@@ -197,7 +197,10 @@ describe('document-service: BD test.bib', () => {
     expect(subset).toContain('chen-complex');
     expect(subset).not.toContain('math.DG/0106179'); // only the selected entry
 
-    expect(() => store.exportText(documentId, 'ris')).toThrow(/not supported/i);
+    // RIS/CSV/HTML are supported; RTF is not yet.
+    expect(store.exportText(documentId, 'ris')).toContain('TY  - ');
+    expect(store.exportText(documentId, 'csv')).toContain('Cite Key,');
+    expect(() => store.exportText(documentId, 'rtf')).toThrow(/not supported/i);
   });
 
   it('projects icon-column flags (keywords, attachments, read, rating)', () => {
