@@ -168,6 +168,40 @@ describe('document-service: BD test.bib', () => {
     expect(store.isDirty(documentId)).toBe(false);
   });
 
+  it('undo/redo restore prior states across edits', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');
+    // Re-query the id each time — undo/redo re-parses, so item ids change (the
+    // renderer reloads its selection via documentOpened).
+    const firstId = (): string => store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const titleOf = (): string =>
+      store.getItemDetail({ documentId, itemId: firstId() }).fields.find((f) => f.name.toLowerCase() === 'title')
+        ?.rawValue ?? '';
+    const setTitle = (v: string): void =>
+      void store.applyEdit({ documentId, command: { kind: 'setField', itemId: firstId(), field: 'Title', value: v } });
+
+    expect(store.undoState(documentId).canUndo).toBe(false);
+    setTitle('Two');
+    setTitle('Three');
+    expect(titleOf()).toBe('Three');
+
+    expect(store.undo(documentId)).toBe(true);
+    expect(titleOf()).toBe('Two');
+    expect(store.undo(documentId)).toBe(true);
+    expect(titleOf()).toBe('One');
+    expect(store.undo(documentId)).toBe(false); // nothing left
+
+    expect(store.redo(documentId)).toBe(true);
+    expect(titleOf()).toBe('Two');
+    expect(store.redo(documentId)).toBe(true);
+    expect(titleOf()).toBe('Three');
+
+    // A fresh edit clears the redo branch.
+    store.undo(documentId);
+    setTitle('Four');
+    expect(store.undoState(documentId).canRedo).toBe(false);
+  });
+
   it('autoFile moves a managed attachment into the Papers folder and rewrites the path', () => {
     const dir = mkdtempSync(join(tmpdir(), 'bd-autofile-'));
     const docPath = join(dir, 'lib.bib');

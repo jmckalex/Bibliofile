@@ -51,6 +51,8 @@ export interface OpenedDocument {
   readonly itemCount: number;
   /** Non-fatal parse issues; empty array when the file parsed cleanly. */
   readonly warnings: readonly ParseWarning[];
+  /** Whether the document has unsaved edits (true after undo/redo re-opens it). */
+  readonly dirty?: boolean;
 }
 
 /** Request payload for closing a document. */
@@ -611,6 +613,8 @@ export interface Settings {
   readonly papersFolder: string;
   /** AutoFile destination-name format (BDSKFormatParser; e.g. `%a1/%Y%u0`). */
   readonly autoFileFormat: string;
+  /** When true, save automatically a moment after each edit. */
+  readonly autosave: boolean;
   /** Field-type classification overrides. */
   readonly fieldTypes: FieldTypeSettings;
 }
@@ -638,6 +642,7 @@ export const DEFAULT_SETTINGS: Settings = {
   columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],
   papersFolder: '',
   autoFileFormat: '%a1/%Y%u0',
+  autosave: false,
   fieldTypes: {
     person: ['Author', 'Editor'],
     localFile: ['Local-Url'],

@@ -41,26 +41,52 @@ Times are local. Newest entries appended at the bottom of each section.
 | IC | FontAwesome table icon columns (keywords/attachments/Read) | ✅ done (`35288bf`) |
 | MENU | Full BibDesk-style native menu bar | ✅ done (`326c6ba`) |
 | IMP | Paste BibTeX + drag-and-drop import | ✅ done (`4eb6b7e`) |
+| CITE | Drag-out `\cite{}` + Copy `\cite{}` (configurable template) | ✅ done (`7e98ab7`) |
+| FR | Find & Replace across field values | ✅ done (`b1f8f94`) |
+| DUP | Find Duplicates (cite-key + equivalent content) | ✅ done (`ee7922e`) |
+| COL | Configurable table columns (View menu + Preferences) | ✅ done (`3f60465`) |
+| EXP | Multi-format export (RIS/CSV/HTML via Handlebars) | ✅ done (`d2d0133`) |
+| AC | Field-value autocomplete in the editor | ✅ done (`a032d6a`) |
+| RIS | RIS import + Import From File menu + Show in Finder | ✅ done (`d3c8ab2`) |
+| AF | AutoFile linked files into a Papers folder | ✅ done (`4d255ac`) |
+| SDK | `plugins-sdk` JS plugin API + plugin manager (foundation for Claude assistant) | ✅ done (45 tests) |
 
-**Current state (resume here):** `pnpm -r test` = **1288 passing** (+2 FTS tests skipped on the
+**Current state (resume here):** `pnpm -r test` = **1351 passing** (+2 FTS tests skipped on the
 Node test ABI; flip with `app` script `rebuild:node`/`rebuild:electron`), `pnpm -r build` clean.
-The headless core + a **full read/write bibliography manager** are done and GUI-smoke-verified.
+Per-package: tex 719 · names 88 · config 26 · model 120 · bibtex 70 · formats 94 · groups 106 ·
+shared 15 · plugins-sdk 45 · app 68 (+2 skip). The headless core + a **broad, near-complete
+read/write bibliography manager** are done and GUI-smoke-verified.
 Capabilities: open → browse/search/group → edit fields/cite-keys/types, add/duplicate/delete
-entries, edit `@string` macros → explicit **Save** (atomic + `.bak`), **Save As**, **Revert**,
-**Export BibTeX**. **Paste BibTeX** + **drag-and-drop** import (`.bib` merge, file→entry+attach).
-Multiple **attachments** (`Bdsk-File-N`) with add/remove/open + **in-app PDF preview**. **Online**
-CrossRef/arXiv import. **Markdown** abstracts (MathJax) and notes with `[[citeKey]]` cross-refs +
-inline `<iframe>`. **SQLite FTS5** full-text search incl. extracted PDF text. **Groups** sidebar
-(library/static/smart/category/author) — read/filter/count. **Preferences**, **Help** manual,
-**full native menus**, **FontAwesome icon columns**, light/dark theme, **formatted CSL citations**
-(citation-js — see license note under "Decisions to confirm"). The data logic is the pure
+entries, edit `@string` macros → explicit **Save** (atomic + `.bak`), **Save As**, **Revert**.
+**Paste BibTeX** + **drag-and-drop** import (`.bib` merge, file→entry+attach), **RIS import** +
+**Import From File**. **Find & Replace** across field values; **Find Duplicates** (cite-key +
+equivalent content). **Configurable columns** (any field, show/hide, via View menu + Preferences).
+**Drag-out `\cite{}`** to a TeX editor + **Copy `\cite{}`** (configurable template). **Field-value
+autocomplete** while editing. **AutoFile** linked files into a Papers folder (format language).
+**Multi-format export** — BibTeX + **RIS / CSV / HTML via Handlebars** templates. **Show in
+Finder** / Reveal. Multiple **attachments** (`Bdsk-File-N`) with add/remove/open + **in-app PDF
+preview**. **Online** CrossRef/arXiv import. **Markdown** abstracts (MathJax) and notes with
+`[[citeKey]]` cross-refs + inline `<iframe>`. **SQLite FTS5** full-text search incl. extracted PDF
+text. **Groups** sidebar (library/static/smart/category/author) — read/filter/count. A
+**`plugins-sdk` JS plugin API** (sandboxed library access + plugin manager, 45 tests) is the
+foundation for the planned Claude assistant. **Preferences**, **Help** manual, **full native
+menus**, **FontAwesome icon columns**, light/dark theme, **formatted CSL citations** (citation-js
+— see license note under "Decisions to confirm"). The data logic is the pure
 `app/src/main/document-service.ts` (unit-tested); the Electron shell + IPC are thin. GUI smoke:
 `cd app && BIBDESK_OPEN=<abs.bib> BIBDESK_SMOKE=/tmp/x.png [BIBDESK_SMOKE_DARK=1 |
 BIBDESK_OPEN_PDF=1 | BIBDESK_SMOKE_PASTE='@article{…}'] node_modules/.bin/electron .`.
-Screenshots in `docs/`. **Remaining roadmap** (tracked in the task list / FEATURE-SURVEY.md):
-Handlebars templates+export, editing depth (undo/autosave), smart-group editor, find&replace,
-find duplicates, column config, field autocomplete, RIS import, AutoFile, plugin API → Claude
-assistant.
+Screenshots in `docs/`.
+
+**Remaining work** (tracked in the task list / FEATURE-SURVEY.md — NOT yet shipped):
+- **Editing depth** — undo/redo stack + autosave option; richer per-field-type (person/date)
+  editors. (May be in progress; do not assume done.)
+- **Smart / static group editor** — condition builder over `@bibdesk/groups` + static-group
+  add/remove (incl. via drag), persisted to the `.bib`. Groups are currently read/filter-complete
+  only; no editor UI yet.
+- **Claude scripting assistant** — the in-app Folio-style assistant whose tools ARE the
+  `plugins-sdk` plugin API (latest Claude model + user's Anthropic key via Electron `safeStorage`,
+  mutations gated on approval). The plugin API foundation has shipped; the assistant has not.
+- Lower-priority: Open With / Print; richer template authoring UI.
 
 Dependency graph: B1 → {C1, C2, C7, T1} → C3 → {C4, C5, C6} → {A1 → A2 → A3}.
 C4 gated on C1+C3.
@@ -496,3 +522,42 @@ stages (each a runnable, tested, committed increment; stop-anywhere safe). Locke
   pure-JS index (MiniSearch, MIT) both permissive.
 
 Sequencing: 5 → 6 → 7, each committed before the next. Re-evaluate scope vs. time after each.
+
+---
+
+## Session progress (batch 3 — FEATURE-SURVEY keep-list) — DONE so far (2026-06-16)
+
+After the PDF-preview / icons / menus / paste-import work, the FEATURE-SURVEY keep-list items
+landed as committed increments (each GUI/test-verified; tree kept green):
+
+- **Drag-out `\cite{}` + Copy `\cite{}`** (`7e98ab7`) — drag table rows to a TeX editor to insert
+  `\cite{key}`; a Copy `\cite{…}` command; cite command/template configurable (the worthwhile core
+  of BibDesk's custom-citation panel; the floating drawer + live TeX service are dropped).
+- **Find & Replace** (`b1f8f94`) — scoped search/replace across field values.
+- **Find Duplicates** (`ee7922e`) — duplicate cite keys + equivalent-content (fuzzy title/author)
+  detection.
+- **Configurable table columns** (`3f60465`) — pick any field as a column, show/hide, via the
+  View menu + Preferences.
+- **Multi-format export** (`d2d0133`) — RIS / CSV / HTML via **Handlebars** templates (the chosen
+  template engine; not BibDesk-`.template`-compatible), alongside the existing BibTeX export.
+- **Field-value autocomplete** (`a032d6a`) — complete keywords/journals/crossref keys from
+  existing library values while editing.
+- **RIS import + Import From File + Show in Finder** (`d3c8ab2`) — RIS via the existing config
+  mapping tables; generic Import-From-File menu; Reveal-in-Finder quick win.
+- **AutoFile** (`4d255ac`) — move linked files into a Papers folder via `core/formats`' format
+  language (move engine + Papers-folder pref).
+- **`plugins-sdk` JS plugin API** — the previously-stubbed package is now real: a sandboxed
+  library-access plugin API + plugin manager (`plugin-api.ts`, `plugin-manager.ts`, `entry.ts`,
+  45 tests). This is the toolset foundation for the planned in-app Claude assistant (not yet built).
+
+`pnpm -r test` = **1351 passing** (+2 app FTS tests skipped under the Node test ABI — expected,
+not a failure); `pnpm -r build` clean.
+
+### Still pending (per task list / FEATURE-SURVEY.md) — do NOT claim these are done
+
+- **Editing depth** — undo/redo stack + autosave option; person/date field-type editors.
+- **Smart / static group editor** — condition builder + static-group membership UI, persisted to
+  the `.bib`. (Groups are read/filter-complete; no editor yet.)
+- **Claude scripting assistant** — the in-app assistant over the `plugins-sdk` API (latest Claude
+  model, Anthropic key via `safeStorage`, approval-gated mutations). API foundation done; assistant
+  not started.

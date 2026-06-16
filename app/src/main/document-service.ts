@@ -888,6 +888,89 @@ export class DocumentStore {
     if (c.autoFileFormat) this.editConfig.autoFileFormat = c.autoFileFormat;
   }
 
+  // --- Undo / redo (snapshot-based) ------------------------------------------
+
+  /** Per-document undo/redo stacks of serialized-library snapshots. */
+  private history = new Map<string, { undo: string[]; redo: string[] }>();
+  private static readonly UNDO_LIMIT = 100;
+
+  private historyFor(documentId: string): { undo: string[]; redo: string[] } {
+    let h = this.history.get(documentId);
+    if (!h) {
+      h = { undo: [], redo: [] };
+      this.history.set(documentId, h);
+    }
+    return h;
+  }
+
+  /**
+   * Record the current state as an undo point, BEFORE applying a mutation. Called
+   * at the start of every mutator. Deduplicates against the top of the stack so a
+   * nested/composite operation (e.g. a multi-file drop where the outer method and
+   * the per-file helpers each snapshot) only contributes one undo step per real
+   * change. Clears the redo stack (a new edit branches history).
+   */
+  private snapshot(documentId: string): void {
+    const doc = this.docs.get(documentId);
+    if (!doc) return;
+    const h = this.historyFor(documentId);
+    const snap = this.serializeDocument(documentId);
+    if (h.undo[h.undo.length - 1] === snap) return; // no change since last snapshot
+    h.undo.push(snap);
+    if (h.undo.length > DocumentStore.UNDO_LIMIT) h.undo.shift();
+    h.redo.length = 0;
+  }
+
+  /** Whether undo/redo are currently available for a document. */
+  undoState(documentId: string): { canUndo: boolean; canRedo: boolean } {
+    const h = this.history.get(documentId);
+    return { canUndo: !!h && h.undo.length > 0, canRedo: !!h && h.redo.length > 0 };
+  }
+
+  /** Undo the last mutation; returns true if a state was restored. */
+  undo(documentId: string): boolean {
+    const h = this.historyFor(documentId);
+    const text = h.undo.pop();
+    if (text === undefined) return false;
+    h.redo.push(this.serializeDocument(documentId));
+    this.restoreSnapshot(documentId, text);
+    return true;
+  }
+
+  /** Redo the last undone mutation; returns true if a state was restored. */
+  redo(documentId: string): boolean {
+    const h = this.historyFor(documentId);
+    const text = h.redo.pop();
+    if (text === undefined) return false;
+    h.undo.push(this.serializeDocument(documentId));
+    this.restoreSnapshot(documentId, text);
+    return true;
+  }
+
+  /** Rebuild a document's in-memory state from a serialized snapshot (keeps id+path). */
+  private restoreSnapshot(documentId: string, text: string): void {
+    const prev = this.requireDoc(documentId);
+    const { library, crossrefStore } = openLibraryFromText(text, prev.path);
+    const itemsById = new Map<string, BibItem>();
+    for (const item of library.items) itemsById.set(item.id, item);
+    const fts = new FtsIndex();
+    fts.rebuild(library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') })));
+    prev.fts.close();
+    const next: OpenDoc = {
+      documentId,
+      path: prev.path,
+      library,
+      groups: groupsFromLibrary(library),
+      itemsById,
+      crossrefStore,
+      fts,
+      pdfText: new Map(),
+      attachmentsIndexed: false,
+      dirty: true,
+    };
+    this.docs.set(documentId, next);
+  }
+
   /** Open from already-loaded text. Retains the library and returns the summary. */
   openText(text: string, path: string): OpenedDocument {
     return this.retain(openLibraryFromText(text, path));
@@ -911,6 +994,7 @@ export class DocumentStore {
       displayName: basename(doc.path),
       itemCount: doc.library.items.length,
       warnings: [],
+      dirty: doc.dirty,
     };
   }
 
@@ -1057,6 +1141,7 @@ export class DocumentStore {
    * the document). Marks the document dirty. Returns the refreshed detail.
    */
   addAttachments(documentId: string, itemId: string, absPaths: readonly string[]): EditResult {
+    this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const item = this.itemOf(doc, itemId);
     const baseDir = doc.path ? dirname(doc.path) : '';
@@ -1079,6 +1164,7 @@ export class DocumentStore {
    * BibDesk's "AutoFile Linked File".
    */
   autoFile(documentId: string, itemId: string): { moved: number; errors: string[]; detail: ItemDetail } {
+    this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const item = this.itemOf(doc, itemId);
     const papers = this.editConfig.papersFolder;
@@ -1149,6 +1235,7 @@ export class DocumentStore {
 
   /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
   removeAttachment(documentId: string, itemId: string, field: string): EditResult {
+    this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const item = this.itemOf(doc, itemId);
     item.removeField(field);
@@ -1161,6 +1248,7 @@ export class DocumentStore {
    * auto-generating a cite key from the imported author/year. Selects it.
    */
   importEntry(documentId: string, entryType: string, fields: Record<string, string>): EditResult {
+    this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const fv: Record<string, FieldValue> = {};
     for (const [k, v] of Object.entries(fields)) if (v) fv[k] = v;
@@ -1187,6 +1275,7 @@ export class DocumentStore {
    * are carried over. Returns the new item ids and any non-fatal warnings.
    */
   importBibtexText(documentId: string, text: string): ImportResult {
+    this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const warnings: string[] = [];
     let incoming: BibLibrary;
@@ -1231,6 +1320,7 @@ export class DocumentStore {
    * Cite keys are auto-generated from the cite-key format. Returns the new ids.
    */
   importRisText(documentId: string, text: string): ImportResult {
+    this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const records = parseRis(text);
     const addedIds: string[] = [];
@@ -1264,6 +1354,7 @@ export class DocumentStore {
    * attached. Per-file read failures become warnings rather than aborting.
    */
   importFiles(documentId: string, paths: readonly string[]): ImportResult {
+    this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const addedIds: string[] = [];
     const warnings: string[] = [];
@@ -1312,6 +1403,7 @@ export class DocumentStore {
   findReplace(req: FindReplaceRequest): FindReplaceResult {
     const doc = this.requireDoc(req.documentId);
     if (!req.find) return { matches: [], total: 0, applied: false, dirty: doc.dirty };
+    if (req.apply) this.snapshot(req.documentId); // preview makes no undo point
 
     let re: RegExp;
     try {
@@ -1526,6 +1618,7 @@ export class DocumentStore {
    * no `detail`/affected item beyond what is created.
    */
   applyEdit(req: ApplyEditRequest): EditResult {
+    this.snapshot(req.documentId);
     const doc = this.requireDoc(req.documentId);
     const cmd = req.command;
     switch (cmd.kind) {

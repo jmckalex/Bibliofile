@@ -300,6 +300,17 @@ export function App() {
     void loadSettings();
   }, [loadSettings]);
 
+  // Autosave: a short debounce after the document becomes dirty (opt-in).
+  const dirty = useStore((s) => s.dirty);
+  const autosave = useStore((s) => s.settings.autosave);
+  const saving = useStore((s) => s.saving);
+  const save = useStore((s) => s.save);
+  useEffect(() => {
+    if (!dirty || !autosave || saving) return;
+    const t = setTimeout(() => void save(), 1500);
+    return () => clearTimeout(t);
+  }, [dirty, autosave, saving, save]);
+
   // Paste BibTeX into the library (e.g. from Google Scholar). Editable fields
   // keep their normal paste; a bare paste of `@type{…}` text imports entries.
   useEffect(() => {

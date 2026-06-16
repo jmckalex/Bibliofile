@@ -263,6 +263,21 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
+            <h3>Saving</h3>
+            <label className="bd-prefs__row">
+              <span>Autosave</span>
+              <input
+                type="checkbox"
+                checked={settings.autosave}
+                onChange={(e) => void save({ autosave: e.target.checked })}
+              />
+            </label>
+            <p className="bd-prefs__hint">
+              Save automatically a moment after each edit. Undo (⌘Z) / Redo (⇧⌘Z) work regardless.
+            </p>
+          </section>
+
+          <section className="bd-prefs__section">
             <h3>New entries</h3>
             <label className="bd-prefs__row">
               <span>Default type</span>

@@ -328,6 +328,20 @@ function hasOpenDocument(): boolean {
   return lastDocumentId !== null;
 }
 
+/** Document-level Undo: restore the previous snapshot and re-sync the renderer. */
+function doUndo(): void {
+  if (lastDocumentId && store.undo(lastDocumentId)) {
+    notifyDocumentOpened(store.summarize(lastDocumentId));
+  }
+}
+
+/** Document-level Redo. */
+function doRedo(): void {
+  if (lastDocumentId && store.redo(lastDocumentId)) {
+    notifyDocumentOpened(store.summarize(lastDocumentId));
+  }
+}
+
 /** Save As: pick a new path, write there, and re-sync the renderer (name + dirty). */
 async function saveDocumentAs(): Promise<void> {
   if (!lastDocumentId) return;
@@ -550,8 +564,13 @@ function buildMenu(): void {
   template.push({
     label: 'Edit',
     submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
+      { label: 'Undo', accelerator: 'CmdOrCtrl+Z', enabled: docEnabled, click: () => doUndo() },
+      {
+        label: 'Redo',
+        accelerator: 'Shift+CmdOrCtrl+Z',
+        enabled: docEnabled,
+        click: () => doRedo(),
+      },
       { type: 'separator' },
       { role: 'cut' },
       { role: 'copy' },

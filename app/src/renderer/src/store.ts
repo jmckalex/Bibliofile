@@ -217,7 +217,8 @@ export function createStore(api: BibDeskApi) {
         query: '',
         ftsIds: null,
         macros: [],
-        dirty: false,
+        // honor dirty (set when main re-opens the doc after undo/redo or Save As)
+        dirty: doc.dirty ?? false,
         error: undefined,
       });
       await get().loadGroups();
