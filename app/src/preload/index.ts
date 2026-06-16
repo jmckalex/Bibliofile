@@ -1,2 +1,56 @@
-// @bibdesk-stub — preload bridge; implemented in Wave 4 (A2/A1).
-export {};
+/**
+ * Preload bridge — exposes a typed {@link BibDeskApi} on `window.bibdesk`.
+ *
+ * The renderer talks ONLY to this surface (contextIsolation on, node integration
+ * off). Each method forwards to main via `ipcRenderer.invoke` on the matching
+ * `@bibdesk/shared` channel; the two document-lifecycle events are delivered via
+ * `ipcRenderer.on` and return an unsubscribe.
+ */
+
+import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
+
+import {
+  IpcChannels,
+  IpcEvents,
+  type BibDeskApi,
+  type Unsubscribe,
+  type OpenedDocument,
+  type ClosedDocument,
+  type CloseDocumentRequest,
+  type ListPublicationsRequest,
+  type ListPublicationsResponse,
+  type ListGroupsRequest,
+  type ListGroupsResponse,
+  type GetItemDetailRequest,
+  type ItemDetail,
+} from '@bibdesk/shared';
+
+const api: BibDeskApi = {
+  openDocument(path: string): Promise<OpenedDocument> {
+    return ipcRenderer.invoke(IpcChannels.openDocument, { path });
+  },
+  closeDocument(request: CloseDocumentRequest): Promise<ClosedDocument> {
+    return ipcRenderer.invoke(IpcChannels.closeDocument, request);
+  },
+  listPublications(request: ListPublicationsRequest): Promise<ListPublicationsResponse> {
+    return ipcRenderer.invoke(IpcChannels.listPublications, request);
+  },
+  listGroups(request: ListGroupsRequest): Promise<ListGroupsResponse> {
+    return ipcRenderer.invoke(IpcChannels.listGroups, request);
+  },
+  getItemDetail(request: GetItemDetailRequest): Promise<ItemDetail> {
+    return ipcRenderer.invoke(IpcChannels.getItemDetail, request);
+  },
+  onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);
+    ipcRenderer.on(IpcEvents.documentOpened, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.documentOpened, handler);
+  },
+  onDocumentClosed(listener: (doc: ClosedDocument) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, doc: ClosedDocument): void => listener(doc);
+    ipcRenderer.on(IpcEvents.documentClosed, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.documentClosed, handler);
+  },
+};
+
+contextBridge.exposeInMainWorld('bibdesk', api);
