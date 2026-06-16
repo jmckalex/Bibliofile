@@ -282,7 +282,7 @@ The **Abstract (strict) profile** permits these tags:
 > `blockquote`, `h1`–`h6`, `a`, `sup`, `sub`, `hr`, `del`, `span`
 
 The **Notes profile** permits everything above **plus `iframe`** (see
-[Inline embeds](#inline-embeds)).
+[Inline embeds](#inline-embeds-notes-only)).
 
 Anything else is dropped. In particular:
 

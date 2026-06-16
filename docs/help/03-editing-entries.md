@@ -16,10 +16,10 @@ ideas up front, because they govern almost everything else:
    editor, by contrast, lets you change the *actual text that will be written to
    the file*. This distinction matters the moment you want braces, macros, or
    TeX accents — see [The raw-value model](#the-raw-value-model-what-you-are-really-editing).
-2. **Editing is explicit-save by design.** Your changes live in memory and are
-   not written to disk until you press **Save** (Cmd+S / Ctrl+S). There is no
-   autosave. This is a deliberate safety choice, explained in detail under
-   [The dirty/save model](#the-dirtysave-model).
+2. **Editing is explicit-save by default.** Your changes live in memory and are
+   not written to disk until you press **Save** (Cmd+S / Ctrl+S); there is no
+   autosave unless you turn one on. This is a deliberate safety choice, explained
+   in detail under [The dirty/save model](#the-dirtysave-model).
 
 ![Editing an entry](../viewer-editing.png)
 

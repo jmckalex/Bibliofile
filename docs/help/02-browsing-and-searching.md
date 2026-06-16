@@ -235,38 +235,34 @@ the box to see everything again.
 
 ### 2.3.1 What is matched
 
-The search is a **case-insensitive substring** match. For each row, the
-application checks whether your text appears *anywhere* in the combination of all
-five displayed columns:
+By default the search is a **full-text search** that looks at far more than the
+visible columns. When you type, it queries an index of **all** of an entry's
+field text — including the cite key, type, authors, title, year, **and** the
+abstract, notes, keywords, and every other field — **plus the text extracted from
+attached PDFs**. So:
 
-> **Cite Key** · **Type** · **Authors** · **Title** · **Year**
-
-Because it matches across all of those fields at once:
-
-- Typing `quantum` finds the word in any **title**.
-- Typing an author's surname finds **their papers** (matching the Authors
-  column).
+- Typing `quantum` finds the word in any **title**, abstract, or note.
+- Typing an author's surname finds **their papers**.
 - Typing `article` finds every entry of that **type**.
-- Typing `2019` finds entries from that **year** — and also any cite key or
-  title that happens to contain "2019".
+- Typing `2019` finds entries from that **year** — and also any field that
+  happens to contain "2019".
 - Typing part of a **cite key** (e.g. `einstein`) finds it directly.
+- Typing a phrase from a **PDF** finds the paper that contains it.
 
-It is a *substring* match, not a word match: `ein` matches both `Einstein` and
-`protein`. And it is case-insensitive: `QUANTUM`, `Quantum`, and `quantum` are
-equivalent.
+Matching is **case-insensitive** (`QUANTUM`, `Quantum`, and `quantum` are
+equivalent), results are **ranked by relevance** (best matches first), and terms
+match by **word prefix**, so `bargain` finds *bargaining*. The index is an
+in-memory, rebuildable cache (your `.bib` file stays the source of truth); PDF
+text is folded in shortly after a library opens, so PDF matches can appear a
+moment after the first results.
 
-> **Note (how search actually works):** The app now ships a SQLite-backed
-> **FTS5 full-text search**. When you type, it queries an index of **all** field
-> text — including abstracts, notes, and keywords, not just the five visible
-> columns — **plus the text extracted from attached PDFs**. Results are ranked by
-> relevance (best matches first) and matched by word prefix, so `bargain` finds
-> *bargaining*. The index is an in-memory, rebuildable cache (the `.bib` file
-> stays the source of truth); PDF text is folded in shortly after a library opens.
->
-> If the native search component isn't available for your build, the box
-> automatically falls back to a plain **case-insensitive substring filter** over
-> the five displayed columns — still useful, just not full-text. (Developers:
-> enable FTS in a local build with `pnpm --filter @bibdesk/app rebuild:electron`.)
+> **Note (the substring fallback):** Full-text search relies on a native
+> component. If it isn't available for your build, the box automatically falls
+> back to a plain **case-insensitive substring filter** over the **visible text
+> columns** only (no abstracts, notes, or PDF text) — still useful, just not
+> full-text. In that mode `ein` matches both `Einstein` and `protein` (a literal
+> substring, not a word). Developers can enable full-text search in a local build
+> with `pnpm --filter @bibdesk/app rebuild:electron`.
 
 ### 2.3.2 The "N of M rows" footer
 
@@ -518,7 +514,7 @@ bibdesk-electron is built to handle large libraries comfortably:
   search covers abstracts, notes, keywords, every other field, and attached-PDF
   text — so this should normally work. Two things to check: (1) PDF text is indexed
   in the background just after opening, so give it a moment on large libraries; (2)
-  if your build is using the **substring fallback** (only the five visible columns),
+  if your build is using the **substring fallback** (only the visible text columns),
   the native search component isn't active — rebuild it for the app with `pnpm
   --filter @bibdesk/app rebuild:electron`. Also remember search is scoped to the
   selected group; click **📚 Library** to search everything.

@@ -50,11 +50,13 @@ Times are local. Newest entries appended at the bottom of each section.
 | RIS | RIS import + Import From File menu + Show in Finder | ✅ done (`d3c8ab2`) |
 | AF | AutoFile linked files into a Papers folder | ✅ done (`4d255ac`) |
 | SDK | `plugins-sdk` JS plugin API + plugin manager (foundation for Claude assistant) | ✅ done (45 tests) |
+| UNDO | Undo/redo (snapshot-based) + opt-in autosave | ✅ done (`8421b2b`) |
+| AGENT | Claude scripting assistant (Tools→Claude Assistant, plugin-API tools, safeStorage key) | ✅ done (`a18b4b1`) |
 
-**Current state (resume here):** `pnpm -r test` = **1351 passing** (+2 FTS tests skipped on the
+**Current state (resume here):** `pnpm -r test` = **1358 passing** (+2 FTS tests skipped on the
 Node test ABI; flip with `app` script `rebuild:node`/`rebuild:electron`), `pnpm -r build` clean.
 Per-package: tex 719 · names 88 · config 26 · model 120 · bibtex 70 · formats 94 · groups 106 ·
-shared 15 · plugins-sdk 45 · app 68 (+2 skip). The headless core + a **broad, near-complete
+shared 15 · plugins-sdk 45 · app 75 (+2 skip). The headless core + a **broad, near-complete
 read/write bibliography manager** are done and GUI-smoke-verified.
 Capabilities: open → browse/search/group → edit fields/cite-keys/types, add/duplicate/delete
 entries, edit `@string` macros → explicit **Save** (atomic + `.bak`), **Save As**, **Revert**.
@@ -77,16 +79,19 @@ menus**, **FontAwesome icon columns**, light/dark theme, **formatted CSL citatio
 BIBDESK_OPEN_PDF=1 | BIBDESK_SMOKE_PASTE='@article{…}'] node_modules/.bin/electron .`.
 Screenshots in `docs/`.
 
-**Remaining work** (tracked in the task list / FEATURE-SURVEY.md — NOT yet shipped):
-- **Editing depth** — undo/redo stack + autosave option; richer per-field-type (person/date)
-  editors. (May be in progress; do not assume done.)
-- **Smart / static group editor** — condition builder over `@bibdesk/groups` + static-group
-  add/remove (incl. via drag), persisted to the `.bib`. Groups are currently read/filter-complete
-  only; no editor UI yet.
-- **Claude scripting assistant** — the in-app Folio-style assistant whose tools ARE the
-  `plugins-sdk` plugin API (latest Claude model + user's Anthropic key via Electron `safeStorage`,
-  mutations gated on approval). The plugin API foundation has shipped; the assistant has not.
-- Lower-priority: Open With / Print; richer template authoring UI.
+Editing depth (undo/redo + autosave) and the Claude assistant are now **shipped** (see board).
+
+**Remaining work** (the one deferred item — see `DESIGN-LOG.md` for the rationale):
+- **Smart / static group EDITOR** — DEFERRED, not abandoned. Each `@comment{BibDesk <Kind>
+  Groups{…}}` block parses to ONE `GroupRecord` whose `data` is an **array of group dicts**, but
+  `buildGroup`/`listGroups` read it as a single dict — and the reference fixture (`bd-test.bib`)
+  has NO group blocks, so the parsed static/smart group path is unverified (only the computed
+  Author/Keyword *category* groups are exercised). The plan: verify/fix `groupsFromLibrary` to
+  expand each record's dict-array into N typed groups with stable `(recordIndex, dictIndex)` ids,
+  using a real multi-group BibDesk file as a fixture (to protect the byte-faithful round-trip),
+  THEN add create/rename/delete + static add/remove + a smart-condition builder.
+- Lower-priority polish: Open With / Print; richer (editable) Handlebars template authoring UI;
+  richer person/date field-type editors.
 
 Dependency graph: B1 → {C1, C2, C7, T1} → C3 → {C4, C5, C6} → {A1 → A2 → A3}.
 C4 gated on C1+C3.
