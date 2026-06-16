@@ -21,7 +21,7 @@ Times are local. Newest entries appended at the bottom of each section.
 | C4 | `core/bibtex` — custom round-trip parser + serializer (keystone) | 🔄 running |
 | C5 | `core/formats` — cite-key/autofile mini-language, CRC32 | 🔄 running |
 | C6 | `core/groups` — taxonomy + smart-group predicate evaluator | 🔄 running |
-| A1 | `shared` — IPC contract + types | 🔄 running |
+| A1 | `shared` — IPC contract + types | ✅ done (12 tests) |
 | A2 | `app/src/main` — Electron main, open .bib, read API over IPC | ⏳ pending |
 | A3 | `app/src/renderer` — React + Zustand + TanStack viewer | ⏳ pending |
 
@@ -159,7 +159,14 @@ bdsk-file blobs), TS 5.9, Vitest 2.1, ESLint 9 flat + typescript-eslint 8 + pret
 - **C5 `core/formats`** — BDSKFormatParser cite-key/autofile mini-language, CRC32, sanitizers.
 - **C6 `core/groups`** — group taxonomy + BDSKFilter/Condition evaluator; consumes/produces
   the same serialized-plist group shapes C4 emits (Static/Smart/URL/Script).
-- **A1 `shared`** — typed IPC contract + clone-safe DTOs (PublicationRow/GroupNode/ItemDetail).
+- **A1 `shared` — DONE & committed (`d460936`).** Channel constants (`bibdesk:*`),
+  `IpcContract` map + `RequestOf`/`ResponseOf` helpers, `BibDeskApi` bridge interface,
+  DTOs (`PublicationRow`, `GroupNode`, `ItemDetail`, `OpenedDocument`). 12 tests.
+  **A2/A3 notes:** main registers `ipcMain.handle(IpcChannels.X, …)`, keeps the
+  publications array, does ALL formatting (authorsDisplay via names, title TeX-strip via
+  tex, isInherited via model), returns `{rows,total}` for the virtualizer; renderer programs
+  only against `window.bibdesk: BibDeskApi` + DTOs (never imports channel constants).
+- Electron runtime binary downloaded (242M, `Electron.app`) — Wave-4 smoke test unblocked.
 
 ## Next step
 
