@@ -1545,5 +1545,621 @@
     "file": "0020-7136.ico",
     "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
     "kind": "favicon"
+  },
+  {
+    "issnL": "1476-1122",
+    "name": "Nature Materials",
+    "file": "1476-1122.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/5021/top_item_image/NMat_Hero_june_26-bb76bb0d7bdcf97f3dbe5d5edfe7fc88.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0146-9592",
+    "name": "Optics Letters",
+    "file": "0146-9592.ico",
+    "sourceUrl": "http://www.opticsinfobase.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0363-7425",
+    "name": "Academy of Management Review",
+    "file": "0363-7425.png",
+    "sourceUrl": "https://www.aom.org/wp-content/uploads/2025/09/amr_featured_image.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0022-3042",
+    "name": "Journal of Neurochemistry",
+    "file": "0022-3042.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1664-3224",
+    "name": "Frontiers in Immunology",
+    "file": "1664-3224.ico",
+    "sourceUrl": "http://journal.frontiersin.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1097-6256",
+    "name": "Nature Neuroscience",
+    "file": "1097-6256.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/5247/top_item_image/NN_cover_hero_JUN26-fb826c5442d3669ccbd5dd36806fdeaa.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0012-821X",
+    "name": "Earth and Planetary Science Letters",
+    "file": "0012-821X.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0012-9682",
+    "name": "Econometrica",
+    "file": "0012-9682.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1548-7091",
+    "name": "Nature Methods",
+    "file": "1548-7091.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/5307/top_item_image/nMeth_hero_JUN26-3c3c650b1207e8f6dd7a64e2edfec341.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0001-4842",
+    "name": "Accounts of Chemical Research",
+    "file": "0001-4842.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0002-8762",
+    "name": "The American Historical Review",
+    "file": "0002-8762.jpg",
+    "sourceUrl": "https://poltekkesbatangkuis.org/img/banner-dewijoker.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0888-5885",
+    "name": "Industrial & Engineering Chemistry Research",
+    "file": "0888-5885.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0007-0920",
+    "name": "British Journal of Cancer",
+    "file": "0007-0920.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/7591/top_item_image/British_Journal_of_Cancer-72b35edf9d30fe07a4fa7a51919b2b91.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0003-1224",
+    "name": "American Sociological Review",
+    "file": "0003-1224.png",
+    "sourceUrl": "https://us.sagepub.com/global/icons/apple-touch-icon-precomposed.png",
+    "kind": "apple-touch-icon"
+  },
+  {
+    "issnL": "0043-1397",
+    "name": "Water Resources Research",
+    "file": "0043-1397.ico",
+    "sourceUrl": "http://agupubs.onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0004-3591",
+    "name": "Arthritis & Rheumatism",
+    "file": "0004-3591.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0028-646X",
+    "name": "New Phytologist",
+    "file": "0028-646X.ico",
+    "sourceUrl": "https://nph.onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0008-6223",
+    "name": "Carbon",
+    "file": "0008-6223.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0003-2670",
+    "name": "Analytica Chimica Acta",
+    "file": "0003-2670.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0021-8995",
+    "name": "Journal of Applied Polymer Science",
+    "file": "0021-8995.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0022-1694",
+    "name": "Journal of Hydrology",
+    "file": "0022-1694.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0376-7388",
+    "name": "Journal of Membrane Science",
+    "file": "0376-7388.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0009-3920",
+    "name": "Child Development",
+    "file": "0009-3920.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1664-302X",
+    "name": "Frontiers in Microbiology",
+    "file": "1664-302X.ico",
+    "sourceUrl": "http://www.frontiersin.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0277-9536",
+    "name": "Social Science & Medicine",
+    "file": "0277-9536.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1089-5639",
+    "name": "The Journal of Physical Chemistry A",
+    "file": "1089-5639.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0022-3085",
+    "name": "Journal of neurosurgery",
+    "file": "0022-3085.png",
+    "sourceUrl": "https://thejns.org/fileasset/JNS300px.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0018-9448",
+    "name": "IEEE Transactions on Information Theory",
+    "file": "0018-9448.ico",
+    "sourceUrl": "http://www.comm.utoronto.ca/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "2040-3364",
+    "name": "Nanoscale",
+    "file": "2040-3364.png",
+    "sourceUrl": "http://pubs.rsc.org/apple-touch-icon.png",
+    "kind": "apple-touch-icon"
+  },
+  {
+    "issnL": "0021-9991",
+    "name": "Journal of Computational Physics",
+    "file": "0021-9991.png",
+    "sourceUrl": "http://www.elsevier.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0944-1344",
+    "name": "Environmental Science and Pollution Research",
+    "file": "0944-1344.jpg",
+    "sourceUrl": "https://media.springernature.com/w92/springer-static/cover/journal/11356.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0014-2999",
+    "name": "European Journal of Pharmacology",
+    "file": "0014-2999.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0001-4273",
+    "name": "Academy of Management Journal",
+    "file": "0001-4273.png",
+    "sourceUrl": "https://www.aom.org/wp-content/uploads/2025/09/amj_featured_image.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0003-9861",
+    "name": "Archives of Biochemistry and Biophysics",
+    "file": "0003-9861.png",
+    "sourceUrl": "http://www.elsevier.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1754-5692",
+    "name": "Energy & Environmental Science",
+    "file": "1754-5692.jpg",
+    "sourceUrl": "http://www.rsc.org/getContentAsset/beb574dd-cfbb-4c7c-b672-87b474d40385/97c19dfb-06fc-4638-b657-b9d8300eab48/energy-and-environmental-science-journal-cover.jpg?language=en",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1664-1078",
+    "name": "Frontiers in Psychology",
+    "file": "1664-1078.ico",
+    "sourceUrl": "http://www.frontiersin.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0002-7820",
+    "name": "Journal of the American Ceramic Society",
+    "file": "0002-7820.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0022-2429",
+    "name": "Journal of Marketing",
+    "file": "0022-2429.png",
+    "sourceUrl": "https://us.sagepub.com/global/icons/apple-touch-icon-precomposed.png",
+    "kind": "apple-touch-icon"
+  },
+  {
+    "issnL": "0304-3940",
+    "name": "Neuroscience Letters",
+    "file": "0304-3940.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0003-4975",
+    "name": "The Annals of Thoracic Surgery",
+    "file": "0003-4975.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0018-9219",
+    "name": "Proceedings of the IEEE",
+    "file": "0018-9219.png",
+    "sourceUrl": "https://proceedingsoftheieee.ieee.org/wp-content/uploads/2021/10/article-icon-upcoming.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1613-6810",
+    "name": "Small",
+    "file": "1613-6810.ico",
+    "sourceUrl": "https://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0012-1606",
+    "name": "Developmental Biology",
+    "file": "0012-1606.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1664-462X",
+    "name": "Frontiers in Plant Science",
+    "file": "1664-462X.ico",
+    "sourceUrl": "http://journal.frontiersin.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "2375-2548",
+    "name": "Science Advances",
+    "file": "2375-2548.ico",
+    "sourceUrl": "https://www.science.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0960-7412",
+    "name": "The Plant Journal",
+    "file": "0960-7412.ico",
+    "sourceUrl": "https://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0007-1188",
+    "name": "British Journal of Pharmacology",
+    "file": "0007-1188.ico",
+    "sourceUrl": "https://bpspubs.onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0006-2952",
+    "name": "Biochemical Pharmacology",
+    "file": "0006-2952.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0024-3205",
+    "name": "Life Sciences",
+    "file": "0024-3205.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0959-9428",
+    "name": "Journal of Materials Chemistry",
+    "file": "0959-9428.jpg",
+    "sourceUrl": "http://www.rsc.org/getContentAsset/13543419-5f5c-4aa9-81c2-53674f17cef7/97c19dfb-06fc-4638-b657-b9d8300eab48/RSC-fallback-Image.jpg?language=en",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1471-0072",
+    "name": "Nature Reviews Molecular Cell Biology",
+    "file": "1471-0072.png",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/6923/top_item_image/nrmcb_hero_jun26-b5479b2693cc0cfa0e49a6b22a30386d.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "2155-5435",
+    "name": "ACS Catalysis",
+    "file": "2155-5435.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0950-382X",
+    "name": "Molecular Microbiology",
+    "file": "0950-382X.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0143-2095",
+    "name": "Strategic Management Journal",
+    "file": "0143-2095.ico",
+    "sourceUrl": "https://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0168-3659",
+    "name": "Journal of Controlled Release",
+    "file": "0168-3659.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0378-5173",
+    "name": "International Journal of Pharmaceutics",
+    "file": "0378-5173.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1680-7316",
+    "name": "Atmospheric chemistry and physics",
+    "file": "1680-7316.png",
+    "sourceUrl": "https://www.atmospheric-chemistry-and-physics.net/favicon_copernicus_180x180_.png",
+    "kind": "apple-touch-icon"
+  },
+  {
+    "issnL": "1474-175X",
+    "name": "Nature reviews. Cancer",
+    "file": "1474-175X.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/6563/top_item_image/NRC-June26-hero-70679e2b7e1ec12dd518de52392b783f.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0276-7333",
+    "name": "Organometallics",
+    "file": "0276-7333.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1529-2908",
+    "name": "Nature Immunology",
+    "file": "1529-2908.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/4663/top_item_image/NI-Hero-June-2026-ca5daaef050561a9015de741624f451f.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1614-6832",
+    "name": "Advanced Energy Materials",
+    "file": "1614-6832.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0264-410X",
+    "name": "Vaccine",
+    "file": "0264-410X.png",
+    "sourceUrl": "http://www.elsevier.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1471-2458",
+    "name": "BMC Public Health",
+    "file": "1471-2458.jpg",
+    "sourceUrl": "https://media.springernature.com/w110/springer-static/cover/journal/12889.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0044-8486",
+    "name": "Aquaculture",
+    "file": "0044-8486.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "2050-084X",
+    "name": "eLife",
+    "file": "2050-084X.png",
+    "sourceUrl": "https://elifesciences.org/assets/images/social/icon-600x600@1.52e87ee6.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0175-7598",
+    "name": "Applied Microbiology and Biotechnology",
+    "file": "0175-7598.jpg",
+    "sourceUrl": "https://media.springernature.com/w92/springer-static/cover/journal/253.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0029-8549",
+    "name": "Oecologia",
+    "file": "0029-8549.jpg",
+    "sourceUrl": "https://media.springernature.com/w92/springer-static/cover/journal/442.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1465-7392",
+    "name": "Nature Cell Biology",
+    "file": "1465-7392.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/4931/top_item_image/NCB_Hero_Jun26-b5a9624fdeb78700f7fd682c88956f7d.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0378-1119",
+    "name": "Gene",
+    "file": "0378-1119.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1748-3387",
+    "name": "Nature Nanotechnology",
+    "file": "1748-3387.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/5907/top_item_image/NNano-Hero-May-2026-b59ef29961029c1451ea4c2a95eec3bd.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0022-2437",
+    "name": "Journal of Marketing Research",
+    "file": "0022-2437.png",
+    "sourceUrl": "https://us.sagepub.com/global/icons/apple-touch-icon-precomposed.png",
+    "kind": "apple-touch-icon"
+  },
+  {
+    "issnL": "0014-4827",
+    "name": "Experimental Cell Research",
+    "file": "0014-4827.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1420-682X",
+    "name": "Cellular and Molecular Life Sciences",
+    "file": "1420-682X.jpg",
+    "sourceUrl": "https://media.springernature.com/w92/springer-static/cover/journal/18.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1471-003X",
+    "name": "Nature reviews. Neuroscience",
+    "file": "1471-003X.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/6863/top_item_image/41583_NRN_Hero_Jun26-99d1d58fb065b3af7ad22e5c3e14bef6.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1474-1733",
+    "name": "Nature reviews. Immunology",
+    "file": "1474-1733.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/6833/top_item_image/NRMicro-June-2026-fb05cec878fd677c6839d587e4d9a5aa.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1354-1013",
+    "name": "Global Change Biology",
+    "file": "1354-1013.ico",
+    "sourceUrl": "https://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0022-328X",
+    "name": "Journal of Organometallic Chemistry",
+    "file": "0022-328X.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1477-9226",
+    "name": "Dalton Transactions",
+    "file": "1477-9226.jpg",
+    "sourceUrl": "http://www.rsc.org/getContentAsset/0d3ce760-1c4f-41e5-888f-2e2b482e8f3c/97c19dfb-06fc-4638-b657-b9d8300eab48/dalton-journal-cover.jpg?language=en",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0378-8741",
+    "name": "Journal of Ethnopharmacology",
+    "file": "0378-8741.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0031-9228",
+    "name": "Physics Today",
+    "file": "0031-9228.png",
+    "sourceUrl": "http://www.physicstoday.org/apple-touch-icon.png",
+    "kind": "apple-touch-icon"
+  },
+  {
+    "issnL": "0039-9140",
+    "name": "Talanta",
+    "file": "0039-9140.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0024-3590",
+    "name": "Limnology and Oceanography",
+    "file": "0024-3590.ico",
+    "sourceUrl": "https://aslopubs.onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1949-2553",
+    "name": "Oncotarget",
+    "file": "1949-2553.png",
+    "sourceUrl": "http://www.impactjournals.com/wp-content/themes/impactjournals/favicon/favicon-57.png",
+    "kind": "apple-touch-icon"
+  },
+  {
+    "issnL": "1745-2473",
+    "name": "Nature Physics",
+    "file": "1745-2473.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/4695/top_item_image/2605-933beb81c21a54d1efdd9a7c0e59a277.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1755-4330",
+    "name": "Nature Chemistry",
+    "file": "1755-4330.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/5937/top_item_image/nchem_hero_MAY26__1_-fc29d5277390077443a0258d820fef21.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0003-0554",
+    "name": "American Political Science Review",
+    "file": "0003-0554.png",
+    "sourceUrl": "https://apsanet.org/wp-content/uploads/2024/06/APSALOGO-whtbg-circle-300x300.png",
+    "kind": "apple-touch-icon"
+  },
+  {
+    "issnL": "0092-5853",
+    "name": "American Journal of Political Science",
+    "file": "0092-5853.ico",
+    "sourceUrl": "https://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0022-0515",
+    "name": "Journal of Economic Literature",
+    "file": "0022-0515.ico",
+    "sourceUrl": "http://www.aeaweb.org/favicon.ico",
+    "kind": "favicon"
   }
 ]

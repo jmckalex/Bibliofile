@@ -33,6 +33,8 @@ import {
   type SaveDocumentResult,
   type FormatCitationRequest,
   type FormatCitationResult,
+  type CopyRtfRequest,
+  type CopyRtfResponse,
   type AddAttachmentRequest,
   type RemoveAttachmentRequest,
   type SearchOnlineRequest,
@@ -99,6 +101,9 @@ const api: BibDeskApi = {
   },
   formatCitation(request: FormatCitationRequest): Promise<FormatCitationResult> {
     return ipcRenderer.invoke(IpcChannels.formatCitation, request);
+  },
+  copyRtf(request: CopyRtfRequest): Promise<CopyRtfResponse> {
+    return ipcRenderer.invoke(IpcChannels.copyRtf, request);
   },
   addAttachment(request: AddAttachmentRequest): Promise<EditResult> {
     return ipcRenderer.invoke(IpcChannels.addAttachment, request);

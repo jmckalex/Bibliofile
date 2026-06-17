@@ -107,6 +107,8 @@ export {
   type ImportDialogRequest,
   type ImportResult,
   type FieldKind,
+  type CopyRtfRequest,
+  type CopyRtfResponse,
   type FindReplaceRequest,
   type FindReplaceMatch,
   type FindReplaceResult,

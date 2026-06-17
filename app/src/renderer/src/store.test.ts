@@ -81,6 +81,7 @@ function makeFakeApi() {
     listMacros: async () => ({ macros: [] }),
     saveDocument: async (r) => ({ documentId: r.documentId, path: '/tmp/test.bib' }),
     formatCitation: async (r) => ({ styleId: r.styleId, html: '<div>cite</div>' }),
+    copyRtf: async () => ({ ok: true }),
     addAttachment: async () => ({ dirty: true }),
     removeAttachment: async () => ({ dirty: true }),
     autoFile: async () => ({ moved: 0, errors: [], dirty: true, detail: DETAIL }),

@@ -285,6 +285,15 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       if (res.html) await navigator.clipboard.writeText(htmlToText(res.html));
       return;
     }
+    case 'copyRtf': {
+      if (!documentId || !selectedItemId || !window.bibdesk) return;
+      await window.bibdesk.copyRtf({
+        documentId,
+        itemId: selectedItemId,
+        styleId: store.settings.defaultCiteStyle,
+      });
+      return;
+    }
   }
 }
 

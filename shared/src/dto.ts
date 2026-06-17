@@ -169,6 +169,19 @@ export interface FormatCitationRequest {
   readonly styleId: string;
 }
 
+/** Copy one item's formatted citation to the clipboard as RTF (+ plain text). */
+export interface CopyRtfRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+  readonly styleId: string;
+}
+
+/** Result of a clipboard write. */
+export interface CopyRtfResponse {
+  readonly ok: boolean;
+  readonly error?: string;
+}
+
 /** Result: the formatted citation as an HTML string. */
 export interface FormatCitationResult {
   readonly styleId: string;
@@ -804,6 +817,7 @@ export type MenuCommand =
   | 'copyCitation'
   | 'copyBibtex'
   | 'copyCite'
+  | 'copyRtf'
   // View
   | 'toggleTheme'
   // App

@@ -15,6 +15,8 @@ import type {
   EditResult,
   FormatCitationRequest,
   FormatCitationResult,
+  CopyRtfRequest,
+  CopyRtfResponse,
   FtsSearchRequest,
   FtsSearchResponse,
   GetItemDetailRequest,
@@ -103,6 +105,9 @@ export interface BibDeskApi {
 
   /** Format one item as a CSL-styled citation (HTML). */
   formatCitation(request: FormatCitationRequest): Promise<FormatCitationResult>;
+
+  /** Copy one item's formatted citation to the clipboard as RTF (+ plain text). */
+  copyRtf(request: CopyRtfRequest): Promise<CopyRtfResponse>;
 
   /** Add attachment(s) to an item (opens a file picker in main). */
   addAttachment(request: AddAttachmentRequest): Promise<EditResult>;

@@ -25,6 +25,7 @@ import {
   Menu,
   shell,
   safeStorage,
+  clipboard,
   type MenuItemConstructorOptions,
   type IpcMainInvokeEvent,
 } from 'electron';
@@ -43,6 +44,7 @@ import { DocumentStore } from './document-service.js';
 import { runAgentTurn } from './agent.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
+import { htmlToRtf, wrapRtf } from './rtf.js';
 import { formatCitation } from './csl.js';
 import { searchOnline } from './online.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
@@ -282,6 +284,27 @@ function refreshOpenDocument(): void {
   if (lastDocumentId) notifyDocumentOpened(store.summarize(lastDocumentId));
 }
 
+/** Strip an HTML citation fragment to plain text (for the clipboard text flavor). */
+function htmlToPlain(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Build a complete RTF bibliography document for the whole library (CSL-formatted). */
+function buildLibraryRtf(documentId: string, styleId: string): string {
+  const ids = store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.id);
+  const paras = ids.map((id) => htmlToRtf(formatCitation(store.cslItemFor(documentId, id), styleId)));
+  return wrapRtf(paras);
+}
+
 /**
  * Dispatch an `x-bibdesk://` automation URL (AppleScript / shell / other apps).
  * Commands: `open?file=`, `import?bibtex=|doi=`, `new?type=&Field=…`. Mutating
@@ -493,15 +516,16 @@ async function revertToSaved(): Promise<void> {
 }
 
 /** File extension for each export format. */
-const EXPORT_EXT: Record<'bibtex' | 'ris' | 'csv' | 'html', string> = {
+const EXPORT_EXT: Record<'bibtex' | 'ris' | 'csv' | 'html' | 'rtf', string> = {
   bibtex: 'bib',
   ris: 'ris',
   csv: 'csv',
   html: 'html',
+  rtf: 'rtf',
 };
 
 /** Export the whole library to a file in the given format. */
-async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html'): Promise<void> {
+async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html' | 'rtf'): Promise<void> {
   if (!lastDocumentId) return;
   const current = store.summarize(lastDocumentId);
   const ext = EXPORT_EXT[format];
@@ -513,7 +537,12 @@ async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html'): Prom
   });
   if (result.canceled || !result.filePath) return;
   try {
-    writeFileSync(result.filePath, store.exportText(lastDocumentId, format), 'utf8');
+    // RTF is a CSL-formatted bibliography (built here); the rest serialize in the store.
+    const text =
+      format === 'rtf'
+        ? buildLibraryRtf(lastDocumentId, getSettings().defaultCiteStyle)
+        : store.exportText(lastDocumentId, format);
+    writeFileSync(result.filePath, text, 'utf8');
   } catch (err) {
     void dialog.showMessageBox(mainWindow ?? undefined!, {
       type: 'error',
@@ -657,6 +686,7 @@ function buildMenu(): void {
           { label: 'RIS…', enabled: docEnabled, click: () => void exportDocumentAs('ris') },
           { label: 'CSV…', enabled: docEnabled, click: () => void exportDocumentAs('csv') },
           { label: 'HTML…', enabled: docEnabled, click: () => void exportDocumentAs('html') },
+          { label: 'RTF (formatted bibliography)…', enabled: docEnabled, click: () => void exportDocumentAs('rtf') },
         ],
       },
       { type: 'separator' },
@@ -715,6 +745,12 @@ function buildMenu(): void {
         label: 'Copy Citation',
         enabled: docEnabled,
         click: () => sendMenuCommand('copyCitation'),
+      },
+      {
+        label: 'Copy Citation as RTF',
+        accelerator: 'Alt+CmdOrCtrl+R',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('copyRtf'),
       },
       {
         label: 'Copy as BibTeX',
@@ -1045,6 +1081,15 @@ function registerIpc(): void {
         return { styleId: req.styleId, html: '', error: e instanceof Error ? e.message : String(e) };
       }
     },
+    [IpcChannels.copyRtf]: (req) => {
+      try {
+        const html = formatCitation(store.cslItemFor(req.documentId, req.itemId), req.styleId);
+        clipboard.write({ rtf: wrapRtf([htmlToRtf(html)]), text: htmlToPlain(html) });
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      }
+    },
     [IpcChannels.addAttachment]: async (req) => {
       const opts: Electron.OpenDialogOptions = {
         title: 'Add Attachment',
@@ -1200,6 +1245,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.formatCitation, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.formatCitation](req),
+  );
+  ipcMain.handle(IpcChannels.copyRtf, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.copyRtf](req),
   );
   ipcMain.handle(IpcChannels.addAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.addAttachment](req),
