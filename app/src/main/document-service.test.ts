@@ -714,6 +714,17 @@ describe('document-service: BD test.bib', () => {
     expect(() => store.exportText(documentId, 'rtf')).toThrow(/not supported/i);
   });
 
+  it('does not write empty field values to BibTeX (cleared/untouched optional fields)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {T}}', '/tmp/empty.bib');
+    const id = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    // Clearing an optional field to '' (as the editor would) must not persist it.
+    store.applyEdit({ documentId, command: { kind: 'setField', itemId: id, field: 'Url', value: '' } });
+    const text = store.exportText(documentId, 'bibtex');
+    expect(text).not.toMatch(/^\s*url\s*=/im); // empty field dropped on write
+    expect(text).toContain('title = '); // real fields still written
+  });
+
   it('projects icon-column flags (keywords, attachments, read, rating)', () => {
     const store = new DocumentStore();
     const FLAGS = `
