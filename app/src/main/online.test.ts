@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { parseCrossref, parseArxiv, parseOpenAlex, parseOpenLibrary, parsePubmed } from './online.js';
+import {
+  parseCrossref,
+  parseArxiv,
+  parseOpenAlex,
+  parseOpenLibrary,
+  parsePubmed,
+  extractDoi,
+} from './online.js';
 
 describe('parseCrossref', () => {
   it('maps a CrossRef journal-article to normalised + BibTeX fields', () => {
@@ -69,6 +76,20 @@ describe('parseArxiv', () => {
     expect(results).toHaveLength(1);
     expect(results[0]!.fields.Author).toBe('A. Solo');
     expect(results[0]!.year).toBe('1999');
+  });
+});
+
+describe('extractDoi', () => {
+  it('finds a DOI in flowing text and trims trailing punctuation', () => {
+    expect(extractDoi('See doi:10.1016/j.cognition.2003.10.005, which argues…')).toBe(
+      '10.1016/j.cognition.2003.10.005',
+    );
+    expect(extractDoi('https://doi.org/10.1023/A:1005239929271')).toBe('10.1023/A:1005239929271');
+    expect(extractDoi('plain 10.1000/xyz123 here')).toBe('10.1000/xyz123');
+  });
+
+  it('returns null when there is no DOI', () => {
+    expect(extractDoi('no identifier here')).toBeNull();
   });
 });
 

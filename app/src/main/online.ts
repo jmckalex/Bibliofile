@@ -386,6 +386,21 @@ async function searchPubmed(query: string): Promise<OnlineResult[]> {
   return parsePubmed(await efetch.text());
 }
 
+// --- DOI extraction (for PDF import) ----------------------------------------
+
+/**
+ * Find the first DOI in text (e.g. extracted PDF content). Matches the standard
+ * `10.NNNN/suffix` shape, strips a `doi:`/URL prefix, and trims trailing
+ * punctuation/word that often glues onto a DOI in flowing text. Returns null if none.
+ */
+export function extractDoi(text: string): string | null {
+  // Allow an optional doi:/URL prefix right before the 10.x.
+  const m = text.match(/(?:doi:|https?:\/\/(?:dx\.)?doi\.org\/)?\b(10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+)/);
+  if (!m) return null;
+  // Trim trailing punctuation that commonly abuts a DOI mid-sentence.
+  return m[1]!.replace(/[.,;:)\]]+$/, '');
+}
+
 // --- dispatch ---------------------------------------------------------------
 
 /** Search the given online source. Throws on network/HTTP error. */

@@ -46,7 +46,8 @@ import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
 import { htmlToRtf, wrapRtf } from './rtf.js';
 import { formatCitation } from './csl.js';
-import { searchOnline } from './online.js';
+import { searchOnline, extractDoi } from './online.js';
+import { extractPdfText } from './pdf-text.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
 import { getSettings, loadSettings, updateSettings } from './settings.js';
 
@@ -296,6 +297,55 @@ function htmlToPlain(html: string): string {
     .replace(/&nbsp;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/**
+ * Import dropped files, upgrading PDFs: extract the PDF's text, find a DOI, look
+ * it up (CrossRef), and import the real metadata + attach the PDF — instead of a
+ * filename-stub entry. PDFs with no DOI (and all non-PDFs) fall back to the
+ * store's plain import. Returns the combined {@link ImportResult}-shaped result.
+ */
+async function importFilesSmart(
+  documentId: string,
+  paths: readonly string[],
+): Promise<{ dirty: boolean; addedIds: string[]; warnings: string[] }> {
+  const isPdf = (p: string): boolean => /\.pdf$/i.test(p);
+  const addedIds: string[] = [];
+  const warnings: string[] = [];
+
+  for (const pdf of paths.filter(isPdf)) {
+    let handled = false;
+    try {
+      const doi = extractDoi(await extractPdfText(pdf, 3)); // first few pages
+      if (doi) {
+        const results = await searchOnline('doi', doi).catch(() => []);
+        const r = results[0];
+        if (r) {
+          const res = store.importEntry(documentId, r.entryType, r.fields);
+          if (res.affectedItemId) {
+            store.addAttachments(documentId, res.affectedItemId, [pdf]);
+            addedIds.push(res.affectedItemId);
+            handled = true;
+          }
+        }
+      }
+    } catch {
+      /* fall through to the stub-entry import below */
+    }
+    if (!handled) {
+      const r = store.importFiles(documentId, [pdf]);
+      addedIds.push(...r.addedIds);
+      warnings.push(...r.warnings);
+    }
+  }
+
+  const others = paths.filter((p) => !isPdf(p));
+  if (others.length) {
+    const r = store.importFiles(documentId, others);
+    addedIds.push(...r.addedIds);
+    warnings.push(...r.warnings);
+  }
+  return { dirty: store.isDirty(documentId), addedIds, warnings };
 }
 
 /** Build a complete RTF bibliography document for the whole library (CSL-formatted). */
@@ -1149,7 +1199,7 @@ function registerIpc(): void {
       }
     },
     [IpcChannels.pasteEntries]: (req) => store.importBibtexText(req.documentId, req.text),
-    [IpcChannels.importFiles]: (req) => store.importFiles(req.documentId, req.paths),
+    [IpcChannels.importFiles]: (req) => importFilesSmart(req.documentId, req.paths),
     [IpcChannels.importDialog]: async (req) => {
       const opts: Electron.OpenDialogOptions = {
         title: 'Import',
@@ -1165,7 +1215,7 @@ function registerIpc(): void {
       if (result.canceled || result.filePaths.length === 0) {
         return { dirty: store.isDirty(req.documentId), addedIds: [], warnings: [] };
       }
-      return store.importFiles(req.documentId, result.filePaths);
+      return importFilesSmart(req.documentId, result.filePaths);
     },
     [IpcChannels.findReplace]: (req) => store.findReplace(req),
     [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
