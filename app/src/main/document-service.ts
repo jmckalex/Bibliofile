@@ -669,7 +669,9 @@ export function toItemDetail(
     type: item.type,
     fields,
     files,
-    previewHtml: buildPreviewHtml(item, files.length),
+    // Only real file attachments count toward the "📎 N files" chip — remote
+    // Url/Doi links have their own chips and must not be counted as files.
+    previewHtml: buildPreviewHtml(item, files.filter((f) => f.kind === 'file').length),
     notesRaw,
     notesHtml: renderNotes(notesRaw, citeKeyExists),
   };

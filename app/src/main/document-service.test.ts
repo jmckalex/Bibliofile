@@ -493,6 +493,24 @@ describe('document-service: BD test.bib', () => {
     expect(req('note')).toBe(false);
   });
 
+  it('treats Doi/Url as links, not file attachments (no "files" chip / paperclip)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Author = {Roe}, Title = {T}, Doi = {10.1000/xyz}, Url = {https://example.org}}',
+      '/tmp/links.bib',
+    );
+    const row = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!;
+    // The table paperclip counts only local files → 0 here.
+    expect(row.attachmentCount).toBe(0);
+
+    const detail = store.getItemDetail({ documentId, itemId: row.id });
+    // Doi + Url surface as link-kind entries, not file attachments.
+    expect(detail.files.filter((f) => f.kind === 'file')).toHaveLength(0);
+    expect(detail.files.filter((f) => f.kind === 'url')).toHaveLength(2);
+    // The preview card must NOT show a "files" chip for link-only entries.
+    expect(detail.previewHtml ?? '').not.toMatch(/📎|class="bd-chip bd-chip--files"/);
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');

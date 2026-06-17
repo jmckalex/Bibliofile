@@ -18,29 +18,36 @@ together across moves and machines.
 
 ## The attachment model
 
-An entry's **Attachments** list can contain two kinds of items, shown with
-different icons:
+An entry surfaces two distinct kinds of resource, in **two separate sections**:
 
-| Icon | Kind | What it is |
-|------|------|------------|
-| 📄 | File | A local file (a PDF, dataset, slide deck, image, …). |
-| 🔗 | Link | A remote web resource — derived from the entry's `Url` or `Doi`. |
+| Section | Icon | What it is |
+|---------|------|------------|
+| **Attachments** | 📄 | Local **files** — a PDF, dataset, slide deck, image, … |
+| **Links** | 🔗 | Remote web resources — derived from the entry's `Url` or `Doi`. |
 
-The two kinds behave differently in important ways:
+They behave differently in important ways:
 
 - **File attachments** are *managed* by the app. You add and remove them through
   the Attachments controls, and they are stored as numbered `Bdsk-File-N` entries
   in the `.bib` file (explained below). Each managed file attachment has a **×**
   remove button.
-- **Link attachments** are *synthesized* from ordinary fields. If an entry has a
-  `Url` or `Doi` field, it automatically appears here as a clickable 🔗 link.
-  Because these are really just fields, they are **not** removed from the
-  Attachments list directly — they have no **×** there. To remove such a link,
-  edit or delete the `Url`/`Doi` field in the **Fields** section instead (see
+- **Links** are *synthesized* from ordinary fields. If an entry has a `Url` or
+  `Doi` field, it automatically appears under **Links** as a clickable 🔗. Because
+  these are really just fields, they are **not** removed from the Links list
+  directly — they have no **×** there. To change one, edit or delete the
+  `Url`/`Doi` field in the **Fields** section instead (see
   [Editing Entries](03-editing-entries.md#editing-fields)).
 
-A single entry can mix both — for example a stored PDF (📄) plus the publisher's
-DOI link (🔗). Each distinct target appears once; duplicates are collapsed.
+> **Links are not attachments.** A `Url` and a `Doi` are *links*, not files, so
+> they don't count toward the entry's attachment count — the table paperclip and
+> the preview card's "📎 N files" chip count **only local file attachments**. An
+> entry with just a DOI and a URL has **no** file attachments (its Attachments
+> section reads "No attachments."), and its links appear under **Links** and as
+> DOI/URL chips on the preview card.
+
+A single entry can mix both — for example a stored PDF (📄, under Attachments)
+plus the publisher's DOI link (🔗, under Links). Each distinct target appears
+once; duplicates are collapsed.
 
 ## Adding an attachment
 
@@ -169,10 +176,11 @@ the one machine and user account it was created on.
 
 ### Remote links (`Url` / `Doi`)
 
-As noted above, an entry's `Url` and `Doi` fields are surfaced as 🔗 link
-attachments. These are stored as ordinary BibTeX fields (not `Bdsk-File-N`
-blobs), shown verbatim (URLs are never TeX-transformed), and edited like any
-other field.
+As noted above, an entry's `Url` and `Doi` fields are surfaced under a separate
+**Links** section as 🔗 links (and as DOI/URL chips on the preview card). These
+are stored as ordinary BibTeX fields (not `Bdsk-File-N` blobs), shown verbatim
+(URLs are never TeX-transformed), edited like any other field, and — being links
+rather than files — are **not** counted as attachments.
 
 ## How attachments resolve
 

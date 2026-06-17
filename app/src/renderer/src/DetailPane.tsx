@@ -436,6 +436,39 @@ export function Attachments({
 }) {
   const addAttachment = useStore((s) => s.addAttachment);
   const removeAttachment = useStore((s) => s.removeAttachment);
+  // Real file attachments vs. remote Url/Doi links — shown separately so links
+  // aren't miscounted as "attachments".
+  const files = detail.files.filter((f) => f.kind === 'file');
+  const links = detail.files.filter((f) => f.kind === 'url');
+
+  const renderItem = (file: ItemFile, i: number) => (
+    <li className="bd-file" key={`${file.kind}-${file.url}-${i}`}>
+      <button
+        type="button"
+        className="bd-file__btn"
+        title={isPdf(file) ? `Preview ${file.displayName}` : `Open ${file.url}`}
+        onClick={() =>
+          isPdf(file) ? onPreview(file) : openExternal(file.url, file.kind === 'url' ? 'url' : 'file')
+        }
+      >
+        <span className="bd-file__icon" aria-hidden="true">
+          {fileIcon(file.kind)}
+        </span>
+        <span className="bd-file__name">{file.displayName}</span>
+      </button>
+      {!readOnly && file.field && (
+        <button
+          type="button"
+          className="bd-field__del"
+          title="Remove attachment"
+          onClick={() => void removeAttachment(detail.id, file.field!)}
+        >
+          ×
+        </button>
+      )}
+    </li>
+  );
+
   return (
     <>
       <div className="bd-detail__section bd-detail__section--withaction">
@@ -451,38 +484,16 @@ export function Attachments({
           </button>
         )}
       </div>
-      {detail.files.length === 0 ? (
+      {files.length === 0 ? (
         <div className="bd-files__empty">No attachments.</div>
       ) : (
-        <ul className="bd-files">
-          {detail.files.map((file, i) => (
-            <li className="bd-file" key={`${file.url}-${i}`}>
-              <button
-                type="button"
-                className="bd-file__btn"
-                title={isPdf(file) ? `Preview ${file.displayName}` : `Open ${file.url}`}
-                onClick={() =>
-                  isPdf(file) ? onPreview(file) : openExternal(file.url, file.kind === 'url' ? 'url' : 'file')
-                }
-              >
-                <span className="bd-file__icon" aria-hidden="true">
-                  {fileIcon(file.kind)}
-                </span>
-                <span className="bd-file__name">{file.displayName}</span>
-              </button>
-              {!readOnly && file.field && (
-                <button
-                  type="button"
-                  className="bd-field__del"
-                  title="Remove attachment"
-                  onClick={() => void removeAttachment(detail.id, file.field!)}
-                >
-                  ×
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
+        <ul className="bd-files">{files.map(renderItem)}</ul>
+      )}
+      {links.length > 0 && (
+        <>
+          <div className="bd-detail__section">Links</div>
+          <ul className="bd-files">{links.map(renderItem)}</ul>
+        </>
       )}
     </>
   );

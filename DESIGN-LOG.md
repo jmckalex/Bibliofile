@@ -342,6 +342,18 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   mount regardless of document state). *Revisit:* `Welcome.tsx`, `App` no-doc
   branch + drop handler, `newDocument`/`openDialog` in `index.ts`.
 
+- **Url/Doi are links, not attachments (count fix).** An entry with a `Doi` and a
+  `Url` was reported as having "two attachments". Cause: `itemFiles` synthesizes
+  remote Url/Doi as `url`-kind entries, and the preview card's "📎 N files" chip
+  used the *total* `files.length` (incl. those links). Fix: (1) the preview chip
+  now counts only `kind === 'file'` entries (the table paperclip already did —
+  `attachmentCountOf` excludes Url/Doi); (2) the detail/editor **Attachments**
+  section now lists only file attachments, and Url/Doi appear under a separate
+  **Links** section (still clickable; they also have DOI/URL chips on the preview
+  card). *Revisit:* `buildPreviewHtml` call in `toItemDetail`, `Attachments`
+  component (files vs links split). Test: a DOI+URL entry → 0 file attachments,
+  2 link entries, no "files" chip.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.
