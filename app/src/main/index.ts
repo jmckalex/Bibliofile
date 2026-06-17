@@ -920,6 +920,11 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('autoFile'),
       },
+      {
+        label: 'Find Broken Links…',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('findBrokenLinks'),
+      },
       { type: 'separator' },
       {
         label: 'Macros (@string)…',
@@ -1238,6 +1243,21 @@ function registerIpc(): void {
     },
     [IpcChannels.removeAttachment]: (req) =>
       store.removeAttachment(req.documentId, req.itemId, req.field),
+    [IpcChannels.findBrokenLinks]: (req) => ({ links: store.findBrokenLinks(req.documentId) }),
+    [IpcChannels.relocateAttachment]: async (req) => {
+      const result = mainWindow
+        ? await dialog.showOpenDialog(mainWindow, { title: 'Locate File', properties: ['openFile'] })
+        : await dialog.showOpenDialog({ title: 'Locate File', properties: ['openFile'] });
+      const picked = result.canceled ? undefined : result.filePaths[0];
+      if (!picked) {
+        return {
+          dirty: store.isDirty(req.documentId),
+          affectedItemId: req.itemId,
+          detail: store.getItemDetail({ documentId: req.documentId, itemId: req.itemId }),
+        };
+      }
+      return store.relocateAttachment(req.documentId, req.itemId, req.field, picked);
+    },
     [IpcChannels.searchOnline]: async (req) => {
       try {
         const results = await searchOnline(req.source, req.query);
@@ -1430,6 +1450,12 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.findDuplicates, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.findDuplicates](req),
+  );
+  ipcMain.handle(IpcChannels.findBrokenLinks, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.findBrokenLinks](req),
+  );
+  ipcMain.handle(IpcChannels.relocateAttachment, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.relocateAttachment](req),
   );
   ipcMain.handle(IpcChannels.groupEdit, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.groupEdit](req),

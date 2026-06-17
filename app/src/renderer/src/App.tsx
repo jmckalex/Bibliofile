@@ -19,6 +19,7 @@ import { OnlineSearch } from './OnlineSearch.js';
 import { Preferences } from './Preferences.js';
 import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
+import { BrokenLinks } from './BrokenLinks.js';
 import { Assistant } from './Assistant.js';
 import { BatchBar } from './BatchBar.js';
 
@@ -185,6 +186,7 @@ interface ModalSetters {
   setPrefsOpen: (v: boolean) => void;
   setFindReplaceOpen: (v: boolean) => void;
   setDuplicatesOpen: (v: boolean) => void;
+  setBrokenLinksOpen: (v: boolean) => void;
   setAssistantOpen: (v: boolean) => void;
 }
 
@@ -247,6 +249,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       return;
     case 'findDuplicates':
       modals.setDuplicatesOpen(true);
+      return;
+    case 'findBrokenLinks':
+      modals.setBrokenLinksOpen(true);
       return;
     case 'assistant':
       modals.setAssistantOpen(true);
@@ -312,6 +317,7 @@ export function App() {
   const [prefsOpen, setPrefsOpen] = useState(false);
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
+  const [brokenLinksOpen, setBrokenLinksOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
 
@@ -405,6 +411,7 @@ export function App() {
         setPrefsOpen,
         setFindReplaceOpen,
         setDuplicatesOpen,
+        setBrokenLinksOpen,
         setAssistantOpen,
       });
     });
@@ -439,6 +446,7 @@ export function App() {
       {prefsOpen && <Preferences onClose={() => setPrefsOpen(false)} />}
       {findReplaceOpen && <FindReplace onClose={() => setFindReplaceOpen(false)} />}
       {duplicatesOpen && <FindDuplicates onClose={() => setDuplicatesOpen(false)} />}
+      {brokenLinksOpen && <BrokenLinks onClose={() => setBrokenLinksOpen(false)} />}
       {assistantOpen && <Assistant onClose={() => setAssistantOpen(false)} />}
       {dragging && hasDoc && (
         <div className="bd-drop-overlay" aria-hidden="true">

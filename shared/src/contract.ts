@@ -45,6 +45,9 @@ import type {
   FindReplaceResult,
   FindDuplicatesRequest,
   FindDuplicatesResult,
+  FindBrokenLinksRequest,
+  FindBrokenLinksResponse,
+  RelocateAttachmentRequest,
   GroupEditRequest,
   GroupEditResult,
   GroupConditionsRequest,
@@ -116,6 +119,8 @@ export interface IpcContract {
   [IpcChannels.importDialog]: IpcEntry<ImportDialogRequest, ImportResult>;
   [IpcChannels.findReplace]: IpcEntry<FindReplaceRequest, FindReplaceResult>;
   [IpcChannels.findDuplicates]: IpcEntry<FindDuplicatesRequest, FindDuplicatesResult>;
+  [IpcChannels.findBrokenLinks]: IpcEntry<FindBrokenLinksRequest, FindBrokenLinksResponse>;
+  [IpcChannels.relocateAttachment]: IpcEntry<RelocateAttachmentRequest, EditResult>;
   [IpcChannels.groupEdit]: IpcEntry<GroupEditRequest, GroupEditResult>;
   [IpcChannels.groupConditions]: IpcEntry<GroupConditionsRequest, GroupConditionsResponse>;
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;

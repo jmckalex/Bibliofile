@@ -63,6 +63,9 @@ import {
   type FindReplaceResult,
   type FindDuplicatesRequest,
   type FindDuplicatesResult,
+  type FindBrokenLinksRequest,
+  type FindBrokenLinksResponse,
+  type RelocateAttachmentRequest,
   type GroupEditRequest,
   type GroupEditResult,
   type GroupConditionsRequest,
@@ -168,6 +171,12 @@ const api: BibDeskApi = {
   },
   findDuplicates(request: FindDuplicatesRequest): Promise<FindDuplicatesResult> {
     return ipcRenderer.invoke(IpcChannels.findDuplicates, request);
+  },
+  findBrokenLinks(request: FindBrokenLinksRequest): Promise<FindBrokenLinksResponse> {
+    return ipcRenderer.invoke(IpcChannels.findBrokenLinks, request);
+  },
+  relocateAttachment(request: RelocateAttachmentRequest): Promise<EditResult> {
+    return ipcRenderer.invoke(IpcChannels.relocateAttachment, request);
   },
   groupEdit(request: GroupEditRequest): Promise<GroupEditResult> {
     return ipcRenderer.invoke(IpcChannels.groupEdit, request);

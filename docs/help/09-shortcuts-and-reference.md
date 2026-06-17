@@ -74,6 +74,7 @@ Every item needs an open library.
 | Find Duplicates… | — | — | Open [Find Duplicates](02-browsing-and-searching.md#26-finding-duplicates) |
 | Add File Attachment… | — | — | Attach a file to the selected entry |
 | AutoFile Linked Files | — | — | [AutoFile](04-attachments.md#autofile-organising-linked-files) the selected entry's attachments |
+| Find Broken Links… | — | — | Find attachments whose files are [missing on disk](04-attachments.md#finding-and-repairing-broken-links) and repair them |
 | Macros (@string)… | — | — | Open the `@string` macro editor |
 
 ### View menu

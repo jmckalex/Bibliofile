@@ -197,6 +197,34 @@ used as-is. The display name shown for each file is just its last path segment
 > `.bib` and its files together and nothing breaks; move them apart and the
 > relative paths no longer point anywhere.
 
+## Finding and repairing broken links
+
+When files move, get renamed, or arrive from a library assembled on another
+machine, some attachments stop resolving. To find them all at once, choose
+**Publication → Find Broken Links…**. It scans **every** entry and lists each
+attachment whose file is missing on disk, showing the entry's cite key, the
+attachment's name, and the full path it expected to find.
+
+For each broken **managed** attachment (a `Bdsk-File-N` link — see
+[below](#the-bdsk-file-n-format)) you get two repair actions:
+
+- **Locate…** — opens a file picker; choose the file's new location and the link
+  is rewritten (stored relative to the `.bib`, as always). The entry is **not**
+  marked broken any more, and the list re-scans so you can see your progress.
+- **Remove** — drops the attachment from the entry (the file itself is never
+  touched; this only removes the dangling link).
+
+Clicking a row's **cite key** selects that entry in the main list (and closes the
+dialog) so you can inspect or edit it directly. Links that come from a plain
+field (a `Local-Url`, say, rather than a managed `Bdsk-File-N` blob) are listed
+for awareness but are fixed by editing that field on the entry.
+
+> **Tip:** If files merely *moved together* into a new folder, it is usually
+> faster to fix them in bulk with [AutoFile](#autofile-organising-linked-files)
+> (which re-files into your Papers folder) than to Locate each one by hand —
+> though AutoFile needs the originals to still exist, so genuinely missing files
+> must be re-located or removed here.
+
 ## Compatibility with macOS BibDesk
 
 bibdesk-electron is designed to share libraries seamlessly with the original

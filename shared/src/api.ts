@@ -46,6 +46,9 @@ import type {
   FindReplaceResult,
   FindDuplicatesRequest,
   FindDuplicatesResult,
+  FindBrokenLinksRequest,
+  FindBrokenLinksResponse,
+  RelocateAttachmentRequest,
   GroupEditRequest,
   GroupEditResult,
   GroupConditionsRequest,
@@ -170,6 +173,12 @@ export interface BibDeskApi {
 
   /** Scan the document for duplicate entries (identical cite keys + equivalent content). */
   findDuplicates(request: FindDuplicatesRequest): Promise<FindDuplicatesResult>;
+
+  /** Scan the document for file attachments whose target file is missing on disk. */
+  findBrokenLinks(request: FindBrokenLinksRequest): Promise<FindBrokenLinksResponse>;
+
+  /** Repair a broken managed attachment by picking a replacement file (opens a dialog). */
+  relocateAttachment(request: RelocateAttachmentRequest): Promise<EditResult>;
 
   /** Create/rename/delete a group or change a static group's membership. */
   groupEdit(request: GroupEditRequest): Promise<GroupEditResult>;

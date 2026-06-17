@@ -397,6 +397,38 @@ export interface RemoveAttachmentRequest {
   readonly field: string;
 }
 
+/** A file attachment whose target is missing on disk (see {@link FindBrokenLinksResponse}). */
+export interface BrokenLink {
+  readonly itemId: ItemId;
+  readonly citeKey: string;
+  /** The attachment's display name (file basename). */
+  readonly displayName: string;
+  /** The resolved absolute path that does not exist. */
+  readonly path: string;
+  /** The `Bdsk-File-N` field, when this is a managed attachment (relocatable/removable). */
+  readonly field?: string;
+}
+
+/** Request to scan a document for broken file links. */
+export interface FindBrokenLinksRequest {
+  readonly documentId: DocumentId;
+}
+
+/** All broken file links found in a document. */
+export interface FindBrokenLinksResponse {
+  readonly links: readonly BrokenLink[];
+}
+
+/**
+ * Repair a broken managed attachment by pointing it at a file the user picks.
+ * Main opens a file dialog; the chosen path is stored relative to the document.
+ */
+export interface RelocateAttachmentRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+  readonly field: string;
+}
+
 /** Request to read an attachment's bytes (e.g. to preview a PDF in-app). */
 export interface ReadAttachmentRequest {
   readonly documentId: DocumentId;
@@ -886,6 +918,7 @@ export type MenuCommand =
   | 'online'
   | 'editMacros'
   | 'findDuplicates'
+  | 'findBrokenLinks'
   | 'assistant'
   // Edit / clipboard (operate on the selection)
   | 'find'

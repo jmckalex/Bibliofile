@@ -105,6 +105,8 @@ function makeFakeApi() {
     importDialog: async () => ({ dirty: false, addedIds: [], warnings: [] }),
     findReplace: async () => ({ matches: [], total: 0, applied: false, dirty: false }),
     findDuplicates: async () => ({ groups: [], total: 0 }),
+    findBrokenLinks: async () => ({ links: [] }),
+    relocateAttachment: async () => ({ dirty: true }),
     groupEdit: async () => ({ dirty: true, groupId: 'g#0#0' }),
     groupConditions: async () => ({ name: 'Smart', conjunction: 0, conditions: [] }),
     fieldSuggestions: async () => ({ values: [] }),

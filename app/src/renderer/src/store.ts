@@ -19,6 +19,7 @@ import type {
   FindReplaceRequest,
   FindReplaceResult,
   FindDuplicatesResult,
+  BrokenLink,
   GroupNode,
   ImportResult,
   ItemDetail,
@@ -181,6 +182,10 @@ export interface ViewerState {
   findReplace: (opts: Omit<FindReplaceRequest, 'documentId' | 'groupId'>) => Promise<FindReplaceResult>;
   /** Scan the document for duplicate entries. */
   findDuplicates: () => Promise<FindDuplicatesResult>;
+  /** Scan the document for attachments whose file is missing on disk. */
+  findBrokenLinks: () => Promise<BrokenLink[]>;
+  /** Repair a broken managed attachment by picking a replacement file (opens a dialog). */
+  relocateAttachment: (itemId: string, field: string) => Promise<void>;
   /** Distinct existing values for a field (editor autocomplete). */
   fieldSuggestions: (field: string) => Promise<readonly string[]>;
   /** Load preferences from main and apply the theme. */
@@ -471,6 +476,31 @@ export function createStore(api: BibDeskApi) {
         const res = await api.autoFile({ documentId, itemId });
         set({ dirty: res.dirty, detail: res.detail });
         if (res.errors.length) set({ error: res.errors.join('; ') });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    findBrokenLinks: async () => {
+      const { documentId } = get();
+      if (!documentId) return [];
+      try {
+        const res = await api.findBrokenLinks({ documentId });
+        return [...res.links];
+      } catch (err) {
+        set({ error: errorMessage(err) });
+        return [];
+      }
+    },
+
+    relocateAttachment: async (itemId, field) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const res = await api.relocateAttachment({ documentId, itemId, field });
+        set({ dirty: res.dirty });
+        // If the relocated item is the one on screen, refresh its detail pane.
+        if (res.detail && get().selectedItemId === itemId) set({ detail: res.detail });
       } catch (err) {
         set({ error: errorMessage(err) });
       }

@@ -381,6 +381,30 @@ describe('document-service: BD test.bib', () => {
     expect(res.warnings[0]).toMatch(/no endnote records/i);
   });
 
+  it('findBrokenLinks reports only attachments missing on disk; relocate repairs', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-broken-'));
+    const present = join(dir, 'present.pdf');
+    const replacement = join(dir, 'replacement.pdf');
+    writeFileSync(present, '%PDF-1.4');
+    writeFileSync(replacement, '%PDF-1.4');
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {One}}', join(dir, 'lib.bib'));
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    // Two managed attachments: one real file, one that does not exist.
+    store.addAttachments(documentId, itemId, [present, join(dir, 'missing.pdf')]);
+
+    let broken = store.findBrokenLinks(documentId);
+    expect(broken).toHaveLength(1);
+    expect(broken[0]!.citeKey).toBe('a');
+    expect(broken[0]!.path).toBe(join(dir, 'missing.pdf'));
+    const field = broken[0]!.field!;
+    expect(field).toMatch(/^Bdsk-File-\d+$/i);
+
+    // Point the broken attachment at the real replacement file → no longer broken.
+    store.relocateAttachment(documentId, itemId, field, replacement);
+    expect(store.findBrokenLinks(documentId)).toHaveLength(0);
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');

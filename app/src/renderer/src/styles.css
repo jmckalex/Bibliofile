@@ -581,6 +581,68 @@ body {
   white-space: nowrap;
 }
 
+/* ---- Broken links list (modal) ---------------------------------------- */
+
+.bd-broken__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bd-broken__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--bd-border);
+}
+
+.bd-broken__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.bd-broken__key {
+  align-self: flex-start;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.bd-broken__key code {
+  font-family: var(--bd-mono);
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-accent);
+}
+
+.bd-broken__name {
+  font-weight: 600;
+}
+
+.bd-broken__path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-broken__actions {
+  display: flex;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.bd-broken__hint {
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+  font-style: italic;
+}
+
 /* ---- Journal cover thumbnail (detail pane) ----------------------------- */
 
 .bd-jcover {

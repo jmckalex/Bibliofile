@@ -78,6 +78,10 @@ export const IpcChannels = {
   findReplace: 'bibdesk:findReplace',
   /** Scan a document for duplicate entries (cite-key + equivalent content). */
   findDuplicates: 'bibdesk:findDuplicates',
+  /** Scan a document for file attachments whose target is missing on disk. */
+  findBrokenLinks: 'bibdesk:findBrokenLinks',
+  /** Repair a broken managed attachment by pointing it at a user-picked file. */
+  relocateAttachment: 'bibdesk:relocateAttachment',
   /** Create/rename/delete a group or change a static group's membership. */
   groupEdit: 'bibdesk:groupEdit',
   /** Read back a smart group's name/conjunction/conditions (for the editor). */

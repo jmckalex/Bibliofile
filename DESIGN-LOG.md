@@ -201,6 +201,19 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   *exports* are the realistic migration path — Z39.50/MARC/MODS stay dropped (see
   FEATURE-SURVEY). *Revisit:* `main/endnote.ts`, `importEndnoteText`/`importFiles`.
 
+- **Find & repair broken file links.** `Publication → Find Broken Links…` scans
+  every entry's file attachments and lists those whose target is missing on disk
+  (`document-service.findBrokenLinks`, read-only). For managed `Bdsk-File-N`
+  attachments the modal offers **Locate…** (`relocateAttachment` rewrites the
+  stored relative path to a user-picked file) and **Remove**; the row's cite key
+  selects the entry. *Design choices:* (1) reuse the existing `itemFiles`
+  resolver so "broken" means exactly "what the detail pane would fail to open";
+  (2) report plain field-links (`Local-Url`) for awareness but only offer
+  Locate/Remove on field-backed managed attachments (those have a `Bdsk-File-N`
+  to rewrite); (3) re-scan after each repair so the list shrinks live. Mirrors
+  BibDesk's broken-link finding; complements AutoFile (bulk re-file when originals
+  still exist). *Revisit:* `findBrokenLinks`/`relocateAttachment`, `BrokenLinks.tsx`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

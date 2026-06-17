@@ -108,6 +108,7 @@ import type {
   GroupConditionsRequest,
   GroupConditionsResponse,
   SmartCondition,
+  BrokenLink,
   SaveDocumentRequest,
   SaveDocumentResult,
 } from '@bibdesk/shared';
@@ -1417,6 +1418,50 @@ export class DocumentStore {
     if (!f) return undefined;
     const p = f.url.replace(/^file:\/\/(localhost)?/i, '');
     return existsSync(p) ? p : undefined;
+  }
+
+  /**
+   * Scan the whole document for file attachments whose target is missing on disk
+   * (managed `Bdsk-File-N` blobs and synthesised `Local-Url`/file-field links).
+   * Returns one {@link BrokenLink} per missing file; managed ones carry their
+   * `field` so the caller can relocate or remove them. Read-only (no snapshot).
+   */
+  findBrokenLinks(documentId: string): BrokenLink[] {
+    const doc = this.requireDoc(documentId);
+    const out: BrokenLink[] = [];
+    for (const item of doc.library.items) {
+      for (const f of itemFiles(item, doc.library, doc.path)) {
+        if (f.kind !== 'file') continue;
+        const path = f.url.replace(/^file:\/\/(localhost)?/i, '');
+        if (existsSync(path)) continue;
+        out.push({
+          itemId: item.id,
+          citeKey: item.citeKey,
+          displayName: f.displayName,
+          path,
+          ...(f.field !== undefined ? { field: f.field } : {}),
+        });
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Point a managed attachment (`Bdsk-File-N`) at a new file, rewriting its
+   * stored relative path (relative to the document) — used to repair a broken
+   * link without moving the file. Marks the document dirty; returns fresh detail.
+   */
+  relocateAttachment(documentId: string, itemId: string, field: string, newAbsPath: string): EditResult {
+    this.snapshot(documentId);
+    const doc = this.requireDoc(documentId);
+    const item = this.itemOf(doc, itemId);
+    if (!BDSK_FILE_RE.test(field)) throw new Error(`Not a managed attachment: ${field}`);
+    const baseDir = doc.path ? dirname(doc.path) : '';
+    const rel = baseDir ? relative(baseDir, newAbsPath) : newAbsPath;
+    const plist = { relativePath: rel };
+    item.setField(field, encodeBdskFile(plist));
+    doc.library.bdskFiles.set(bdskFileKey(item.id, field), plist);
+    return this.dirtyDetail(doc, item);
   }
 
   /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
