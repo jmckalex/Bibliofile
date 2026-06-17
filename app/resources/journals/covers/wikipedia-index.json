@@ -68,5 +68,827 @@
     "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/Biometrikacover.gif",
     "wikiTitle": "Biometrika",
     "kind": "wikipedia"
+  },
+  {
+    "name": "The Monist",
+    "file": "wiki-the-monist.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Monistcover.gif",
+    "wikiTitle": "The Monist",
+    "kind": "wikipedia",
+    "issn": "0026-9662"
+  },
+  {
+    "name": "Synthese",
+    "file": "wiki-synthese.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/f/ff/Synthese.jpg",
+    "wikiTitle": "Synthese",
+    "kind": "wikipedia",
+    "issn": "0039-7857"
+  },
+  {
+    "name": "The Journal of Philosophy",
+    "file": "wiki-the-journal-of-philosophy.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/cb/Jphil-wikicover.gif",
+    "wikiTitle": "The Journal of Philosophy",
+    "kind": "wikipedia",
+    "issn": "0022-362X"
+  },
+  {
+    "name": "Philosophy of Science",
+    "file": "wiki-philosophy-of-science.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/9/93/Philosophy_of_Science_%28journal%29.gif",
+    "wikiTitle": "Philosophy of Science (journal)",
+    "kind": "wikipedia",
+    "issn": "0031-8248"
+  },
+  {
+    "name": "Journal of Theoretical Biology",
+    "file": "wiki-journal-of-theoretical-biology.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/a/af/Journal_of_Theoretical_Biology_cover.gif",
+    "wikiTitle": "Journal of Theoretical Biology",
+    "kind": "wikipedia",
+    "issn": "0022-5193"
+  },
+  {
+    "name": "Journal of Philosophical Logic",
+    "file": "wiki-journal-of-philosophical-logic.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/30/JPhilLog.jpg",
+    "wikiTitle": "Journal of Philosophical Logic",
+    "kind": "wikipedia",
+    "issn": "0022-3611"
+  },
+  {
+    "name": "Science",
+    "file": "wiki-science.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Science_Vol._1_%281880%29.jpg/500px-Science_Vol._1_%281880%29.jpg",
+    "wikiTitle": "Science (journal)",
+    "kind": "wikipedia",
+    "issn": "0036-8075"
+  },
+  {
+    "name": "Journal of Philosophy",
+    "file": "wiki-journal-of-philosophy.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/cb/Jphil-wikicover.gif",
+    "wikiTitle": "The Journal of Philosophy",
+    "kind": "wikipedia",
+    "issn": "0022-362X"
+  },
+  {
+    "name": "Philosophical Studies",
+    "file": "wiki-philosophical-studies.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/34/Philosophical_Studies.jpg",
+    "wikiTitle": "Philosophical Studies",
+    "kind": "wikipedia",
+    "issn": "0031-8116"
+  },
+  {
+    "name": "Proceedings of the National Academy of Sciences",
+    "file": "wiki-proceedings-of-the-national-academy-of-sciences.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/9/9a/PNAS_cover.png",
+    "wikiTitle": "Proceedings of the National Academy of Sciences of the United States of America",
+    "kind": "wikipedia",
+    "issn": "0027-8424"
+  },
+  {
+    "name": "Artificial Intelligence",
+    "file": "wiki-artificial-intelligence.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/cb/Artificial_Intelligence_%28journal%29.gif",
+    "wikiTitle": "Artificial Intelligence (journal)",
+    "kind": "wikipedia",
+    "issn": "0004-3702"
+  },
+  {
+    "name": "Mind",
+    "file": "wiki-mind.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/d5/Mind_%28journal%29.gif",
+    "wikiTitle": "Mind (journal)",
+    "kind": "wikipedia",
+    "issn": "0026-4423"
+  },
+  {
+    "name": "Perspectives on Science",
+    "file": "wiki-perspectives-on-science.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/6c/Perspectiveslowres.jpg",
+    "wikiTitle": "Perspectives on Science",
+    "kind": "wikipedia",
+    "issn": "1063-6145"
+  },
+  {
+    "name": "Journal for General Philosophy of Science",
+    "file": "wiki-journal-for-general-philosophy-of-science.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/7/71/Journalgen.jpg",
+    "wikiTitle": "Journal for General Philosophy of Science",
+    "kind": "wikipedia",
+    "issn": "0925-4560"
+  },
+  {
+    "name": "Minds and Machines",
+    "file": "wiki-minds-and-machines.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/b/b6/MaM2010cover.jpg",
+    "wikiTitle": "Minds and Machines",
+    "kind": "wikipedia",
+    "issn": "0924-6495"
+  },
+  {
+    "name": "Australasian Journal of Philosophy",
+    "file": "wiki-australasian-journal-of-philosophy.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/f/fc/Australasian_Journal_of_Philosophy_%28cover%29.jpg",
+    "wikiTitle": "Australasian Journal of Philosophy",
+    "kind": "wikipedia",
+    "issn": "0004-8402"
+  },
+  {
+    "name": "Complexity",
+    "file": "wiki-complexity.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/1f/Complexity-journal-covers.jpg",
+    "wikiTitle": "Complexity (journal)",
+    "kind": "wikipedia",
+    "issn": "1076-2787"
+  },
+  {
+    "name": "Econometrica",
+    "file": "wiki-econometrica.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/0/03/Econometrica_cover_page.jpg",
+    "wikiTitle": "Econometrica",
+    "kind": "wikipedia",
+    "issn": "0012-9682"
+  },
+  {
+    "name": "Nature",
+    "file": "wiki-nature.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Nature_volume_536_number_7617_cover_displaying_an_artist%E2%80%99s_impression_of_Proxima_Centauri_b.jpg/500px-Nature_volume_536_number_7617_cover_displaying_an_artist%E2%80%99s_impression_of_Proxima_Centauri_b.jpg",
+    "wikiTitle": "Nature (journal)",
+    "kind": "wikipedia",
+    "issn": "0028-0836"
+  },
+  {
+    "name": "International Journal of Bifurcation and Chaos",
+    "file": "wiki-international-journal-of-bifurcation-and-chaos.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/d4/International_Journal_of_Bifurcation_and_Chaos_Cover.jpg",
+    "wikiTitle": "International Journal of Bifurcation and Chaos in Applied Sciences and Engineering",
+    "kind": "wikipedia",
+    "issn": "0218-1274"
+  },
+  {
+    "name": "Mathematical Biosciences",
+    "file": "wiki-mathematical-biosciences.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/2/25/Mathematical_Biosciences_%28journal%29_cover.gif",
+    "wikiTitle": "Mathematical Biosciences",
+    "kind": "wikipedia",
+    "issn": "0025-5564"
+  },
+  {
+    "name": "Research Policy",
+    "file": "wiki-research-policy.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/a/a4/Research_Policy_Cover.png",
+    "wikiTitle": "Research Policy (journal)",
+    "kind": "wikipedia",
+    "issn": "0048-7333"
+  },
+  {
+    "name": "Simulation & Gaming",
+    "file": "wiki-simulation-gaming.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/10/Simulation_and_Gaming.jpg",
+    "wikiTitle": "Simulation & Gaming",
+    "kind": "wikipedia",
+    "issn": "1046-8781"
+  },
+  {
+    "name": "Journal of the Royal Society Interface",
+    "file": "wiki-journal-of-the-royal-society-interface.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/6c/JRSI_journal_cover.jpg",
+    "wikiTitle": "Journal of the Royal Society Interface",
+    "kind": "wikipedia",
+    "issn": "1742-5689"
+  },
+  {
+    "name": "Quarterly Review of Biology",
+    "file": "wiki-quarterly-review-of-biology.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8c/Qrb_cover.gif",
+    "wikiTitle": "The Quarterly Review of Biology",
+    "kind": "wikipedia",
+    "issn": "0033-5770"
+  },
+  {
+    "name": "Animal Behaviour",
+    "file": "wiki-animal-behaviour.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/d4/AnimBehavcover.gif",
+    "wikiTitle": "Animal Behaviour (journal)",
+    "kind": "wikipedia",
+    "issn": "0003-3472"
+  },
+  {
+    "name": "Annual Review of Ecology and Systematics",
+    "file": "wiki-annual-review-of-ecology-and-systematics.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/12/Annual_Review_of_Ecology%2C_Evolution%2C_and_Systematics_cover.png",
+    "wikiTitle": "Annual Review of Ecology, Evolution, and Systematics",
+    "kind": "wikipedia",
+    "issn": "1545-2069"
+  },
+  {
+    "name": "American Economic Review",
+    "file": "wiki-american-economic-review.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8a/The_American_Economic_Review_%28cover%29.jpg",
+    "wikiTitle": "American Economic Review",
+    "kind": "wikipedia",
+    "issn": "0002-8282"
+  },
+  {
+    "name": "Faith and Philosophy",
+    "file": "wiki-faith-and-philosophy.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/9/9a/Faithphilcover2.gif",
+    "wikiTitle": "Faith and Philosophy",
+    "kind": "wikipedia",
+    "issn": "0739-7046"
+  },
+  {
+    "name": "Studia Logica",
+    "file": "wiki-studia-logica.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/34/Studia-logica-journal.jpg",
+    "wikiTitle": "Studia Logica",
+    "kind": "wikipedia",
+    "issn": "0039-3215"
+  },
+  {
+    "name": "Theoria",
+    "file": "wiki-theoria.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/e/e9/Theoria_%E2%80%93_A_Swedish_Journal_of_Philosophy.jpg",
+    "wikiTitle": "Theoria (philosophy journal)",
+    "kind": "wikipedia",
+    "issn": "0040-5825"
+  },
+  {
+    "name": "Nous",
+    "file": "wiki-nous.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/35/Nous_journal_cover.gif",
+    "wikiTitle": "Noûs",
+    "kind": "wikipedia",
+    "issn": "0029-4624"
+  },
+  {
+    "name": "Journal of Conflict Resolution",
+    "file": "wiki-journal-of-conflict-resolution.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Journal_of_Conflict_Resolution.tif/lossy-page1-120px-Journal_of_Conflict_Resolution.tif.jpg",
+    "wikiTitle": "Journal of Conflict Resolution",
+    "kind": "wikipedia",
+    "issn": "0022-0027"
+  },
+  {
+    "name": "Psychological Review",
+    "file": "wiki-psychological-review.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/b/bb/Psychological_Review.gif",
+    "wikiTitle": "Psychological Review",
+    "kind": "wikipedia",
+    "issn": "0033-295X"
+  },
+  {
+    "name": "Journal of the American Statistical Association",
+    "file": "wiki-journal-of-the-american-statistical-association.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/c1/JASA_cover.jpg",
+    "wikiTitle": "Journal of the American Statistical Association",
+    "kind": "wikipedia",
+    "issn": "0162-1459"
+  },
+  {
+    "name": "Journal of Psychology",
+    "file": "wiki-journal-of-psychology.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/d9/The_Journal_of_Psychology.jpg",
+    "wikiTitle": "The Journal of Psychology",
+    "kind": "wikipedia",
+    "issn": "0022-3980"
+  },
+  {
+    "name": "Journal of Economic Dynamics and Control",
+    "file": "wiki-journal-of-economic-dynamics-and-control.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/b/b5/Journal_of_Economic_Dynamics_and_Control.jpg",
+    "wikiTitle": "Journal of Economic Dynamics and Control",
+    "kind": "wikipedia",
+    "issn": "0165-1889"
+  },
+  {
+    "name": "International Journal of Modern Physics C",
+    "file": "wiki-international-journal-of-modern-physics-c.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/b/b4/International_Journal_of_Modern_Physics_A_%28journal%29_cover.gif",
+    "wikiTitle": "International Journal of Modern Physics",
+    "kind": "wikipedia",
+    "issn": "0217-751X"
+  },
+  {
+    "name": "Politics, Philosophy and Economics",
+    "file": "wiki-politics-philosophy-and-economics.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Politics%2C_Philosophy_%26_Economics_journal_front_cover.jpg",
+    "wikiTitle": "Politics, Philosophy & Economics",
+    "kind": "wikipedia",
+    "issn": "1470-594X"
+  },
+  {
+    "name": "American Journal of Political Science",
+    "file": "wiki-american-journal-of-political-science.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8b/American_Journal_of_Political_Science_%28cover%29.jpg",
+    "wikiTitle": "American Journal of Political Science",
+    "kind": "wikipedia",
+    "issn": "0092-5853"
+  },
+  {
+    "name": "Utilitas",
+    "file": "wiki-utilitas.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/cd/Utilitas_journal_cover.jpg",
+    "wikiTitle": "Utilitas",
+    "kind": "wikipedia",
+    "issn": "0953-8208"
+  },
+  {
+    "name": "Theory and Decision",
+    "file": "wiki-theory-and-decision.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/11/Theory_and_Decision.jpg",
+    "wikiTitle": "Theory and Decision",
+    "kind": "wikipedia",
+    "issn": "0040-5833"
+  },
+  {
+    "name": "Politics, Philosophy, and Economics",
+    "file": "wiki-politics-philosophy-and-economics.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Politics%2C_Philosophy_%26_Economics_journal_front_cover.jpg",
+    "wikiTitle": "Politics, Philosophy & Economics",
+    "kind": "wikipedia",
+    "issn": "1470-594X"
+  },
+  {
+    "name": "Monthly Weather Review",
+    "file": "wiki-monthly-weather-review.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8b/Monthly_Weather_Review_cover.jpg",
+    "wikiTitle": "Monthly Weather Review",
+    "kind": "wikipedia",
+    "issn": "0027-0644"
+  },
+  {
+    "name": "The Quarterly Journal of Economics",
+    "file": "wiki-the-quarterly-journal-of-economics.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/4/45/Qjoelowres.jpg",
+    "wikiTitle": "The Quarterly Journal of Economics",
+    "kind": "wikipedia",
+    "issn": "0033-5533"
+  },
+  {
+    "name": "Journal of the European Economic Association",
+    "file": "wiki-journal-of-the-european-economic-association.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/5/51/Joteealowres.gif",
+    "wikiTitle": "Journal of the European Economic Association",
+    "kind": "wikipedia",
+    "issn": "1542-4766"
+  },
+  {
+    "name": "Psychological Bulletin",
+    "file": "wiki-psychological-bulletin.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/6b/Psychological_Bulletin_journal_cover.gif",
+    "wikiTitle": "Psychological Bulletin",
+    "kind": "wikipedia",
+    "issn": "0033-2909"
+  },
+  {
+    "name": "American Journal of Sociology",
+    "file": "wiki-american-journal-of-sociology.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8f/Jan2006AJSCover.jpg",
+    "wikiTitle": "American Journal of Sociology",
+    "kind": "wikipedia",
+    "issn": "0002-9602"
+  },
+  {
+    "name": "Behavioral and Brain Sciences",
+    "file": "wiki-behavioral-and-brain-sciences.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/9/9c/Behavioral_and_Brain_Sciences_%28cover%29.jpg",
+    "wikiTitle": "Behavioral and Brain Sciences",
+    "kind": "wikipedia",
+    "issn": "0140-525X"
+  },
+  {
+    "name": "Annual Review of Sociology",
+    "file": "wiki-annual-review-of-sociology.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/6d/Annual_Review_of_Sociology_cover.png",
+    "wikiTitle": "Annual Review of Sociology",
+    "kind": "wikipedia",
+    "issn": "0360-0572"
+  },
+  {
+    "name": "Quarterly Journal of Economics",
+    "file": "wiki-quarterly-journal-of-economics.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/4/45/Qjoelowres.jpg",
+    "wikiTitle": "The Quarterly Journal of Economics",
+    "kind": "wikipedia",
+    "issn": "0033-5533"
+  },
+  {
+    "name": "Psychological Science",
+    "file": "wiki-psychological-science.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/a/aa/Psychological_Science_cover.jpg",
+    "wikiTitle": "Psychological Science",
+    "kind": "wikipedia",
+    "issn": "0956-7976"
+  },
+  {
+    "name": "Advances in Complex Systems",
+    "file": "wiki-advances-in-complex-systems.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/4/41/Advances_in_Complex_Systems_%28cover%29.jpg",
+    "wikiTitle": "Advances in Complex Systems",
+    "kind": "wikipedia",
+    "issn": "0219-5259"
+  },
+  {
+    "name": "Analysis",
+    "file": "wiki-analysis.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/a/af/Analysis_%28journal%29.gif",
+    "wikiTitle": "Analysis (journal)",
+    "kind": "wikipedia",
+    "issn": "0003-2638"
+  },
+  {
+    "name": "Annual Review of Political Science",
+    "file": "wiki-annual-review-of-political-science.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/7/74/Annual_Review_of_Political_Science_journal_cover.png",
+    "wikiTitle": "Annual Review of Political Science",
+    "kind": "wikipedia",
+    "issn": "1094-2939"
+  },
+  {
+    "name": "Journal of the ACM",
+    "file": "wiki-journal-of-the-acm.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/68/Journal_of_the_ACM_2010_cover.jpg",
+    "wikiTitle": "Journal of the ACM",
+    "kind": "wikipedia",
+    "issn": "0004-5411"
+  },
+  {
+    "name": "Acta Biotheoretica",
+    "file": "wiki-acta-biotheoretica.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/7/7f/Acta_Biotheoretica.jpg",
+    "wikiTitle": "Acta Biotheoretica",
+    "kind": "wikipedia",
+    "issn": "0001-5342"
+  },
+  {
+    "name": "Sociological Methods & Research",
+    "file": "wiki-sociological-methods-research.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/7/71/Sociological_Methods_%26_Research_journal_front_cover_image.gif",
+    "wikiTitle": "Sociological Methods & Research",
+    "kind": "wikipedia",
+    "issn": "0049-1241"
+  },
+  {
+    "name": "American Sociological Review",
+    "file": "wiki-american-sociological-review.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/0/08/American_Sociological_Review_%28journal%29_cover_%E2%80%93_2010.gif",
+    "wikiTitle": "American Sociological Review",
+    "kind": "wikipedia",
+    "issn": "0003-1224"
+  },
+  {
+    "name": "Biosystems",
+    "file": "wiki-biosystems.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/2/2c/BioSystems_FrontCover.gif",
+    "wikiTitle": "BioSystems",
+    "kind": "wikipedia",
+    "issn": "0303-2647"
+  },
+  {
+    "name": "Artificial Life",
+    "file": "wiki-artificial-life.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/a/a9/Artificallifelowres.jpg",
+    "wikiTitle": "Artificial Life (journal)",
+    "kind": "wikipedia",
+    "issn": "1064-5462"
+  },
+  {
+    "name": "Administrative Science Quarterly",
+    "file": "wiki-administrative-science-quarterly.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/cc/AdministrativeScienceQuarterly.jpg",
+    "wikiTitle": "Administrative Science Quarterly",
+    "kind": "wikipedia",
+    "issn": "0001-8392"
+  },
+  {
+    "name": "Journal of Experimental Psychology: General",
+    "file": "wiki-journal-of-experimental-psychology-general.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/b/b3/JEP%2C_General.gif",
+    "wikiTitle": "Journal of Experimental Psychology: General",
+    "kind": "wikipedia",
+    "issn": "0096-3445"
+  },
+  {
+    "name": "Politics, Philosophy & Economics",
+    "file": "wiki-politics-philosophy-economics.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Politics%2C_Philosophy_%26_Economics_journal_front_cover.jpg",
+    "wikiTitle": "Politics, Philosophy & Economics",
+    "kind": "wikipedia",
+    "issn": "1470-594X"
+  },
+  {
+    "name": "Foundations of Science",
+    "file": "wiki-foundations-of-science.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/a/a0/FoScover.jpg",
+    "wikiTitle": "Foundations of Science",
+    "kind": "wikipedia",
+    "issn": "1233-1821"
+  },
+  {
+    "name": "Notices of the American Mathematical Society",
+    "file": "wiki-notices-of-the-american-mathematical-society.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/b/b3/NAMS.jpg",
+    "wikiTitle": "Notices of the American Mathematical Society",
+    "kind": "wikipedia",
+    "issn": "0002-9920"
+  },
+  {
+    "name": "Philosophy, Politics, and Economics",
+    "file": "wiki-philosophy-politics-and-economics.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Politics%2C_Philosophy_%26_Economics_journal_front_cover.jpg",
+    "wikiTitle": "Politics, Philosophy & Economics",
+    "kind": "wikipedia",
+    "issn": "1470-594X"
+  },
+  {
+    "name": "Journal of Environmental Management",
+    "file": "wiki-journal-of-environmental-management.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/6d/2022_cover_J_Env_Manag.jpg",
+    "wikiTitle": "Journal of Environmental Management",
+    "kind": "wikipedia",
+    "issn": "0301-4797"
+  },
+  {
+    "name": "Bulletin of the American Mathematical Society",
+    "file": "wiki-bulletin-of-the-american-mathematical-society.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/db/Bulletin_of_the_American_Mathematical_Society_cover.png",
+    "wikiTitle": "Bulletin of the American Mathematical Society",
+    "kind": "wikipedia",
+    "issn": "0273-0979"
+  },
+  {
+    "name": "Journal of Mathematical Biology",
+    "file": "wiki-journal-of-mathematical-biology.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/5/5c/Journal_of_Mathematical_Biology_Cover.jpg",
+    "wikiTitle": "Journal of Mathematical Biology",
+    "kind": "wikipedia",
+    "issn": "0303-6812"
+  },
+  {
+    "name": "Annual Review of Psychology",
+    "file": "wiki-annual-review-of-psychology.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/2/20/Annual_Review_of_Psychology_cover.png",
+    "wikiTitle": "Annual Review of Psychology",
+    "kind": "wikipedia",
+    "issn": "0066-4308"
+  },
+  {
+    "name": "Scientific Reports",
+    "file": "wiki-scientific-reports.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Scientific_Reports_Logo.svg/500px-Scientific_Reports_Logo.svg.png",
+    "wikiTitle": "Scientific Reports",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Political Psychology",
+    "file": "wiki-political-psychology.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/dd/Political_Psychology_cover.gif",
+    "wikiTitle": "Political Psychology",
+    "kind": "wikipedia",
+    "issn": "0162-895X"
+  },
+  {
+    "name": "Croatian Journal of Philosophy",
+    "file": "wiki-croatian-journal-of-philosophy.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/e/e3/Croatjphilcover.gif",
+    "wikiTitle": "Croatian Journal of Philosophy",
+    "kind": "wikipedia",
+    "issn": "1333-1108"
+  },
+  {
+    "name": "Monist",
+    "file": "wiki-monist.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Monistcover.gif",
+    "wikiTitle": "The Monist",
+    "kind": "wikipedia",
+    "issn": "0026-9662"
+  },
+  {
+    "name": "Oxford Economic Papers",
+    "file": "wiki-oxford-economic-papers.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/1d/Oxford_Economic_Papers_cover.png",
+    "wikiTitle": "Oxford Economic Papers",
+    "kind": "wikipedia",
+    "issn": "0030-7653"
+  },
+  {
+    "name": "Machine Learning",
+    "file": "wiki-machine-learning.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8e/Machine_Learning_%28journal%29.jpg",
+    "wikiTitle": "Machine Learning (journal)",
+    "kind": "wikipedia",
+    "issn": "1573-0565"
+  },
+  {
+    "name": "Complex Systems",
+    "file": "wiki-complex-systems.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/c6/Complex_Systems_Journal_cover.png",
+    "wikiTitle": "Complex Systems (journal)",
+    "kind": "wikipedia",
+    "issn": "0891-2513"
+  },
+  {
+    "name": "Social Science Information",
+    "file": "wiki-social-science-information.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/6e/Social_Science_Information.jpg",
+    "wikiTitle": "Social Science Information",
+    "kind": "wikipedia",
+    "issn": "0539-0184"
+  },
+  {
+    "name": "Journal of Experimental Psychology: Learning, Memory, and Cognition",
+    "file": "wiki-journal-of-experimental-psychology-learning-memory-and-cognition.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/d/d1/JEP-Learning%2C_Memory_and_Cognition_journal_cover.gif",
+    "wikiTitle": "Journal of Experimental Psychology: Learning, Memory, and Cognition",
+    "kind": "wikipedia",
+    "issn": "0278-7393"
+  },
+  {
+    "name": "The American Economic Review",
+    "file": "wiki-the-american-economic-review.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/8/8a/The_American_Economic_Review_%28cover%29.jpg",
+    "wikiTitle": "American Economic Review",
+    "kind": "wikipedia",
+    "issn": "0002-8282"
+  },
+  {
+    "name": "Linguistics and Philosophy",
+    "file": "wiki-linguistics-and-philosophy.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/35/Ling%26phil.jpg",
+    "wikiTitle": "Linguistics and Philosophy",
+    "kind": "wikipedia",
+    "issn": "0165-0157"
+  },
+  {
+    "name": "Journal of Applied Economics",
+    "file": "wiki-journal-of-applied-economics.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/f/f6/Journal_of_Applied_Economics%2C_vol._28%2C_no._1_cover.jpg",
+    "wikiTitle": "Journal of Applied Economics",
+    "kind": "wikipedia",
+    "issn": "1514-0326"
+  },
+  {
+    "name": "Cognitive Systems Research",
+    "file": "wiki-cognitive-systems-research.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/5/5b/Cognitive_Systems_Research_%28journal%29_cover.gif",
+    "wikiTitle": "Cognitive Systems Research",
+    "kind": "wikipedia",
+    "issn": "1389-0417"
+  },
+  {
+    "name": "Management Science",
+    "file": "wiki-management-science.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/4/4a/Management_Sciense_May_2011_cover.gif",
+    "wikiTitle": "Management Science (journal)",
+    "kind": "wikipedia",
+    "issn": "0025-1909"
+  },
+  {
+    "name": "Evolution and Human Behavior",
+    "file": "wiki-evolution-and-human-behavior.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/64/Evolution_and_Human_Behavior_cover.gif",
+    "wikiTitle": "Evolution and Human Behavior",
+    "kind": "wikipedia",
+    "issn": "1090-5138"
+  },
+  {
+    "name": "EPL (Europhysics Letters)",
+    "file": "wiki-epl-europhysics-letters.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/31/EPL-journal-cover-April-2013.jpg",
+    "wikiTitle": "EPL (journal)",
+    "kind": "wikipedia",
+    "issn": "0295-5075"
+  },
+  {
+    "name": "Current Directions in Psychological Science",
+    "file": "wiki-current-directions-in-psychological-science.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/e/ec/Current_Directions_in_Psychological_Science.tif/lossy-page1-120px-Current_Directions_in_Psychological_Science.tif.jpg",
+    "wikiTitle": "Current Directions in Psychological Science",
+    "kind": "wikipedia",
+    "issn": "0963-7214"
+  },
+  {
+    "name": "Royal Society Open Science",
+    "file": "wiki-royal-society-open-science.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/7/77/RSOS_cover_Sept_15.jpg",
+    "wikiTitle": "Royal Society Open Science",
+    "kind": "wikipedia",
+    "issn": "2054-5703"
+  },
+  {
+    "name": "Studia Neoaristotelica",
+    "file": "wiki-studia-neoaristotelica.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/12/Studneococover2.gif",
+    "wikiTitle": "Studia Neoaristotelica",
+    "kind": "wikipedia",
+    "issn": "1214-8407"
+  },
+  {
+    "name": "Criminology",
+    "file": "wiki-criminology.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/65/Criminology_cover.gif",
+    "wikiTitle": "Criminology (journal)",
+    "kind": "wikipedia",
+    "issn": "0011-1384"
+  },
+  {
+    "name": "Social Science Computer Review",
+    "file": "wiki-social-science-computer-review.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/6/65/Social_Science_Computer_Review.tif/lossy-page1-120px-Social_Science_Computer_Review.tif.jpg",
+    "wikiTitle": "Social Science Computer Review",
+    "kind": "wikipedia",
+    "issn": "0894-4393"
+  },
+  {
+    "name": "Evolution",
+    "file": "wiki-evolution.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/a/a5/Evolution_cover.jpg",
+    "wikiTitle": "Evolution (journal)",
+    "kind": "wikipedia",
+    "issn": "0014-3820"
+  },
+  {
+    "name": "Social Dynamics",
+    "file": "wiki-social-dynamics.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/ce/Cover_of_Social_Dynamics%2C_A_Journal_of_African_Studies.jpg",
+    "wikiTitle": "Social Dynamics: A Journal of African Studies",
+    "kind": "wikipedia",
+    "issn": "0253-3952"
+  },
+  {
+    "name": "Journal of Experimental Social Psychology",
+    "file": "wiki-journal-of-experimental-social-psychology.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/f/f9/Journal_of_experimental_social_psychology_cover.gif",
+    "wikiTitle": "Journal of Experimental Social Psychology",
+    "kind": "wikipedia",
+    "issn": "0022-1031"
+  },
+  {
+    "name": "Philosophical Topics",
+    "file": "wiki-philosophical-topics.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/0/0f/Philtopcover2.gif",
+    "wikiTitle": "Philosophical Topics",
+    "kind": "wikipedia",
+    "issn": "0276-2080"
+  },
+  {
+    "name": "Mathematical and Computational Organization Theory",
+    "file": "wiki-mathematical-and-computational-organization-theory.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/c8/Computational_and_Mathematical_Organization_Theory_Cover.jpg",
+    "wikiTitle": "Computational and Mathematical Organization Theory",
+    "kind": "wikipedia",
+    "issn": "1381-298X"
+  },
+  {
+    "name": "Midwest Studies in Philosophy",
+    "file": "wiki-midwest-studies-in-philosophy.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/c/c7/Midwest-Studies-in-Philosophy-cover.jpg",
+    "wikiTitle": "Midwest Studies in Philosophy",
+    "kind": "wikipedia",
+    "issn": "0363-6550"
+  },
+  {
+    "name": "Nature Human Behaviour",
+    "file": "wiki-nature-human-behaviour.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/30/Nature_Human_Behaviour_journal_cover_volume_2_issue_1.png",
+    "wikiTitle": "Nature Human Behaviour",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Harvard Review of Philosophy",
+    "file": "wiki-harvard-review-of-philosophy.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/4/49/Hrp-cover1.jpg",
+    "wikiTitle": "The Harvard Review of Philosophy",
+    "kind": "wikipedia",
+    "issn": "1062-6239"
+  },
+  {
+    "name": "Simulation Gaming",
+    "file": "wiki-simulation-gaming.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/1/10/Simulation_and_Gaming.jpg",
+    "wikiTitle": "Simulation & Gaming",
+    "kind": "wikipedia",
+    "issn": "1046-8781"
+  },
+  {
+    "name": "Discrete Mathematics",
+    "file": "wiki-discrete-mathematics.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/6/6e/DM-cover.gif",
+    "wikiTitle": "Discrete Mathematics (journal)",
+    "kind": "wikipedia",
+    "issn": "0012-365X"
+  },
+  {
+    "name": "Journal of Finance",
+    "file": "wiki-journal-of-finance.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/en/3/31/Journal_of_Finance_cover.gif",
+    "wikiTitle": "The Journal of Finance",
+    "kind": "wikipedia",
+    "issn": "0022-1082"
   }
 ]
