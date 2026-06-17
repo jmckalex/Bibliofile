@@ -1,0 +1,4623 @@
+[
+  {
+    "name": "Nature",
+    "issnL": "0028-0836",
+    "issn": [
+      "0028-0836",
+      "1476-4687"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "https://www.nature.com/nature/",
+    "openAlexId": "https://openalex.org/S137773608"
+  },
+  {
+    "name": "Proceedings of the National Academy of Sciences",
+    "issnL": "0027-8424",
+    "issn": [
+      "0027-8424",
+      "1091-6490"
+    ],
+    "publisher": "National Academy of Sciences",
+    "homepageUrl": "http://www.pnas.org/",
+    "openAlexId": "https://openalex.org/S125754415"
+  },
+  {
+    "name": "Science",
+    "issnL": "0036-8075",
+    "issn": [
+      "0036-8075",
+      "1095-9203"
+    ],
+    "publisher": "American Association for the Advancement of Science",
+    "homepageUrl": "http://www.sciencemag.org/",
+    "openAlexId": "https://openalex.org/S3880285"
+  },
+  {
+    "name": "Journal of Biological Chemistry",
+    "issnL": "0021-9258",
+    "issn": [
+      "0021-9258",
+      "1067-8816",
+      "1083-351X"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/journal-of-biological-chemistry",
+    "openAlexId": "https://openalex.org/S140251998"
+  },
+  {
+    "name": "Journal of the American Chemical Society",
+    "issnL": "0002-7863",
+    "issn": [
+      "0002-7863",
+      "1520-5126",
+      "1943-2984"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journals/jacsat/index.html",
+    "openAlexId": "https://openalex.org/S111155417"
+  },
+  {
+    "name": "Physical Review Letters",
+    "issnL": "0031-9007",
+    "issn": [
+      "0031-9007",
+      "1079-7114",
+      "1092-0145"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org/prl/",
+    "openAlexId": "https://openalex.org/S24807848"
+  },
+  {
+    "name": "Medical Entomology and Zoology",
+    "issnL": "0424-7086",
+    "issn": [
+      "0424-7086",
+      "2185-5609"
+    ],
+    "publisher": "Japan Society of Medical Entomology and Zoology",
+    "homepageUrl": "http://ci.nii.ac.jp/vol_issue/nels/AN00021948_en.html",
+    "openAlexId": "https://openalex.org/S4210197683"
+  },
+  {
+    "name": "Choice Reviews Online",
+    "issnL": "0009-4978",
+    "issn": [
+      "0009-4978",
+      "1523-8253",
+      "1943-5975"
+    ],
+    "publisher": "Association of College and Research Libraries",
+    "homepageUrl": "http://www.ala.org/ala/mgrps/divs/acrl/publications/choice/index.cfm",
+    "openAlexId": "https://openalex.org/S2764375719"
+  },
+  {
+    "name": "PLoS ONE",
+    "issnL": "1932-6203",
+    "issn": [
+      "1932-6203"
+    ],
+    "publisher": "Public Library of Science",
+    "homepageUrl": "http://www.plosone.org/",
+    "openAlexId": "https://openalex.org/S202381698"
+  },
+  {
+    "name": "New England Journal of Medicine",
+    "issnL": "0028-4793",
+    "issn": [
+      "0028-4793",
+      "1533-4406"
+    ],
+    "publisher": "Massachusetts Medical Society",
+    "homepageUrl": "http://www.nejm.org/",
+    "openAlexId": "https://openalex.org/S62468778"
+  },
+  {
+    "name": "The Lancet",
+    "issnL": "0140-6736",
+    "issn": [
+      "0140-6736",
+      "1474-547X"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/the-lancet",
+    "openAlexId": "https://openalex.org/S49861241"
+  },
+  {
+    "name": "Cell",
+    "issnL": "0092-8674",
+    "issn": [
+      "0092-8674",
+      "1097-4172"
+    ],
+    "publisher": "Cell Press",
+    "homepageUrl": "https://www.sciencedirect.com/journal/cell",
+    "openAlexId": "https://openalex.org/S110447773"
+  },
+  {
+    "name": "The Journal of Chemical Physics",
+    "issnL": "0021-9606",
+    "issn": [
+      "0021-9606",
+      "1089-7690",
+      "1520-9032"
+    ],
+    "publisher": "American Institute of Physics",
+    "homepageUrl": "http://jcp.aip.org/",
+    "openAlexId": "https://openalex.org/S77047749"
+  },
+  {
+    "name": "Scientific Reports",
+    "issnL": "2045-2322",
+    "issn": [
+      "2045-2322"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/srep/index.html",
+    "openAlexId": "https://openalex.org/S196734849"
+  },
+  {
+    "name": "The Astrophysical Journal",
+    "issnL": "0004-637X",
+    "issn": [
+      "0004-637X",
+      "1538-4357"
+    ],
+    "publisher": "IOP Publishing",
+    "homepageUrl": "http://iopscience.org/apj",
+    "openAlexId": "https://openalex.org/S1980519"
+  },
+  {
+    "name": "Nature Communications",
+    "issnL": "2041-1723",
+    "issn": [
+      "2041-1723"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/ncomms/index.html",
+    "openAlexId": "https://openalex.org/S64187185"
+  },
+  {
+    "name": "JAMA",
+    "issnL": "0098-7484",
+    "issn": [
+      "0098-7484",
+      "1538-3598"
+    ],
+    "publisher": "American Medical Association",
+    "homepageUrl": "http://jama.ama-assn.org/",
+    "openAlexId": "https://openalex.org/S172573765"
+  },
+  {
+    "name": "Angewandte Chemie International Edition",
+    "issnL": "1433-7851",
+    "issn": [
+      "1433-7851",
+      "1521-3773"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://onlinelibrary.wiley.com/journal/15213773",
+    "openAlexId": "https://openalex.org/S67393510"
+  },
+  {
+    "name": "Journal of Geophysical Research Atmospheres",
+    "issnL": "0148-0227",
+    "issn": [
+      "0148-0227",
+      "2156-2202"
+    ],
+    "publisher": "American Geophysical Union",
+    "homepageUrl": "http://www.agu.org/journals/jgr/",
+    "openAlexId": "https://openalex.org/S207178839"
+  },
+  {
+    "name": "Circulation",
+    "issnL": "0009-7322",
+    "issn": [
+      "0009-7322",
+      "1524-4539"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://circ.ahajournals.org/",
+    "openAlexId": "https://openalex.org/S116251202"
+  },
+  {
+    "name": "Applied Physics Letters",
+    "issnL": "0003-6951",
+    "issn": [
+      "0003-6951",
+      "1077-3118",
+      "1520-8842"
+    ],
+    "publisher": "American Institute of Physics",
+    "homepageUrl": "http://apl.aip.org/",
+    "openAlexId": "https://openalex.org/S105243760"
+  },
+  {
+    "name": "Nucleic Acids Research",
+    "issnL": "0305-1048",
+    "issn": [
+      "0305-1048",
+      "1362-4954",
+      "1362-4962"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://nar.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S134668137"
+  },
+  {
+    "name": "Blood",
+    "issnL": "0006-4971",
+    "issn": [
+      "0006-4971",
+      "1528-0020"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/blood",
+    "openAlexId": "https://openalex.org/S200071133"
+  },
+  {
+    "name": "Physical review. B, Condensed matter",
+    "issnL": "0163-1829",
+    "issn": [
+      "0163-1829",
+      "1095-3795"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org",
+    "openAlexId": "https://openalex.org/S4210174675"
+  },
+  {
+    "name": "Journal of Neuroscience",
+    "issnL": "0270-6474",
+    "issn": [
+      "0270-6474",
+      "1529-2401"
+    ],
+    "publisher": "Society for Neuroscience",
+    "homepageUrl": "http://www.jneurosci.org/",
+    "openAlexId": "https://openalex.org/S5555990"
+  },
+  {
+    "name": "The Journal of Immunology",
+    "issnL": "0022-1767",
+    "issn": [
+      "0022-1767",
+      "1550-6606"
+    ],
+    "publisher": "American Association of Immunologists",
+    "homepageUrl": "http://www.jimmunol.org/",
+    "openAlexId": "https://openalex.org/S38008053"
+  },
+  {
+    "name": "Journal of Applied Physics",
+    "issnL": "0021-8979",
+    "issn": [
+      "0021-8979",
+      "1089-7550",
+      "1520-8850"
+    ],
+    "publisher": "American Institute of Physics",
+    "homepageUrl": "http://aip.scitation.org/journal/jap/",
+    "openAlexId": "https://openalex.org/S187991544"
+  },
+  {
+    "name": "Journal of Clinical Investigation",
+    "issnL": "0021-9738",
+    "issn": [
+      "0021-9738",
+      "1558-8238"
+    ],
+    "publisher": "American Society for Clinical Investigation",
+    "homepageUrl": "http://www.jci.org/",
+    "openAlexId": "https://openalex.org/S114430552"
+  },
+  {
+    "name": "Advanced Materials",
+    "issnL": "0935-9648",
+    "issn": [
+      "0935-9648",
+      "1521-4095"
+    ],
+    "publisher": null,
+    "homepageUrl": "http://www.advmat.de/",
+    "openAlexId": "https://openalex.org/S99352657"
+  },
+  {
+    "name": "Journal of Clinical Oncology",
+    "issnL": "0732-183X",
+    "issn": [
+      "0732-183X",
+      "1527-7755"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.jco.org/",
+    "openAlexId": "https://openalex.org/S15137598"
+  },
+  {
+    "name": "Environmental Science & Technology",
+    "issnL": "0013-936X",
+    "issn": [
+      "0013-936X",
+      "1520-5851"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journals/esthag/",
+    "openAlexId": "https://openalex.org/S13479253"
+  },
+  {
+    "name": "Analytical Chemistry",
+    "issnL": "0003-2700",
+    "issn": [
+      "0003-2700",
+      "1520-6882"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/ancham",
+    "openAlexId": "https://openalex.org/S191963794"
+  },
+  {
+    "name": "Chemical Reviews",
+    "issnL": "0009-2665",
+    "issn": [
+      "0009-2665",
+      "1520-6890"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journals/chreay/index.html",
+    "openAlexId": "https://openalex.org/S41143188"
+  },
+  {
+    "name": "The Science of The Total Environment",
+    "issnL": "0048-9697",
+    "issn": [
+      "0048-9697",
+      "1879-1026"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/science-of-the-total-environment",
+    "openAlexId": "https://openalex.org/S86852077"
+  },
+  {
+    "name": "Biochemistry",
+    "issnL": "0006-2960",
+    "issn": [
+      "0006-2960",
+      "1520-4995",
+      "1943-295X"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/bichaw",
+    "openAlexId": "https://openalex.org/S104038378"
+  },
+  {
+    "name": "Monthly Notices of the Royal Astronomical Society",
+    "issnL": "0035-8711",
+    "issn": [
+      "0035-8711",
+      "1365-2966",
+      "1365-8711"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://mnras.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S195663288"
+  },
+  {
+    "name": "Biochemical and Biophysical Research Communications",
+    "issnL": "0006-291X",
+    "issn": [
+      "0006-291X",
+      "1090-2104"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/622790/description",
+    "openAlexId": "https://openalex.org/S151589183"
+  },
+  {
+    "name": "The Journal of Cell Biology",
+    "issnL": "0021-9525",
+    "issn": [
+      "0021-9525",
+      "1540-8140"
+    ],
+    "publisher": "Rockefeller University Press",
+    "homepageUrl": "http://www.jcb.org/",
+    "openAlexId": "https://openalex.org/S96410829"
+  },
+  {
+    "name": "Journal of Virology",
+    "issnL": "0022-538X",
+    "issn": [
+      "0022-538X",
+      "1070-6321",
+      "1098-5514"
+    ],
+    "publisher": "American Society for Microbiology",
+    "homepageUrl": "http://jvi.asm.org/",
+    "openAlexId": "https://openalex.org/S96615428"
+  },
+  {
+    "name": "BMJ",
+    "issnL": "0959-8138",
+    "issn": [
+      "0959-8138"
+    ],
+    "publisher": "BMJ",
+    "homepageUrl": "http://www.bmj.com/thebmj",
+    "openAlexId": "https://openalex.org/S192814187"
+  },
+  {
+    "name": "Annals of Internal Medicine",
+    "issnL": "0003-4819",
+    "issn": [
+      "0003-4819",
+      "1539-3704"
+    ],
+    "publisher": "American College of Physicians",
+    "homepageUrl": "http://www.annals.org/",
+    "openAlexId": "https://openalex.org/S119722071"
+  },
+  {
+    "name": "The Journal of Organic Chemistry",
+    "issnL": "0022-3263",
+    "issn": [
+      "0022-3263",
+      "1520-6904"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/joceah",
+    "openAlexId": "https://openalex.org/S205050996"
+  },
+  {
+    "name": "Chemical Engineering Journal",
+    "issnL": "1385-8947",
+    "issn": [
+      "1385-8947",
+      "1873-3212"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/chemical-engineering-journal",
+    "openAlexId": "https://openalex.org/S149937609"
+  },
+  {
+    "name": "The Journal of Clinical Endocrinology & Metabolism",
+    "issnL": "0021-972X",
+    "issn": [
+      "0021-972X",
+      "1945-7197"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/jcem",
+    "openAlexId": "https://openalex.org/S205775358"
+  },
+  {
+    "name": "The Journal of Experimental Medicine",
+    "issnL": "0022-1007",
+    "issn": [
+      "0022-1007",
+      "1540-9538"
+    ],
+    "publisher": "Rockefeller University Press",
+    "homepageUrl": "http://www.jem.org/",
+    "openAlexId": "https://openalex.org/S22947807"
+  },
+  {
+    "name": "ACS Applied Materials & Interfaces",
+    "issnL": "1944-8244",
+    "issn": [
+      "1944-8244",
+      "1944-8252"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/aamick",
+    "openAlexId": "https://openalex.org/S164001016"
+  },
+  {
+    "name": "Journal of Personality and Social Psychology",
+    "issnL": "0022-3514",
+    "issn": [
+      "0022-3514",
+      "1939-1315"
+    ],
+    "publisher": "American Psychological Association",
+    "homepageUrl": "http://www.apa.org/pubs/journals/psp/",
+    "openAlexId": "https://openalex.org/S29984966"
+  },
+  {
+    "name": "Neurology",
+    "issnL": "0028-3878",
+    "issn": [
+      "0028-3878",
+      "1526-632X"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.neurology.org/",
+    "openAlexId": "https://openalex.org/S79704628"
+  },
+  {
+    "name": "Physical Review B",
+    "issnL": "1098-0121",
+    "issn": [
+      "1098-0121",
+      "1538-4489",
+      "1550-235X"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org/prb/",
+    "openAlexId": "https://openalex.org/S6791298"
+  },
+  {
+    "name": "Chemical Communications",
+    "issnL": "1359-7345",
+    "issn": [
+      "1359-7345",
+      "1364-548X"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://www.rsc.org/chemcomm",
+    "openAlexId": "https://openalex.org/S152760256"
+  },
+  {
+    "name": "Physical Review",
+    "issnL": "0031-899X",
+    "issn": [
+      "0031-899X",
+      "1536-6065"
+    ],
+    "publisher": "American Institute of Physics",
+    "homepageUrl": "http://journals.aps.org/",
+    "openAlexId": "https://openalex.org/S54862371"
+  },
+  {
+    "name": "Journal of the American College of Cardiology",
+    "issnL": "0735-1097",
+    "issn": [
+      "0735-1097",
+      "1558-3597"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/journal-of-the-american-college-of-cardiology",
+    "openAlexId": "https://openalex.org/S60865174"
+  },
+  {
+    "name": "Cancer",
+    "issnL": "0008-543X",
+    "issn": [
+      "0008-543X",
+      "1045-7410",
+      "1097-0142"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1097-0142",
+    "openAlexId": "https://openalex.org/S126033908"
+  },
+  {
+    "name": "Applied and Environmental Microbiology",
+    "issnL": "0099-2240",
+    "issn": [
+      "0099-2240",
+      "1070-6291",
+      "1098-5336"
+    ],
+    "publisher": "American Society for Microbiology",
+    "homepageUrl": "http://aem.asm.org/",
+    "openAlexId": "https://openalex.org/S158228368"
+  },
+  {
+    "name": "International Journal of Molecular Sciences",
+    "issnL": "1422-0067",
+    "issn": [
+      "1422-0067",
+      "1661-6596"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/ijms/",
+    "openAlexId": "https://openalex.org/S10623703"
+  },
+  {
+    "name": "The EMBO Journal",
+    "issnL": "0261-4189",
+    "issn": [
+      "0261-4189",
+      "1460-2075"
+    ],
+    "publisher": "Springer Nature",
+    "homepageUrl": "http://emboj.embopress.org/",
+    "openAlexId": "https://openalex.org/S127916151"
+  },
+  {
+    "name": "Brain Research",
+    "issnL": "0006-8993",
+    "issn": [
+      "0006-8993",
+      "1872-6240"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/brain-research",
+    "openAlexId": "https://openalex.org/S96638545"
+  },
+  {
+    "name": "Journal of Molecular Biology",
+    "issnL": "0022-2836",
+    "issn": [
+      "0022-2836",
+      "1089-8638"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/issn/0022-2836",
+    "openAlexId": "https://openalex.org/S46058472"
+  },
+  {
+    "name": "Journal of Bacteriology",
+    "issnL": "0021-9193",
+    "issn": [
+      "0021-9193",
+      "1067-8832",
+      "1098-5530"
+    ],
+    "publisher": "American Society for Microbiology",
+    "homepageUrl": "http://jb.asm.org/",
+    "openAlexId": "https://openalex.org/S133274750"
+  },
+  {
+    "name": "Nature Genetics",
+    "issnL": "1061-4036",
+    "issn": [
+      "1061-4036",
+      "1546-1718"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "https://www.nature.com/ng/",
+    "openAlexId": "https://openalex.org/S137905309"
+  },
+  {
+    "name": "Journal of Cleaner Production",
+    "issnL": "0959-6526",
+    "issn": [
+      "0959-6526",
+      "1879-1786"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/journal-of-cleaner-production",
+    "openAlexId": "https://openalex.org/S58516903"
+  },
+  {
+    "name": "Journal of Agricultural and Food Chemistry",
+    "issnL": "0021-8561",
+    "issn": [
+      "0021-8561",
+      "1520-5118"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/jafcau",
+    "openAlexId": "https://openalex.org/S134644764"
+  },
+  {
+    "name": "Gastroenterology",
+    "issnL": "0016-5085",
+    "issn": [
+      "0016-5085",
+      "1528-0012"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/gastroenterology",
+    "openAlexId": "https://openalex.org/S143352558"
+  },
+  {
+    "name": "PLANT PHYSIOLOGY",
+    "issnL": "0032-0889",
+    "issn": [
+      "0032-0889",
+      "1532-2548"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://www.plantphysiol.org/",
+    "openAlexId": "https://openalex.org/S42294715"
+  },
+  {
+    "name": "Macromolecules",
+    "issnL": "0024-9297",
+    "issn": [
+      "0024-9297",
+      "1520-5835"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/mamobx",
+    "openAlexId": "https://openalex.org/S177196338"
+  },
+  {
+    "name": "Neuron",
+    "issnL": "0896-6273",
+    "issn": [
+      "0896-6273",
+      "1097-4199"
+    ],
+    "publisher": "Cell Press",
+    "homepageUrl": "https://www.sciencedirect.com/journal/neuron",
+    "openAlexId": "https://openalex.org/S45757444"
+  },
+  {
+    "name": "Bioinformatics",
+    "issnL": "1367-4803",
+    "issn": [
+      "1367-4803",
+      "1367-4811"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://bioinformatics.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S52395412"
+  },
+  {
+    "name": "Geophysical Research Letters",
+    "issnL": "0094-8276",
+    "issn": [
+      "0094-8276",
+      "1944-8007"
+    ],
+    "publisher": "American Geophysical Union",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1944-8007",
+    "openAlexId": "https://openalex.org/S36624081"
+  },
+  {
+    "name": "PEDIATRICS",
+    "issnL": "0031-4005",
+    "issn": [
+      "0031-4005",
+      "1098-4275"
+    ],
+    "publisher": "American Academy of Pediatrics",
+    "homepageUrl": "http://pediatrics.aappublications.org/",
+    "openAlexId": "https://openalex.org/S77494981"
+  },
+  {
+    "name": "Inorganic Chemistry",
+    "issnL": "0020-1669",
+    "issn": [
+      "0020-1669",
+      "1520-510X"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journals/inocaj/",
+    "openAlexId": "https://openalex.org/S171072222"
+  },
+  {
+    "name": "Nano Letters",
+    "issnL": "1530-6984",
+    "issn": [
+      "1530-6984",
+      "1530-6992"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/nalefd",
+    "openAlexId": "https://openalex.org/S143846845"
+  },
+  {
+    "name": "Molecular and Cellular Biology",
+    "issnL": "0270-7306",
+    "issn": [
+      "0270-7306",
+      "1067-8824",
+      "1098-5549"
+    ],
+    "publisher": "Taylor & Francis",
+    "homepageUrl": "http://mcb.asm.org/",
+    "openAlexId": "https://openalex.org/S81455967"
+  },
+  {
+    "name": "Langmuir",
+    "issnL": "0743-7463",
+    "issn": [
+      "0743-7463",
+      "1520-5827"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/langd5/",
+    "openAlexId": "https://openalex.org/S75741262"
+  },
+  {
+    "name": "ACS Nano",
+    "issnL": "1936-0851",
+    "issn": [
+      "1936-0851",
+      "1936-086X"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/ancac3",
+    "openAlexId": "https://openalex.org/S145476921"
+  },
+  {
+    "name": "Food Chemistry",
+    "issnL": "0308-8146",
+    "issn": [
+      "0308-8146",
+      "1873-7072"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/405857/description#description",
+    "openAlexId": "https://openalex.org/S98026630"
+  },
+  {
+    "name": "The Journal of Physiology",
+    "issnL": "0022-3751",
+    "issn": [
+      "0022-3751",
+      "1469-7793"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://physoc.onlinelibrary.wiley.com/journal/14697793",
+    "openAlexId": "https://openalex.org/S2090548"
+  },
+  {
+    "name": "The Journal of Physical Chemistry B",
+    "issnL": "1520-5207",
+    "issn": [
+      "1520-5207",
+      "1520-6106"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journals/jpcbfk/index.html",
+    "openAlexId": "https://openalex.org/S185621672"
+  },
+  {
+    "name": "Physics Letters B",
+    "issnL": "0370-2693",
+    "issn": [
+      "0370-2693",
+      "1873-2445"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/physics-letters-b",
+    "openAlexId": "https://openalex.org/S173952182"
+  },
+  {
+    "name": "Nature Medicine",
+    "issnL": "1078-8956",
+    "issn": [
+      "1078-8956",
+      "1546-170X"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/nm/index.html",
+    "openAlexId": "https://openalex.org/S203256638"
+  },
+  {
+    "name": "Journal of the American Statistical Association",
+    "issnL": "0162-1459",
+    "issn": [
+      "0162-1459",
+      "1537-274X"
+    ],
+    "publisher": null,
+    "homepageUrl": null,
+    "openAlexId": "https://openalex.org/S4394736638"
+  },
+  {
+    "name": "Bioresource Technology",
+    "issnL": "0960-8524",
+    "issn": [
+      "0960-8524",
+      "1873-2976"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://journals.elsevier.com/09608524/bioresource-technology/",
+    "openAlexId": "https://openalex.org/S21442059"
+  },
+  {
+    "name": "Tetrahedron Letters",
+    "issnL": "0040-4039",
+    "issn": [
+      "0040-4039",
+      "1873-3581"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/233/description#description",
+    "openAlexId": "https://openalex.org/S133942674"
+  },
+  {
+    "name": "Advanced Functional Materials",
+    "issnL": "1616-301X",
+    "issn": [
+      "1616-301X",
+      "1616-3028"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1616-3028",
+    "openAlexId": "https://openalex.org/S135204980"
+  },
+  {
+    "name": "Journal of Hazardous Materials",
+    "issnL": "0304-3894",
+    "issn": [
+      "0304-3894",
+      "1873-3336"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/journal-of-hazardous-materials",
+    "openAlexId": "https://openalex.org/S145089992"
+  },
+  {
+    "name": "IEEE Access",
+    "issnL": "2169-3536",
+    "issn": [
+      "2169-3536"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://ieeexplore.ieee.org/servlet/opac?punumber=6287639",
+    "openAlexId": "https://openalex.org/S2485537415"
+  },
+  {
+    "name": "FEBS Letters",
+    "issnL": "0014-5793",
+    "issn": [
+      "0014-5793",
+      "1873-3468"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1873-3468",
+    "openAlexId": "https://openalex.org/S104830714"
+  },
+  {
+    "name": "Chemical Society Reviews",
+    "issnL": "0306-0012",
+    "issn": [
+      "0306-0012",
+      "1460-4744"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://www.rsc.org/publishing/journals/cs/about.asp",
+    "openAlexId": "https://openalex.org/S316438"
+  },
+  {
+    "name": "Radiology",
+    "issnL": "0033-8419",
+    "issn": [
+      "0033-8419",
+      "1527-1315"
+    ],
+    "publisher": "Radiological Society of North America",
+    "homepageUrl": "http://radiology.rsna.org/",
+    "openAlexId": "https://openalex.org/S50280174"
+  },
+  {
+    "name": "Chemosphere",
+    "issnL": "0045-6535",
+    "issn": [
+      "0045-6535",
+      "1879-1298"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/chemosphere",
+    "openAlexId": "https://openalex.org/S203465130"
+  },
+  {
+    "name": "Journal of Alloys and Compounds",
+    "issnL": "0925-8388",
+    "issn": [
+      "0925-8388",
+      "1873-4669"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/journal-of-alloys-and-compounds",
+    "openAlexId": "https://openalex.org/S67716761"
+  },
+  {
+    "name": "Endocrinology",
+    "issnL": "0013-7227",
+    "issn": [
+      "0013-7227",
+      "1945-7170"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/endo/",
+    "openAlexId": "https://openalex.org/S157527038"
+  },
+  {
+    "name": "NeuroImage",
+    "issnL": "1053-8119",
+    "issn": [
+      "1053-8119",
+      "1095-9572"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/ynimg",
+    "openAlexId": "https://openalex.org/S103225281"
+  },
+  {
+    "name": "The Journal of Physical Chemistry C",
+    "issnL": "1932-7447",
+    "issn": [
+      "1932-7447",
+      "1932-7455"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journals/jpccck/index.html",
+    "openAlexId": "https://openalex.org/S95739953"
+  },
+  {
+    "name": "Astronomy and Astrophysics",
+    "issnL": "0004-6361",
+    "issn": [
+      "0004-6361",
+      "1432-0746"
+    ],
+    "publisher": "EDP Sciences",
+    "homepageUrl": "http://www.aanda.org/",
+    "openAlexId": "https://openalex.org/S205231332"
+  },
+  {
+    "name": "The Journal of Urology",
+    "issnL": "0022-5347",
+    "issn": [
+      "0022-5347",
+      "1527-3792"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "https://journals.lww.com/auajuro/Pages/default.aspx",
+    "openAlexId": "https://openalex.org/S30525748"
+  },
+  {
+    "name": "Analytical Biochemistry",
+    "issnL": "0003-2697",
+    "issn": [
+      "0003-2697",
+      "1096-0309"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/analytical-biochemistry-methods-in-the-biological-sciences/",
+    "openAlexId": "https://openalex.org/S7858788"
+  },
+  {
+    "name": "Water Research",
+    "issnL": "0043-1354",
+    "issn": [
+      "0043-1354",
+      "1879-2448"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/309/description",
+    "openAlexId": "https://openalex.org/S52566953"
+  },
+  {
+    "name": "The Journal of Physical Chemistry",
+    "issnL": "0022-3654",
+    "issn": [
+      "0022-3654",
+      "1541-5740"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs3.acs.org/acs/journals/toc.page?incoden=jpchax",
+    "openAlexId": "https://openalex.org/S24459064"
+  },
+  {
+    "name": "Biomaterials",
+    "issnL": "0142-9612",
+    "issn": [
+      "0142-9612",
+      "1878-5905"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/biomaterials",
+    "openAlexId": "https://openalex.org/S163807576"
+  },
+  {
+    "name": "Contemporary Sociology A Journal of Reviews",
+    "issnL": "0094-3061",
+    "issn": [
+      "0094-3061",
+      "1939-8638"
+    ],
+    "publisher": "SAGE Publishing",
+    "homepageUrl": "http://csx.sagepub.com/",
+    "openAlexId": "https://openalex.org/S4789869"
+  },
+  {
+    "name": "American Journal of Psychiatry",
+    "issnL": "0002-953X",
+    "issn": [
+      "0002-953X",
+      "1535-7228"
+    ],
+    "publisher": "American Psychiatric Association",
+    "homepageUrl": "http://ajp.psychiatryonline.org/",
+    "openAlexId": "https://openalex.org/S116025658"
+  },
+  {
+    "name": "Journal of Power Sources",
+    "issnL": "0378-7753",
+    "issn": [
+      "0378-7753",
+      "1873-2755"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/504093/description",
+    "openAlexId": "https://openalex.org/S177147899"
+  },
+  {
+    "name": "Sustainability",
+    "issnL": "2071-1050",
+    "issn": [
+      "2071-1050"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/sustainability",
+    "openAlexId": "https://openalex.org/S10134376"
+  },
+  {
+    "name": "Physical Review A",
+    "issnL": "1050-2947",
+    "issn": [
+      "1050-2947",
+      "1094-1622",
+      "1538-4446"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org/pra/",
+    "openAlexId": "https://openalex.org/S164566984"
+  },
+  {
+    "name": "RSC Advances",
+    "issnL": "2046-2069",
+    "issn": [
+      "2046-2069"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://www.rsc.org/publishing/journals/ra/about.asp",
+    "openAlexId": "https://openalex.org/S2481244646"
+  },
+  {
+    "name": "Journal of The Electrochemical Society",
+    "issnL": "0013-4651",
+    "issn": [
+      "0013-4651",
+      "1945-7111"
+    ],
+    "publisher": "Institute of Physics",
+    "homepageUrl": "http://jes.ecsdl.org",
+    "openAlexId": "https://openalex.org/S138759888"
+  },
+  {
+    "name": "Journal of Chromatography A",
+    "issnL": "0021-9673",
+    "issn": [
+      "0021-9673",
+      "1873-3778"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/chroma",
+    "openAlexId": "https://openalex.org/S176136234"
+  },
+  {
+    "name": "Optics Express",
+    "issnL": "1094-4087",
+    "issn": [
+      "1094-4087"
+    ],
+    "publisher": "Optica Publishing Group",
+    "homepageUrl": "http://www.osapublishing.org/oe/",
+    "openAlexId": "https://openalex.org/S178776955"
+  },
+  {
+    "name": "Clinical Infectious Diseases",
+    "issnL": "1058-4838",
+    "issn": [
+      "1058-4838",
+      "1537-6591"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://www.oxfordjournals.org/our_journals/cid/",
+    "openAlexId": "https://openalex.org/S72350973"
+  },
+  {
+    "name": "International Journal of Hydrogen Energy",
+    "issnL": "0360-3199",
+    "issn": [
+      "0360-3199",
+      "1879-3487"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/international-journal-of-hydrogen-energy/",
+    "openAlexId": "https://openalex.org/S48860480"
+  },
+  {
+    "name": "Ecology",
+    "issnL": "0012-9658",
+    "issn": [
+      "0012-9658",
+      "1939-9170"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://esajournals.onlinelibrary.wiley.com/journal/19399170",
+    "openAlexId": "https://openalex.org/S35917800"
+  },
+  {
+    "name": "Cancer Research",
+    "issnL": "0008-5472",
+    "issn": [
+      "0008-5472",
+      "1538-7445"
+    ],
+    "publisher": "American Association for Cancer Research",
+    "homepageUrl": "http://cancerres.aacrjournals.org/",
+    "openAlexId": "https://openalex.org/S168522863"
+  },
+  {
+    "name": "Chemistry of Materials",
+    "issnL": "0897-4756",
+    "issn": [
+      "0897-4756",
+      "1520-5002"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/cmatex",
+    "openAlexId": "https://openalex.org/S66104727"
+  },
+  {
+    "name": "Annals of the New York Academy of Sciences",
+    "issnL": "0077-8923",
+    "issn": [
+      "0077-8923",
+      "1749-6632"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://nyaspubs.onlinelibrary.wiley.com/journal/17496632",
+    "openAlexId": "https://openalex.org/S8802318"
+  },
+  {
+    "name": "Journal of Colloid and Interface Science",
+    "issnL": "0021-9797",
+    "issn": [
+      "0021-9797",
+      "1095-7103"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/journal-of-colloid-and-interface-science/",
+    "openAlexId": "https://openalex.org/S204609040"
+  },
+  {
+    "name": "Construction and Building Materials",
+    "issnL": "0950-0618",
+    "issn": [
+      "0950-0618",
+      "1879-0526"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/construction-and-building-materials",
+    "openAlexId": "https://openalex.org/S29980478"
+  },
+  {
+    "name": "American Journal of Clinical Nutrition",
+    "issnL": "0002-9165",
+    "issn": [
+      "0002-9165",
+      "1938-3207"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/the-american-journal-of-clinical-nutrition",
+    "openAlexId": "https://openalex.org/S71285955"
+  },
+  {
+    "name": "Physical review. D. Particles, fields, gravitation, and cosmology/Physical review. D. Particles and fields",
+    "issnL": "0556-2821",
+    "issn": [
+      "0556-2821",
+      "1089-4918",
+      "1538-4500"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org",
+    "openAlexId": "https://openalex.org/S4210190737"
+  },
+  {
+    "name": "Biochemical Journal",
+    "issnL": "0264-6021",
+    "issn": [
+      "0264-6021",
+      "1470-8728"
+    ],
+    "publisher": "Portland Press",
+    "homepageUrl": "http://www.biochemj.org/",
+    "openAlexId": "https://openalex.org/S44425019"
+  },
+  {
+    "name": "Stroke",
+    "issnL": "0039-2499",
+    "issn": [
+      "0039-2499",
+      "1524-4628"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://stroke.ahajournals.org/",
+    "openAlexId": "https://openalex.org/S62532593"
+  },
+  {
+    "name": "Applied Surface Science",
+    "issnL": "0169-4332",
+    "issn": [
+      "0169-4332",
+      "1873-5584"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/applied-surface-science",
+    "openAlexId": "https://openalex.org/S42323631"
+  },
+  {
+    "name": "Journal of Materials Chemistry A",
+    "issnL": "2050-7488",
+    "issn": [
+      "2050-7488",
+      "2050-7496"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://www.rsc.org/Publishing/Journals/ta",
+    "openAlexId": "https://openalex.org/S2764437742"
+  },
+  {
+    "name": "Infection and Immunity",
+    "issnL": "0019-9567",
+    "issn": [
+      "0019-9567",
+      "1070-6313",
+      "1098-5522"
+    ],
+    "publisher": "American Society for Microbiology",
+    "homepageUrl": "http://iai.asm.org/",
+    "openAlexId": "https://openalex.org/S128227336"
+  },
+  {
+    "name": "Diabetes Care",
+    "issnL": "0149-5992",
+    "issn": [
+      "0149-5992",
+      "1935-5548"
+    ],
+    "publisher": "American Diabetes Association",
+    "homepageUrl": "http://care.diabetesjournals.org/",
+    "openAlexId": "https://openalex.org/S49878492"
+  },
+  {
+    "name": "Renewable and Sustainable Energy Reviews",
+    "issnL": "1364-0321",
+    "issn": [
+      "1364-0321",
+      "1879-0690"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/renewable-and-sustainable-energy-reviews",
+    "openAlexId": "https://openalex.org/S68497187"
+  },
+  {
+    "name": "Circulation Research",
+    "issnL": "0009-7330",
+    "issn": [
+      "0009-7330",
+      "1524-4571"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://circres.ahajournals.org/",
+    "openAlexId": "https://openalex.org/S10652568"
+  },
+  {
+    "name": "Electrochimica Acta",
+    "issnL": "0013-4686",
+    "issn": [
+      "0013-4686",
+      "1873-3859"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/205/description#description",
+    "openAlexId": "https://openalex.org/S198339081"
+  },
+  {
+    "name": "American Journal of Obstetrics and Gynecology",
+    "issnL": "0002-9378",
+    "issn": [
+      "0002-9378",
+      "1085-8709",
+      "1097-6868"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/american-journal-of-obstetrics-and-gynecology",
+    "openAlexId": "https://openalex.org/S122347013"
+  },
+  {
+    "name": "Geochimica et Cosmochimica Acta",
+    "issnL": "0016-7037",
+    "issn": [
+      "0016-7037",
+      "1872-9533"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/212/description",
+    "openAlexId": "https://openalex.org/S7538555"
+  },
+  {
+    "name": "CHEST Journal",
+    "issnL": "0012-3692",
+    "issn": [
+      "0012-3692",
+      "1931-3543"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/chest",
+    "openAlexId": "https://openalex.org/S76900504"
+  },
+  {
+    "name": "Journal of Medicinal Chemistry",
+    "issnL": "0022-2623",
+    "issn": [
+      "0022-2623",
+      "1520-4804"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/jmcmar",
+    "openAlexId": "https://openalex.org/S162030435"
+  },
+  {
+    "name": "Hepatology",
+    "issnL": "0270-9139",
+    "issn": [
+      "0270-9139",
+      "1527-3350"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "https://journals.lww.com/hep/Pages/default.aspx",
+    "openAlexId": "https://openalex.org/S156174673"
+  },
+  {
+    "name": "Genes & Development",
+    "issnL": "0890-9369",
+    "issn": [
+      "0890-9369",
+      "1549-5477"
+    ],
+    "publisher": "Cold Spring Harbor Laboratory Press",
+    "homepageUrl": "http://genesdev.cshlp.org/",
+    "openAlexId": "https://openalex.org/S168778273"
+  },
+  {
+    "name": "Chemical Physics Letters",
+    "issnL": "0009-2614",
+    "issn": [
+      "0009-2614",
+      "1873-4448"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/chemical-physics-letters",
+    "openAlexId": "https://openalex.org/S44567922"
+  },
+  {
+    "name": "Development",
+    "issnL": "0950-1991",
+    "issn": [
+      "0950-1991",
+      "1477-9129"
+    ],
+    "publisher": "The Company of Biologists",
+    "homepageUrl": "http://dev.biologists.org/",
+    "openAlexId": "https://openalex.org/S86558740"
+  },
+  {
+    "name": "The Journal of Finance",
+    "issnL": "0022-1082",
+    "issn": [
+      "0022-1082",
+      "1540-6261"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://www.wiley.com/bw/journal.asp?ref=0022-1082",
+    "openAlexId": "https://openalex.org/S5353659"
+  },
+  {
+    "name": "Organic Letters",
+    "issnL": "1523-7052",
+    "issn": [
+      "1523-7052",
+      "1523-7060"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journals/orlef7/index.html",
+    "openAlexId": "https://openalex.org/S201989124"
+  },
+  {
+    "name": "Journal of Clinical Microbiology",
+    "issnL": "0095-1137",
+    "issn": [
+      "0095-1137",
+      "1070-633X",
+      "1098-660X"
+    ],
+    "publisher": "American Society for Microbiology",
+    "homepageUrl": "http://jcm.asm.org/",
+    "openAlexId": "https://openalex.org/S53087977"
+  },
+  {
+    "name": "The Journal of Infectious Diseases",
+    "issnL": "0022-1899",
+    "issn": [
+      "0022-1899",
+      "1537-6613"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://jid.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S54542293"
+  },
+  {
+    "name": "Journal of Fluid Mechanics",
+    "issnL": "0022-1120",
+    "issn": [
+      "0022-1120",
+      "1469-7645"
+    ],
+    "publisher": "Cambridge University Press",
+    "homepageUrl": "http://journals.cambridge.org/action/displayJournal?jid=FLM",
+    "openAlexId": "https://openalex.org/S152000018"
+  },
+  {
+    "name": "Psychological Bulletin",
+    "issnL": "0033-2909",
+    "issn": [
+      "0033-2909",
+      "1939-1455"
+    ],
+    "publisher": "American Psychological Association",
+    "homepageUrl": "http://www.apa.org/pubs/journals/bul/index.aspx",
+    "openAlexId": "https://openalex.org/S75627607"
+  },
+  {
+    "name": "American Journal of Respiratory and Critical Care Medicine",
+    "issnL": "1073-449X",
+    "issn": [
+      "1073-449X",
+      "1535-4970"
+    ],
+    "publisher": "American Thoracic Society",
+    "homepageUrl": "http://www.atsjournals.org/journal/ajrccm",
+    "openAlexId": "https://openalex.org/S93356601"
+  },
+  {
+    "name": "Journal of High Energy Physics",
+    "issnL": "1029-8479",
+    "issn": [
+      "1029-8479",
+      "1126-6708",
+      "1127-2236"
+    ],
+    "publisher": "Springer Nature",
+    "homepageUrl": "http://www.springer.com/13130",
+    "openAlexId": "https://openalex.org/S187585107"
+  },
+  {
+    "name": "Proceedings of SPIE, the International Society for Optical Engineering/Proceedings of SPIE",
+    "issnL": "0277-786X",
+    "issn": [
+      "0277-786X",
+      "1996-756X"
+    ],
+    "publisher": "SPIE",
+    "homepageUrl": "http://spie.org//x1848.xml?WT.svl=mddp2",
+    "openAlexId": "https://openalex.org/S183492911"
+  },
+  {
+    "name": "Nature Biotechnology",
+    "issnL": "1087-0156",
+    "issn": [
+      "1087-0156",
+      "1546-1696"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/nbt",
+    "openAlexId": "https://openalex.org/S106963461"
+  },
+  {
+    "name": "Antimicrobial Agents and Chemotherapy",
+    "issnL": "0066-4804",
+    "issn": [
+      "0066-4804",
+      "1070-6283",
+      "1098-6596"
+    ],
+    "publisher": "American Society for Microbiology",
+    "homepageUrl": "http://aac.asm.org/",
+    "openAlexId": "https://openalex.org/S47215897"
+  },
+  {
+    "name": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+    "issnL": "0162-8828",
+    "issn": [
+      "0162-8828",
+      "1939-3539",
+      "2160-9292"
+    ],
+    "publisher": "IEEE Computer Society",
+    "homepageUrl": "http://www.computer.org/portal/web/tpami",
+    "openAlexId": "https://openalex.org/S199944782"
+  },
+  {
+    "name": "Sensors",
+    "issnL": "1424-8220",
+    "issn": [
+      "1424-8220"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/sensors",
+    "openAlexId": "https://openalex.org/S101949793"
+  },
+  {
+    "name": "Journal of Applied Physiology",
+    "issnL": "1522-1601",
+    "issn": [
+      "1522-1601",
+      "8750-7587"
+    ],
+    "publisher": "American Physiological Society",
+    "homepageUrl": "http://jap.physiology.org/",
+    "openAlexId": "https://openalex.org/S140889577"
+  },
+  {
+    "name": "Diabetes",
+    "issnL": "0012-1797",
+    "issn": [
+      "0012-1797",
+      "1939-327X"
+    ],
+    "publisher": "American Diabetes Association",
+    "homepageUrl": "http://diabetes.diabetesjournals.org/",
+    "openAlexId": "https://openalex.org/S129060628"
+  },
+  {
+    "name": "Annals of Surgery",
+    "issnL": "0003-4932",
+    "issn": [
+      "0003-4932",
+      "1528-1140"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "https://journals.lww.com/annalsofsurgery/pages/default.aspx",
+    "openAlexId": "https://openalex.org/S157664895"
+  },
+  {
+    "name": "Physical review. D. Particles, fields, gravitation, and cosmology/Physical review. D, Particles, fields, gravitation, and cosmology",
+    "issnL": "1550-2368",
+    "issn": [
+      "1550-2368",
+      "1550-7998"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org",
+    "openAlexId": "https://openalex.org/S4210210554"
+  },
+  {
+    "name": "Journal of Neurophysiology",
+    "issnL": "0022-3077",
+    "issn": [
+      "0022-3077",
+      "1522-1598"
+    ],
+    "publisher": "American Physiological Society",
+    "homepageUrl": "http://jn.physiology.org/",
+    "openAlexId": "https://openalex.org/S142952003"
+  },
+  {
+    "name": "Journal of Bone and Joint Surgery",
+    "issnL": "0021-9355",
+    "issn": [
+      "0021-9355",
+      "1058-2436",
+      "1535-1386"
+    ],
+    "publisher": "Wolters Kluwer",
+    "homepageUrl": "https://journals.lww.com/jbjsjournal/pages/default.aspx",
+    "openAlexId": "https://openalex.org/S128848949"
+  },
+  {
+    "name": "The American Journal of Cardiology",
+    "issnL": "0002-9149",
+    "issn": [
+      "0002-9149",
+      "1879-1913"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/the-american-journal-of-cardiology",
+    "openAlexId": "https://openalex.org/S185186944"
+  },
+  {
+    "name": "Angewandte Chemie",
+    "issnL": "0044-8249",
+    "issn": [
+      "0044-8249",
+      "1521-3757"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://onlinelibrary.wiley.com/journal/14791838",
+    "openAlexId": "https://openalex.org/S4210200754"
+  },
+  {
+    "name": "Energy",
+    "issnL": "0360-5442",
+    "issn": [
+      "0360-5442",
+      "1873-6785"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/energy",
+    "openAlexId": "https://openalex.org/S2497375143"
+  },
+  {
+    "name": "Applied Energy",
+    "issnL": "0306-2619",
+    "issn": [
+      "0306-2619",
+      "1872-9118"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/applied-energy",
+    "openAlexId": "https://openalex.org/S109565702"
+  },
+  {
+    "name": "Current Biology",
+    "issnL": "0960-9822",
+    "issn": [
+      "0960-9822",
+      "1879-0445"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/current-biology",
+    "openAlexId": "https://openalex.org/S128425624"
+  },
+  {
+    "name": "Materials Science and Engineering A",
+    "issnL": "0921-5093",
+    "issn": [
+      "0921-5093",
+      "1873-4936"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/materials-science-and-engineering-a",
+    "openAlexId": "https://openalex.org/S154732359"
+  },
+  {
+    "name": "American Economic Review",
+    "issnL": "0002-8282",
+    "issn": [
+      "0002-8282",
+      "1944-7981"
+    ],
+    "publisher": "American Economic Association",
+    "homepageUrl": "http://www.aeaweb.org/aer/",
+    "openAlexId": "https://openalex.org/S23254222"
+  },
+  {
+    "name": "Chemistry - A European Journal",
+    "issnL": "0947-6539",
+    "issn": [
+      "0947-6539",
+      "1521-3765"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://www.wiley-vch.de/publish/en/journals/alphabeticIndex/2111/",
+    "openAlexId": "https://openalex.org/S68911691"
+  },
+  {
+    "name": "Cochrane Database of Systematic Reviews",
+    "issnL": "1464-780X",
+    "issn": [
+      "1464-780X",
+      "1465-184X",
+      "1465-1858"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.nelh.nhs.uk/cochrane.asp",
+    "openAlexId": "https://openalex.org/S4210172715"
+  },
+  {
+    "name": "International Journal of Environmental Research and Public Health",
+    "issnL": "1660-4601",
+    "issn": [
+      "1660-4601",
+      "1661-7827"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/ijerph/",
+    "openAlexId": "https://openalex.org/S15239247"
+  },
+  {
+    "name": "Nuclear Physics B",
+    "issnL": "0550-3213",
+    "issn": [
+      "0550-3213",
+      "1873-1562"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/nuclear-physics-b",
+    "openAlexId": "https://openalex.org/S4210194812"
+  },
+  {
+    "name": "Brain",
+    "issnL": "0006-8950",
+    "issn": [
+      "0006-8950",
+      "1460-2156"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://brain.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S118357697"
+  },
+  {
+    "name": "Molecules",
+    "issnL": "1420-3049",
+    "issn": [
+      "1420-3049",
+      "1433-1373"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/molecules/",
+    "openAlexId": "https://openalex.org/S108911230"
+  },
+  {
+    "name": "The Journal of the Acoustical Society of America",
+    "issnL": "0001-4966",
+    "issn": [
+      "0001-4966",
+      "1520-8524",
+      "1520-9024"
+    ],
+    "publisher": "Acoustical Society of America",
+    "homepageUrl": "http://asadl.org/jasa",
+    "openAlexId": "https://openalex.org/S11296630"
+  },
+  {
+    "name": "Oncogene",
+    "issnL": "0950-9232",
+    "issn": [
+      "0950-9232",
+      "1476-5594"
+    ],
+    "publisher": "Springer Nature",
+    "homepageUrl": "http://www.nature.com/onc",
+    "openAlexId": "https://openalex.org/S128439998"
+  },
+  {
+    "name": "Physical Chemistry Chemical Physics",
+    "issnL": "1463-9076",
+    "issn": [
+      "1463-9076",
+      "1463-9084"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://www.rsc.org/Publishing/Journals/CP/index.asp",
+    "openAlexId": "https://openalex.org/S181332294"
+  },
+  {
+    "name": "Molecular Cell",
+    "issnL": "1097-2765",
+    "issn": [
+      "1097-2765",
+      "1097-4164"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/molecular-cell",
+    "openAlexId": "https://openalex.org/S156208185"
+  },
+  {
+    "name": "Archives of Internal Medicine",
+    "issnL": "0003-9926",
+    "issn": [
+      "0003-9926",
+      "1538-3679"
+    ],
+    "publisher": "American Medical Association",
+    "homepageUrl": null,
+    "openAlexId": "https://openalex.org/S4210206803"
+  },
+  {
+    "name": "Applied Catalysis B: Environmental",
+    "issnL": "0926-3373",
+    "issn": [
+      "0926-3373",
+      "1873-3883"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/applied-catalysis-b-environmental",
+    "openAlexId": "https://openalex.org/S134307298"
+  },
+  {
+    "name": "The Journal of Comparative Neurology",
+    "issnL": "0021-9967",
+    "issn": [
+      "0021-9967",
+      "1096-9861"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://onlinelibrary.wiley.com/journal/10969861",
+    "openAlexId": "https://openalex.org/S4210186231"
+  },
+  {
+    "name": "International Journal of Cancer",
+    "issnL": "0020-7136",
+    "issn": [
+      "0020-7136",
+      "1097-0215"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1097-0215",
+    "openAlexId": "https://openalex.org/S5382288"
+  },
+  {
+    "name": "Nature Materials",
+    "issnL": "1476-1122",
+    "issn": [
+      "1476-1122",
+      "1476-4660"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "https://www.nature.com/nmat/",
+    "openAlexId": "https://openalex.org/S103895331"
+  },
+  {
+    "name": "Optics Letters",
+    "issnL": "0146-9592",
+    "issn": [
+      "0146-9592",
+      "1071-2763",
+      "1539-4794"
+    ],
+    "publisher": "Optica Publishing Group",
+    "homepageUrl": "http://www.opticsinfobase.org/ol/",
+    "openAlexId": "https://openalex.org/S134390580"
+  },
+  {
+    "name": "European Heart Journal",
+    "issnL": "0195-668X",
+    "issn": [
+      "0195-668X",
+      "1522-9645"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://eurheartj.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S181568219"
+  },
+  {
+    "name": "Fuel",
+    "issnL": "0016-2361",
+    "issn": [
+      "0016-2361",
+      "1873-7153"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/fuel",
+    "openAlexId": "https://openalex.org/S164770093"
+  },
+  {
+    "name": "Genetics",
+    "issnL": "0016-6731",
+    "issn": [
+      "0016-6731",
+      "1943-2631"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://www.genetics.org/",
+    "openAlexId": "https://openalex.org/S65932378"
+  },
+  {
+    "name": "Biophysical Journal",
+    "issnL": "0006-3495",
+    "issn": [
+      "0006-3495",
+      "1542-0086"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/biophysical-journal",
+    "openAlexId": "https://openalex.org/S98085912"
+  },
+  {
+    "name": "Academy of Management Review",
+    "issnL": "0363-7425",
+    "issn": [
+      "0363-7425",
+      "1930-3807"
+    ],
+    "publisher": "Academy of Management",
+    "homepageUrl": "http://aom.org/amr/",
+    "openAlexId": "https://openalex.org/S46763546"
+  },
+  {
+    "name": "Journal of Neurochemistry",
+    "issnL": "0022-3042",
+    "issn": [
+      "0022-3042",
+      "1471-4159"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1471-4159",
+    "openAlexId": "https://openalex.org/S135837084"
+  },
+  {
+    "name": "Frontiers in Immunology",
+    "issnL": "1664-3224",
+    "issn": [
+      "1664-3224"
+    ],
+    "publisher": "Frontiers Media",
+    "homepageUrl": "http://journal.frontiersin.org/journal/immunology",
+    "openAlexId": "https://openalex.org/S2595292759"
+  },
+  {
+    "name": "Nature Neuroscience",
+    "issnL": "1097-6256",
+    "issn": [
+      "1097-6256",
+      "1546-1726"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/neuro/",
+    "openAlexId": "https://openalex.org/S2298632"
+  },
+  {
+    "name": "Clinical Cancer Research",
+    "issnL": "1078-0432",
+    "issn": [
+      "1078-0432",
+      "1557-3265"
+    ],
+    "publisher": "American Association for Cancer Research",
+    "homepageUrl": "http://clincancerres.aacrjournals.org/",
+    "openAlexId": "https://openalex.org/S183149254"
+  },
+  {
+    "name": "Earth and Planetary Science Letters",
+    "issnL": "0012-821X",
+    "issn": [
+      "0012-821X",
+      "1385-013X"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/503328/description",
+    "openAlexId": "https://openalex.org/S119230507"
+  },
+  {
+    "name": "Sensors and Actuators B Chemical",
+    "issnL": "0925-4005",
+    "issn": [
+      "0925-4005",
+      "1873-3077"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/sensors-and-actuators-b-chemical",
+    "openAlexId": "https://openalex.org/S98455728"
+  },
+  {
+    "name": "Econometrica",
+    "issnL": "0012-9682",
+    "issn": [
+      "0012-9682",
+      "1468-0262"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1468-0262",
+    "openAlexId": "https://openalex.org/S95464858"
+  },
+  {
+    "name": "Polymer",
+    "issnL": "0032-3861",
+    "issn": [
+      "0032-3861",
+      "1873-2291"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/polymer",
+    "openAlexId": "https://openalex.org/S186054908"
+  },
+  {
+    "name": "Nature Methods",
+    "issnL": "1548-7091",
+    "issn": [
+      "1548-7091",
+      "1548-7105"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "https://www.nature.com/nmeth/",
+    "openAlexId": "https://openalex.org/S127827428"
+  },
+  {
+    "name": "Neuroscience",
+    "issnL": "0306-4522",
+    "issn": [
+      "0306-4522",
+      "1873-7544"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://journals.elsevier.com/03064522/neuroscience/",
+    "openAlexId": "https://openalex.org/S30122339"
+  },
+  {
+    "name": "Acta Materialia",
+    "issnL": "1359-6454",
+    "issn": [
+      "1359-6454",
+      "1873-2453"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/acta-materialia",
+    "openAlexId": "https://openalex.org/S64016596"
+  },
+  {
+    "name": "Accounts of Chemical Research",
+    "issnL": "0001-4842",
+    "issn": [
+      "0001-4842",
+      "1520-4898"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/achre4",
+    "openAlexId": "https://openalex.org/S145378405"
+  },
+  {
+    "name": "JNCI Journal of the National Cancer Institute",
+    "issnL": "0027-8874",
+    "issn": [
+      "0027-8874",
+      "1460-2105"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://jnci.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S98010888"
+  },
+  {
+    "name": "The Plant Cell",
+    "issnL": "1040-4651",
+    "issn": [
+      "1040-4651",
+      "1532-298X"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://www.plantcell.org/",
+    "openAlexId": "https://openalex.org/S48849333"
+  },
+  {
+    "name": "Archives of General Psychiatry",
+    "issnL": "0003-990X",
+    "issn": [
+      "0003-990X",
+      "1538-3636"
+    ],
+    "publisher": "American Medical Association",
+    "homepageUrl": null,
+    "openAlexId": "https://openalex.org/S126359496"
+  },
+  {
+    "name": "Tetrahedron",
+    "issnL": "0040-4020",
+    "issn": [
+      "0040-4020",
+      "1464-5416"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/tetrahedron/",
+    "openAlexId": "https://openalex.org/S205754296"
+  },
+  {
+    "name": "The American Historical Review",
+    "issnL": "0002-8762",
+    "issn": [
+      "0002-8762",
+      "1937-5239"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://www.americanhistoricalreview.org/",
+    "openAlexId": "https://openalex.org/S197437610"
+  },
+  {
+    "name": "Carbohydrate Polymers",
+    "issnL": "0144-8617",
+    "issn": [
+      "0144-8617",
+      "1879-1344"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/carbohydrate-polymers",
+    "openAlexId": "https://openalex.org/S64311837"
+  },
+  {
+    "name": "Industrial & Engineering Chemistry Research",
+    "issnL": "0888-5885",
+    "issn": [
+      "0888-5885",
+      "1520-5045"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/iecred",
+    "openAlexId": "https://openalex.org/S202680183"
+  },
+  {
+    "name": "Journal of Dairy Science",
+    "issnL": "0022-0302",
+    "issn": [
+      "0022-0302",
+      "1525-3198",
+      "1529-9066"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/journal-of-dairy-science",
+    "openAlexId": "https://openalex.org/S28349394"
+  },
+  {
+    "name": "Gut",
+    "issnL": "0017-5749",
+    "issn": [
+      "0017-5749",
+      "1468-3288"
+    ],
+    "publisher": "BMJ",
+    "homepageUrl": "http://gut.bmj.com/",
+    "openAlexId": "https://openalex.org/S3251770"
+  },
+  {
+    "name": "British Journal of Cancer",
+    "issnL": "0007-0920",
+    "issn": [
+      "0007-0920",
+      "1532-1827"
+    ],
+    "publisher": "Springer Nature",
+    "homepageUrl": "https://www.nature.com/bjc/",
+    "openAlexId": "https://openalex.org/S62966998"
+  },
+  {
+    "name": "The Journal of Pediatrics",
+    "issnL": "0022-3476",
+    "issn": [
+      "0022-3476",
+      "1085-8695",
+      "1097-6833"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/the-journal-of-pediatrics",
+    "openAlexId": "https://openalex.org/S3774022"
+  },
+  {
+    "name": "American Sociological Review",
+    "issnL": "0003-1224",
+    "issn": [
+      "0003-1224",
+      "1939-8271"
+    ],
+    "publisher": "SAGE Publishing",
+    "homepageUrl": "https://us.sagepub.com/en-us/nam/journal/american-sociological-review",
+    "openAlexId": "https://openalex.org/S157620343"
+  },
+  {
+    "name": "IEEE Transactions on Automatic Control",
+    "issnL": "0018-9286",
+    "issn": [
+      "0018-9286",
+      "1558-2523",
+      "2334-3303"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://ieeexplore.ieee.org/servlet/opac?punumber=9",
+    "openAlexId": "https://openalex.org/S184954342"
+  },
+  {
+    "name": "Water Resources Research",
+    "issnL": "0043-1397",
+    "issn": [
+      "0043-1397",
+      "1944-7973"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://agupubs.onlinelibrary.wiley.com/agu/journal/10.1002/(ISSN)1944-7973/",
+    "openAlexId": "https://openalex.org/S204847658"
+  },
+  {
+    "name": "Arthritis & Rheumatism",
+    "issnL": "0004-3591",
+    "issn": [
+      "0004-3591",
+      "1529-0131"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)2326-5205",
+    "openAlexId": "https://openalex.org/S132787887"
+  },
+  {
+    "name": "Environmental Pollution",
+    "issnL": "0269-7491",
+    "issn": [
+      "0269-7491",
+      "1873-6424"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/environmental-pollution",
+    "openAlexId": "https://openalex.org/S201530359"
+  },
+  {
+    "name": "New Phytologist",
+    "issnL": "0028-646X",
+    "issn": [
+      "0028-646X",
+      "1469-8137"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://nph.onlinelibrary.wiley.com/journal/14698137",
+    "openAlexId": "https://openalex.org/S58631098"
+  },
+  {
+    "name": "Kidney International",
+    "issnL": "0085-2538",
+    "issn": [
+      "0085-2538",
+      "1523-1755"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/kidney-international",
+    "openAlexId": "https://openalex.org/S97303050"
+  },
+  {
+    "name": "International Journal of Biological Macromolecules",
+    "issnL": "0141-8130",
+    "issn": [
+      "0141-8130",
+      "1879-0003"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/international-journal-of-biological-macromolecules/",
+    "openAlexId": "https://openalex.org/S83853393"
+  },
+  {
+    "name": "Journal of Allergy and Clinical Immunology",
+    "issnL": "0091-6749",
+    "issn": [
+      "0091-6749",
+      "1085-8725",
+      "1097-6825"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/journal-of-allergy-and-clinical-immunology",
+    "openAlexId": "https://openalex.org/S108525051"
+  },
+  {
+    "name": "Carbon",
+    "issnL": "0008-6223",
+    "issn": [
+      "0008-6223",
+      "1873-3891"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/258/description#description",
+    "openAlexId": "https://openalex.org/S188605413"
+  },
+  {
+    "name": "Technometrics",
+    "issnL": "0040-1706",
+    "issn": [
+      "0040-1706",
+      "1537-2723"
+    ],
+    "publisher": "Taylor & Francis",
+    "homepageUrl": "http://amstat.tandfonline.com/loi/tech",
+    "openAlexId": "https://openalex.org/S985303"
+  },
+  {
+    "name": "Journal of Pharmacology and Experimental Therapeutics",
+    "issnL": "0022-3565",
+    "issn": [
+      "0022-3565",
+      "1521-0103"
+    ],
+    "publisher": "American Society for Pharmacology and Experimental Therapeutics",
+    "homepageUrl": "http://jpet.aspetjournals.org/",
+    "openAlexId": "https://openalex.org/S102125482"
+  },
+  {
+    "name": "Reviews of Modern Physics",
+    "issnL": "0034-6861",
+    "issn": [
+      "0034-6861",
+      "1538-4527",
+      "1539-0756"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://rmp.aps.org/",
+    "openAlexId": "https://openalex.org/S73260565"
+  },
+  {
+    "name": "Analytica Chimica Acta",
+    "issnL": "0003-2670",
+    "issn": [
+      "0003-2670",
+      "1873-4324"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/product/cws_home/502681",
+    "openAlexId": "https://openalex.org/S192559872"
+  },
+  {
+    "name": "Journal of Applied Polymer Science",
+    "issnL": "0021-8995",
+    "issn": [
+      "0021-8995",
+      "1097-4628"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1002/%28ISSN%291097-4628",
+    "openAlexId": "https://openalex.org/S200764475"
+  },
+  {
+    "name": "The American Journal of Medicine",
+    "issnL": "0002-9343",
+    "issn": [
+      "0002-9343",
+      "1555-7162"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/the-american-journal-of-medicine",
+    "openAlexId": "https://openalex.org/S186920367"
+  },
+  {
+    "name": "Journal of Hydrology",
+    "issnL": "0022-1694",
+    "issn": [
+      "0022-1694",
+      "1879-2707"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/503343/description",
+    "openAlexId": "https://openalex.org/S55737203"
+  },
+  {
+    "name": "Journal of Membrane Science",
+    "issnL": "0376-7388",
+    "issn": [
+      "0376-7388",
+      "1873-3123"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/502692/description",
+    "openAlexId": "https://openalex.org/S119469986"
+  },
+  {
+    "name": "International Journal of Radiation Oncology*Biology*Physics",
+    "issnL": "0360-3016",
+    "issn": [
+      "0360-3016",
+      "1879-355X"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/international-journal-of-radiation-oncology-biology-physics",
+    "openAlexId": "https://openalex.org/S110533041"
+  },
+  {
+    "name": "Child Development",
+    "issnL": "0009-3920",
+    "issn": [
+      "0009-3920",
+      "1467-8624"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1467-8624",
+    "openAlexId": "https://openalex.org/S109723506"
+  },
+  {
+    "name": "Frontiers in Microbiology",
+    "issnL": "1664-302X",
+    "issn": [
+      "1664-302X"
+    ],
+    "publisher": "Frontiers Media",
+    "homepageUrl": "http://www.frontiersin.org/microbiology",
+    "openAlexId": "https://openalex.org/S2484704948"
+  },
+  {
+    "name": "International Journal of Heat and Mass Transfer",
+    "issnL": "0017-9310",
+    "issn": [
+      "0017-9310",
+      "1879-2189"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/international-journal-of-heat-and-mass-transfer",
+    "openAlexId": "https://openalex.org/S90999920"
+  },
+  {
+    "name": "European Journal of Biochemistry",
+    "issnL": "0014-2956",
+    "issn": [
+      "0014-2956",
+      "0945-5795",
+      "1432-1033"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": null,
+    "openAlexId": "https://openalex.org/S4210214924"
+  },
+  {
+    "name": "Social Science & Medicine",
+    "issnL": "0277-9536",
+    "issn": [
+      "0277-9536",
+      "1873-5347"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/315/description#description",
+    "openAlexId": "https://openalex.org/S106822843"
+  },
+  {
+    "name": "Journal of Nutrition",
+    "issnL": "0022-3166",
+    "issn": [
+      "0022-3166",
+      "1541-6100"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/the-journal-of-nutrition",
+    "openAlexId": "https://openalex.org/S88153332"
+  },
+  {
+    "name": "American Journal of Epidemiology",
+    "issnL": "0002-9262",
+    "issn": [
+      "0002-9262",
+      "1476-6256"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://aje.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S170967050"
+  },
+  {
+    "name": "Immunity",
+    "issnL": "1074-7613",
+    "issn": [
+      "1074-7613",
+      "1097-4180"
+    ],
+    "publisher": "Cell Press",
+    "homepageUrl": "https://www.sciencedirect.com/topics/immunology-and-microbiology/immunity",
+    "openAlexId": "https://openalex.org/S199671312"
+  },
+  {
+    "name": "European Journal of Operational Research",
+    "issnL": "0377-2217",
+    "issn": [
+      "0377-2217",
+      "1872-6860"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/european-journal-of-operational-research",
+    "openAlexId": "https://openalex.org/S103321696"
+  },
+  {
+    "name": "Journal of Cell Science",
+    "issnL": "0021-9533",
+    "issn": [
+      "0021-9533",
+      "1477-9137"
+    ],
+    "publisher": "The Company of Biologists",
+    "homepageUrl": "http://jcs.biologists.org/",
+    "openAlexId": "https://openalex.org/S5677253"
+  },
+  {
+    "name": "Spine",
+    "issnL": "0362-2436",
+    "issn": [
+      "0362-2436",
+      "1528-1159"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.spinejournal.com/",
+    "openAlexId": "https://openalex.org/S4026894"
+  },
+  {
+    "name": "Journal of Applied Psychology",
+    "issnL": "0021-9010",
+    "issn": [
+      "0021-9010",
+      "1939-1854"
+    ],
+    "publisher": "American Psychological Association",
+    "homepageUrl": "http://www.apa.org/pubs/journals/apl/index.aspx",
+    "openAlexId": "https://openalex.org/S166002381"
+  },
+  {
+    "name": "The Journal of Physical Chemistry A",
+    "issnL": "1089-5639",
+    "issn": [
+      "1089-5639",
+      "1520-5215"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/jpcafh",
+    "openAlexId": "https://openalex.org/S146709414"
+  },
+  {
+    "name": "Journal of neurosurgery",
+    "issnL": "0022-3085",
+    "issn": [
+      "0022-3085",
+      "1933-0693"
+    ],
+    "publisher": "American Association of Neurological Surgeons",
+    "homepageUrl": "http://www.thejns.org/",
+    "openAlexId": "https://openalex.org/S1995308"
+  },
+  {
+    "name": "Evolution",
+    "issnL": "0014-3820",
+    "issn": [
+      "0014-3820",
+      "1558-5646"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/evolut",
+    "openAlexId": "https://openalex.org/S87560609"
+  },
+  {
+    "name": "Annals of Neurology",
+    "issnL": "0364-5134",
+    "issn": [
+      "0364-5134",
+      "1531-8249"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://www3.interscience.wiley.com/journal/76507645/home",
+    "openAlexId": "https://openalex.org/S114530997"
+  },
+  {
+    "name": "Psychological Review",
+    "issnL": "0033-295X",
+    "issn": [
+      "0033-295X",
+      "1939-1471"
+    ],
+    "publisher": "American Psychological Association",
+    "homepageUrl": "http://www.apa.org/pubs/journals/rev/",
+    "openAlexId": "https://openalex.org/S35223124"
+  },
+  {
+    "name": "IEEE Transactions on Information Theory",
+    "issnL": "0018-9448",
+    "issn": [
+      "0018-9448",
+      "1557-9654"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://www.comm.utoronto.ca/trans-it/",
+    "openAlexId": "https://openalex.org/S4502562"
+  },
+  {
+    "name": "Critical Care Medicine",
+    "issnL": "0090-3493",
+    "issn": [
+      "0090-3493",
+      "1530-0293"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.ccmjournal.com/",
+    "openAlexId": "https://openalex.org/S108732581"
+  },
+  {
+    "name": "American Psychologist",
+    "issnL": "0003-066X",
+    "issn": [
+      "0003-066X",
+      "1935-990X"
+    ],
+    "publisher": "American Psychological Association",
+    "homepageUrl": "http://www.apa.org/pubs/journals/amp/index.aspx",
+    "openAlexId": "https://openalex.org/S80146597"
+  },
+  {
+    "name": "Nanoscale",
+    "issnL": "2040-3364",
+    "issn": [
+      "2040-3364",
+      "2040-3372"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://pubs.rsc.org/en/journals/journalissues/nr",
+    "openAlexId": "https://openalex.org/S23181512"
+  },
+  {
+    "name": "IEEE Transactions on Industrial Electronics",
+    "issnL": "0278-0046",
+    "issn": [
+      "0278-0046",
+      "1557-9948"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://ieeexplore.ieee.org/servlet/opac?punumber=41",
+    "openAlexId": "https://openalex.org/S58031724"
+  },
+  {
+    "name": "Journal of Computational Physics",
+    "issnL": "0021-9991",
+    "issn": [
+      "0021-9991",
+      "1090-2716"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/jcp",
+    "openAlexId": "https://openalex.org/S148709879"
+  },
+  {
+    "name": "Clinical Orthopaedics and Related Research",
+    "issnL": "0009-921X",
+    "issn": [
+      "0009-921X",
+      "1528-1132"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.clinorthop.org/index.html",
+    "openAlexId": "https://openalex.org/S191421250"
+  },
+  {
+    "name": "Remote Sensing of Environment",
+    "issnL": "0034-4257",
+    "issn": [
+      "0034-4257",
+      "1879-0704"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/remote-sensing-of-environment",
+    "openAlexId": "https://openalex.org/S141808269"
+  },
+  {
+    "name": "Environmental Science and Pollution Research",
+    "issnL": "0944-1344",
+    "issn": [
+      "0944-1344",
+      "1614-7499"
+    ],
+    "publisher": "Springer Science+Business Media",
+    "homepageUrl": "https://www.springer.com/journal/11356",
+    "openAlexId": "https://openalex.org/S87561820"
+  },
+  {
+    "name": "The FASEB Journal",
+    "issnL": "0892-6638",
+    "issn": [
+      "0892-6638",
+      "1530-6860"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://www.fasebj.org/",
+    "openAlexId": "https://openalex.org/S25293849"
+  },
+  {
+    "name": "American Journal of Roentgenology",
+    "issnL": "0361-803X",
+    "issn": [
+      "0361-803X",
+      "1546-3141"
+    ],
+    "publisher": "American Roentgen Ray Society",
+    "homepageUrl": "https://www.ajronline.org",
+    "openAlexId": "https://openalex.org/S161085503"
+  },
+  {
+    "name": "Fertility and Sterility",
+    "issnL": "0015-0282",
+    "issn": [
+      "0015-0282",
+      "1556-5653"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/fertility-and-sterility",
+    "openAlexId": "https://openalex.org/S45445671"
+  },
+  {
+    "name": "European Journal of Pharmacology",
+    "issnL": "0014-2999",
+    "issn": [
+      "0014-2999",
+      "1879-0712"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/506087/description#description",
+    "openAlexId": "https://openalex.org/S187816532"
+  },
+  {
+    "name": "Virology",
+    "issnL": "0042-6822",
+    "issn": [
+      "0042-6822",
+      "1089-862X",
+      "1096-0341"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/virology/",
+    "openAlexId": "https://openalex.org/S6147291"
+  },
+  {
+    "name": "Journal of Materials Science",
+    "issnL": "0022-2461",
+    "issn": [
+      "0022-2461",
+      "1573-4803"
+    ],
+    "publisher": "Springer Science+Business Media",
+    "homepageUrl": "http://www.springerlink.com/content/0957-4530",
+    "openAlexId": "https://openalex.org/S26125866"
+  },
+  {
+    "name": "Academy of Management Journal",
+    "issnL": "0001-4273",
+    "issn": [
+      "0001-4273",
+      "1948-0989"
+    ],
+    "publisher": "Academy of Management",
+    "homepageUrl": "http://aom.org/amj/",
+    "openAlexId": "https://openalex.org/S117778295"
+  },
+  {
+    "name": "Archives of Biochemistry and Biophysics",
+    "issnL": "0003-9861",
+    "issn": [
+      "0003-9861",
+      "1096-0384"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/yabbi",
+    "openAlexId": "https://openalex.org/S153476765"
+  },
+  {
+    "name": "Journal of Financial Economics",
+    "issnL": "0304-405X",
+    "issn": [
+      "0304-405X",
+      "1879-2774"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/journal-of-financial-economics/",
+    "openAlexId": "https://openalex.org/S149240962"
+  },
+  {
+    "name": "American Journal of Public Health",
+    "issnL": "0090-0036",
+    "issn": [
+      "0090-0036",
+      "1541-0048"
+    ],
+    "publisher": "American Public Health Association",
+    "homepageUrl": "http://www.ajph.org/",
+    "openAlexId": "https://openalex.org/S168049282"
+  },
+  {
+    "name": "Management Science",
+    "issnL": "0025-1909",
+    "issn": [
+      "0025-1909",
+      "1526-5501"
+    ],
+    "publisher": "Institute for Operations Research and the Management Sciences",
+    "homepageUrl": "http://pubsonline.informs.org/journal/mnsc",
+    "openAlexId": "https://openalex.org/S33323087"
+  },
+  {
+    "name": "Energy & Environmental Science",
+    "issnL": "1754-5692",
+    "issn": [
+      "1754-5692",
+      "1754-5706"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://www.rsc.org/Publishing/Journals/EE/index.asp",
+    "openAlexId": "https://openalex.org/S117082959"
+  },
+  {
+    "name": "Plastic & Reconstructive Surgery",
+    "issnL": "0032-1052",
+    "issn": [
+      "0032-1052",
+      "1076-5751",
+      "1529-4242"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.plasreconsurg.com/",
+    "openAlexId": "https://openalex.org/S100736837"
+  },
+  {
+    "name": "Frontiers in Psychology",
+    "issnL": "1664-1078",
+    "issn": [
+      "1664-1078"
+    ],
+    "publisher": "Frontiers Media",
+    "homepageUrl": "http://www.frontiersin.org/psychology",
+    "openAlexId": "https://openalex.org/S9692511"
+  },
+  {
+    "name": "Anesthesiology",
+    "issnL": "0003-3022",
+    "issn": [
+      "0003-3022",
+      "1528-1175"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://journals.lww.com/anesthesiology/pages/default.aspx",
+    "openAlexId": "https://openalex.org/S124035732"
+  },
+  {
+    "name": "Journal of the American Ceramic Society",
+    "issnL": "0002-7820",
+    "issn": [
+      "0002-7820",
+      "1551-2916"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1551-2916",
+    "openAlexId": "https://openalex.org/S53162366"
+  },
+  {
+    "name": "Proceedings of the Royal Society B Biological Sciences",
+    "issnL": "0962-8452",
+    "issn": [
+      "0962-8452",
+      "1471-2954"
+    ],
+    "publisher": "Royal Society",
+    "homepageUrl": "https://royalsocietypublishing.org/journal/rspb",
+    "openAlexId": "https://openalex.org/S3006207977"
+  },
+  {
+    "name": "Journal of Catalysis",
+    "issnL": "0021-9517",
+    "issn": [
+      "0021-9517",
+      "1090-2694"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/journal-of-catalysis/",
+    "openAlexId": "https://openalex.org/S1959426"
+  },
+  {
+    "name": "Molecular Biology and Evolution",
+    "issnL": "0737-4038",
+    "issn": [
+      "0737-4038",
+      "1537-1719"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://mbe.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S57552105"
+  },
+  {
+    "name": "Journal of Marketing",
+    "issnL": "0022-2429",
+    "issn": [
+      "0022-2429",
+      "1547-7185"
+    ],
+    "publisher": "SAGE Publishing",
+    "homepageUrl": "https://us.sagepub.com/en-us/nam/journal-of-marketing/journal203561",
+    "openAlexId": "https://openalex.org/S142990027"
+  },
+  {
+    "name": "Neuroscience Letters",
+    "issnL": "0304-3940",
+    "issn": [
+      "0304-3940",
+      "1872-7972"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/506081/description#description",
+    "openAlexId": "https://openalex.org/S203050076"
+  },
+  {
+    "name": "Applied Optics",
+    "issnL": "1539-4522",
+    "issn": [
+      "1539-4522",
+      "1540-8981"
+    ],
+    "publisher": "Optica Publishing Group",
+    "homepageUrl": null,
+    "openAlexId": "https://openalex.org/S4210211917"
+  },
+  {
+    "name": "The Annals of Thoracic Surgery",
+    "issnL": "0003-4975",
+    "issn": [
+      "0003-4975",
+      "1552-6259"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/505747/description#description",
+    "openAlexId": "https://openalex.org/S144860794"
+  },
+  {
+    "name": "Journal of Experimental Botany",
+    "issnL": "0022-0957",
+    "issn": [
+      "0022-0957",
+      "1460-2431"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://jxb.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S32610980"
+  },
+  {
+    "name": "Proceedings of the IEEE",
+    "issnL": "0018-9219",
+    "issn": [
+      "0018-9219",
+      "1558-2256"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://proceedingsoftheieee.ieee.org/",
+    "openAlexId": "https://openalex.org/S68686220"
+  },
+  {
+    "name": "Atmospheric Environment",
+    "issnL": "1352-2310",
+    "issn": [
+      "1352-2310",
+      "1873-2844"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/atmospheric-environment",
+    "openAlexId": "https://openalex.org/S4210198353"
+  },
+  {
+    "name": "Small",
+    "issnL": "1613-6810",
+    "issn": [
+      "1613-6810",
+      "1613-6829"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://onlinelibrary.wiley.com/journal/16136829",
+    "openAlexId": "https://openalex.org/S94619837"
+  },
+  {
+    "name": "Developmental Biology",
+    "issnL": "0012-1606",
+    "issn": [
+      "0012-1606",
+      "1095-564X"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/622816/description#description",
+    "openAlexId": "https://openalex.org/S136634221"
+  },
+  {
+    "name": "Biological Psychiatry",
+    "issnL": "0006-3223",
+    "issn": [
+      "0006-3223",
+      "1873-2402"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/biological-psychiatry",
+    "openAlexId": "https://openalex.org/S205482884"
+  },
+  {
+    "name": "Journal of Political Economy",
+    "issnL": "0022-3808",
+    "issn": [
+      "0022-3808",
+      "1537-534X"
+    ],
+    "publisher": "University of Chicago Press",
+    "homepageUrl": "http://www.journals.uchicago.edu/toc/jpe/current",
+    "openAlexId": "https://openalex.org/S95323914"
+  },
+  {
+    "name": "Frontiers in Plant Science",
+    "issnL": "1664-462X",
+    "issn": [
+      "1664-462X"
+    ],
+    "publisher": "Frontiers Media",
+    "homepageUrl": "http://journal.frontiersin.org/journal/plant-science",
+    "openAlexId": "https://openalex.org/S2493613807"
+  },
+  {
+    "name": "Science Advances",
+    "issnL": "2375-2548",
+    "issn": [
+      "2375-2548"
+    ],
+    "publisher": "American Association for the Advancement of Science",
+    "homepageUrl": "https://www.science.org/journal/sciadv",
+    "openAlexId": "https://openalex.org/S2737427234"
+  },
+  {
+    "name": "The Plant Journal",
+    "issnL": "0960-7412",
+    "issn": [
+      "0960-7412",
+      "1365-313X"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://onlinelibrary.wiley.com/journal/1365313X",
+    "openAlexId": "https://openalex.org/S67862205"
+  },
+  {
+    "name": "Annals of the Rheumatic Diseases",
+    "issnL": "0003-4967",
+    "issn": [
+      "0003-4967",
+      "1468-2060"
+    ],
+    "publisher": "BMJ",
+    "homepageUrl": "http://ard.bmj.com/",
+    "openAlexId": "https://openalex.org/S25650217"
+  },
+  {
+    "name": "Pain",
+    "issnL": "0304-3959",
+    "issn": [
+      "0304-3959",
+      "1872-6623"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.painjournalonline.com/",
+    "openAlexId": "https://openalex.org/S140848990"
+  },
+  {
+    "name": "Ceramics International",
+    "issnL": "0272-8842",
+    "issn": [
+      "0272-8842",
+      "1873-3956"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/ceramics-international",
+    "openAlexId": "https://openalex.org/S106928643"
+  },
+  {
+    "name": "Hypertension",
+    "issnL": "0194-911X",
+    "issn": [
+      "0194-911X",
+      "1524-4563"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://hyper.ahajournals.org",
+    "openAlexId": "https://openalex.org/S67880631"
+  },
+  {
+    "name": "British Journal of Pharmacology",
+    "issnL": "0007-1188",
+    "issn": [
+      "0007-1188",
+      "1476-5381"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://bpspubs.onlinelibrary.wiley.com/journal/14765381",
+    "openAlexId": "https://openalex.org/S55107261"
+  },
+  {
+    "name": "Nutrients",
+    "issnL": "2072-6643",
+    "issn": [
+      "2072-6643"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/nutrients/",
+    "openAlexId": "https://openalex.org/S110785341"
+  },
+  {
+    "name": "Renewable Energy",
+    "issnL": "0960-1481",
+    "issn": [
+      "0960-1481",
+      "1879-0682"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/renewable-energy",
+    "openAlexId": "https://openalex.org/S815301"
+  },
+  {
+    "name": "Journal of Environmental Management",
+    "issnL": "0301-4797",
+    "issn": [
+      "0301-4797",
+      "1095-8630"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/journal-of-environmental-management",
+    "openAlexId": "https://openalex.org/S44455300"
+  },
+  {
+    "name": "Journal of Neurology Neurosurgery & Psychiatry",
+    "issnL": "0022-3050",
+    "issn": [
+      "0022-3050",
+      "1468-330X"
+    ],
+    "publisher": "BMJ",
+    "homepageUrl": "http://jnnp.bmj.com/",
+    "openAlexId": "https://openalex.org/S134773490"
+  },
+  {
+    "name": "Energy Conversion and Management",
+    "issnL": "0196-8904",
+    "issn": [
+      "0196-8904",
+      "1879-2227"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/energy-conversion-and-management",
+    "openAlexId": "https://openalex.org/S105637730"
+  },
+  {
+    "name": "Biochemical Pharmacology",
+    "issnL": "0006-2952",
+    "issn": [
+      "0006-2952",
+      "1873-2968"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/525454/description",
+    "openAlexId": "https://openalex.org/S185534594"
+  },
+  {
+    "name": "Ophthalmology",
+    "issnL": "0161-6420",
+    "issn": [
+      "0161-6420",
+      "1549-4713"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/ophthalmology",
+    "openAlexId": "https://openalex.org/S207341048"
+  },
+  {
+    "name": "Expert Systems with Applications",
+    "issnL": "0957-4174",
+    "issn": [
+      "0957-4174",
+      "1873-6793"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/expert-systems-with-applications",
+    "openAlexId": "https://openalex.org/S13144211"
+  },
+  {
+    "name": "Journal of Consulting and Clinical Psychology",
+    "issnL": "0022-006X",
+    "issn": [
+      "0022-006X",
+      "1939-2117"
+    ],
+    "publisher": "American Psychological Association",
+    "homepageUrl": "http://www.apa.org/pubs/journals/ccp/index.aspx",
+    "openAlexId": "https://openalex.org/S118719888"
+  },
+  {
+    "name": "Life Sciences",
+    "issnL": "0024-3205",
+    "issn": [
+      "0024-3205",
+      "1879-0631"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/525477/description",
+    "openAlexId": "https://openalex.org/S175775512"
+  },
+  {
+    "name": "BMJ",
+    "issnL": "1756-1833",
+    "issn": [
+      "1756-1833"
+    ],
+    "publisher": null,
+    "homepageUrl": null,
+    "openAlexId": "https://openalex.org/S4393917726"
+  },
+  {
+    "name": "Environmental Health Perspectives",
+    "issnL": "0091-6765",
+    "issn": [
+      "0091-6765",
+      "1552-9924"
+    ],
+    "publisher": "National Institute of Environmental Health Sciences",
+    "homepageUrl": "http://ehp03.niehs.nih.gov/home.action",
+    "openAlexId": "https://openalex.org/S10446503"
+  },
+  {
+    "name": "Communications of the ACM",
+    "issnL": "0001-0782",
+    "issn": [
+      "0001-0782",
+      "1557-7317"
+    ],
+    "publisher": "Association for Computing Machinery",
+    "homepageUrl": "http://cacm.acm.org",
+    "openAlexId": "https://openalex.org/S103482838"
+  },
+  {
+    "name": "Journal of Climate",
+    "issnL": "0894-8755",
+    "issn": [
+      "0894-8755",
+      "1520-0442"
+    ],
+    "publisher": "American Meteorological Society",
+    "homepageUrl": "http://www.ametsoc.org/pubs/journals/jcli/",
+    "openAlexId": "https://openalex.org/S80591372"
+  },
+  {
+    "name": "Phytochemistry",
+    "issnL": "0031-9422",
+    "issn": [
+      "0031-9422",
+      "1873-3700"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/phytochemistry/",
+    "openAlexId": "https://openalex.org/S88226677"
+  },
+  {
+    "name": "Journal of Materials Chemistry",
+    "issnL": "0959-9428",
+    "issn": [
+      "0959-9428",
+      "1364-5501"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://www.rsc.org/Publishing/Journals/jm/",
+    "openAlexId": "https://openalex.org/S45305740"
+  },
+  {
+    "name": "Nature Reviews Molecular Cell Biology",
+    "issnL": "1471-0072",
+    "issn": [
+      "1471-0072",
+      "1471-0080"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "https://www.nature.com/nrm/",
+    "openAlexId": "https://openalex.org/S196724125"
+  },
+  {
+    "name": "ACS Catalysis",
+    "issnL": "2155-5435",
+    "issn": [
+      "2155-5435"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journal/accacs",
+    "openAlexId": "https://openalex.org/S37391459"
+  },
+  {
+    "name": "IEEE Transactions on Power Electronics",
+    "issnL": "0885-8993",
+    "issn": [
+      "0885-8993",
+      "1941-0107"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://ieeexplore.ieee.org/servlet/opac?punumber=63",
+    "openAlexId": "https://openalex.org/S29875816"
+  },
+  {
+    "name": "IEEE Transactions on Geoscience and Remote Sensing",
+    "issnL": "0196-2892",
+    "issn": [
+      "0196-2892",
+      "1558-0644"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://ieeexplore.ieee.org/servlet/opac?punumber=36",
+    "openAlexId": "https://openalex.org/S111326731"
+  },
+  {
+    "name": "The Quarterly Journal of Economics",
+    "issnL": "0033-5533",
+    "issn": [
+      "0033-5533",
+      "1531-4650"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://qje.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S203860005"
+  },
+  {
+    "name": "Chemical Engineering Science",
+    "issnL": "0009-2509",
+    "issn": [
+      "0009-2509",
+      "1873-4405"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/chemical-engineering-science/",
+    "openAlexId": "https://openalex.org/S33892871"
+  },
+  {
+    "name": "Molecular Microbiology",
+    "issnL": "0950-382X",
+    "issn": [
+      "0950-382X",
+      "1365-2958"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1365-2958",
+    "openAlexId": "https://openalex.org/S102549058"
+  },
+  {
+    "name": "Human Molecular Genetics",
+    "issnL": "0964-6906",
+    "issn": [
+      "0964-6906",
+      "1460-2083"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://hmg.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S166515463"
+  },
+  {
+    "name": "Strategic Management Journal",
+    "issnL": "0143-2095",
+    "issn": [
+      "0143-2095",
+      "1097-0266"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://onlinelibrary.wiley.com/journal/10970266",
+    "openAlexId": "https://openalex.org/S102949365"
+  },
+  {
+    "name": "Journal of Controlled Release",
+    "issnL": "0168-3659",
+    "issn": [
+      "0168-3659",
+      "1873-4995"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/502690/description#description",
+    "openAlexId": "https://openalex.org/S161954266"
+  },
+  {
+    "name": "Japanese Journal of Applied Physics",
+    "issnL": "0021-4922",
+    "issn": [
+      "0021-4922",
+      "1347-4065"
+    ],
+    "publisher": "Institute of Physics",
+    "homepageUrl": "https://iopscience.iop.org/journal/1347-4065",
+    "openAlexId": "https://openalex.org/S143744711"
+  },
+  {
+    "name": "The Astronomical Journal",
+    "issnL": "0004-6256",
+    "issn": [
+      "0004-6256",
+      "1538-3881"
+    ],
+    "publisher": "Institute of Physics",
+    "homepageUrl": "http://iopscience.org/aj",
+    "openAlexId": "https://openalex.org/S100695177"
+  },
+  {
+    "name": "International Journal of Pharmaceutics",
+    "issnL": "0378-5173",
+    "issn": [
+      "0378-5173",
+      "1873-3476"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/505513/description#description",
+    "openAlexId": "https://openalex.org/S131016564"
+  },
+  {
+    "name": "Biometrics",
+    "issnL": "0006-341X",
+    "issn": [
+      "0006-341X",
+      "1541-0420"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/biometrics",
+    "openAlexId": "https://openalex.org/S8265502"
+  },
+  {
+    "name": "Surface Science",
+    "issnL": "0039-6028",
+    "issn": [
+      "0039-6028",
+      "1879-2758"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/surface-science",
+    "openAlexId": "https://openalex.org/S137865625"
+  },
+  {
+    "name": "Atmospheric chemistry and physics",
+    "issnL": "1680-7316",
+    "issn": [
+      "1680-7316",
+      "1680-7324"
+    ],
+    "publisher": "Copernicus Publications",
+    "homepageUrl": "http://www.atmospheric-chemistry-and-physics.net/",
+    "openAlexId": "https://openalex.org/S162708223"
+  },
+  {
+    "name": "Journal of Investigative Dermatology",
+    "issnL": "0022-202X",
+    "issn": [
+      "0022-202X",
+      "1523-1747"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/journal-of-investigative-dermatology",
+    "openAlexId": "https://openalex.org/S28607811"
+  },
+  {
+    "name": "Anesthesia & Analgesia",
+    "issnL": "0003-2999",
+    "issn": [
+      "0003-2999",
+      "1526-7598"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.anesthesia-analgesia.org/",
+    "openAlexId": "https://openalex.org/S104698359"
+  },
+  {
+    "name": "Physical Review E",
+    "issnL": "1539-3755",
+    "issn": [
+      "1539-3755",
+      "1550-2376"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org/pre/",
+    "openAlexId": "https://openalex.org/S35412551"
+  },
+  {
+    "name": "Nature reviews. Cancer",
+    "issnL": "1474-175X",
+    "issn": [
+      "1474-175X",
+      "1474-1768"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/nrc/index.html",
+    "openAlexId": "https://openalex.org/S160464432"
+  },
+  {
+    "name": "American Journal of Ophthalmology",
+    "issnL": "0002-9394",
+    "issn": [
+      "0002-9394",
+      "1879-1891"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/american-journal-of-ophthalmology",
+    "openAlexId": "https://openalex.org/S50016660"
+  },
+  {
+    "name": "Journal of Hepatology",
+    "issnL": "0168-8278",
+    "issn": [
+      "0168-8278",
+      "1600-0641"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/journal-of-hepatology",
+    "openAlexId": "https://openalex.org/S83651209"
+  },
+  {
+    "name": "Annals of Oncology",
+    "issnL": "0923-7534",
+    "issn": [
+      "0923-7534",
+      "1569-8041"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/annals-of-oncology",
+    "openAlexId": "https://openalex.org/S41454044"
+  },
+  {
+    "name": "European Respiratory Journal",
+    "issnL": "0903-1936",
+    "issn": [
+      "0903-1936",
+      "1399-3003"
+    ],
+    "publisher": "European Respiratory Society",
+    "homepageUrl": null,
+    "openAlexId": "https://openalex.org/S4210207896"
+  },
+  {
+    "name": "The American Naturalist",
+    "issnL": "0003-0147",
+    "issn": [
+      "0003-0147",
+      "1537-5323"
+    ],
+    "publisher": "University of Chicago Press",
+    "homepageUrl": "http://www.journals.uchicago.edu/an",
+    "openAlexId": "https://openalex.org/S122176235"
+  },
+  {
+    "name": "Organometallics",
+    "issnL": "0276-7333",
+    "issn": [
+      "0276-7333",
+      "1520-6041"
+    ],
+    "publisher": "American Chemical Society",
+    "homepageUrl": "http://pubs.acs.org/journals/orgnd7/index.html",
+    "openAlexId": "https://openalex.org/S4924609"
+  },
+  {
+    "name": "Nature Immunology",
+    "issnL": "1529-2908",
+    "issn": [
+      "1529-2908",
+      "1529-2916"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "https://www.nature.com/ni/",
+    "openAlexId": "https://openalex.org/S41063453"
+  },
+  {
+    "name": "Physical Review C",
+    "issnL": "0556-2813",
+    "issn": [
+      "0556-2813",
+      "1089-490X",
+      "1538-4497"
+    ],
+    "publisher": "American Institute of Physics",
+    "homepageUrl": "http://journals.aps.org",
+    "openAlexId": "https://openalex.org/S4210168441"
+  },
+  {
+    "name": "Advanced Energy Materials",
+    "issnL": "1614-6832",
+    "issn": [
+      "1614-6832",
+      "1614-6840"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://onlinelibrary.wiley.com/journal/10.1002/(ISSN)1614-6840",
+    "openAlexId": "https://openalex.org/S2502627819"
+  },
+  {
+    "name": "Vaccine",
+    "issnL": "0264-410X",
+    "issn": [
+      "0264-410X",
+      "1873-2518"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/vaccine",
+    "openAlexId": "https://openalex.org/S27359860"
+  },
+  {
+    "name": "BMC Public Health",
+    "issnL": "1471-2458",
+    "issn": [
+      "1471-2458"
+    ],
+    "publisher": "BioMed Central",
+    "homepageUrl": "https://link.springer.com/journal/12889",
+    "openAlexId": "https://openalex.org/S200437886"
+  },
+  {
+    "name": "The British Journal of Psychiatry",
+    "issnL": "0007-1250",
+    "issn": [
+      "0007-1250",
+      "1472-1465"
+    ],
+    "publisher": "Cambridge University Press",
+    "homepageUrl": "http://bjp.rcpsych.org/",
+    "openAlexId": "https://openalex.org/S127936299"
+  },
+  {
+    "name": "Free Radical Biology and Medicine",
+    "issnL": "0891-5849",
+    "issn": [
+      "0891-5849",
+      "1873-4596"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/free-radical-biology-and-medicine/#description",
+    "openAlexId": "https://openalex.org/S128018148"
+  },
+  {
+    "name": "Thin Solid Films",
+    "issnL": "0040-6090",
+    "issn": [
+      "0040-6090",
+      "1879-2731"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/thin-solid-films/",
+    "openAlexId": "https://openalex.org/S84339699"
+  },
+  {
+    "name": "Aquaculture",
+    "issnL": "0044-8486",
+    "issn": [
+      "0044-8486",
+      "1873-5622"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/503302/description",
+    "openAlexId": "https://openalex.org/S104261359"
+  },
+  {
+    "name": "American Journal of Physiology-Heart and Circulatory Physiology",
+    "issnL": "0363-6135",
+    "issn": [
+      "0363-6135",
+      "1522-1539"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": null,
+    "openAlexId": "https://openalex.org/S87338489"
+  },
+  {
+    "name": "Genome Research",
+    "issnL": "1088-9051",
+    "issn": [
+      "1088-9051",
+      "1549-5469"
+    ],
+    "publisher": "Cold Spring Harbor Laboratory Press",
+    "homepageUrl": "http://genome.cshlp.org/",
+    "openAlexId": "https://openalex.org/S43092948"
+  },
+  {
+    "name": "eLife",
+    "issnL": "2050-084X",
+    "issn": [
+      "2050-084X"
+    ],
+    "publisher": "eLife Sciences Publications Ltd",
+    "homepageUrl": "http://elifesciences.org/",
+    "openAlexId": "https://openalex.org/S1336409049"
+  },
+  {
+    "name": "Remote Sensing",
+    "issnL": "2072-4292",
+    "issn": [
+      "2072-4292"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/remotesensing",
+    "openAlexId": "https://openalex.org/S43295729"
+  },
+  {
+    "name": "Journal of Thoracic and Cardiovascular Surgery",
+    "issnL": "0022-5223",
+    "issn": [
+      "0022-5223",
+      "1085-8687",
+      "1097-685X"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/the-journal-of-thoracic-and-cardiovascular-surgery",
+    "openAlexId": "https://openalex.org/S127437062"
+  },
+  {
+    "name": "Philosophical Transactions of the Royal Society B Biological Sciences",
+    "issnL": "0962-8436",
+    "issn": [
+      "0962-8436",
+      "1471-2970"
+    ],
+    "publisher": "Royal Society",
+    "homepageUrl": "http://rstb.royalsocietypublishing.org/",
+    "openAlexId": "https://openalex.org/S91660768"
+  },
+  {
+    "name": "Applied Microbiology and Biotechnology",
+    "issnL": "0175-7598",
+    "issn": [
+      "0175-7598",
+      "1432-0614"
+    ],
+    "publisher": "Springer Science+Business Media",
+    "homepageUrl": "https://www.springer.com/journal/253",
+    "openAlexId": "https://openalex.org/S70979998"
+  },
+  {
+    "name": "Energies",
+    "issnL": "1996-1073",
+    "issn": [
+      "1996-1073"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/energies",
+    "openAlexId": "https://openalex.org/S198098182"
+  },
+  {
+    "name": "Medicine & Science in Sports & Exercise",
+    "issnL": "0195-9131",
+    "issn": [
+      "0195-9131",
+      "1530-0315"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://journals.lww.com/acsm-msse/pages/default.aspx",
+    "openAlexId": "https://openalex.org/S14544163"
+  },
+  {
+    "name": "Marine Ecology Progress Series",
+    "issnL": "0171-8630",
+    "issn": [
+      "0171-8630",
+      "1616-1599"
+    ],
+    "publisher": "Inter-Research",
+    "homepageUrl": "http://www.int-res.com/journals/meps/",
+    "openAlexId": "https://openalex.org/S96743589"
+  },
+  {
+    "name": "Applied Sciences",
+    "issnL": "2076-3417",
+    "issn": [
+      "2076-3417"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/applsci",
+    "openAlexId": "https://openalex.org/S4210205812"
+  },
+  {
+    "name": "American Heart Journal",
+    "issnL": "0002-8703",
+    "issn": [
+      "0002-8703",
+      "1097-6744"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/american-heart-journal",
+    "openAlexId": "https://openalex.org/S46995015"
+  },
+  {
+    "name": "Journal of the American Academy of Dermatology",
+    "issnL": "0190-9622",
+    "issn": [
+      "0190-9622",
+      "1097-6787"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/journal-of-the-american-academy-of-dermatology",
+    "openAlexId": "https://openalex.org/S58727509"
+  },
+  {
+    "name": "Oecologia",
+    "issnL": "0029-8549",
+    "issn": [
+      "0029-8549",
+      "1432-1939"
+    ],
+    "publisher": "Springer Science+Business Media",
+    "homepageUrl": "http://www.springer.com/journal/442",
+    "openAlexId": "https://openalex.org/S67154222"
+  },
+  {
+    "name": "Transplantation",
+    "issnL": "0041-1337",
+    "issn": [
+      "0041-1337",
+      "1534-6080"
+    ],
+    "publisher": "Wolters Kluwer",
+    "homepageUrl": "https://journals.lww.com/transplantjournal/pages/default.aspx",
+    "openAlexId": "https://openalex.org/S11564597"
+  },
+  {
+    "name": "Physiological Reviews",
+    "issnL": "0031-9333",
+    "issn": [
+      "0031-9333",
+      "1522-1210"
+    ],
+    "publisher": "American Physiological Society",
+    "homepageUrl": "http://physrev.physiology.org/",
+    "openAlexId": "https://openalex.org/S203035050"
+  },
+  {
+    "name": "Journal of Animal Science",
+    "issnL": "0021-8812",
+    "issn": [
+      "0021-8812",
+      "1525-3015",
+      "1525-3163",
+      "1544-7847"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/jas",
+    "openAlexId": "https://openalex.org/S72684844"
+  },
+  {
+    "name": "Soil Biology and Biochemistry",
+    "issnL": "0038-0717",
+    "issn": [
+      "0038-0717",
+      "1879-3428"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/soil-biology-and-biochemistry",
+    "openAlexId": "https://openalex.org/S62391475"
+  },
+  {
+    "name": "Biosensors and Bioelectronics",
+    "issnL": "0956-5663",
+    "issn": [
+      "0956-5663",
+      "1873-4235"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/biosensors-and-bioelectronics/",
+    "openAlexId": "https://openalex.org/S156181945"
+  },
+  {
+    "name": "Nature Cell Biology",
+    "issnL": "1465-7392",
+    "issn": [
+      "1465-7392",
+      "1476-4679"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/naturecellbiology",
+    "openAlexId": "https://openalex.org/S151741590"
+  },
+  {
+    "name": "Human Reproduction",
+    "issnL": "0268-1161",
+    "issn": [
+      "0268-1161",
+      "1460-2350"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://humrep.oxfordjournals.org/",
+    "openAlexId": "https://openalex.org/S127900037"
+  },
+  {
+    "name": "The Economic Journal",
+    "issnL": "0013-0133",
+    "issn": [
+      "0013-0133",
+      "1468-0297",
+      "1742-0350"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/ej",
+    "openAlexId": "https://openalex.org/S45992627"
+  },
+  {
+    "name": "Energy Policy",
+    "issnL": "0301-4215",
+    "issn": [
+      "0301-4215",
+      "1873-6777"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/energy-policy/",
+    "openAlexId": "https://openalex.org/S175056054"
+  },
+  {
+    "name": "Automatica",
+    "issnL": "0005-1098",
+    "issn": [
+      "0005-1098",
+      "1873-2836"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/automatica",
+    "openAlexId": "https://openalex.org/S51360982"
+  },
+  {
+    "name": "Administrative Science Quarterly",
+    "issnL": "0001-8392",
+    "issn": [
+      "0001-8392",
+      "1930-3815"
+    ],
+    "publisher": "SAGE Publishing",
+    "homepageUrl": "http://asq.sagepub.com/",
+    "openAlexId": "https://openalex.org/S143668711"
+  },
+  {
+    "name": "Gene",
+    "issnL": "0378-1119",
+    "issn": [
+      "0378-1119",
+      "1879-0038"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/506033/description",
+    "openAlexId": "https://openalex.org/S75702506"
+  },
+  {
+    "name": "Trends in Ecology & Evolution",
+    "issnL": "0169-5347",
+    "issn": [
+      "0169-5347",
+      "1872-8383"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/trends-in-ecology-and-evolution",
+    "openAlexId": "https://openalex.org/S79131028"
+  },
+  {
+    "name": "Nature Nanotechnology",
+    "issnL": "1748-3387",
+    "issn": [
+      "1748-3387",
+      "1748-3395"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "https://www.nature.com/nnano/",
+    "openAlexId": "https://openalex.org/S7822423"
+  },
+  {
+    "name": "The American Journal of Human Genetics",
+    "issnL": "0002-9297",
+    "issn": [
+      "0002-9297",
+      "1537-6605"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.sciencedirect.com/journal/the-american-journal-of-human-genetics",
+    "openAlexId": "https://openalex.org/S134425043"
+  },
+  {
+    "name": "The Lancet Oncology",
+    "issnL": "1470-2045",
+    "issn": [
+      "1470-2045",
+      "1474-5488"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/the-lancet-oncology",
+    "openAlexId": "https://openalex.org/S116900674"
+  },
+  {
+    "name": "Journal of Experimental Biology",
+    "issnL": "0022-0949",
+    "issn": [
+      "0022-0949",
+      "1477-9145"
+    ],
+    "publisher": "The Company of Biologists",
+    "homepageUrl": "http://jeb.biologists.org/",
+    "openAlexId": "https://openalex.org/S20257348"
+  },
+  {
+    "name": "Neurosurgery",
+    "issnL": "0148-396X",
+    "issn": [
+      "0148-396X",
+      "1081-1281",
+      "1524-4040"
+    ],
+    "publisher": "Lippincott Williams & Wilkins",
+    "homepageUrl": "http://www.neurosurgery-online.com/",
+    "openAlexId": "https://openalex.org/S111727011"
+  },
+  {
+    "name": "Journal of Marketing Research",
+    "issnL": "0022-2437",
+    "issn": [
+      "0022-2437",
+      "1547-7193"
+    ],
+    "publisher": "SAGE Publishing",
+    "homepageUrl": "https://us.sagepub.com/en-us/nam/journal-of-marketing-research/journal203574",
+    "openAlexId": "https://openalex.org/S119950638"
+  },
+  {
+    "name": "Experimental Cell Research",
+    "issnL": "0014-4827",
+    "issn": [
+      "0014-4827",
+      "1090-2422"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/622826/description",
+    "openAlexId": "https://openalex.org/S132505712"
+  },
+  {
+    "name": "Cellular and Molecular Life Sciences",
+    "issnL": "1420-682X",
+    "issn": [
+      "1420-682X",
+      "1420-9071"
+    ],
+    "publisher": "Springer Nature",
+    "homepageUrl": "http://www.springer.com/life+sciences/cell+biology/journal/18",
+    "openAlexId": "https://openalex.org/S60362788"
+  },
+  {
+    "name": "IEEE Transactions on Image Processing",
+    "issnL": "1057-7149",
+    "issn": [
+      "1057-7149",
+      "1941-0042"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://ieeexplore.ieee.org/servlet/opac?punumber=83",
+    "openAlexId": "https://openalex.org/S4210173141"
+  },
+  {
+    "name": "British journal of surgery",
+    "issnL": "0007-1323",
+    "issn": [
+      "0007-1323",
+      "1365-2168"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://www.bjs.co.uk/",
+    "openAlexId": "https://openalex.org/S61740008"
+  },
+  {
+    "name": "Cell Reports",
+    "issnL": "2211-1247",
+    "issn": [
+      "2211-1247",
+      "2639-1856"
+    ],
+    "publisher": "Cell Press",
+    "homepageUrl": "https://www.sciencedirect.com/journal/cell-reports",
+    "openAlexId": "https://openalex.org/S169236886"
+  },
+  {
+    "name": "Physical review. B./Physical review. B",
+    "issnL": "2469-9950",
+    "issn": [
+      "2469-9950",
+      "2469-9969",
+      "2469-9977"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org",
+    "openAlexId": "https://openalex.org/S4210237713"
+  },
+  {
+    "name": "Materials",
+    "issnL": "1996-1944",
+    "issn": [
+      "1996-1944"
+    ],
+    "publisher": "Multidisciplinary Digital Publishing Institute",
+    "homepageUrl": "http://www.mdpi.com/journal/materials",
+    "openAlexId": "https://openalex.org/S18714766"
+  },
+  {
+    "name": "Nature reviews. Neuroscience",
+    "issnL": "1471-003X",
+    "issn": [
+      "1471-003X",
+      "1471-0048"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/nrn/",
+    "openAlexId": "https://openalex.org/S26843219"
+  },
+  {
+    "name": "Nature reviews. Immunology",
+    "issnL": "1474-1733",
+    "issn": [
+      "1474-1733",
+      "1474-1741"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/nrmicro/index.html",
+    "openAlexId": "https://openalex.org/S93373720"
+  },
+  {
+    "name": "Journal of Physics Condensed Matter",
+    "issnL": "0953-8984",
+    "issn": [
+      "0953-8984",
+      "1361-648X"
+    ],
+    "publisher": "IOP Publishing",
+    "homepageUrl": "http://iopscience.org/jpcm",
+    "openAlexId": "https://openalex.org/S190924190"
+  },
+  {
+    "name": "Physical review. E, Statistical physics, plasmas, fluids, and related interdisciplinary topics",
+    "issnL": "1063-651X",
+    "issn": [
+      "1063-651X",
+      "1095-3787",
+      "1538-4519"
+    ],
+    "publisher": "American Physical Society",
+    "homepageUrl": "http://journals.aps.org",
+    "openAlexId": "https://openalex.org/S4210224030"
+  },
+  {
+    "name": "Global Change Biology",
+    "issnL": "1354-1013",
+    "issn": [
+      "1354-1013",
+      "1365-2486"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://onlinelibrary.wiley.com/journal/13652486",
+    "openAlexId": "https://openalex.org/S74970393"
+  },
+  {
+    "name": "Journal of Organometallic Chemistry",
+    "issnL": "0022-328X",
+    "issn": [
+      "0022-328X",
+      "1872-8561"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/inca/504090",
+    "openAlexId": "https://openalex.org/S108008259"
+  },
+  {
+    "name": "Clinical Chemistry",
+    "issnL": "0009-9147",
+    "issn": [
+      "0009-9147",
+      "1530-8561"
+    ],
+    "publisher": "American Association for Clinical Chemistry",
+    "homepageUrl": "http://intl.clinchem.org/",
+    "openAlexId": "https://openalex.org/S139212996"
+  },
+  {
+    "name": "Dalton Transactions",
+    "issnL": "1477-9226",
+    "issn": [
+      "1477-9226",
+      "1477-9234"
+    ],
+    "publisher": "Royal Society of Chemistry",
+    "homepageUrl": "http://www.rsc.org/Publishing/Journals/dt/index.asp",
+    "openAlexId": "https://openalex.org/S166159787"
+  },
+  {
+    "name": "Journal of the American Geriatrics Society",
+    "issnL": "0002-8614",
+    "issn": [
+      "0002-8614",
+      "1532-5415"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "http://www3.interscience.wiley.com/journal/117995531/home",
+    "openAlexId": "https://openalex.org/S204183829"
+  },
+  {
+    "name": "Applied Thermal Engineering",
+    "issnL": "1359-4311",
+    "issn": [
+      "1359-4311",
+      "1873-5606"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.sciencedirect.com/science/journal/13594311",
+    "openAlexId": "https://openalex.org/S129676613"
+  },
+  {
+    "name": "Journal of Ethnopharmacology",
+    "issnL": "0378-8741",
+    "issn": [
+      "0378-8741",
+      "1872-7573"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/wps/find/journaldescription.cws_home/506035/description#description",
+    "openAlexId": "https://openalex.org/S29564236"
+  },
+  {
+    "name": "Surface and Coatings Technology",
+    "issnL": "0257-8972",
+    "issn": [
+      "0257-8972",
+      "1879-3347"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/surface-and-coatings-technology",
+    "openAlexId": "https://openalex.org/S76010543"
+  },
+  {
+    "name": "British Journal of Dermatology",
+    "issnL": "0007-0963",
+    "issn": [
+      "0007-0963",
+      "1365-2133"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/bjd",
+    "openAlexId": "https://openalex.org/S45720283"
+  },
+  {
+    "name": "Physics Today",
+    "issnL": "0031-9228",
+    "issn": [
+      "0031-9228",
+      "1945-0699"
+    ],
+    "publisher": "AIP Publishing",
+    "homepageUrl": "http://www.physicstoday.org/",
+    "openAlexId": "https://openalex.org/S180907581"
+  },
+  {
+    "name": "Talanta",
+    "issnL": "0039-9140",
+    "issn": [
+      "0039-9140",
+      "1873-3573"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.elsevier.com/locate/inca/525438",
+    "openAlexId": "https://openalex.org/S124795565"
+  },
+  {
+    "name": "Limnology and Oceanography",
+    "issnL": "0024-3590",
+    "issn": [
+      "0024-3590",
+      "1939-5590",
+      "1939-5604"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://aslopubs.onlinelibrary.wiley.com/journal/19395590",
+    "openAlexId": "https://openalex.org/S207705515"
+  },
+  {
+    "name": "IEEE Transactions on Power Systems",
+    "issnL": "0885-8950",
+    "issn": [
+      "0885-8950",
+      "1558-0679"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://ieeexplore.ieee.org/servlet/opac?punumber=59",
+    "openAlexId": "https://openalex.org/S201921491"
+  },
+  {
+    "name": "Oncotarget",
+    "issnL": "1949-2553",
+    "issn": [
+      "1949-2553"
+    ],
+    "publisher": "Impact Journals LLC",
+    "homepageUrl": "http://www.impactjournals.com/oncotarget/index.php?journal=oncotarget",
+    "openAlexId": "https://openalex.org/S126644158"
+  },
+  {
+    "name": "IEEE Transactions on Signal Processing",
+    "issnL": "1053-587X",
+    "issn": [
+      "1053-587X",
+      "1941-0476"
+    ],
+    "publisher": "Institute of Electrical and Electronics Engineers",
+    "homepageUrl": "http://www.signalprocessingsociety.org/publications/periodicals/tsp/",
+    "openAlexId": "https://openalex.org/S168680287"
+  },
+  {
+    "name": "Review of Scientific Instruments",
+    "issnL": "0034-6748",
+    "issn": [
+      "0034-6748",
+      "1089-7623",
+      "1527-2400"
+    ],
+    "publisher": "American Institute of Physics",
+    "homepageUrl": "http://rsi.aip.org/",
+    "openAlexId": "https://openalex.org/S31010182"
+  },
+  {
+    "name": "Journal of Business Research",
+    "issnL": "0148-2963",
+    "issn": [
+      "0148-2963",
+      "1873-7978"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "https://www.journals.elsevier.com/journal-of-business-research",
+    "openAlexId": "https://openalex.org/S93284759"
+  },
+  {
+    "name": "PLoS Biology",
+    "issnL": "1544-9173",
+    "issn": [
+      "1544-9173",
+      "1545-7885"
+    ],
+    "publisher": "Public Library of Science",
+    "homepageUrl": "http://www.plosbiology.org/",
+    "openAlexId": "https://openalex.org/S154343897"
+  },
+  {
+    "name": "Nature Physics",
+    "issnL": "1745-2473",
+    "issn": [
+      "1745-2473",
+      "1745-2481"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/nphys/",
+    "openAlexId": "https://openalex.org/S156274416"
+  },
+  {
+    "name": "Nature Chemistry",
+    "issnL": "1755-4330",
+    "issn": [
+      "1755-4330",
+      "1755-4349"
+    ],
+    "publisher": "Nature Portfolio",
+    "homepageUrl": "http://www.nature.com/nchem",
+    "openAlexId": "https://openalex.org/S202193212"
+  },
+  {
+    "name": "The Review of Economic Studies",
+    "issnL": "0034-6527",
+    "issn": [
+      "0034-6527",
+      "1467-937X"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/restud",
+    "openAlexId": "https://openalex.org/S88935262"
+  },
+  {
+    "name": "American Journal of Sociology",
+    "issnL": "0002-9602",
+    "issn": [
+      "0002-9602",
+      "1537-5390"
+    ],
+    "publisher": "University of Chicago Press",
+    "homepageUrl": "http://www.journals.uchicago.edu/ajs",
+    "openAlexId": "https://openalex.org/S122471516"
+  },
+  {
+    "name": "American Political Science Review",
+    "issnL": "0003-0554",
+    "issn": [
+      "0003-0554",
+      "1537-5943"
+    ],
+    "publisher": "Cambridge University Press",
+    "homepageUrl": "http://www.apsanet.org/apsr",
+    "openAlexId": "https://openalex.org/S176007004"
+  },
+  {
+    "name": "American Journal of Political Science",
+    "issnL": "0092-5853",
+    "issn": [
+      "0092-5853",
+      "1540-5907"
+    ],
+    "publisher": "Wiley",
+    "homepageUrl": "https://onlinelibrary.wiley.com/journal/15405907",
+    "openAlexId": "https://openalex.org/S90314269"
+  },
+  {
+    "name": "Psychological Science",
+    "issnL": "0956-7976",
+    "issn": [
+      "0956-7976",
+      "1467-9280"
+    ],
+    "publisher": "SAGE Publishing",
+    "homepageUrl": "http://pss.sagepub.com/",
+    "openAlexId": "https://openalex.org/S58854535"
+  },
+  {
+    "name": "Annual Review of Psychology",
+    "issnL": "0066-4308",
+    "issn": [
+      "0066-4308",
+      "1545-2085"
+    ],
+    "publisher": "Annual Reviews",
+    "homepageUrl": "http://www.annualreviews.org/journal/psych",
+    "openAlexId": "https://openalex.org/S90670110"
+  },
+  {
+    "name": "Annual Review of Sociology",
+    "issnL": "0360-0572",
+    "issn": [
+      "0360-0572",
+      "1545-2115"
+    ],
+    "publisher": "Annual Reviews",
+    "homepageUrl": "http://www.annualreviews.org/journal/soc",
+    "openAlexId": "https://openalex.org/S61274580"
+  },
+  {
+    "name": "Journal of Consumer Research",
+    "issnL": "0093-5301",
+    "issn": [
+      "0093-5301",
+      "1537-5277"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "http://www.ejcr.org/",
+    "openAlexId": "https://openalex.org/S145429826"
+  },
+  {
+    "name": "The Review of Economics and Statistics",
+    "issnL": "0034-6535",
+    "issn": [
+      "0034-6535",
+      "1530-9142"
+    ],
+    "publisher": "The MIT Press",
+    "homepageUrl": "http://www.mitpressjournals.org/loi/rest",
+    "openAlexId": "https://openalex.org/S180061323"
+  },
+  {
+    "name": "Journal of Economic Literature",
+    "issnL": "0022-0515",
+    "issn": [
+      "0022-0515",
+      "1547-1101",
+      "2328-8175"
+    ],
+    "publisher": "American Economic Association",
+    "homepageUrl": "http://www.aeaweb.org/journal.html",
+    "openAlexId": "https://openalex.org/S127708089"
+  },
+  {
+    "name": "Quarterly Journal of Political Science",
+    "issnL": "1554-0626",
+    "issn": [
+      "1554-0626",
+      "1554-0634"
+    ],
+    "publisher": "Now Publishers",
+    "homepageUrl": "http://www.nowpublishers.com/qjps",
+    "openAlexId": "https://openalex.org/S44648735"
+  },
+  {
+    "name": "Annual Review of Economics",
+    "issnL": "1941-1383",
+    "issn": [
+      "1941-1383",
+      "1941-1391"
+    ],
+    "publisher": "Annual Reviews",
+    "homepageUrl": "http://www.annualreviews.org/journal/economics",
+    "openAlexId": "https://openalex.org/S196715598"
+  },
+  {
+    "name": "Journal of Experimental Psychology General",
+    "issnL": "0096-3445",
+    "issn": [
+      "0096-3445",
+      "1939-2222"
+    ],
+    "publisher": "American Psychological Association",
+    "homepageUrl": "http://www.apa.org/pubs/journals/xge/index.aspx",
+    "openAlexId": "https://openalex.org/S62013203"
+  },
+  {
+    "name": "Journal of Accounting and Economics",
+    "issnL": "0165-4101",
+    "issn": [
+      "0165-4101",
+      "1879-1980"
+    ],
+    "publisher": "Elsevier BV",
+    "homepageUrl": "http://www.journals.elsevier.com/journal-of-accounting-and-economics/",
+    "openAlexId": "https://openalex.org/S62142384"
+  },
+  {
+    "name": "Review of Financial Studies",
+    "issnL": "0893-9454",
+    "issn": [
+      "0893-9454",
+      "1465-7368"
+    ],
+    "publisher": "Oxford University Press",
+    "homepageUrl": "https://academic.oup.com/rfs",
+    "openAlexId": "https://openalex.org/S170137484"
+  }
+]

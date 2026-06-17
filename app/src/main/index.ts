@@ -14,6 +14,8 @@
 import { basename, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
+import { randomBytes } from 'node:crypto';
 
 import {
   app,
@@ -40,10 +42,16 @@ import {
 import { DocumentStore } from './document-service.js';
 import { runAgentTurn } from './agent.js';
 import { parseAppUrl } from './app-url.js';
+import { dispatchBridge } from './bridge.js';
 import { formatCitation } from './csl.js';
 import { searchOnline } from './online.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
 import { getSettings, loadSettings, updateSettings } from './settings.js';
+
+// A stable product name so userData (settings, agent key, automation
+// `bridge.json`) lives at a predictable `…/Application Support/BibDesk/` path the
+// native helpers can find — instead of the `@bibdesk/app` package name.
+app.setName('BibDesk');
 
 // ---------------------------------------------------------------------------
 // Process-wide singletons
@@ -316,6 +324,52 @@ function handleAppUrl(raw: string): void {
     default:
       return; // unknown command — ignore
   }
+}
+
+/**
+ * Start the local automation bridge: a loopback (127.0.0.1), token-authed HTTP
+ * server exposing the {@link dispatchBridge} command surface. The port + token are
+ * written to `bridge.json` under userData so AppleScript/shell and the native
+ * helper apps can discover and call it. Loopback-only + a per-launch token keep it
+ * off the network and away from other local users.
+ */
+function startBridge(): void {
+  const token = randomBytes(24).toString('hex');
+  const server = createServer((req, res) => {
+    const url = new URL(req.url ?? '/', 'http://127.0.0.1');
+    const given = (req.headers['x-bibdesk-token'] as string | undefined) ?? url.searchParams.get('token') ?? '';
+    if (given !== token) {
+      res.writeHead(403, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: 'forbidden' }));
+      return;
+    }
+    const method = url.pathname.replace(/^\/+/, '') || 'ping';
+    const params: Record<string, string> = {};
+    for (const [k, v] of url.searchParams) if (k !== 'token') params[k] = v;
+    let result;
+    try {
+      result = dispatchBridge(store, lastDocumentId, { method, params });
+    } catch (e) {
+      result = { ok: false, error: e instanceof Error ? e.message : String(e) };
+    }
+    if ((result as { mutated?: boolean }).mutated) refreshOpenDocument();
+    res.writeHead(result.ok ? 200 : 400, { 'content-type': 'application/json' });
+    res.end(JSON.stringify(result));
+  });
+  server.on('error', (e) => console.error('[bridge] server error:', e.message));
+  server.listen(0, '127.0.0.1', () => {
+    const addr = server.address();
+    const port = typeof addr === 'object' && addr ? addr.port : 0;
+    try {
+      writeFileSync(
+        join(app.getPath('userData'), 'bridge.json'),
+        JSON.stringify({ port, token, pid: process.pid }, null, 2),
+      );
+    } catch {
+      /* non-fatal: automation just won't be discoverable */
+    }
+    if (process.env.BIBDESK_SMOKE) console.log(`[smoke] bridge on 127.0.0.1:${port}`);
+  });
 }
 
 /**
@@ -1282,6 +1336,7 @@ if (!gotLock) {
     });
     registerIpc();
     buildMenu();
+    startBridge();
     mainWindow = createWindow();
 
     // Auto-open from BIBDESK_OPEN / CLI, or honor a path buffered by open-file.

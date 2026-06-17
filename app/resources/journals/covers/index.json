@@ -1055,5 +1055,495 @@
     "file": "2327-0195.png",
     "sourceUrl": "https://muse.jhu.edu/images/muselogo_dark.png",
     "kind": "og:image"
+  },
+  {
+    "issnL": "0028-0836",
+    "name": "Nature",
+    "file": "0028-0836.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/2913/top_item_image/20260618_FEAT_Tech-Longevity-hacks_THUMB-f81bdd4efb34d5cc3f99d88aba8bb458.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0027-8424",
+    "name": "Proceedings of the National Academy of Sciences",
+    "file": "0027-8424.png",
+    "sourceUrl": "http://www.pnas.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0036-8075",
+    "name": "Science",
+    "file": "0036-8075.ico",
+    "sourceUrl": "http://www.sciencemag.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0002-7863",
+    "name": "Journal of the American Chemical Society",
+    "file": "0002-7863.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0009-4978",
+    "name": "Choice Reviews Online",
+    "file": "0009-4978.png",
+    "sourceUrl": "https://www.ala.org/themes/custom/ala/ala-seo.png",
+    "kind": "twitter:image"
+  },
+  {
+    "issnL": "2045-2322",
+    "name": "Scientific Reports",
+    "file": "2045-2322.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/2103/top_item_image/SciRep_Brand-Campaign_Homepage_Hero-Image_735x400-6f0ee5ab5ac3df1013bed419f185edf8.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "2041-1723",
+    "name": "Nature Communications",
+    "file": "2041-1723.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/2321/top_item_image/mars_curiosity-b778b171f64eb30638f4b649239305fc.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1433-7851",
+    "name": "Angewandte Chemie International Edition",
+    "file": "1433-7851.ico",
+    "sourceUrl": "https://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0013-936X",
+    "name": "Environmental Science & Technology",
+    "file": "0013-936X.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0003-2700",
+    "name": "Analytical Chemistry",
+    "file": "0003-2700.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0009-2665",
+    "name": "Chemical Reviews",
+    "file": "0009-2665.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0006-2960",
+    "name": "Biochemistry",
+    "file": "0006-2960.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0006-291X",
+    "name": "Biochemical and Biophysical Research Communications",
+    "file": "0006-291X.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0022-538X",
+    "name": "Journal of Virology",
+    "file": "0022-538X.png",
+    "sourceUrl": "http://jvi.asm.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0022-3263",
+    "name": "The Journal of Organic Chemistry",
+    "file": "0022-3263.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1944-8244",
+    "name": "ACS Applied Materials & Interfaces",
+    "file": "1944-8244.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0028-3878",
+    "name": "Neurology",
+    "file": "0028-3878.ico",
+    "sourceUrl": "http://www.neurology.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1359-7345",
+    "name": "Chemical Communications",
+    "file": "1359-7345.jpg",
+    "sourceUrl": "http://www.rsc.org/getContentAsset/e38a6bbd-b690-4033-970d-04f318d82cba/97c19dfb-06fc-4638-b657-b9d8300eab48/chemcomm-journal-cover.jpg?language=en",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0008-543X",
+    "name": "Cancer",
+    "file": "0008-543X.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0099-2240",
+    "name": "Applied and Environmental Microbiology",
+    "file": "0099-2240.png",
+    "sourceUrl": "http://aem.asm.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0261-4189",
+    "name": "The EMBO Journal",
+    "file": "0261-4189.jpg",
+    "sourceUrl": "https://media.springernature.com/w92/springer-static/cover/journal/44318.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0022-2836",
+    "name": "Journal of Molecular Biology",
+    "file": "0022-2836.png",
+    "sourceUrl": "http://www.elsevier.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0021-9193",
+    "name": "Journal of Bacteriology",
+    "file": "0021-9193.png",
+    "sourceUrl": "http://jb.asm.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1061-4036",
+    "name": "Nature Genetics",
+    "file": "1061-4036.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/5217/top_item_image/NG_Hero_MAY26-ca8094aebed96cf5394cb6f91b2f49ef.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0021-8561",
+    "name": "Journal of Agricultural and Food Chemistry",
+    "file": "0021-8561.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0024-9297",
+    "name": "Macromolecules",
+    "file": "0024-9297.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0094-8276",
+    "name": "Geophysical Research Letters",
+    "file": "0094-8276.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0020-1669",
+    "name": "Inorganic Chemistry",
+    "file": "0020-1669.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1530-6984",
+    "name": "Nano Letters",
+    "file": "1530-6984.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0270-7306",
+    "name": "Molecular and Cellular Biology",
+    "file": "0270-7306.png",
+    "sourceUrl": "http://mcb.asm.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0743-7463",
+    "name": "Langmuir",
+    "file": "0743-7463.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1936-0851",
+    "name": "ACS Nano",
+    "file": "1936-0851.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0308-8146",
+    "name": "Food Chemistry",
+    "file": "0308-8146.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0022-3751",
+    "name": "The Journal of Physiology",
+    "file": "0022-3751.ico",
+    "sourceUrl": "https://physoc.onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1520-5207",
+    "name": "The Journal of Physical Chemistry B",
+    "file": "1520-5207.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1078-8956",
+    "name": "Nature Medicine",
+    "file": "1078-8956.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/5187/top_item_image/nmed_cover_hero_MAY26-352e29157d42813b271001fa44a4294c.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0040-4039",
+    "name": "Tetrahedron Letters",
+    "file": "0040-4039.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1616-301X",
+    "name": "Advanced Functional Materials",
+    "file": "1616-301X.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0014-5793",
+    "name": "FEBS Letters",
+    "file": "0014-5793.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0306-0012",
+    "name": "Chemical Society Reviews",
+    "file": "0306-0012.jpg",
+    "sourceUrl": "http://www.rsc.org/getContentAsset/0922c24b-aa61-4113-8124-60833562d52c/97c19dfb-06fc-4638-b657-b9d8300eab48/chem-soc-rev-journal-cover.jpg?language=en",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0045-6535",
+    "name": "Chemosphere",
+    "file": "0045-6535.png",
+    "sourceUrl": "http://www.elsevier.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1053-8119",
+    "name": "NeuroImage",
+    "file": "1053-8119.png",
+    "sourceUrl": "http://www.elsevier.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1932-7447",
+    "name": "The Journal of Physical Chemistry C",
+    "file": "1932-7447.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0043-1354",
+    "name": "Water Research",
+    "file": "0043-1354.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0378-7753",
+    "name": "Journal of Power Sources",
+    "file": "0378-7753.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "2046-2069",
+    "name": "RSC Advances",
+    "file": "2046-2069.jpg",
+    "sourceUrl": "http://www.rsc.org/getContentAsset/13543419-5f5c-4aa9-81c2-53674f17cef7/97c19dfb-06fc-4638-b657-b9d8300eab48/RSC-fallback-Image.jpg?language=en",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0021-9673",
+    "name": "Journal of Chromatography A",
+    "file": "0021-9673.png",
+    "sourceUrl": "http://www.elsevier.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1094-4087",
+    "name": "Optics Express",
+    "file": "1094-4087.ico",
+    "sourceUrl": "http://www.osapublishing.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1058-4838",
+    "name": "Clinical Infectious Diseases",
+    "file": "1058-4838.ico",
+    "sourceUrl": "http://www.oxfordjournals.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0012-9658",
+    "name": "Ecology",
+    "file": "0012-9658.ico",
+    "sourceUrl": "https://esajournals.onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0897-4756",
+    "name": "Chemistry of Materials",
+    "file": "0897-4756.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0077-8923",
+    "name": "Annals of the New York Academy of Sciences",
+    "file": "0077-8923.ico",
+    "sourceUrl": "https://nyaspubs.onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "2050-7488",
+    "name": "Journal of Materials Chemistry A",
+    "file": "2050-7488.jpg",
+    "sourceUrl": "http://www.rsc.org/getContentAsset/21616b6d-eb01-4f43-b728-cfd238383d5e/97c19dfb-06fc-4638-b657-b9d8300eab48/journal-of-mc-a-journal-cover.jpg?language=en",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0019-9567",
+    "name": "Infection and Immunity",
+    "file": "0019-9567.png",
+    "sourceUrl": "http://iai.asm.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0013-4686",
+    "name": "Electrochimica Acta",
+    "file": "0013-4686.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0016-7037",
+    "name": "Geochimica et Cosmochimica Acta",
+    "file": "0016-7037.png",
+    "sourceUrl": "http://www.elsevier.com/images/e-solid-background.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0022-2623",
+    "name": "Journal of Medicinal Chemistry",
+    "file": "0022-2623.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1523-7052",
+    "name": "Organic Letters",
+    "file": "1523-7052.ico",
+    "sourceUrl": "http://pubs.acs.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0095-1137",
+    "name": "Journal of Clinical Microbiology",
+    "file": "0095-1137.png",
+    "sourceUrl": "http://jcm.asm.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1029-8479",
+    "name": "Journal of High Energy Physics",
+    "file": "1029-8479.jpg",
+    "sourceUrl": "https://media.springernature.com/w92/springer-static/cover/journal/13130.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0277-786X",
+    "name": "Proceedings of SPIE, the International Society for Optical Engineering/Proceedings of SPIE",
+    "file": "0277-786X.ico",
+    "sourceUrl": "http://spie.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "1087-0156",
+    "name": "Nature Biotechnology",
+    "file": "1087-0156.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/3159/top_item_image/nbt_hero_JUN26-b79cc58ff505be59103365eee16010c2.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0066-4804",
+    "name": "Antimicrobial Agents and Chemotherapy",
+    "file": "0066-4804.png",
+    "sourceUrl": "http://aac.asm.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0162-8828",
+    "name": "IEEE Transactions on Pattern Analysis and Machine Intelligence",
+    "file": "0162-8828.png",
+    "sourceUrl": "https://www.computer.org/wp-media/2019/07/16121506/Logo-e1563279357996.png",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0044-8249",
+    "name": "Angewandte Chemie",
+    "file": "0044-8249.ico",
+    "sourceUrl": "https://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0002-8282",
+    "name": "American Economic Review",
+    "file": "0002-8282.ico",
+    "sourceUrl": "http://www.aeaweb.org/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0950-9232",
+    "name": "Oncogene",
+    "file": "0950-9232.jpg",
+    "sourceUrl": "https://media.springernature.com/lw630/nature-cms/uploads/cms/pages/6417/top_item_image/Oncogene_hero-d9415032f1c80474a2ef781a8e6e79e1.jpg",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "1463-9076",
+    "name": "Physical Chemistry Chemical Physics",
+    "file": "1463-9076.jpg",
+    "sourceUrl": "http://www.rsc.org/getContentAsset/cdbec9f9-b6de-431b-8d70-fea9b3f96b97/97c19dfb-06fc-4638-b657-b9d8300eab48/pccp-journal-cover.jpg?language=en",
+    "kind": "og:image"
+  },
+  {
+    "issnL": "0021-9967",
+    "name": "The Journal of Comparative Neurology",
+    "file": "0021-9967.ico",
+    "sourceUrl": "https://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
+  },
+  {
+    "issnL": "0020-7136",
+    "name": "International Journal of Cancer",
+    "file": "0020-7136.ico",
+    "sourceUrl": "http://onlinelibrary.wiley.com/favicon.ico",
+    "kind": "favicon"
   }
 ]
