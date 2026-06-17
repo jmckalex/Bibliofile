@@ -486,6 +486,21 @@ export interface PrintResponse {
   readonly error?: string;
 }
 
+/**
+ * Export just the given entries (the current multi-selection) to a `.bib` file
+ * the user picks. Complements whole-library {@link ExportTextRequest} export.
+ */
+export interface ExportSelectionRequest {
+  readonly documentId: DocumentId;
+  readonly itemIds: readonly ItemId[];
+}
+
+/** Outcome of an export-selection request; `ok` is true even if the user cancels. */
+export interface ExportSelectionResponse {
+  readonly ok: boolean;
+  readonly error?: string;
+}
+
 // --- Online search / import -------------------------------------------------
 
 /** An online bibliographic source. */
@@ -948,4 +963,5 @@ export type MenuCommand =
   | 'toggleTheme'
   // App
   | 'save'
-  | 'print';
+  | 'print'
+  | 'exportSelected';

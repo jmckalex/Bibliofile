@@ -281,11 +281,18 @@ filename — your library's name with the appropriate extension. None of the exp
 items has a keyboard shortcut; they live entirely in the **File → Export**
 submenu.
 
-> **Note:** Export always writes the **entire** library, regardless of the group
-> you have selected or any live-search filter — these are *export to a file*
-> operations, not "export the current view." (To copy a *single* entry in BibTeX
-> form, use **Edit → Copy as BibTeX** instead — see
-> [Editing entries](03-editing-entries.md#copying-entries-cite-keys-and-citations).)
+To export **just some entries**, select them in the table and choose **File →
+Export → Selected Entries (BibTeX)…**. This writes only the highlighted entries
+(or, if exactly one row is selected, that one) to a `.bib` file — handy for
+pulling the references for a single paper out of a large library. The default
+filename is your library's name with a `-selection` suffix.
+
+> **Note:** The five top-level **Export** formats always write the **entire**
+> library, regardless of the group you have selected or any live-search filter —
+> they are *export the whole file* operations. Use **Selected Entries (BibTeX)…**
+> (above) when you want only the highlighted entries, or **Edit → Copy as BibTeX**
+> to put a single entry on the clipboard — see
+> [Editing entries](03-editing-entries.md#copying-entries-cite-keys-and-citations).
 
 > **Tip:** Exporting to BibTeX is also a convenient way to take a one-off snapshot
 > of the library to a new file without disturbing your working `.bib` or its
@@ -378,6 +385,7 @@ The entries are formatted with your **default citation style** (set in
 | Export RIS | **File → Export → RIS…** |
 | Export CSV | **File → Export → CSV…** |
 | Export HTML | **File → Export → HTML…** |
+| Export selected entries | **File → Export → Selected Entries (BibTeX)…** |
 | Print / Save as PDF | **File → Print…** (**⌘P** / **Ctrl+P**) — prints the selection or current group |
 | Persist imports | **Save** (**⌘S** / **Ctrl+S**) — imports are in memory until saved |
 

@@ -104,6 +104,8 @@ export {
   type ExportTextResponse,
   type PrintRequest,
   type PrintResponse,
+  type ExportSelectionRequest,
+  type ExportSelectionResponse,
   type PasteEntriesRequest,
   type ImportFilesRequest,
   type ImportDialogRequest,

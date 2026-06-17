@@ -85,6 +85,7 @@ function makeFakeApi() {
     copyRtf: async () => ({ ok: true }),
     journalCover: async () => ({ data: null }),
     print: async () => ({ ok: true }),
+    exportSelection: async () => ({ ok: true }),
     addAttachment: async () => ({ dirty: true }),
     removeAttachment: async () => ({ dirty: true }),
     autoFile: async () => ({ moved: 0, errors: [], dirty: true, detail: DETAIL }),

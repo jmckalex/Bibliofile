@@ -68,6 +68,8 @@ export const IpcChannels = {
   exportText: 'bibdesk:exportText',
   /** Print a CSL-formatted bibliography for a set of items (OS print dialog). */
   print: 'bibdesk:print',
+  /** Export just the selected entries to a BibTeX file (save dialog in main). */
+  exportSelection: 'bibdesk:exportSelection',
   /** Paste BibTeX text into a document (parse + merge as new entries). */
   pasteEntries: 'bibdesk:pasteEntries',
   /** Import dropped files (`.bib` merge; other files → entry + attachment). */

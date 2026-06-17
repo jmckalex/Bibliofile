@@ -202,6 +202,8 @@ export interface ViewerState {
   renameAuthor: (oldName: string, newName: string) => Promise<void>;
   /** Print the current selection (if >1) or the whole current view as a bibliography. */
   print: () => Promise<void>;
+  /** Export the current selection (multi, else the single selected entry) to a BibTeX file. */
+  exportSelection: () => Promise<void>;
   /** Send one message to the Claude assistant; reloads the table if it mutated. */
   agentSend: (message: string) => Promise<AgentRunResponse>;
 }
@@ -694,6 +696,22 @@ export function createStore(api: BibDeskApi) {
       const title = group && group.kind !== 'library' ? `${docName} — ${group.name}` : docName;
       try {
         const res = await api.print({ documentId, itemIds, styleId: settings.defaultCiteStyle, title });
+        if (!res.ok && res.error) set({ error: res.error });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    exportSelection: async () => {
+      const { documentId, selectedIds, selectedItemId } = get();
+      if (!documentId) return;
+      const itemIds = selectedIds.length ? selectedIds : selectedItemId ? [selectedItemId] : [];
+      if (!itemIds.length) {
+        set({ error: 'Select one or more entries to export.' });
+        return;
+      }
+      try {
+        const res = await api.exportSelection({ documentId, itemIds });
         if (!res.ok && res.error) set({ error: res.error });
       } catch (err) {
         set({ error: errorMessage(err) });

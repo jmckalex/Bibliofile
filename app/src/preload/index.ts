@@ -55,6 +55,8 @@ import {
   type ExportTextResponse,
   type PrintRequest,
   type PrintResponse,
+  type ExportSelectionRequest,
+  type ExportSelectionResponse,
   type PasteEntriesRequest,
   type ImportFilesRequest,
   type ImportDialogRequest,
@@ -158,6 +160,9 @@ const api: BibDeskApi = {
   },
   print(request: PrintRequest): Promise<PrintResponse> {
     return ipcRenderer.invoke(IpcChannels.print, request);
+  },
+  exportSelection(request: ExportSelectionRequest): Promise<ExportSelectionResponse> {
+    return ipcRenderer.invoke(IpcChannels.exportSelection, request);
   },
   pasteEntries(request: PasteEntriesRequest): Promise<ImportResult> {
     return ipcRenderer.invoke(IpcChannels.pasteEntries, request);

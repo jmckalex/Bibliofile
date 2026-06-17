@@ -238,6 +238,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'print':
       await store.print();
       return;
+    case 'exportSelected':
+      await store.exportSelection();
+      return;
     case 'find': {
       const input = document.querySelector<HTMLInputElement>('.bd-search__input');
       input?.focus();

@@ -43,6 +43,7 @@ On Windows and Linux these items live elsewhere: **Preferences…** moves to the
 | Import → From File (BibTeX / RIS / EndNote)… | ⇧⌘I | Shift+Ctrl+I | Import `.bib`/`.ris`/EndNote `.enw`/`.enl`/`.xml` files (see [Importing & Exporting](07-importing-and-exporting.md)) *(needs an open library)* |
 | Import → Search Online (CrossRef / arXiv)… | ⇧⌘O | Shift+Ctrl+O | Open [online search](08-online-search.md) *(needs an open library)* |
 | Export → BibTeX… / RIS… / CSV… / HTML… | — | — | Export the whole library to that format *(needs an open library)* |
+| Export → Selected Entries (BibTeX)… | — | — | Export only the highlighted entries to a `.bib` file *(needs a selection)* |
 | Print… | ⌘P | Ctrl+P | Print (or Save as PDF) a CSL-formatted bibliography of the selection or current group *(needs an open library)* |
 
 ### Edit menu

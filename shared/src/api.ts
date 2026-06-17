@@ -38,6 +38,8 @@ import type {
   ExportTextResponse,
   PrintRequest,
   PrintResponse,
+  ExportSelectionRequest,
+  ExportSelectionResponse,
   PasteEntriesRequest,
   ImportFilesRequest,
   ImportDialogRequest,
@@ -160,6 +162,9 @@ export interface BibDeskApi {
 
   /** Print a CSL-formatted bibliography for the given items (OS print dialog). */
   print(request: PrintRequest): Promise<PrintResponse>;
+
+  /** Export just the selected entries to a BibTeX file the user picks (save dialog). */
+  exportSelection(request: ExportSelectionRequest): Promise<ExportSelectionResponse>;
 
   /** Paste BibTeX text into the document as new entries (parse + merge). */
   pasteEntries(request: PasteEntriesRequest): Promise<ImportResult>;

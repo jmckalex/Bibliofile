@@ -37,6 +37,8 @@ import type {
   ExportTextResponse,
   PrintRequest,
   PrintResponse,
+  ExportSelectionRequest,
+  ExportSelectionResponse,
   PasteEntriesRequest,
   ImportFilesRequest,
   ImportDialogRequest,
@@ -116,6 +118,7 @@ export interface IpcContract {
   [IpcChannels.readAttachment]: IpcEntry<ReadAttachmentRequest, ReadAttachmentResponse>;
   [IpcChannels.exportText]: IpcEntry<ExportTextRequest, ExportTextResponse>;
   [IpcChannels.print]: IpcEntry<PrintRequest, PrintResponse>;
+  [IpcChannels.exportSelection]: IpcEntry<ExportSelectionRequest, ExportSelectionResponse>;
   [IpcChannels.pasteEntries]: IpcEntry<PasteEntriesRequest, ImportResult>;
   [IpcChannels.importFiles]: IpcEntry<ImportFilesRequest, ImportResult>;
   [IpcChannels.importDialog]: IpcEntry<ImportDialogRequest, ImportResult>;

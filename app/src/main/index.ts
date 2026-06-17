@@ -40,6 +40,8 @@ import {
   type OpenExternalResult,
   type PrintRequest,
   type PrintResponse,
+  type ExportSelectionRequest,
+  type ExportSelectionResponse,
 } from '@bibdesk/shared';
 
 import { DocumentStore } from './document-service.js';
@@ -658,6 +660,29 @@ async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html' | 'rtf
   }
 }
 
+/**
+ * Export just the given entries (the current selection) to a `.bib` file. Unlike
+ * {@link exportDocumentAs} (whole library), the renderer supplies the item ids;
+ * a cancelled save dialog counts as ok.
+ */
+async function exportSelectionAs(req: ExportSelectionRequest): Promise<ExportSelectionResponse> {
+  if (!req.itemIds.length) return { ok: false, error: 'No entries are selected.' };
+  if (!store.has(req.documentId)) return { ok: false, error: 'No document open.' };
+  const base = store.summarize(req.documentId).displayName.replace(/\.bib$/i, '');
+  const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
+    title: 'Export Selected Entries',
+    defaultPath: `${base}-selection.bib`,
+    filters: [{ name: 'BibTeX', extensions: ['bib'] }],
+  });
+  if (result.canceled || !result.filePath) return { ok: true };
+  try {
+    writeFileSync(result.filePath, store.exportText(req.documentId, 'bibtex', req.itemIds), 'utf8');
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 /** Columns offered in the View→Columns menu (label per builtin/common key). */
 const COLUMN_MENU: { key: string; label: string }[] = [
   { key: 'citeKey', label: 'Cite Key' },
@@ -793,6 +818,8 @@ function buildMenu(): void {
           { label: 'CSV…', enabled: docEnabled, click: () => void exportDocumentAs('csv') },
           { label: 'HTML…', enabled: docEnabled, click: () => void exportDocumentAs('html') },
           { label: 'RTF (formatted bibliography)…', enabled: docEnabled, click: () => void exportDocumentAs('rtf') },
+          { type: 'separator' },
+          { label: 'Selected Entries (BibTeX)…', enabled: docEnabled, click: () => sendMenuCommand('exportSelected') },
         ],
       },
       { type: 'separator' },
@@ -1302,6 +1329,7 @@ function registerIpc(): void {
       }
     },
     [IpcChannels.print]: (req) => printItems(req),
+    [IpcChannels.exportSelection]: (req) => exportSelectionAs(req),
     [IpcChannels.pasteEntries]: (req) => store.importBibtexText(req.documentId, req.text),
     [IpcChannels.importFiles]: (req) => importFilesSmart(req.documentId, req.paths),
     [IpcChannels.importDialog]: async (req) => {
@@ -1440,6 +1468,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.print, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.print](req),
+  );
+  ipcMain.handle(IpcChannels.exportSelection, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.exportSelection](req),
   );
   ipcMain.handle(IpcChannels.pasteEntries, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.pasteEntries](req),

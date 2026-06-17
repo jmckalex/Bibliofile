@@ -228,6 +228,16 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   *Revisit:* `document-service.renameAuthor`, `GroupsSidebar` commitRename.
   Added a reusable `BIBDESK_SMOKE_DBLCLICK` dev hook to verify inline-rename UIs.
 
+- **Export selected entries.** `File → Export → Selected Entries (BibTeX)…` writes
+  just the highlighted rows (or the single selected entry) to a `.bib`, closing the
+  documented "Export always writes the whole library" gap. *Design choices:* (1)
+  renderer-driven (it knows the selection) → `exportSelection` IPC does the save
+  dialog + write, reusing the already-tested `exportText('bibtex', itemIds)` subset
+  serialization; (2) BibTeX-only — "give me these references" almost always means a
+  `.bib` for a paper, and a per-format submenu would need a command per format
+  (MenuCommand carries no payload). The five whole-library Export formats are
+  unchanged. *Revisit:* `exportSelectionAs` in `index.ts`, `store.exportSelection`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.
