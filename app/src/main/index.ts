@@ -768,7 +768,7 @@ function buildMenu(): void {
         label: 'Import',
         submenu: [
           {
-            label: 'From File (BibTeX / RIS)…',
+            label: 'From File (BibTeX / RIS / EndNote)…',
             accelerator: 'Shift+CmdOrCtrl+I',
             enabled: docEnabled,
             click: () => sendMenuCommand('importFile'),
@@ -1285,7 +1285,7 @@ function registerIpc(): void {
         title: 'Import',
         properties: ['openFile', 'multiSelections'],
         filters: [
-          { name: 'Bibliographies', extensions: ['bib', 'ris'] },
+          { name: 'Bibliographies', extensions: ['bib', 'ris', 'enw', 'enl', 'xml'] },
           { name: 'All Files', extensions: ['*'] },
         ],
       };

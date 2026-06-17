@@ -27,8 +27,8 @@ precisely what each method does before you reach for it.
 | Method | How you trigger it | Accepts | Best for |
 | --- | --- | --- | --- |
 | **Paste BibTeX** | **Edit → Paste Publication** (**⇧⌘V** / **Shift+Ctrl+V**), or just **paste** (`⌘V`) BibTeX text when the table is focused | One or more `@type{…}` entries on the clipboard | Grabbing a citation from Google Scholar, a publisher page, or an email |
-| **Drag and drop** | Drag files from your file manager onto the window | `.bib`, `.ris`, PDFs, and any other file | Dropping a folder of PDFs, or merging a colleague's `.bib` |
-| **Import from file** | **File → Import → From File (BibTeX / RIS)…** (**⇧⌘I** / **Shift+Ctrl+I**) | `.bib` and `.ris` files chosen in a dialog | A clean, dialog-driven import of one or several files |
+| **Drag and drop** | Drag files from your file manager onto the window | `.bib`, `.ris`, EndNote `.enw`/`.enl`/`.xml`, PDFs, and any other file | Dropping a folder of PDFs, or merging a colleague's `.bib` |
+| **Import from file** | **File → Import → From File (BibTeX / RIS / EndNote)…** (**⇧⌘I** / **Shift+Ctrl+I**) | `.bib`, `.ris`, and EndNote `.enw`/`.enl`/`.xml` files chosen in a dialog | A clean, dialog-driven import of one or several files |
 | **Online search** | **File → Import → Search Online…**, or the **🌐 Online…** toolbar button | CrossRef / arXiv results | Finding a reference you don't have a file for. See [Online search](08-online-search.md). |
 
 The first three are covered here; online search has its own chapter. Whichever
@@ -106,6 +106,7 @@ imports them according to their type.
 | --- | --- |
 | **`.bib` file(s)** | Each file's entries are **merged** into the open library, exactly as if pasted — with the same unique-cite-key handling. Warnings are prefixed with the file's name. |
 | **`.ris` file(s)** | Imported as RIS records (see [§7.5](#75-the-ris-format)). |
+| **EndNote file(s)** (`.enw`, `.enl`, `.xml`) | Imported as EndNote records (see [§7.5.3](#753-endnote-import)). |
 | **PDF (or any other file)** | A **new entry is created and the file is attached to it**. The entry's type is your configured default (`article` unless you changed it), its `Title` is set to the file's name (without the extension), and a cite key is generated. |
 | **Plain text** that looks like BibTeX | Imported as if pasted (see [§7.2](#72-pasting-bibtex-from-the-clipboard)). |
 
@@ -133,15 +134,15 @@ copy fields across.
 When you want a tidy, dialog-driven import — choosing exactly which files to bring
 in — use the **Import** menu.
 
-1. With a library open, choose **File → Import → From File (BibTeX / RIS)…**
-   (**⇧⌘I** / **Shift+Ctrl+I**).
+1. With a library open, choose **File → Import → From File (BibTeX / RIS /
+   EndNote)…** (**⇧⌘I** / **Shift+Ctrl+I**).
 2. In the file dialog (titled **Import**), select **one or more** files. The
-   dialog filters to **Bibliographies** (`.bib` and `.ris`) by default; switch
-   the filter to **All Files** if you need to.
+   dialog filters to **Bibliographies** (`.bib`, `.ris`, `.enw`, `.enl`, `.xml`)
+   by default; switch the filter to **All Files** if you need to.
 3. The chosen files are imported by type — `.bib` files merge their entries,
-   `.ris` files import their records, and any other file you force through the
-   *All Files* filter is turned into a stub entry with that file attached, just
-   as with drag-and-drop.
+   `.ris` files import their records, EndNote `.enw`/`.enl`/`.xml` files import
+   their records, and any other file you force through the *All Files* filter is
+   turned into a stub entry with that file attached, just as with drag-and-drop.
 
 The same **File → Import** submenu also contains **Search Online (CrossRef /
 arXiv)…** (**⇧⌘O** / **Shift+Ctrl+O**), which opens the
@@ -222,6 +223,44 @@ type afterwards from the **Type** dropdown — see
 
 Tags the importer does not recognise are ignored, so an unusual RIS file imports
 cleanly with its mappable fields and quietly drops the rest.
+
+### 7.5.3 EndNote import
+
+bibdesk-electron reads the two EndNote formats you actually run into:
+
+- **Refer / tagged** (`.enw`) — the line-oriented `%X value` format. This is
+  what **Google Scholar's "EndNote" download** produces, and what many journal
+  sites offer as "Download citation → EndNote". Records are separated by blank
+  lines; `%A` (author), `%E` (editor) and `%K` (keywords) may repeat.
+- **EndNote XML** (`.xml`, `.enl`) — EndNote's richer `<xml><records>…`
+  interchange export. Text wrapped in EndNote's `<style>` runs is unwrapped to
+  plain text automatically.
+
+The reference type sets the BibTeX type (*Journal Article* → `article`, *Book* →
+`book`, *Book Section* → `incollection`, *Conference Proceedings*/*Paper* →
+`inproceedings`, *Thesis* → `phdthesis`, *Report* → `techreport`; anything else →
+`misc`). Common fields map across as you would expect:
+
+| EndNote (tagged / XML) | BibTeX field | Notes |
+| --- | --- | --- |
+| `%A` / `<author>` | `Author` | Joined with ` and ` |
+| `%E` / `<secondary-authors>` | `Editor` | Joined with ` and ` |
+| `%T` / `<title>` | `Title` | |
+| `%J` / `<secondary-title>`, `<full-title>` | `Journal` or `Booktitle` | `Journal` for an article, `Booktitle` otherwise |
+| `%D` / `<year>` | `Year` | First four-digit run |
+| `%V` / `<volume>` | `Volume` | |
+| `%N` / `<number>` | `Number` | |
+| `%P` / `<pages>` | `Pages` | A single hyphen between numbers becomes `--` |
+| `%I` / `<publisher>` | `Publisher` | |
+| `%C` / `<pub-location>` | `Address` | |
+| `%R` / `<electronic-resource-num>` | `Doi` | A leading `doi:` is stripped |
+| `%U` / `<related-urls>` | `Url` | |
+| `%@` / `<isbn>` | `Issn` or `Isbn` | `Issn` when it looks like one, else `Isbn` |
+| `%K` / `<keyword>` | `Keywords` | Joined with `, ` |
+| `%X` / `<abstract>` | `Abstract` | |
+
+As with RIS, EndNote imports get fresh generated cite keys and are added as new
+entries (nothing is overwritten); unrecognised tags are ignored.
 
 ## 7.6 Exporting your library
 
@@ -332,8 +371,8 @@ The entries are formatted with your **default citation style** (set in
 | --- | --- |
 | Paste BibTeX (explicit) | **Edit → Paste Publication** (**⇧⌘V** / **Shift+Ctrl+V**) |
 | Paste BibTeX (quick) | Copy BibTeX, then **⌘V** / **Ctrl+V** with the table focused |
-| Drag-and-drop import | Drag `.bib`/`.ris`/PDF/other files onto the window |
-| Import from a file | **File → Import → From File (BibTeX / RIS)…** (**⇧⌘I** / **Shift+Ctrl+I**) |
+| Drag-and-drop import | Drag `.bib`/`.ris`/EndNote/PDF/other files onto the window |
+| Import from a file | **File → Import → From File (BibTeX / RIS / EndNote)…** (**⇧⌘I** / **Shift+Ctrl+I**) |
 | Search online | **File → Import → Search Online…** (**⇧⌘O**) or **🌐 Online…** |
 | Export BibTeX | **File → Export → BibTeX…** |
 | Export RIS | **File → Export → RIS…** |

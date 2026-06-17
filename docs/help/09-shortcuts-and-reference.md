@@ -40,7 +40,7 @@ On Windows and Linux these items live elsewhere: **Preferences…** moves to the
 | Save As… | ⇧⌘S | Shift+Ctrl+S | Save the library under a new name and keep editing it there *(needs an open library)* |
 | Revert to Saved | — | — | Discard unsaved changes and reload the last saved version *(needs an open library)* |
 | Show in Finder / Show in File Manager | — | — | Reveal the open `.bib` file in your file manager *(needs an open library)* |
-| Import → From File (BibTeX / RIS)… | ⇧⌘I | Shift+Ctrl+I | Import `.bib`/`.ris` files (see [Importing & Exporting](07-importing-and-exporting.md)) *(needs an open library)* |
+| Import → From File (BibTeX / RIS / EndNote)… | ⇧⌘I | Shift+Ctrl+I | Import `.bib`/`.ris`/EndNote `.enw`/`.enl`/`.xml` files (see [Importing & Exporting](07-importing-and-exporting.md)) *(needs an open library)* |
 | Import → Search Online (CrossRef / arXiv)… | ⇧⌘O | Shift+Ctrl+O | Open [online search](08-online-search.md) *(needs an open library)* |
 | Export → BibTeX… / RIS… / CSV… / HTML… | — | — | Export the whole library to that format *(needs an open library)* |
 | Print… | ⌘P | Ctrl+P | Print (or Save as PDF) a CSL-formatted bibliography of the selection or current group *(needs an open library)* |

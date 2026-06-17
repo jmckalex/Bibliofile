@@ -188,6 +188,19 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   counts as success. *Revisit:* `main/print.ts`, `printItems` in `index.ts`,
   `store.print`.
 
+- **EndNote import.** `endnote.ts` parses the two formats people actually export:
+  the **Refer/tagged `.enw`** (Google Scholar's "EndNote" button, journal-site
+  "download citation → EndNote") and **EndNote XML** (`.xml`/`.enl`), both into the
+  same `{ entryType, fields }` records the RIS importer already produced. Wired into
+  the drag-drop + file-dialog import path (`.enw`/`.enl`/`.xml` extensions) and the
+  document store (`importEndnoteText`, sharing `addParsedRecords` with RIS). *Design
+  choices:* (1) sniff XML vs tagged by leading `<?xml`/`<xml`; (2) a recursive text
+  extractor unwraps EndNote XML's `<style>` runs (its text nodes are wrapped); (3)
+  reuse the RIS record→BibItem loop rather than duplicating it. *Why these formats:*
+  EndNote XML's binary `.enl` *library* needs EndNote itself, but its XML/tagged
+  *exports* are the realistic migration path — Z39.50/MARC/MODS stay dropped (see
+  FEATURE-SURVEY). *Revisit:* `main/endnote.ts`, `importEndnoteText`/`importFiles`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

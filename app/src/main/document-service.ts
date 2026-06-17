@@ -59,7 +59,8 @@ import type { Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
 import { exportRis, exportCsv, exportHtml } from './export.js';
-import { parseRis } from './ris-import.js';
+import { parseRis, type RisRecord } from './ris-import.js';
+import { parseEndnote } from './endnote.js';
 import { FtsIndex } from './fts.js';
 import { extractPdfText } from './pdf-text.js';
 import {
@@ -1507,7 +1508,25 @@ export class DocumentStore {
   importRisText(documentId: string, text: string): ImportResult {
     this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
-    const records = parseRis(text);
+    return this.addParsedRecords(doc, parseRis(text), 'No RIS records found in the text.');
+  }
+
+  /**
+   * Parse EndNote `text` — either the Refer/tagged `.enw` format (Google Scholar's
+   * "EndNote" export) or EndNote XML — and merge its records as new entries.
+   */
+  importEndnoteText(documentId: string, text: string): ImportResult {
+    this.snapshot(documentId);
+    const doc = this.requireDoc(documentId);
+    return this.addParsedRecords(doc, parseEndnote(text), 'No EndNote records found in the text.');
+  }
+
+  /**
+   * Add BibTeX-shaped `{ entryType, fields }` records (from RIS/EndNote) to the
+   * document as new entries with freshly generated cite keys. Shared by the RIS
+   * and EndNote import paths; assumes the caller already took an undo snapshot.
+   */
+  private addParsedRecords(doc: OpenDoc, records: RisRecord[], noneFoundMsg: string): ImportResult {
     const addedIds: string[] = [];
     for (const rec of records) {
       const fv: Record<string, FieldValue> = {};
@@ -1528,7 +1547,7 @@ export class DocumentStore {
       this.reindex(doc, item);
       addedIds.push(item.id);
     }
-    const warnings = addedIds.length ? [] : ['No RIS records found in the text.'];
+    const warnings = addedIds.length ? [] : [noneFoundMsg];
     if (addedIds.length) doc.dirty = true;
     return { dirty: doc.dirty, addedIds, warnings };
   }
@@ -1551,6 +1570,10 @@ export class DocumentStore {
           warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
         } else if (/\.ris$/i.test(p)) {
           const res = this.importRisText(documentId, readFileSync(p, 'utf8'));
+          addedIds.push(...res.addedIds);
+          warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
+        } else if (/\.(enw|enl|xml)$/i.test(p)) {
+          const res = this.importEndnoteText(documentId, readFileSync(p, 'utf8'));
           addedIds.push(...res.addedIds);
           warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
         } else {

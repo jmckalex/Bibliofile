@@ -354,6 +354,33 @@ describe('document-service: BD test.bib', () => {
     expect(() => store.groupConditions({ documentId, groupId: gid })).toThrow(/smart/i);
   });
 
+  it('importEndnoteText: tagged .enw records merge as entries with generated keys', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{seed, Title = {Seed}}', '/tmp/en.bib');
+    const res = store.importEndnoteText(
+      documentId,
+      '%0 Journal Article\n%A Curie, Marie\n%T On Radioactivity\n%J Annales\n%D 1903',
+    );
+    expect(res.addedIds).toHaveLength(1);
+    expect(res.dirty).toBe(true);
+    const added = store.getItemDetail({ documentId, itemId: res.addedIds[0]! });
+    const f = (n: string): string | undefined =>
+      added.fields.find((x) => x.name.toLowerCase() === n)?.rawValue;
+    expect(added.type).toBe('article');
+    expect(f('title')).toBe('On Radioactivity');
+    expect(f('author')).toBe('Curie, Marie');
+    expect(added.citeKey).not.toBe('imported'); // a real key was generated
+    expect(store.listPublications({ documentId, offset: 0, limit: -1 }).total).toBe(2);
+  });
+
+  it('importEndnoteText: empty input reports a warning and adds nothing', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/en2.bib');
+    const res = store.importEndnoteText(documentId, 'no tags here');
+    expect(res.addedIds).toHaveLength(0);
+    expect(res.warnings[0]).toMatch(/no endnote records/i);
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');
