@@ -202,6 +202,21 @@ export interface CopyRtfResponse {
   readonly error?: string;
 }
 
+/** Request the journal cover thumbnail for an item (resolved by ISSN/journal name). */
+export interface JournalCoverRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+}
+
+/** A journal cover: image bytes (null if none found) + how it was sourced + the journal name. */
+export interface JournalCoverResponse {
+  readonly data: Uint8Array | null;
+  /** `og:image`/`twitter:image` ≈ real art; `favicon`/`apple-touch-icon` ≈ a logo. */
+  readonly kind?: string;
+  /** The journal name (for a generated fallback cover when `data` is null). */
+  readonly journal?: string;
+}
+
 /** Result: the formatted citation as an HTML string. */
 export interface FormatCitationResult {
   readonly styleId: string;

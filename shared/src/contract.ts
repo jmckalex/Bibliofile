@@ -18,6 +18,8 @@ import type {
   FormatCitationResult,
   CopyRtfRequest,
   CopyRtfResponse,
+  JournalCoverRequest,
+  JournalCoverResponse,
   FtsSearchRequest,
   FtsSearchResponse,
   GetItemDetailRequest,
@@ -94,6 +96,7 @@ export interface IpcContract {
   [IpcChannels.saveDocument]: IpcEntry<SaveDocumentRequest, SaveDocumentResult>;
   [IpcChannels.formatCitation]: IpcEntry<FormatCitationRequest, FormatCitationResult>;
   [IpcChannels.copyRtf]: IpcEntry<CopyRtfRequest, CopyRtfResponse>;
+  [IpcChannels.journalCover]: IpcEntry<JournalCoverRequest, JournalCoverResponse>;
   [IpcChannels.addAttachment]: IpcEntry<AddAttachmentRequest, EditResult>;
   [IpcChannels.removeAttachment]: IpcEntry<RemoveAttachmentRequest, EditResult>;
   [IpcChannels.searchOnline]: IpcEntry<SearchOnlineRequest, SearchOnlineResponse>;

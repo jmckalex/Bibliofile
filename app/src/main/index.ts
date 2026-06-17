@@ -45,6 +45,7 @@ import { runAgentTurn } from './agent.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
 import { htmlToRtf, wrapRtf } from './rtf.js';
+import { loadCoverIndex, resolveCover, coverFilePath } from './journal-covers.js';
 import { formatCitation } from './csl.js';
 import { searchOnline, extractDoi } from './online.js';
 import { extractPdfText } from './pdf-text.js';
@@ -1145,6 +1146,25 @@ function registerIpc(): void {
         return { ok: false, error: e instanceof Error ? e.message : String(e) };
       }
     },
+    [IpcChannels.journalCover]: (req) => {
+      const journal =
+        store.fieldValue(req.documentId, req.itemId, 'Journal') ||
+        store.fieldValue(req.documentId, req.itemId, 'Booktitle');
+      const loaded = loadCoverIndex(app.getAppPath());
+      if (!loaded) return { data: null, ...(journal ? { journal } : {}) };
+      const issn = store.fieldValue(req.documentId, req.itemId, 'Issn');
+      const hit = resolveCover(loaded.index, issn, journal);
+      if (!hit) return { data: null, ...(journal ? { journal } : {}) };
+      try {
+        return {
+          data: new Uint8Array(readFileSync(coverFilePath(loaded.dir, hit.file))),
+          kind: hit.kind,
+          ...(journal ? { journal } : {}),
+        };
+      } catch {
+        return { data: null, ...(journal ? { journal } : {}) };
+      }
+    },
     [IpcChannels.addAttachment]: async (req) => {
       const opts: Electron.OpenDialogOptions = {
         title: 'Add Attachment',
@@ -1306,6 +1326,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.copyRtf, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.copyRtf](req),
+  );
+  ipcMain.handle(IpcChannels.journalCover, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.journalCover](req),
   );
   ipcMain.handle(IpcChannels.addAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.addAttachment](req),

@@ -1801,6 +1801,12 @@ export class DocumentStore {
     return this.requireDoc(documentId).dirty;
   }
 
+  /** One field's value (crossref-inherited), case-insensitive name; '' if absent/unknown. */
+  fieldValue(documentId: string, itemId: string, field: string): string {
+    const item = this.docs.get(documentId)?.itemsById.get(itemId);
+    return item ? item.stringValueOfField(field, true) : '';
+  }
+
   /** Resolve a cite key (case-insensitive) to an item id, or undefined. */
   itemIdForCiteKey(documentId: string, citeKey: string): string | undefined {
     const doc = this.requireDoc(documentId);

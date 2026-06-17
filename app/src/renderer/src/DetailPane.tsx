@@ -436,8 +436,59 @@ function Attachments({ detail, onPreview }: { detail: ItemDetail; onPreview: (f:
   );
 }
 
+/** A clean generated cover (journal initials on a name-derived colour) — fallback. */
+function GeneratedCover({ journal }: { journal: string }) {
+  const hue = [...journal].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 360, 7);
+  const abbr =
+    journal
+      .split(/\s+/)
+      .filter((w) => /^[A-Za-z]/.test(w) && !/^(the|of|and|a|in|for)$/i.test(w))
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 4)
+      .toUpperCase() || journal.slice(0, 3).toUpperCase();
+  return (
+    <div className="bd-jcover bd-jcover--gen" style={{ background: `hsl(${hue} 42% 34%)` }} title={journal}>
+      <span>{abbr}</span>
+    </div>
+  );
+}
+
+/** The entry's journal cover thumbnail (downloaded), or a generated fallback. */
+function JournalCover({ documentId, itemId }: { documentId: string; itemId: string }) {
+  const [state, setState] = useState<{ url?: string; journal?: string }>({});
+  useEffect(() => {
+    let cancelled = false;
+    let made: string | undefined;
+    void window.bibdesk?.journalCover({ documentId, itemId }).then((res) => {
+      if (cancelled) return;
+      if (res.data) {
+        made = URL.createObjectURL(new Blob([res.data as BlobPart]));
+        setState({ url: made, journal: res.journal });
+      } else {
+        setState({ journal: res.journal });
+      }
+    });
+    return () => {
+      cancelled = true;
+      if (made) URL.revokeObjectURL(made);
+    };
+  }, [documentId, itemId]);
+
+  if (state.url) {
+    return (
+      <div className="bd-jcover" title={state.journal}>
+        <img src={state.url} alt={state.journal ? `${state.journal} cover` : 'journal cover'} />
+      </div>
+    );
+  }
+  if (state.journal) return <GeneratedCover journal={state.journal} />;
+  return null;
+}
+
 export function DetailPane() {
   const detail = useStore((s) => s.detail);
+  const documentId = useStore((s) => s.documentId);
   const selectedItemId = useStore((s) => s.selectedItemId);
   const detailLoading = useStore((s) => s.detailLoading);
   const [pdfFile, setPdfFile] = useState<ItemFile | null>(null);
@@ -451,6 +502,7 @@ export function DetailPane() {
 
   return (
     <div className="bd-detail">
+      {documentId && <JournalCover documentId={documentId} itemId={detail.id} />}
       {detail.previewHtml && <PreviewCard html={detail.previewHtml} />}
       <CitationBlock detail={detail} />
       <Identity detail={detail} />

@@ -46,6 +46,8 @@ export const IpcChannels = {
   formatCitation: 'bibdesk:formatCitation',
   /** Copy one item's formatted citation to the clipboard as RTF (+ plain text). */
   copyRtf: 'bibdesk:copyRtf',
+  /** Resolve an item's journal cover thumbnail (by ISSN / journal name). */
+  journalCover: 'bibdesk:journalCover',
   /** Add attachment(s) to an item (main opens a file picker). */
   addAttachment: 'bibdesk:addAttachment',
   /** Remove one managed attachment from an item. */

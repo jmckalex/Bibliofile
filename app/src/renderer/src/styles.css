@@ -581,6 +581,35 @@ body {
   white-space: nowrap;
 }
 
+/* ---- Journal cover thumbnail (detail pane) ----------------------------- */
+
+.bd-jcover {
+  float: right;
+  width: 66px;
+  margin: 0 0 8px 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+  background: var(--bd-accent-soft);
+}
+
+.bd-jcover img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bd-jcover--gen {
+  aspect-ratio: 3 / 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
 /* ---- Multi-select batch bar -------------------------------------------- */
 
 .bd-tr--multi {

@@ -109,6 +109,8 @@ export {
   type FieldKind,
   type CopyRtfRequest,
   type CopyRtfResponse,
+  type JournalCoverRequest,
+  type JournalCoverResponse,
   type BatchOp,
   type BatchEditRequest,
   type BatchEditResult,

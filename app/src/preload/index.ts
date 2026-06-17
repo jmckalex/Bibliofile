@@ -37,6 +37,8 @@ import {
   type FormatCitationResult,
   type CopyRtfRequest,
   type CopyRtfResponse,
+  type JournalCoverRequest,
+  type JournalCoverResponse,
   type AddAttachmentRequest,
   type RemoveAttachmentRequest,
   type SearchOnlineRequest,
@@ -109,6 +111,9 @@ const api: BibDeskApi = {
   },
   copyRtf(request: CopyRtfRequest): Promise<CopyRtfResponse> {
     return ipcRenderer.invoke(IpcChannels.copyRtf, request);
+  },
+  journalCover(request: JournalCoverRequest): Promise<JournalCoverResponse> {
+    return ipcRenderer.invoke(IpcChannels.journalCover, request);
   },
   addAttachment(request: AddAttachmentRequest): Promise<EditResult> {
     return ipcRenderer.invoke(IpcChannels.addAttachment, request);

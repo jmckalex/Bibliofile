@@ -19,6 +19,8 @@ import type {
   FormatCitationResult,
   CopyRtfRequest,
   CopyRtfResponse,
+  JournalCoverRequest,
+  JournalCoverResponse,
   FtsSearchRequest,
   FtsSearchResponse,
   GetItemDetailRequest,
@@ -113,6 +115,9 @@ export interface BibDeskApi {
 
   /** Copy one item's formatted citation to the clipboard as RTF (+ plain text). */
   copyRtf(request: CopyRtfRequest): Promise<CopyRtfResponse>;
+
+  /** Resolve an item's journal cover thumbnail (bytes), or null when none is bundled. */
+  journalCover(request: JournalCoverRequest): Promise<JournalCoverResponse>;
 
   /** Add attachment(s) to an item (opens a file picker in main). */
   addAttachment(request: AddAttachmentRequest): Promise<EditResult>;
