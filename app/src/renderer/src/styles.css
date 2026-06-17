@@ -1993,6 +1993,53 @@ button.bd-chip {
   color: var(--bd-text-faint);
 }
 
+/* ---- custom entry-type editor ----------------------------------------- */
+
+.bd-ctype {
+  border: 1px solid var(--bd-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.bd-ctype__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.bd-ctype__head .bd-input {
+  flex: 1;
+  font-weight: 600;
+}
+
+.bd-ctype__std {
+  margin-top: 8px;
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-ctype__std summary {
+  cursor: pointer;
+  color: var(--bd-text-faint);
+}
+
+.bd-ctype__stdlist {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+
+.bd-ctype__stdlist li {
+  padding: 4px 0;
+  border-top: 1px solid var(--bd-border);
+}
+
+.bd-ctype__stdlist em {
+  color: var(--bd-text-faint);
+  font-style: normal;
+}
+
 /* ---- PDF viewer -------------------------------------------------------- */
 
 .bd-pdf {

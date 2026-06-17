@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { CITATION_STYLES, BUILTIN_COLUMNS, type Settings } from '@bibdesk/shared';
+import { CITATION_STYLES, BUILTIN_COLUMNS, type Settings, type EntryTypeInfo } from '@bibdesk/shared';
 import { useStore } from './store.js';
 
 const COLUMN_LABELS: Record<string, string> = {
@@ -112,8 +112,156 @@ const FIELD_CATEGORIES: { key: keyof Settings['fieldTypes']; label: string }[] =
   { key: 'citation', label: 'Citation fields' },
 ];
 
+/**
+ * Define custom BibTeX entry types + their required/optional field lists (the
+ * order you type the comma-separated fields is the order the editor shows). The
+ * 15 standard types are protected and listed read-only for reference.
+ */
+function EntryTypesSection({
+  customTypes,
+  entryTypes,
+  save,
+}: {
+  customTypes: Settings['customTypes'];
+  entryTypes: readonly EntryTypeInfo[];
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const [newType, setNewType] = useState('');
+  const standardNames = new Set(entryTypes.filter((t) => t.standard).map((t) => t.name.toLowerCase()));
+  const customNames = Object.keys(customTypes);
+  const taken = (lower: string): boolean =>
+    standardNames.has(lower) || customNames.some((n) => n.toLowerCase() === lower);
+
+  const setMap = (next: Record<string, { required: string[]; optional: string[] }>): void =>
+    void save({ customTypes: next });
+  const cloneMap = (): Record<string, { required: string[]; optional: string[] }> =>
+    Object.fromEntries(
+      Object.entries(customTypes).map(([k, v]) => [k, { required: [...v.required], optional: [...v.optional] }]),
+    );
+
+  const addType = (raw: string): void => {
+    const name = raw.trim();
+    if (!name || taken(name.toLowerCase())) return;
+    const next = cloneMap();
+    next[name] = { required: [], optional: [] };
+    setMap(next);
+  };
+  const removeType = (name: string): void => {
+    const next = cloneMap();
+    delete next[name];
+    setMap(next);
+  };
+  const renameType = (oldName: string, raw: string): void => {
+    const name = raw.trim();
+    if (!name || name === oldName || taken(name.toLowerCase())) return;
+    const next: Record<string, { required: string[]; optional: string[] }> = {};
+    for (const [k, v] of Object.entries(customTypes)) {
+      next[k === oldName ? name : k] = { required: [...v.required], optional: [...v.optional] };
+    }
+    setMap(next);
+  };
+  const setFields = (name: string, kind: 'required' | 'optional', csv: string): void => {
+    const next = cloneMap();
+    if (!next[name]) return;
+    next[name][kind] = csv.split(',').map((x) => x.trim()).filter(Boolean);
+    setMap(next);
+  };
+
+  const standardTypes = entryTypes.filter((t) => t.standard);
+
+  return (
+    <section className="bd-prefs__section">
+      <h3>Entry types</h3>
+      <p className="bd-prefs__hint">
+        Define your own BibTeX entry types and the fields the editor offers for them. Required and
+        optional fields are comma-separated; the <strong>order you type them</strong> is the order
+        shown. The 15 standard types are built in (listed below for reference).
+      </p>
+      {customNames.length === 0 && <p className="bd-prefs__hint">No custom types yet.</p>}
+      {customNames.map((name) => {
+        const t = customTypes[name]!;
+        return (
+          <div className="bd-ctype" key={name}>
+            <div className="bd-ctype__head">
+              <input
+                className="bd-input bd-input--mono"
+                key={`name:${name}`}
+                defaultValue={name}
+                aria-label="Type name"
+                onBlur={(e) => renameType(name, e.target.value)}
+              />
+              <button type="button" className="bd-field__del" title="Delete type" onClick={() => removeType(name)}>
+                ×
+              </button>
+            </div>
+            <label className="bd-prefs__row">
+              <span>Required</span>
+              <input
+                className="bd-input"
+                key={`req:${name}:${t.required.join(',')}`}
+                defaultValue={t.required.join(', ')}
+                onBlur={(e) => setFields(name, 'required', e.target.value)}
+              />
+            </label>
+            <label className="bd-prefs__row">
+              <span>Optional</span>
+              <input
+                className="bd-input"
+                key={`opt:${name}:${t.optional.join(',')}`}
+                defaultValue={t.optional.join(', ')}
+                onBlur={(e) => setFields(name, 'optional', e.target.value)}
+              />
+            </label>
+          </div>
+        );
+      })}
+      <div className="bd-cols__add">
+        <input
+          className="bd-input"
+          placeholder="New type name (e.g. dataset)"
+          value={newType}
+          onChange={(e) => setNewType(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              addType(newType);
+              setNewType('');
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="bd-btn bd-btn--small"
+          onClick={() => {
+            addType(newType);
+            setNewType('');
+          }}
+        >
+          Add type
+        </button>
+      </div>
+      <details className="bd-ctype__std">
+        <summary>Standard types (read-only)</summary>
+        <ul className="bd-ctype__stdlist">
+          {standardTypes.map((t) => (
+            <li key={t.name}>
+              <strong>{t.name}</strong>
+              <div>
+                <em>required:</em> {t.required.join(', ') || '—'}
+              </div>
+              <div>
+                <em>optional:</em> {t.optional.join(', ') || '—'}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </details>
+    </section>
+  );
+}
+
 export function Preferences({ onClose }: { onClose: () => void }) {
   const settings = useStore((s) => s.settings);
+  const entryTypes = useStore((s) => s.entryTypes);
   const save = useStore((s) => s.saveSettings);
 
   return (
@@ -297,6 +445,8 @@ export function Preferences({ onClose }: { onClose: () => void }) {
               </select>
             </label>
           </section>
+
+          <EntryTypesSection customTypes={settings.customTypes} entryTypes={entryTypes} save={save} />
 
           <section className="bd-prefs__section">
             <h3>Field types</h3>
