@@ -32,6 +32,8 @@ import type {
   UpdateSettingsRequest,
   Settings,
   ListEntryTypesResponse,
+  SelectFromAuxRequest,
+  AuxSelectionResult,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -121,6 +123,7 @@ export interface IpcContract {
   [IpcChannels.getSettings]: IpcEntry<GetSettingsRequest, Settings>;
   [IpcChannels.updateSettings]: IpcEntry<UpdateSettingsRequest, Settings>;
   [IpcChannels.listEntryTypes]: IpcEntry<Record<string, never>, ListEntryTypesResponse>;
+  [IpcChannels.selectFromAux]: IpcEntry<SelectFromAuxRequest, AuxSelectionResult>;
   [IpcChannels.readAttachment]: IpcEntry<ReadAttachmentRequest, ReadAttachmentResponse>;
   [IpcChannels.exportText]: IpcEntry<ExportTextRequest, ExportTextResponse>;
   [IpcChannels.print]: IpcEntry<PrintRequest, PrintResponse>;

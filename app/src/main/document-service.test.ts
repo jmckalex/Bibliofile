@@ -725,6 +725,21 @@ describe('document-service: BD test.bib', () => {
     expect(text).toContain('title = '); // real fields still written
   });
 
+  it('selectFromAux matches cited keys to items (in .aux order) and reports missing ones', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      ['@article{knuth1984, Title = {A}}', '@book{lamport1994, Title = {B}}'].join('\n\n'),
+      '/tmp/aux.bib',
+    );
+    const ids = new Map(
+      store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => [r.citeKey, r.id]),
+    );
+    const res = store.selectFromAux(documentId, '\\citation{knuth1984,missing2000}\n\\citation{lamport1994}');
+    expect(res.matchedKeys).toEqual(['knuth1984', 'lamport1994']);
+    expect(res.matchedIds).toEqual([ids.get('knuth1984'), ids.get('lamport1994')]);
+    expect(res.missingKeys).toEqual(['missing2000']);
+  });
+
   it('projects icon-column flags (keywords, attachments, read, rating)', () => {
     const store = new DocumentStore();
     const FLAGS = `

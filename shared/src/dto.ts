@@ -983,6 +983,23 @@ export interface ListEntryTypesResponse {
   readonly types: readonly EntryTypeInfo[];
 }
 
+/** Request to select publications cited in a `.aux` file (main opens the picker). */
+export interface SelectFromAuxRequest {
+  readonly documentId: DocumentId;
+}
+
+/** Result of "Select Publications from .aux File": matched items + missing keys. */
+export interface AuxSelectionResult {
+  /** True when the user cancelled the file picker (no selection change). */
+  readonly canceled: boolean;
+  /** Item ids whose cite key was cited in the `.aux` (in `.aux` order). */
+  readonly matchedIds: readonly string[];
+  /** The cite keys that matched (parallel to {@link matchedIds}). */
+  readonly matchedKeys: readonly string[];
+  /** Cited cite keys not present in this library. */
+  readonly missingKeys: readonly string[];
+}
+
 /**
  * Full detail of one publication for the detail/preview pane. `fields` are the
  * display field rows, `files` the attachments, and `previewHtml` an optional
@@ -1027,6 +1044,7 @@ export type MenuCommand =
   | 'addAttachment'
   | 'autoFile'
   | 'consolidate'
+  | 'selectFromAux'
   | 'online'
   | 'editMacros'
   | 'findDuplicates'

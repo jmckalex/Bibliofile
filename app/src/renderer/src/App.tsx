@@ -251,6 +251,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'consolidate':
       await store.consolidateLinkedFiles();
       return;
+    case 'selectFromAux':
+      await store.selectFromAux();
+      return;
     case 'online':
       modals.setOnlineOpen(true);
       return;

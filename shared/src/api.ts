@@ -33,6 +33,8 @@ import type {
   UpdateSettingsRequest,
   Settings,
   ListEntryTypesResponse,
+  SelectFromAuxRequest,
+  AuxSelectionResult,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -158,6 +160,9 @@ export interface BibDeskApi {
 
   /** List every known entry type (standard + custom) with its required/optional fields. */
   listEntryTypes(): Promise<ListEntryTypesResponse>;
+
+  /** Pick a `.aux` file and resolve its cited keys to library items to select. */
+  selectFromAux(request: SelectFromAuxRequest): Promise<AuxSelectionResult>;
 
   /** Subscribe to "open Preferences" requests from the menu. Returns unsubscribe. */
   onShowPreferences(listener: () => void): Unsubscribe;

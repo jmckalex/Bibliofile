@@ -61,6 +61,7 @@ import { renderMarkdown, renderNotes } from './markdown.js';
 import { exportRis, exportCsv, exportHtml } from './export.js';
 import { parseRis, type RisRecord } from './ris-import.js';
 import { parseEndnote } from './endnote.js';
+import { parseAuxCiteKeys } from './aux.js';
 import { FtsIndex } from './fts.js';
 import { extractPdfText } from './pdf-text.js';
 import {
@@ -1543,6 +1544,34 @@ export class DocumentStore {
     }
     if (moved) doc.dirty = true;
     return { scanned: targets.length, itemsAffected, moved, dirty: doc.dirty, errors };
+  }
+
+  /**
+   * Resolve the cite keys referenced by a LaTeX `.aux` file to library items
+   * ("Select Publications from .aux File"). Returns the matched item ids +
+   * matched keys (in `.aux` order) and any cited keys absent from this library.
+   * Read-only (no snapshot).
+   */
+  selectFromAux(
+    documentId: string,
+    auxText: string,
+  ): { matchedIds: string[]; matchedKeys: string[]; missingKeys: string[] } {
+    const doc = this.requireDoc(documentId);
+    const byKey = new Map<string, string>();
+    for (const it of doc.library.items) byKey.set(it.citeKey, it.id);
+    const matchedIds: string[] = [];
+    const matchedKeys: string[] = [];
+    const missingKeys: string[] = [];
+    for (const key of parseAuxCiteKeys(auxText)) {
+      const id = byKey.get(key);
+      if (id !== undefined) {
+        matchedIds.push(id);
+        matchedKeys.push(key);
+      } else {
+        missingKeys.push(key);
+      }
+    }
+    return { matchedIds, matchedKeys, missingKeys };
   }
 
   /**

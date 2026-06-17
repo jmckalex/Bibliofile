@@ -156,6 +156,8 @@ export interface ViewerState {
   batchEdit: (op: BatchOp) => Promise<void>;
   /** Select an entry by cite key (used by notes `[[citeKey]]` cross-references). */
   selectByCiteKey: (citeKey: string) => Promise<void>;
+  /** Pick a `.aux` file (main opens the dialog) and select the publications it cites. */
+  selectFromAux: () => Promise<void>;
   /**
    * Sort by a column header. Plain click sorts by that column alone (toggling
    * direction when it is already the sole key); `additive` (shift-click) cycles
@@ -418,6 +420,25 @@ export function createStore(api: BibDeskApi) {
         row = get().rows.find((r) => r.citeKey.toLowerCase() === lc);
       }
       if (row) await get().selectItem(row.id);
+    },
+
+    selectFromAux: async () => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const res = await api.selectFromAux({ documentId });
+        if (res.canceled || res.matchedIds.length === 0) return; // main shows the summary
+        // Show the whole library so every cited entry is visible and selected.
+        const lib = get().groups.find((g) => g.kind === 'library');
+        if (lib && get().selectedGroupId !== lib.id) {
+          set({ selectedGroupId: lib.id });
+          await get().loadPublications();
+        }
+        set({ selectedIds: [...res.matchedIds], selectedItemId: res.matchedIds[0] });
+        await get().loadDetail(res.matchedIds[0]!);
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
     },
 
     setSort: async (key, additive = false) => {

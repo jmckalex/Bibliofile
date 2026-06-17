@@ -64,6 +64,8 @@ export const IpcChannels = {
   updateSettings: 'bibdesk:updateSettings',
   /** List every known entry type (standard + custom) with its required/optional fields. */
   listEntryTypes: 'bibdesk:listEntryTypes',
+  /** Select publications cited in a LaTeX `.aux` file (main opens the picker). */
+  selectFromAux: 'bibdesk:selectFromAux',
   /** Read an attachment's bytes (for in-app PDF preview). */
   readAttachment: 'bibdesk:readAttachment',
   /** Serialize a document (or a subset of items) to text in a given format. */

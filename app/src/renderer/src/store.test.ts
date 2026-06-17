@@ -104,6 +104,7 @@ function makeFakeApi() {
     getSettings: async () => DEFAULT_SETTINGS,
     updateSettings: async (r) => ({ ...DEFAULT_SETTINGS, ...r.patch }),
     listEntryTypes: async () => ({ types: [] }),
+    selectFromAux: async () => ({ canceled: true, matchedIds: [], matchedKeys: [], missingKeys: [] }),
     readAttachment: async () => ({ data: null }),
     exportText: async () => ({ text: '' }),
     pasteEntries: async () => ({ dirty: true, addedIds: [], warnings: [] }),

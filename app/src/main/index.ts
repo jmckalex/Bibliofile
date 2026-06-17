@@ -1125,6 +1125,11 @@ function buildMenu(): void {
           { label: 'Selected Entries (BibTeX)…', enabled: docEnabled, click: () => sendMenuCommand('exportSelected') },
         ],
       },
+      {
+        label: 'Select Publications from .aux File…',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('selectFromAux'),
+      },
       { type: 'separator' },
       {
         label: 'Print…',
@@ -1674,6 +1679,36 @@ function registerIpc(): void {
       }
       return { types };
     },
+    [IpcChannels.selectFromAux]: async (req) => {
+      const parent = dialogParent();
+      const opts: Electron.OpenDialogOptions = {
+        title: 'Select Publications from .aux File',
+        properties: ['openFile'],
+        filters: [
+          { name: 'LaTeX aux', extensions: ['aux'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+      };
+      const result = parent ? await dialog.showOpenDialog(parent, opts) : await dialog.showOpenDialog(opts);
+      const file = result.canceled ? undefined : result.filePaths[0];
+      if (!file) return { canceled: true, matchedIds: [], matchedKeys: [], missingKeys: [] };
+      const sel = store.selectFromAux(req.documentId, readFileSync(file, 'utf8'));
+      const summary: Electron.MessageBoxOptions = {
+        type: 'info',
+        buttons: ['OK'],
+        message: sel.matchedIds.length
+          ? `Selected ${sel.matchedIds.length} publication${sel.matchedIds.length === 1 ? '' : 's'} cited in ${basename(file)}.`
+          : `No entries cited in ${basename(file)} matched this library.`,
+        ...(sel.missingKeys.length
+          ? {
+              detail: `${sel.missingKeys.length} cited key${sel.missingKeys.length === 1 ? '' : 's'} not in this library:\n${sel.missingKeys.slice(0, 15).join(', ')}${sel.missingKeys.length > 15 ? ', …' : ''}`,
+            }
+          : {}),
+      };
+      if (parent) void dialog.showMessageBox(parent, summary);
+      else void dialog.showMessageBox(summary);
+      return { canceled: false, ...sel };
+    },
     [IpcChannels.readAttachment]: (req) => {
       const p = store.attachmentPath(req.documentId, req.itemId, req.url);
       if (!p) return { data: null, error: 'Attachment not found or not readable' };
@@ -1877,6 +1912,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.listEntryTypes, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.listEntryTypes](req),
+  );
+  ipcMain.handle(IpcChannels.selectFromAux, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.selectFromAux](req),
   );
   ipcMain.handle(IpcChannels.readAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.readAttachment](req),

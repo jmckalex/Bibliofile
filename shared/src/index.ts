@@ -101,6 +101,8 @@ export {
   type UpdateSettingsRequest,
   type EntryTypeInfo,
   type ListEntryTypesResponse,
+  type SelectFromAuxRequest,
+  type AuxSelectionResult,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
   type ExportFormat,

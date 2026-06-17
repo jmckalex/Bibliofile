@@ -50,6 +50,8 @@ import {
   type UpdateSettingsRequest,
   type Settings,
   type ListEntryTypesResponse,
+  type SelectFromAuxRequest,
+  type AuxSelectionResult,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
   type ExportTextRequest,
@@ -154,6 +156,9 @@ const api: BibDeskApi = {
   },
   listEntryTypes(): Promise<ListEntryTypesResponse> {
     return ipcRenderer.invoke(IpcChannels.listEntryTypes, {});
+  },
+  selectFromAux(request: SelectFromAuxRequest): Promise<AuxSelectionResult> {
+    return ipcRenderer.invoke(IpcChannels.selectFromAux, request);
   },
   onShowPreferences(listener: () => void): Unsubscribe {
     const handler = (): void => listener();
