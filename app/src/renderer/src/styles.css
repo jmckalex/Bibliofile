@@ -306,6 +306,19 @@ body {
 }
 
 .bd-th {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border-right: 1px solid var(--bd-border);
+}
+
+/* The clickable (sort) + draggable (reorder) part of a header. */
+.bd-th__label {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 6px 10px;
   font-size: var(--bd-fs-sm);
   font-weight: 600;
@@ -315,11 +328,40 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-right: 1px solid var(--bd-border);
 }
 
-.bd-th:hover {
+.bd-th__label:hover {
   color: var(--bd-text);
+}
+
+/* Right-edge grab handle for resizing the column. */
+.bd-th__resize {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.bd-th__resize:hover,
+.bd-th__resize:active {
+  background: var(--bd-accent);
+  opacity: 0.5;
+}
+
+/* Reorder drag affordances. */
+.bd-th--dragging {
+  opacity: 0.4;
+}
+
+.bd-th--drop {
+  box-shadow: inset 2px 0 0 0 var(--bd-accent);
+}
+
+.bd-th--spacer {
+  border-right: 0;
 }
 
 .bd-th__sort {

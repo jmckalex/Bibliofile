@@ -88,10 +88,14 @@ A few details worth knowing about how the text values are produced:
 
 ### 2.2.2 Column widths
 
-The **Cite Key**, **Type**, and **Year** columns have fixed widths and do not
-shrink, so the narrow Year and Type columns never collapse or truncate. The
-**Authors** and **Title** columns *grow* to absorb the remaining horizontal
-space, since they hold the longest text.
+By default the **Cite Key**, **Type**, and **Year** columns have fixed widths and
+do not shrink, so the narrow Year and Type columns never collapse or truncate,
+while **Authors** and **Title** *grow* to absorb the remaining horizontal space.
+
+**To resize a column**, drag its **right-hand edge** in the header (the cursor
+turns into a resize arrow). Once you set a width by hand, that column keeps it —
+the remaining growing columns take up any slack, and if you pin every column the
+table left-packs them. Widths are remembered per column across launches.
 
 ### 2.2.3 Sorting
 
@@ -166,7 +170,14 @@ For everything you can see and do in that pane, see
 ### 2.2.6 Configuring the columns
 
 The table columns are not fixed: you can choose **which** fields appear, in
-**what order**, two ways.
+**what order**, and **how wide** they are.
+
+#### Reorder by dragging the header
+
+**Drag a column header sideways** onto another to reorder — drop it and it lands
+just before the column you dropped onto. (A short click still sorts; a drag
+reorders.) This is the quickest way to rearrange columns, and it replaces the old
+up/down buttons. The new order is remembered across launches.
 
 #### From the View → Columns menu (quick toggles)
 
@@ -177,21 +188,16 @@ default columns plus quick toggles for **Rating** (a ★ star column), **Journal
 any custom field columns you have added. This is the fastest way to show or hide a
 column on the fly.
 
-#### From the Preferences "Columns" manager (add, remove, reorder)
+#### From the Preferences "Columns" manager (show / hide / add)
 
-For full control, open **Preferences** (**⌘,** / **Ctrl+,**) and find the
-**Columns** section. It lists your current columns in order, and for each row
-gives you:
-
-- **↑ / ↓** buttons to **move** the column up or down (this is how you reorder —
-  there is no drag-reorder).
-- **×** to **remove** the column.
-
-Below the list, an **Add column…** dropdown adds any of the built-in columns you
-do not yet have, and an **"Add a field (e.g. Journal)"** text box lets you add
-**any BibTeX field name at all** as a column — type the field name and press
-**Enter**. So if your entries carry a custom `Funding` or `Project` field, you can
-surface it as a column.
+Open **Preferences** (**⌘,** / **Ctrl+,**) and find the **Columns** section. It
+lists your current columns, each with a **×** to **remove** it. Below the list, an
+**Add column…** dropdown adds any of the built-in columns you do not yet have, and
+an **"Add a field (e.g. Journal)"** text box lets you add **any BibTeX field name
+at all** as a column — type the field name and press **Enter**. So if your entries
+carry a custom `Funding` or `Project` field, you can surface it as a column.
+(Reordering and resizing happen on the header itself — see above and
+[§2.2.2](#222-column-widths).)
 
 Your column configuration is saved with the application's other preferences (in
 `settings.json`), so it persists across sessions and applies to every library you

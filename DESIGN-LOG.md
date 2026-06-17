@@ -257,6 +257,21 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   sqlite store is the next step if it matters. *Revisit:* `pdf-pool.ts`,
   `pdf-cache.ts`, `pdfExtract`/`openPath` in `index.ts`, `indexAttachments`.
 
+- **Resizeable + drag-reorderable columns.** Columns can now be **resized** by
+  dragging a header's right-edge handle and **reordered** by dragging the header
+  itself (drop = insert before target). *Design choices:* (1) a header cell is now
+  a flex wrapper of a `.bd-th__label` (click=sort, draggable=reorder) + an
+  absolute right-edge `.bd-th__resize` (mousedown=resize) so the three gestures
+  never collide; (2) resize keeps the flex model — a resized column gets a stored
+  `columnWidths[id]` and flips from grow→fixed (so the drag is exact, captured
+  from the live `offsetWidth` to avoid a jump); Authors/Title still grow until
+  pinned, and a trailing flex spacer fills slack only when nothing grows, so the
+  header/body stay aligned with no horizontal-scroll machinery; (3) widths persist
+  per-column in `settings.columnWidths`, saved on mouseup (not per-pixel). Reorder
+  writes `settings.columns` (pure `reorderColumns`, unit-tested). The Preferences
+  "Columns" panel loses its ↑/↓ reorder (now header drag) and keeps show/hide/add.
+  *Revisit:* `PublicationsTable` (startResize/reorder/flexFor), `settings.columnWidths`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

@@ -848,6 +848,12 @@ export interface Settings {
    * treated as a BibTeX field name and shown as a text column.
    */
   readonly columns: readonly string[];
+  /**
+   * Per-column width overrides in px, keyed by column id. A column absent here
+   * uses its built-in default width (and, for Authors/Title, keeps growing to
+   * fill); once a user drag-resizes a column it gets a fixed entry here.
+   */
+  readonly columnWidths: Record<string, number>;
   /** Absolute path of the AutoFile "Papers" folder (empty = AutoFile disabled). */
   readonly papersFolder: string;
   /** AutoFile destination-name format (BDSKFormatParser; e.g. `%a1/%Y%u0`). */
@@ -881,6 +887,7 @@ export const DEFAULT_SETTINGS: Settings = {
   defaultEntryType: 'article',
   citeCommandTemplate: '\\cite{%K}',
   columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],
+  columnWidths: {},
   papersFolder: '',
   autoFileFormat: '%a1/%Y%u0',
   autosave: false,

@@ -21,7 +21,9 @@ const COLUMN_LABELS: Record<string, string> = {
   rating: 'Rating',
 };
 
-/** Column manager: reorder, remove, and add table columns (builtin or field). */
+/** Column manager: show/hide and add table columns. Reordering + resizing now
+ * happen directly on the table header (drag a header to reorder, drag its right
+ * edge to resize). */
 function ColumnsSection({
   columns,
   save,
@@ -32,13 +34,6 @@ function ColumnsSection({
   const [field, setField] = useState('');
 
   const set = (next: string[]): void => void save({ columns: next });
-  const move = (i: number, d: -1 | 1): void => {
-    const j = i + d;
-    if (j < 0 || j >= columns.length) return;
-    const next = [...columns];
-    [next[i], next[j]] = [next[j]!, next[i]!];
-    set(next);
-  };
   const remove = (key: string): void => set(columns.filter((c) => c !== key));
   const add = (key: string): void => {
     const k = key.trim();
@@ -51,22 +46,10 @@ function ColumnsSection({
     <section className="bd-prefs__section">
       <h3>Columns</h3>
       <ul className="bd-cols">
-        {columns.map((key, i) => (
+        {columns.map((key) => (
           <li className="bd-cols__row" key={key}>
             <span className="bd-cols__name">{COLUMN_LABELS[key] ?? key}</span>
             <span className="bd-cols__btns">
-              <button type="button" className="bd-btn bd-btn--small" disabled={i === 0} onClick={() => move(i, -1)} title="Move up">
-                ↑
-              </button>
-              <button
-                type="button"
-                className="bd-btn bd-btn--small"
-                disabled={i === columns.length - 1}
-                onClick={() => move(i, 1)}
-                title="Move down"
-              >
-                ↓
-              </button>
               <button type="button" className="bd-field__del" onClick={() => remove(key)} title="Remove column">
                 ×
               </button>
@@ -105,7 +88,8 @@ function ColumnsSection({
         />
       </div>
       <p className="bd-prefs__hint">
-        Drag-reorder isn’t needed — use ↑/↓. Any BibTeX field name works as a column. The{' '}
+        <strong>Reorder</strong> columns by dragging a header; <strong>resize</strong> by dragging a
+        header’s right edge. Any BibTeX field name works as a column, and the{' '}
         <strong>View → Columns</strong> menu toggles these too.
       </p>
     </section>
