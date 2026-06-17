@@ -643,6 +643,30 @@ function openDialogOptions(): Electron.OpenDialogOptions {
   };
 }
 
+/**
+ * Create a new, empty bibliography: prompt for a save location, write an empty
+ * `.bib` there, then open it (so it has a real path and Save works normally).
+ */
+async function newDocument(): Promise<void> {
+  const win = mainWindow ?? undefined;
+  const result = win
+    ? await dialog.showSaveDialog(win, { title: 'New Bibliography', defaultPath: 'Untitled.bib', filters: [{ name: 'BibTeX', extensions: ['bib'] }] })
+    : await dialog.showSaveDialog({ title: 'New Bibliography', defaultPath: 'Untitled.bib', filters: [{ name: 'BibTeX', extensions: ['bib'] }] });
+  if (result.canceled || !result.filePath) return;
+  try {
+    writeFileSync(result.filePath, '', 'utf8');
+    openPath(result.filePath);
+  } catch (err) {
+    const opts = {
+      type: 'error' as const,
+      message: 'Could not create the bibliography',
+      detail: err instanceof Error ? err.message : String(err),
+    };
+    if (win) void dialog.showMessageBox(win, opts);
+    else void dialog.showMessageBox(opts);
+  }
+}
+
 /** Send a menu command to the renderer (which acts on its own state). */
 function sendMenuCommand(command: MenuCommand): void {
   mainWindow?.webContents.send(IpcEvents.menuCommand, command);
@@ -1452,6 +1476,14 @@ function registerIpc(): void {
       createEditorWindow(req.documentId, req.itemId);
       return { ok: true };
     },
+    [IpcChannels.openDialog]: () => {
+      void showOpenDialog();
+      return { ok: true };
+    },
+    [IpcChannels.newDocument]: () => {
+      void newDocument();
+      return { ok: true };
+    },
     [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
     [IpcChannels.autoFile]: (req) => {
       const res = store.autoFile(req.documentId, req.itemId);
@@ -1589,6 +1621,12 @@ function registerIpc(): void {
   mutating(IpcChannels.renameAuthor);
   ipcMain.handle(IpcChannels.openEditor, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.openEditor](req),
+  );
+  ipcMain.handle(IpcChannels.openDialog, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.openDialog](req),
+  );
+  ipcMain.handle(IpcChannels.newDocument, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.newDocument](req),
   );
   ipcMain.handle(IpcChannels.fieldSuggestions, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.fieldSuggestions](req),

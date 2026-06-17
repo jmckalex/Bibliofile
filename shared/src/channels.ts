@@ -92,6 +92,10 @@ export const IpcChannels = {
   renameAuthor: 'bibdesk:renameAuthor',
   /** Open the standalone editor window for one item. */
   openEditor: 'bibdesk:openEditor',
+  /** Show the native Open-file dialog (used by the welcome screen's Open button). */
+  openDialog: 'bibdesk:openDialog',
+  /** Create a new empty bibliography (prompts for a save location, then opens it). */
+  newDocument: 'bibdesk:newDocument',
   /** Distinct existing values for a field (editor autocomplete). */
   fieldSuggestions: 'bibdesk:fieldSuggestions',
   /** AutoFile an item's attachments into the Papers folder. */

@@ -16,6 +16,7 @@ import { getStore, useStore, visibleRows } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { ViewPane } from './ViewPane.js';
+import { Welcome } from './Welcome.js';
 import { MacroEditor } from './MacroEditor.js';
 import { OnlineSearch } from './OnlineSearch.js';
 import { Preferences } from './Preferences.js';
@@ -403,7 +404,14 @@ export function App() {
         .map((f) => api.pathForFile(f))
         .filter(Boolean);
       if (paths.length) {
-        void getStore().getState().importFiles(paths);
+        const st = getStore().getState();
+        if (st.documentId) {
+          void st.importFiles(paths);
+        } else {
+          // No library open yet → a dropped .bib opens it (welcome screen).
+          const bib = paths.find((p) => /\.bib$/i.test(p));
+          if (bib) void api.openDocument(bib);
+        }
         return;
       }
       const text = dt.getData('text');
@@ -450,6 +458,19 @@ export function App() {
       unsubChanged();
     };
   }, [onDocumentOpened]);
+
+  if (!hasDoc) {
+    return (
+      <div className="bd-app">
+        <Welcome />
+        {dragging && (
+          <div className="bd-drop-overlay" aria-hidden="true">
+            <div className="bd-drop-overlay__msg">Drop a .bib file to open</div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="bd-app">

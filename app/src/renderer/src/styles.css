@@ -176,6 +176,68 @@ body {
   gap: 6px;
 }
 
+/* ---- Welcome / empty state (no document open) ------------------------- */
+.bd-welcome {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--bd-surface-alt);
+}
+
+.bd-welcome__card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 36px 44px;
+  max-width: 420px;
+}
+
+.bd-welcome__logo {
+  font-size: 48px;
+  line-height: 1;
+}
+
+.bd-welcome__title {
+  margin: 4px 0 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--bd-text);
+}
+
+.bd-welcome__tagline {
+  margin: 0 0 12px;
+  color: var(--bd-text-muted);
+}
+
+.bd-welcome__actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.bd-welcome__actions .bd-btn {
+  padding: 7px 16px;
+}
+
+.bd-welcome__hint {
+  margin: 6px 0 0;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-faint);
+}
+
+.bd-welcome__hint kbd {
+  font-family: var(--bd-mono);
+  font-size: 11px;
+  background: var(--bd-surface);
+  border: 1px solid var(--bd-border);
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
 /* ---- Standalone editor window ----------------------------------------- */
 .bd-editorwin {
   display: flex;

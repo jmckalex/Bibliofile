@@ -329,6 +329,19 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   the required set. *Revisit:* `toItemDetail` (required), `FieldRow`/`Fields`/
   `NewFieldRow` in `DetailPane`, `.bd-circbtn` styles.
 
+- **Welcome / empty-state screen.** With no document open, the app rendered the
+  full three-pane chrome over emptiness (stray table header, "0 rows", blank
+  sidebar) — looked broken. Now `App` renders a centered `Welcome` screen instead
+  when `!hasDoc`: app name + tagline + **Open a Bibliography…** and **New
+  Bibliography** buttons + a drag hint. Two new renderer-triggerable IPCs:
+  `openDialog` (main shows the Open dialog) and `newDocument` (main prompts for a
+  save location, writes an empty `.bib`, then opens it — so the new doc has a real
+  path and Save works without untitled-state handling). Dropping a `.bib` on the
+  welcome screen opens it (drop handler routes to `openDocument` when no doc is
+  open). The welcome screen respects the theme (loadSettings→applyTheme runs on
+  mount regardless of document state). *Revisit:* `Welcome.tsx`, `App` no-doc
+  branch + drop handler, `newDocument`/`openDialog` in `index.ts`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

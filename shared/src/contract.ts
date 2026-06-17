@@ -132,6 +132,8 @@ export interface IpcContract {
   [IpcChannels.groupConditions]: IpcEntry<GroupConditionsRequest, GroupConditionsResponse>;
   [IpcChannels.renameAuthor]: IpcEntry<RenameAuthorRequest, RenameAuthorResult>;
   [IpcChannels.openEditor]: IpcEntry<OpenEditorRequest, { ok: true }>;
+  [IpcChannels.openDialog]: IpcEntry<Record<string, never>, { ok: true }>;
+  [IpcChannels.newDocument]: IpcEntry<Record<string, never>, { ok: true }>;
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;
   [IpcChannels.autoFile]: IpcEntry<AutoFileRequest, AutoFileResult>;
   [IpcChannels.chooseFolder]: IpcEntry<Record<string, never>, ChooseFolderResponse>;

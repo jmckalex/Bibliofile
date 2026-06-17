@@ -112,6 +112,8 @@ function makeFakeApi() {
     groupConditions: async () => ({ name: 'Smart', conjunction: 0, conditions: [] }),
     renameAuthor: async () => ({ changed: 0, dirty: false }),
     openEditor: async () => ({ ok: true as const }),
+    openDialog: async () => ({ ok: true as const }),
+    newDocument: async () => ({ ok: true as const }),
     fieldSuggestions: async () => ({ values: [] }),
     pathForFile: () => '',
     onMenuCommand: (): Unsubscribe => () => {},

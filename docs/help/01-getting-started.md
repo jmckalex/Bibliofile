@@ -107,9 +107,18 @@ for example **Cmd+S** on macOS and **Ctrl+S** on Windows/Linux. Wherever you see
 
 A *library* is simply a `.bib` file. There are several ways to open one.
 
+### 1.3.0 The welcome screen
+
+When you launch the app with no library open, you see a **welcome screen**: the
+BibDesk name and two buttons — **Open a Bibliography…** (choose an existing
+`.bib`) and **New Bibliography** (create an empty one — you pick where to save
+it, then it opens ready for entries). You can also **drag a `.bib` file onto the
+window** to open it. Once a library is open, the welcome screen is replaced by
+the normal three-pane view.
+
 ### 1.3.1 From the File menu (the usual way)
 
-1. Choose **File → Open** from the application menu.
+1. Choose **File → Open** from the application menu (or **⌘O** / **Ctrl+O**).
 2. In the file dialog, navigate to your `.bib` file and select it.
 3. The window populates with your references.
 

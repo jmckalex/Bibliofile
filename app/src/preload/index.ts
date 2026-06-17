@@ -199,6 +199,12 @@ const api: BibDeskApi = {
   openEditor(request: OpenEditorRequest): Promise<{ ok: true }> {
     return ipcRenderer.invoke(IpcChannels.openEditor, request);
   },
+  openDialog(): Promise<{ ok: true }> {
+    return ipcRenderer.invoke(IpcChannels.openDialog, {});
+  },
+  newDocument(): Promise<{ ok: true }> {
+    return ipcRenderer.invoke(IpcChannels.newDocument, {});
+  },
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse> {
     return ipcRenderer.invoke(IpcChannels.fieldSuggestions, request);
   },

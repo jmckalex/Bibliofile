@@ -201,6 +201,12 @@ export interface BibDeskApi {
   /** Open the standalone editor window for one item. */
   openEditor(request: OpenEditorRequest): Promise<{ ok: true }>;
 
+  /** Show the native Open-file dialog (welcome screen). Opens the chosen `.bib`. */
+  openDialog(): Promise<{ ok: true }>;
+
+  /** Create a new empty bibliography (prompts for a location), then opens it. */
+  newDocument(): Promise<{ ok: true }>;
+
   /** Distinct existing values for a field (autocomplete in the field editors). */
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse>;
 
