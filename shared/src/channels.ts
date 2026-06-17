@@ -66,6 +66,8 @@ export const IpcChannels = {
   listEntryTypes: 'bibdesk:listEntryTypes',
   /** Select publications cited in a LaTeX `.aux` file (main opens the picker). */
   selectFromAux: 'bibdesk:selectFromAux',
+  /** Export a folder's group→PDF directory tree to disk (main picks the dest). */
+  exportFolderTree: 'bibdesk:exportFolderTree',
   /** Read an attachment's bytes (for in-app PDF preview). */
   readAttachment: 'bibdesk:readAttachment',
   /** Serialize a document (or a subset of items) to text in a given format. */

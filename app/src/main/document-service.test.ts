@@ -765,6 +765,29 @@ describe('document-service: BD test.bib', () => {
     expect(g2.find((n) => n.kind === 'static' && n.name === 'Required')?.parentId).toBe(folder2!.id);
   });
 
+  it('folderExportPlan maps folder→group directories to member attachment paths', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-folderexport-'));
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {A}}', join(dir, 'lib.bib'));
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const src = join(dir, 'a.pdf');
+    writeFileSync(src, '%PDF-1.4 test');
+    store.addAttachments(documentId, itemId, [src]);
+
+    const groupId = store.groupEdit({
+      documentId,
+      command: { kind: 'createStatic', name: 'Required', citeKeys: ['a'] },
+    }).groupId!;
+    const folderId = store.groupEdit({ documentId, command: { kind: 'createFolder', name: 'PH456' } }).groupId!;
+    store.groupEdit({ documentId, command: { kind: 'setGroupFolder', groupId, folderId } });
+
+    const plan = store.folderExportPlan(documentId, folderId);
+    expect(plan).toHaveLength(1);
+    expect(plan[0]!.dir).toBe('PH456/Required');
+    expect(plan[0]!.files).toHaveLength(1);
+    expect(plan[0]!.files[0]!.endsWith('a.pdf')).toBe(true);
+  });
+
   it('projects icon-column flags (keywords, attachments, read, rating)', () => {
     const store = new DocumentStore();
     const FLAGS = `

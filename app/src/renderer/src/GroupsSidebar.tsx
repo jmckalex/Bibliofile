@@ -59,6 +59,7 @@ function GroupRow({
   onDropKeys,
   onDropRef,
   onEditSmart,
+  onExportFolder,
 }: {
   node: GroupNode;
   depth: number;
@@ -74,6 +75,7 @@ function GroupRow({
   onDropKeys: (id: string, keys: string[]) => void;
   onDropRef: (target: GroupNode, ref: Ref) => void;
   onEditSmart: (id: string) => void;
+  onExportFolder: (id: string) => void;
 }) {
   const [dropping, setDropping] = useState(false);
   const acceptsRefs = node.kind === 'folder' || node.kind === 'library';
@@ -174,6 +176,19 @@ function GroupRow({
           ✎
         </button>
       )}
+      {node.kind === 'folder' && !editing && (
+        <button
+          type="button"
+          className="bd-group__edit"
+          title={`Export “${node.name}” to a PDF folder tree`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onExportFolder(node.id);
+          }}
+        >
+          📤
+        </button>
+      )}
       {DELETABLE(node.kind) && !editing && (
         <button
           type="button"
@@ -196,6 +211,7 @@ export function GroupsSidebar() {
   const selectedGroupId = useStore((s) => s.selectedGroupId);
   const selectGroup = useStore((s) => s.selectGroup);
   const groupEdit = useStore((s) => s.groupEdit);
+  const exportFolderTree = useStore((s) => s.exportFolderTree);
   const renameAuthor = useStore((s) => s.renameAuthor);
   const hasDoc = useStore((s) => s.documentId !== undefined);
   const [editingId, setEditingId] = useState<string | undefined>();
@@ -273,6 +289,7 @@ export function GroupsSidebar() {
           onDropKeys={(id, keys) => void groupEdit({ kind: 'setMembers', groupId: id, citeKeys: keys, add: true })}
           onDropRef={onDropRef}
           onEditSmart={setEditSmartId}
+          onExportFolder={(id) => void exportFolderTree(id)}
         />
         {collapsible && open && children.map((c) => renderNode(c, depth + 1))}
       </div>

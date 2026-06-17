@@ -158,6 +158,8 @@ export interface ViewerState {
   selectByCiteKey: (citeKey: string) => Promise<void>;
   /** Pick a `.aux` file (main opens the dialog) and select the publications it cites. */
   selectFromAux: () => Promise<void>;
+  /** Export a folder's group→PDF directory tree (main picks the destination). */
+  exportFolderTree: (folderId: string) => Promise<void>;
   /**
    * Sort by a column header. Plain click sorts by that column alone (toggling
    * direction when it is already the sole key); `additive` (shift-click) cycles
@@ -436,6 +438,16 @@ export function createStore(api: BibDeskApi) {
         }
         set({ selectedIds: [...res.matchedIds], selectedItemId: res.matchedIds[0] });
         await get().loadDetail(res.matchedIds[0]!);
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    exportFolderTree: async (folderId) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        await api.exportFolderTree({ documentId, folderId }); // main shows the dest picker + summary
       } catch (err) {
         set({ error: errorMessage(err) });
       }

@@ -35,6 +35,8 @@ import type {
   ListEntryTypesResponse,
   SelectFromAuxRequest,
   AuxSelectionResult,
+  ExportFolderTreeRequest,
+  ExportFolderTreeResponse,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -163,6 +165,9 @@ export interface BibDeskApi {
 
   /** Pick a `.aux` file and resolve its cited keys to library items to select. */
   selectFromAux(request: SelectFromAuxRequest): Promise<AuxSelectionResult>;
+
+  /** Export a folder's group→PDF directory tree to a chosen destination. */
+  exportFolderTree(request: ExportFolderTreeRequest): Promise<ExportFolderTreeResponse>;
 
   /** Subscribe to "open Preferences" requests from the menu. Returns unsubscribe. */
   onShowPreferences(listener: () => void): Unsubscribe;

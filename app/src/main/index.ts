@@ -13,7 +13,7 @@
 
 import { basename, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
 
@@ -1709,6 +1709,61 @@ function registerIpc(): void {
       else void dialog.showMessageBox(summary);
       return { canceled: false, ...sel };
     },
+    [IpcChannels.exportFolderTree]: async (req) => {
+      const parent = dialogParent();
+      const opts: Electron.OpenDialogOptions = {
+        title: 'Export Folder to PDF Tree',
+        properties: ['openDirectory', 'createDirectory'],
+      };
+      const result = parent ? await dialog.showOpenDialog(parent, opts) : await dialog.showOpenDialog(opts);
+      const dest = result.canceled ? undefined : result.filePaths[0];
+      if (!dest) return { canceled: true, copied: 0, errors: [] };
+      const plan = store.folderExportPlan(req.documentId, req.folderId);
+      let copied = 0;
+      const errors: string[] = [];
+      for (const entry of plan) {
+        const dir = join(dest, entry.dir);
+        try {
+          mkdirSync(dir, { recursive: true });
+        } catch (e) {
+          errors.push(`${entry.dir}: ${e instanceof Error ? e.message : String(e)}`);
+          continue;
+        }
+        const used = new Set<string>();
+        for (const src of entry.files) {
+          let name = basename(src);
+          if (used.has(name.toLowerCase())) {
+            // de-collide identical filenames within one group directory
+            const dot = name.lastIndexOf('.');
+            const stem = dot > 0 ? name.slice(0, dot) : name;
+            const ext = dot > 0 ? name.slice(dot) : '';
+            let n = 2;
+            while (used.has(`${stem}-${n}${ext}`.toLowerCase())) n++;
+            name = `${stem}-${n}${ext}`;
+          }
+          used.add(name.toLowerCase());
+          try {
+            copyFileSync(src, join(dir, name));
+            copied++;
+          } catch (e) {
+            errors.push(`${basename(src)}: ${e instanceof Error ? e.message : String(e)}`);
+          }
+        }
+      }
+      const summary: Electron.MessageBoxOptions = {
+        type: errors.length ? 'warning' : 'info',
+        buttons: ['OK'],
+        message: `Exported ${copied} file${copied === 1 ? '' : 's'} to ${basename(dest)}.`,
+        ...(errors.length
+          ? {
+              detail: `${errors.length} problem${errors.length === 1 ? '' : 's'}:\n${errors.slice(0, 12).join('\n')}${errors.length > 12 ? '\n…' : ''}`,
+            }
+          : {}),
+      };
+      if (parent) void dialog.showMessageBox(parent, summary);
+      else void dialog.showMessageBox(summary);
+      return { canceled: false, copied, errors };
+    },
     [IpcChannels.readAttachment]: (req) => {
       const p = store.attachmentPath(req.documentId, req.itemId, req.url);
       if (!p) return { data: null, error: 'Attachment not found or not readable' };
@@ -1915,6 +1970,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.selectFromAux, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.selectFromAux](req),
+  );
+  ipcMain.handle(IpcChannels.exportFolderTree, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.exportFolderTree](req),
   );
   ipcMain.handle(IpcChannels.readAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.readAttachment](req),

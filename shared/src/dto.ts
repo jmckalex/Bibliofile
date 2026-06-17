@@ -1009,6 +1009,22 @@ export interface AuxSelectionResult {
   readonly missingKeys: readonly string[];
 }
 
+/** Request to export a folder's group→PDF directory tree to disk (main picks the dest). */
+export interface ExportFolderTreeRequest {
+  readonly documentId: DocumentId;
+  readonly folderId: string;
+}
+
+/** Result of an "Export Folder to PDF Tree" run. */
+export interface ExportFolderTreeResponse {
+  /** True when the user cancelled the destination picker. */
+  readonly canceled: boolean;
+  /** Number of attachment files copied. */
+  readonly copied: number;
+  /** Per-file failures (each prefixed with the file name). */
+  readonly errors: readonly string[];
+}
+
 /**
  * Full detail of one publication for the detail/preview pane. `fields` are the
  * display field rows, `files` the attachments, and `previewHtml` an optional

@@ -62,7 +62,7 @@ import { exportRis, exportCsv, exportHtml } from './export.js';
 import { parseRis, type RisRecord } from './ris-import.js';
 import { parseEndnote } from './endnote.js';
 import { parseAuxCiteKeys } from './aux.js';
-import { readFolders, writeFolders, nextFolderId, isSelfOrDescendant } from './folders.js';
+import { readFolders, writeFolders, nextFolderId, isSelfOrDescendant, type FolderRecord } from './folders.js';
 import { FtsIndex } from './fts.js';
 import { extractPdfText } from './pdf-text.js';
 import {
@@ -406,6 +406,11 @@ function compareStrings(a: string, b: string): number {
 
 /** Default sort applied to a listing when none is requested: cite key ascending. */
 const DEFAULT_SORT_SPECS: readonly SortSpec[] = [{ key: 'citeKey', direction: 'asc' }];
+
+/** Make a folder/group name safe to use as a single filesystem path segment. */
+function sanitizeSegment(name: string): string {
+  return name.replace(/[/\\:*?"<>|]/g, '_').trim() || 'untitled';
+}
 
 /**
  * Sort key extractor for a {@link PublicationRow} by sort key name. Recognises
@@ -1403,6 +1408,56 @@ export class DocumentStore {
       default:
         return { dirty: doc.dirty };
     }
+  }
+
+  /** Map each parsed group (by lowercased name) to its members' existing file-attachment paths. */
+  private groupFilePaths(doc: OpenDoc): Map<string, string[]> {
+    const map = new Map<string, string[]>();
+    for (const node of this.parsedGroupNodes(doc)) {
+      const files: string[] = [];
+      if (node.group) {
+        for (const it of doc.library.items) {
+          if (!node.group.containsItem(asEvaluable(it))) continue;
+          for (const f of itemFiles(it, doc.library, doc.path)) {
+            if (f.kind !== 'file') continue;
+            const p = f.url.replace(/^file:\/\/(localhost)?/i, '');
+            if (existsSync(p)) files.push(p);
+          }
+        }
+      }
+      map.set(node.name.toLowerCase(), files);
+    }
+    return map;
+  }
+
+  /**
+   * Plan an "Export Folder to PDF Tree": for `rootFolderId` and its descendant
+   * folders, one entry per contained group — the relative directory (folder names
+   * → directories, then the group name) and the absolute paths of that group's
+   * members' file attachments. The caller does the mkdir/copy. Read-only.
+   */
+  folderExportPlan(documentId: string, rootFolderId: string): { dir: string; files: string[] }[] {
+    const doc = this.requireDoc(documentId);
+    const folders = readFolders(doc.library);
+    const byParent = new Map<string, FolderRecord[]>();
+    for (const f of folders) {
+      if (!f.parentId) continue;
+      const list = byParent.get(f.parentId);
+      if (list) list.push(f);
+      else byParent.set(f.parentId, [f]);
+    }
+    const groupFiles = this.groupFilePaths(doc);
+    const plan: { dir: string; files: string[] }[] = [];
+    const walk = (folder: FolderRecord, prefix: string): void => {
+      const dir = prefix + sanitizeSegment(folder.name);
+      for (const gname of folder.groups) {
+        plan.push({ dir: `${dir}/${sanitizeSegment(gname)}`, files: groupFiles.get(gname.toLowerCase()) ?? [] });
+      }
+      for (const child of byParent.get(folder.id) ?? []) walk(child, `${dir}/`);
+    };
+    const root = folders.find((f) => f.id === rootFolderId);
+    if (root) walk(root, '');
+    return plan;
   }
 
   /**

@@ -103,6 +103,8 @@ export {
   type ListEntryTypesResponse,
   type SelectFromAuxRequest,
   type AuxSelectionResult,
+  type ExportFolderTreeRequest,
+  type ExportFolderTreeResponse,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
   type ExportFormat,

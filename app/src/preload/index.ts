@@ -52,6 +52,8 @@ import {
   type ListEntryTypesResponse,
   type SelectFromAuxRequest,
   type AuxSelectionResult,
+  type ExportFolderTreeRequest,
+  type ExportFolderTreeResponse,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
   type ExportTextRequest,
@@ -159,6 +161,9 @@ const api: BibDeskApi = {
   },
   selectFromAux(request: SelectFromAuxRequest): Promise<AuxSelectionResult> {
     return ipcRenderer.invoke(IpcChannels.selectFromAux, request);
+  },
+  exportFolderTree(request: ExportFolderTreeRequest): Promise<ExportFolderTreeResponse> {
+    return ipcRenderer.invoke(IpcChannels.exportFolderTree, request);
   },
   onShowPreferences(listener: () => void): Unsubscribe {
     const handler = (): void => listener();
