@@ -612,8 +612,13 @@ user-facing Help (`docs/help/`) was updated alongside:
   `Settings.customTypes` → `sharedTypeManager.setTypeInfoOverlay`; a `listEntryTypes` IPC feeds the
   type dropdowns (editor + default-type) so custom types are selectable. Empty
   optional fields are never written (serializer drops empty values).
+- **Select Publications from .aux File** — `File → Select Publications from .aux File…` parses a
+  LaTeX `.aux`'s cite keys (`\citation` / `\bibcite` / biblatex `\abx@aux@cite`) and multi-selects
+  the matching library entries (then Export → Selected Entries gives just the cited subset). Parser
+  `aux.ts` + `DocumentStore.selectFromAux` + `selectFromAux` IPC; summary dialog reports missing keys.
+  *(On branch `aux-workflow`, not yet merged to `main`.)*
 
-`pnpm -r test` = **1432 passing** (+3 skipped under the Node test ABI — expected);
+`pnpm -r test` = **1439 passing** (+3 skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.
 
 ### Still pending (deeper BibDesk features; not yet built) — do NOT claim these are done

@@ -459,6 +459,22 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   (TypeManager `bundledTypes`); a headless smoke opens Preferences without error.
   Developed on the `custom-entry-types` branch and fast-forward-merged into `main`.
 
+- **Select Publications from .aux File.** `aux.ts` `parseAuxCiteKeys` extracts cite
+  keys from the three forms a LaTeX `.aux` carries them in — `\citation{a,b}`
+  (BibTeX/natbib; `\nocite{*}`'s `\citation{*}` skipped), `\bibcite{key}{label}`,
+  and biblatex's `\abx@aux@cite{key}` / `\abx@aux@cite{0}{key}` (key = last brace) —
+  ordered + de-duped. `DocumentStore.selectFromAux(documentId, auxText)` matches them
+  to items by exact cite key, returning matched ids/keys (in `.aux` order) plus
+  missing keys. New `selectFromAux` IPC: the main handler opens an `.aux` picker,
+  reads it, and shows a summary dialog (N selected; any cited keys not in the
+  library); the renderer (`selectFromAux` store action) switches to the library
+  group so every match is visible and sets the multi-selection — from there the
+  existing Export → Selected Entries writes just the cited subset. File-menu item +
+  a `'selectFromAux'` MenuCommand. *Revisit:* `aux.ts`, `selectFromAux` in
+  `document-service.ts`, the handler + File menu in `index.ts`, the store action in
+  `store.ts`. Tests: parser (all three forms, dedupe, `*` skip) + store
+  matching/missing. Developed on branch `aux-workflow`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.
