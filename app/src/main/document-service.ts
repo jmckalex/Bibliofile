@@ -624,6 +624,8 @@ export function toItemDetail(
 ): ItemDetail {
   const fields: ItemField[] = [];
   const emitted = new Set<string>();
+  // Fields required for this entry's type must not be deletable in the editor.
+  const required = new Set(sharedTypeManager.requiredFieldsForType(item.type).map((f) => f.toLowerCase()));
 
   // Local fields, in stored order — hiding the managed Bdsk-File-N blobs (shown
   // as attachments) and Annote (shown + edited in the Notes section).
@@ -636,6 +638,7 @@ export function toItemDetail(
       rawValue: rawFieldText(item, name),
       isInherited: false,
       kind: fieldKindOf(name),
+      required: required.has(name.toLowerCase()),
     });
   }
 
@@ -654,6 +657,7 @@ export function toItemDetail(
         rawValue: rawFieldText(parent, name),
         isInherited: true,
         kind: fieldKindOf(name),
+        required: required.has(lower),
       });
     }
   }

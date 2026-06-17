@@ -314,6 +314,21 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   Verified end-to-end headless: editor opens with the full form; a title edit
   there updates the main table cell, preview, citation, and dirty flag.
 
+- **Citation style is a preference, not a per-view picker.** The CitationBlock's
+  per-view style `<select>` (which overflowed the narrow pane in both the view and
+  editor) is gone; the block now formats with `settings.defaultCiteStyle` and just
+  shows the style's name. The style is set once in Preferences → Citations and
+  applies everywhere (re-renders reactively). *Revisit:* `CitationBlock`.
+- **Field add/remove affordances + required-field protection.** The always-present
+  empty "add field" row is replaced by a single green circular **＋** below the
+  fields; clicking it adds an on-demand blank `NewFieldRow` (Enter saves, red **−**/
+  Escape discards). Each existing field's remove control is a red circular **−**;
+  **required fields for the entry's type cannot be deleted** — `toItemDetail` flags
+  them (`ItemField.required`, from `sharedTypeManager.requiredFieldsForType`) and the
+  row shows a small "req" marker instead of a **−**. Changing the entry Type changes
+  the required set. *Revisit:* `toItemDetail` (required), `FieldRow`/`Fields`/
+  `NewFieldRow` in `DetailPane`, `.bd-circbtn` styles.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

@@ -474,6 +474,25 @@ describe('document-service: BD test.bib', () => {
     expect(store.ftsSearch(documentId, 'alexander', true).ids).toEqual([itemId]);
   });
 
+  it('toItemDetail marks an entry type’s required fields (so they can’t be deleted)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Author = {Roe}, Title = {T}, Journal = {J}, Year = {2020}, Note = {n}}',
+      '/tmp/req.bib',
+    );
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const fields = store.getItemDetail({ documentId, itemId }).fields;
+    const req = (name: string): boolean | undefined =>
+      fields.find((f) => f.name.toLowerCase() === name)?.required;
+    // BibTeX article requires author/title/journal/year.
+    expect(req('author')).toBe(true);
+    expect(req('title')).toBe(true);
+    expect(req('journal')).toBe(true);
+    expect(req('year')).toBe(true);
+    // Note is optional → deletable.
+    expect(req('note')).toBe(false);
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');

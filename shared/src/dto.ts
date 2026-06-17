@@ -367,6 +367,8 @@ export interface ItemField {
   readonly isInherited: boolean;
   /** Editor-widget hint (see {@link FieldKind}); absent = `plain`. */
   readonly kind?: FieldKind;
+  /** True when the field is required for the entry's type (must not be deletable). */
+  readonly required?: boolean;
 }
 
 /** One attachment (linked file or remote URL) in the detail view. */

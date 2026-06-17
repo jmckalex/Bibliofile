@@ -155,8 +155,9 @@ want to paste straight into an email, a reading list, or a document.
 
 ### Choosing a style
 
-A dropdown at the top of the Citation block selects the style. Three styles are
-bundled:
+The citation style is a **preference**, set once in **Preferences → Citations**,
+and the Citation block shows the chosen style's name (e.g. *APA*) in its header.
+Three styles are bundled:
 
 | Style | What it is |
 | --- | --- |
@@ -164,10 +165,10 @@ bundled:
 | **Vancouver** | Numbered style common in medicine and the life sciences |
 | **Harvard** | Author–date style widely used across the humanities and sciences |
 
-Pick a style and the citation re-renders immediately in that format. The choice
-applies to the citation block you're looking at. To set the style you'd like to
-start with, choose a **Default style** in
-**Preferences → Citations** (also APA, Vancouver, or Harvard).
+Change the **Default style** in Preferences and every citation block — in the
+view pane and in any open editor window — re-renders in that format. (Earlier
+versions had a per-block dropdown; it moved to Preferences so the style is
+consistent everywhere and doesn't crowd the narrow pane.)
 
 ### Copying a citation or the BibTeX
 

@@ -151,41 +151,54 @@ function FieldRow({ itemId, field }: { itemId: string; field: ItemField }) {
             ))}
           </datalist>
         )}
-        {!field.isInherited && (
+        {!field.isInherited && !field.required && (
           <button
             type="button"
-            className="bd-field__del"
+            className="bd-circbtn bd-circbtn--del"
             title={`Remove ${field.name}`}
+            aria-label={`Remove ${field.name}`}
             onClick={() => void edit({ kind: 'removeField', itemId, field: field.name })}
           >
-            ×
+            −
           </button>
+        )}
+        {field.required && (
+          <span className="bd-field__req" title="Required for this entry type">
+            req
+          </span>
         )}
       </div>
     </div>
   );
 }
 
-/** Row for adding a brand-new field (name + value). */
-function AddFieldRow({ itemId }: { itemId: string }) {
+/**
+ * A blank field-editor row added on demand by the green ＋ button. Type a name +
+ * value and press Enter to add the field; the red − (or Escape) discards the row.
+ */
+function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void }) {
   const edit = useStore((s) => s.edit);
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
-  const add = (): void => {
+  const commit = (): void => {
     const n = name.trim();
-    if (!n) return;
-    void edit({ kind: 'setField', itemId, field: n, value });
-    setName('');
-    setValue('');
+    if (n) void edit({ kind: 'setField', itemId, field: n, value });
+    onDone();
+  };
+  const onKey = (e: React.KeyboardEvent): void => {
+    if (e.key === 'Enter') commit();
+    else if (e.key === 'Escape') onDone();
   };
   return (
     <div className="bd-field bd-field--add" style={{ display: 'contents' }}>
       <div className="bd-field__name">
         <input
           className="bd-input bd-input--newname"
-          placeholder="New field"
+          placeholder="Field name"
+          autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
+          onKeyDown={onKey}
         />
       </div>
       <div className="bd-field__edit">
@@ -194,25 +207,34 @@ function AddFieldRow({ itemId }: { itemId: string }) {
           placeholder="value"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') add();
-          }}
+          onKeyDown={onKey}
         />
-        <button type="button" className="bd-field__add" title="Add field" onClick={add}>
-          +
+        <button
+          type="button"
+          className="bd-circbtn bd-circbtn--del"
+          title="Discard this field"
+          aria-label="Discard this field"
+          onClick={onDone}
+        >
+          −
         </button>
       </div>
     </div>
   );
 }
 
-/** Formatted CSL citation with a style picker. Refetches on edit (detail change). */
+/**
+ * Formatted CSL citation. The style comes from Preferences
+ * (`settings.defaultCiteStyle`) — not a per-view picker — so it's consistent and
+ * doesn't overflow the narrow pane. Refetches on edit (detail change) or when the
+ * preferred style changes.
+ */
 export function CitationBlock({ detail }: { detail: ItemDetail }) {
   const documentId = useStore((s) => s.documentId);
-  const defaultStyle = useStore((s) => s.settings.defaultCiteStyle);
-  const [styleId, setStyleId] = useState(defaultStyle);
+  const styleId = useStore((s) => s.settings.defaultCiteStyle);
   const [html, setHtml] = useState('');
   const bodyRef = useRef<HTMLDivElement>(null);
+  const styleLabel = CITATION_STYLES.find((s) => s.id === styleId)?.label ?? styleId;
 
   useEffect(() => {
     if (!documentId) return;
@@ -235,18 +257,9 @@ export function CitationBlock({ detail }: { detail: ItemDetail }) {
     <div className="bd-cite">
       <div className="bd-cite__head">
         <span className="bd-detail__section bd-detail__section--inline">Citation</span>
-        <select
-          className="bd-input bd-select bd-cite__style"
-          value={styleId}
-          onChange={(e) => setStyleId(e.target.value)}
-          aria-label="Citation style"
-        >
-          {CITATION_STYLES.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        <span className="bd-cite__stylename" title="Set the citation style in Preferences">
+          {styleLabel}
+        </span>
       </div>
       {html && (
         <div className="bd-cite__body" ref={bodyRef} dangerouslySetInnerHTML={{ __html: html }} />
@@ -374,6 +387,14 @@ function Identity({ detail }: { detail: ItemDetail }) {
 }
 
 function Fields({ detail }: { detail: ItemDetail }) {
+  // Blank rows added on demand by the ＋ button (keyed by a monotonic id).
+  const [pending, setPending] = useState<number[]>([]);
+  const nextId = useRef(0);
+  // Drop any unsaved blank rows when switching to a different item.
+  useEffect(() => {
+    setPending([]);
+  }, [detail.id]);
+
   return (
     <>
       <div className="bd-detail__section">Fields</div>
@@ -381,7 +402,24 @@ function Fields({ detail }: { detail: ItemDetail }) {
         {detail.fields.map((f, i) => (
           <FieldRow key={`${f.name}-${i}`} itemId={detail.id} field={f} />
         ))}
-        <AddFieldRow itemId={detail.id} />
+        {pending.map((id) => (
+          <NewFieldRow
+            key={`new-${id}`}
+            itemId={detail.id}
+            onDone={() => setPending((p) => p.filter((x) => x !== id))}
+          />
+        ))}
+      </div>
+      <div className="bd-fields__add">
+        <button
+          type="button"
+          className="bd-circbtn bd-circbtn--add"
+          title="Add a field"
+          aria-label="Add a field"
+          onClick={() => setPending((p) => [...p, nextId.current++])}
+        >
+          +
+        </button>
       </div>
     </>
   );

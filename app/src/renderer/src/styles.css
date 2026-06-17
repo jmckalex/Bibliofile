@@ -1463,13 +1463,6 @@ button.bd-chip {
   margin-bottom: 6px;
 }
 
-.bd-cite__style {
-  width: auto;
-  flex: none;
-  padding: 1px 6px;
-  font-size: var(--bd-fs-sm);
-}
-
 .bd-cite__body {
   font-size: var(--bd-fs-sm);
   line-height: 1.5;
@@ -1664,6 +1657,66 @@ button.bd-chip {
 
 .bd-field--add .bd-field__name {
   padding-right: 6px;
+}
+
+/* Circular add (green) / remove (red) buttons for field rows. */
+.bd-circbtn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  padding: 0;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.bd-circbtn--add {
+  color: #15a34a;
+}
+
+.bd-circbtn--add:hover {
+  background: #15a34a;
+  color: #fff;
+}
+
+.bd-circbtn--del {
+  color: #dc2626;
+}
+
+.bd-circbtn--del:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* "req" tag shown where a required field's delete button would otherwise be. */
+.bd-field__req {
+  flex: none;
+  align-self: center;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bd-text-faint);
+}
+
+/* The single green ＋ below the field list. */
+.bd-fields__add {
+  display: flex;
+  padding: 8px 0 2px;
+}
+
+/* Read-only citation-style label (style is chosen in Preferences). */
+.bd-cite__stylename {
+  flex: none;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
 }
 
 /* ---- Modal (macro editor) ---------------------------------------------- */

@@ -169,17 +169,20 @@ The consequences are worth spelling out:
 
 ### Adding a field
 
-The last row of the **Fields** list (with the placeholder **New field** in the
-name box) creates a field that the entry does not yet have:
+Below the **Fields** list is a small green **＋** button (a circle). To add a
+field the entry does not yet have:
 
-1. Type the field name in the left box — for example, `Publisher`. (Field names
+1. Click the green **＋**. A blank field-editor row appears (with the cursor in
+   the name box). Click **＋** again for more rows.
+2. Type the field name in the left box — for example, `Publisher`. (Field names
    are case-insensitive and are normalized to lower-case on save.)
-2. Type the value in the right box.
-3. Press **Enter** in the value box, or click the **+** button.
+3. Type the value in the right box.
+4. Press **Enter** to add the field. To abandon a blank row without adding it,
+   click its red **−** button (or press **Escape**).
 
-The new field is added immediately and appears as a normal editable row; the add
-row clears so you can add another. An empty field name is ignored. If you add a
-field whose name already exists on the entry, its value is replaced.
+The new field is added immediately and appears as a normal editable row. An empty
+field name is ignored. If you add a field whose name already exists on the entry,
+its value is replaced.
 
 > **Tip:** You can add any field name you like, including non-standard ones.
 > Standard BibTeX fields for the entry's type are simply the ones BibDesk
@@ -190,7 +193,7 @@ field whose name already exists on the entry, its value is replaced.
 
 There are two equivalent ways to remove a field:
 
-- Click the **×** button at the right end of the field's row.
+- Click the red **−** button (a circle) at the right end of the field's row.
 - Clear the field's value entirely (delete all its text) and commit the empty
   value.
 
@@ -199,7 +202,13 @@ as `field = {}`; it is removed. This is intentional and matches BibTeX
 conventions, but it can surprise you: see [Troubleshooting](#troubleshooting) if
 a field "disappears."
 
-> **Note:** Inherited (crossref) fields have no **×** button, because they are
+> **Required fields can't be deleted.** Fields that are *required* for the
+> entry's BibTeX type (for example `author`, `title`, `journal`, and `year` on an
+> `@article`) show a small **req** marker instead of a **−** button, so you can't
+> accidentally remove them. Change the entry's **Type** and the set of required
+> fields changes with it.
+
+> **Note:** Inherited (crossref) fields have no **−** button, because they are
 > not stored on this entry in the first place — see
 > [Crossref inheritance](#crossref-inheritance).
 
@@ -207,7 +216,7 @@ a field "disappears."
 
 If the entry borrows fields from a parent via the `Crossref` field, those
 inherited fields appear in the list **muted**, each marked with an
-**(inherited)** badge, and **without** a **×** button. They are shown for
+**(inherited)** badge, and **without** a **−** button. They are shown for
 context — so you can see the entry's full effective field set — but they are not
 physically stored on this entry.
 
@@ -408,11 +417,11 @@ borrowed from `popl2024`. The child did not have to restate any of them.
 To override one inherited value just for this child — say this one paper used a
 different page range convention, or you want a corrected year — click the muted
 inherited row and edit it as usual. Committing the change writes that field
-**onto the child**. It then becomes a normal, non-inherited row (gaining a **×**
+**onto the child**. It then becomes a normal, non-inherited row (gaining a **−**
 button), and it shadows the parent's value for this entry only. The parent and
 all its other children are untouched.
 
-To go back to inheriting, remove your local override (the **×** button or by
+To go back to inheriting, remove your local override (the **−** button or by
 clearing it); the parent's value reappears as inherited.
 
 ### Chain and collision rules
@@ -699,7 +708,8 @@ including a real BibDesk-authored library.
 |--------|-----|
 | Edit a field | Click the value, type, press Enter (single-line) or click away (textarea); pick from the autocomplete list of existing values |
 | Add a field | Type name + value in the **New field** row, press Enter or click + |
-| Remove a field | Click × on the field's row, or clear its value and commit |
+| Add a field | Click the green **＋** below the fields, fill name + value, press Enter |
+| Remove a field | Click the red **−** on the field's row (required fields can't be removed), or clear its value and commit |
 | Override an inherited field | Click the muted (inherited) row and edit it |
 | Edit cite key | Click the Cite Key box, type, press Enter |
 | Generate cite key | Click **Generate**, or **Publication → Generate Cite Key** (Cmd+K) |
@@ -733,7 +743,7 @@ to — BibTeX has no concept of an empty field. If you deleted it by mistake and
 have not saved, re-add it from the **New field** row. If you have already saved,
 the previous version is in `<file>.bib.bak`.
 
-**"I can't remove an inherited field / there's no × on it."**
+**"I can't remove an inherited field / there's no − on it."**
 Inherited (crossref) fields are not stored on the entry, so there is nothing to
 remove there. To stop inheriting a field, either remove it from the **parent**,
 or change/remove the `Crossref` link on this entry.
