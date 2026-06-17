@@ -8,12 +8,11 @@
 > importantly — the **gap analysis** (what is still missing from BibDesk, and the
 > recommended order to tackle it).
 
-Last updated on branch `custom-entry-types` (full suite green — 1431 passing,
-3 skipped). Earlier this session, merged to `main`: multi-column sort, bulk
-AutoFile, and multiple open libraries (window-per-library). Now the **custom
-entry-type / field editor** on the `custom-entry-types` branch — committed
-locally, **not yet merged to `main`**. §5 reflects this. Remaining big item from
-the gap list: the `.aux` workflow (plus the user's folders idea).
+Last updated on `main` (full suite green — 1432 passing, 3 skipped). Merged to
+`main` this session: multi-column sort, bulk AutoFile, multiple open libraries
+(window-per-library), and the **custom entry-type / field editor**. §5 reflects
+this. Next up: the `.aux` workflow (on a fresh branch); the user's folders idea
+remains in the backlog.
 
 ---
 
@@ -192,8 +191,8 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
    changes prompts Save/Don't Save/Cancel. `DocumentStore` was already
    multi-document; the work was retiring the `mainWindow`/`lastDocumentId`
    singletons in `index.ts` for a `docWindows` registry.
-2. ~~**Custom BibTeX entry-type / field editor.**~~ **DONE** (branch
-   `custom-entry-types`) — Preferences → Entry Types defines custom types with
+2. ~~**Custom BibTeX entry-type / field editor.**~~ **DONE** (merged to `main`) —
+   Preferences → Entry Types defines custom types with
    ordered required/optional fields (standard types protected). Persisted in
    `Settings.customTypes` → `TypeManager.setTypeInfoOverlay`; a `listEntryTypes`
    IPC feeds the type dropdowns. *(Standard types are read-only; widening to edit

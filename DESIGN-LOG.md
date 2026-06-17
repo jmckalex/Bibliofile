@@ -452,11 +452,12 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   is a possible follow-up. The editor surfaces a type's required/optional fields as
   empty rows for any the entry lacks (so a new entry shows the fields to fill in);
   these template rows persist only once given a value (FieldRow ignores empty
-  no-ops) and have no remove button. *Revisit:* `Settings.customTypes` + `apply()` in
+  no-ops) and have no remove button; emptied fields are dropped by the serializer,
+  never written to disk. *Revisit:* `Settings.customTypes` + `apply()` in
   `settings.ts`, the `listEntryTypes` handler in `index.ts`, `EntryTypesSection` in
   `Preferences.tsx`, `Identity` in `DetailPane.tsx`. Verified: build + tests
   (TypeManager `bundledTypes`); a headless smoke opens Preferences without error.
-  Developed on branch `custom-entry-types`.
+  Developed on the `custom-entry-types` branch and fast-forward-merged into `main`.
 
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers

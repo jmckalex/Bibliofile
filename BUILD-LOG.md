@@ -610,10 +610,10 @@ user-facing Help (`docs/help/`) was updated alongside:
 - **Custom entry-type / field editor** — Preferences → Entry Types defines custom BibTeX types with
   ordered required/optional field lists (standard types protected, shown read-only). Persisted in
   `Settings.customTypes` → `sharedTypeManager.setTypeInfoOverlay`; a `listEntryTypes` IPC feeds the
-  type dropdowns (editor + default-type) so custom types are selectable.
-  *(On branch `custom-entry-types`, not yet merged to `main`.)*
+  type dropdowns (editor + default-type) so custom types are selectable. Empty
+  optional fields are never written (serializer drops empty values).
 
-`pnpm -r test` = **1431 passing** (+3 skipped under the Node test ABI — expected);
+`pnpm -r test` = **1432 passing** (+3 skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.
 
 ### Still pending (deeper BibDesk features; not yet built) — do NOT claim these are done
