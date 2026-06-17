@@ -70,6 +70,8 @@ export const IpcChannels = {
   findReplace: 'bibdesk:findReplace',
   /** Scan a document for duplicate entries (cite-key + equivalent content). */
   findDuplicates: 'bibdesk:findDuplicates',
+  /** Create/rename/delete a group or change a static group's membership. */
+  groupEdit: 'bibdesk:groupEdit',
   /** Distinct existing values for a field (editor autocomplete). */
   fieldSuggestions: 'bibdesk:fieldSuggestions',
   /** AutoFile an item's attachments into the Papers folder. */

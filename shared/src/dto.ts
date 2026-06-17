@@ -491,6 +491,48 @@ export interface FindReplaceResult {
   readonly error?: string;
 }
 
+// --- Group editor -----------------------------------------------------------
+
+/** One smart-group condition (BibDesk BDSKCondition). */
+export interface SmartCondition {
+  readonly key: string;
+  /** BDSKQueryOperator integer (e.g. contains/equals/starts-with). */
+  readonly comparison: number;
+  readonly value: string;
+}
+
+/** A mutation of the document's groups (create/rename/delete/membership). */
+export type GroupCommand =
+  | { readonly kind: 'createStatic'; readonly name: string; readonly citeKeys?: readonly string[] }
+  | {
+      readonly kind: 'createSmart';
+      readonly name: string;
+      readonly conditions: readonly SmartCondition[];
+      /** 0 = all conditions (AND), 1 = any (OR). */
+      readonly conjunction: 0 | 1;
+    }
+  | { readonly kind: 'rename'; readonly groupId: string; readonly name: string }
+  | { readonly kind: 'delete'; readonly groupId: string }
+  | {
+      readonly kind: 'setMembers';
+      readonly groupId: string;
+      readonly citeKeys: readonly string[];
+      /** true = add to the static group, false = remove. */
+      readonly add: boolean;
+    };
+
+/** Request to apply one {@link GroupCommand}. */
+export interface GroupEditRequest {
+  readonly documentId: DocumentId;
+  readonly command: GroupCommand;
+}
+
+/** Outcome of a group edit: new dirty state + the affected/created group id. */
+export interface GroupEditResult {
+  readonly dirty: boolean;
+  readonly groupId?: string;
+}
+
 // --- Claude assistant -------------------------------------------------------
 
 /** Whether the user's Anthropic API key is stored (via Electron safeStorage). */

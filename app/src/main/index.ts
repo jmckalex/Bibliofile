@@ -1020,6 +1020,7 @@ function registerIpc(): void {
     },
     [IpcChannels.findReplace]: (req) => store.findReplace(req),
     [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
+    [IpcChannels.groupEdit]: (req) => store.groupEdit(req),
     [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
     [IpcChannels.autoFile]: (req) => {
       const res = store.autoFile(req.documentId, req.itemId);
@@ -1137,6 +1138,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.findDuplicates, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.findDuplicates](req),
+  );
+  ipcMain.handle(IpcChannels.groupEdit, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.groupEdit](req),
   );
   ipcMain.handle(IpcChannels.fieldSuggestions, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.fieldSuggestions](req),

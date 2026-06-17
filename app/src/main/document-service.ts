@@ -38,6 +38,7 @@ import {
   bdskFileKey,
   encodeBdskFile,
   relativePathOf,
+  plistInteger,
   type BibLibrary,
   type GroupRecord,
 } from '@bibdesk/bibtex';
@@ -98,6 +99,8 @@ import type {
   FindReplaceMatch,
   FindDuplicatesResult,
   DuplicateGroup,
+  GroupEditRequest,
+  GroupEditResult,
   SaveDocumentRequest,
   SaveDocumentResult,
 } from '@bibdesk/shared';
@@ -222,11 +225,13 @@ function groupsFromLibrary(library: BibLibrary): Group[] {
 
 /**
  * A BibDesk group `@comment` block decodes to an ARRAY of per-group dictionaries
- * (one block per kind can hold several groups). Normalize `record.data` to that
- * list of dicts (tolerating a bare single dict from older/odd inputs).
+ * (one block per kind can hold several groups). Return that array verbatim — its
+ * indices are stable group ids (`g#record#dict`) and the array is mutated in place
+ * by the group-editor CRUD, so this must NOT copy/filter. Tolerates a bare single
+ * dict from odd inputs.
  */
 function dictsOf(data: unknown): Record<string, unknown>[] {
-  if (Array.isArray(data)) return data.filter((d): d is Record<string, unknown> => !!d && typeof d === 'object');
+  if (Array.isArray(data)) return data as Record<string, unknown>[];
   if (data && typeof data === 'object') return [data as Record<string, unknown>];
   return [];
 }
@@ -1164,14 +1169,89 @@ export class DocumentStore {
   private resolveGroupDict(
     doc: OpenDoc,
     groupId: string,
-  ): { record: GroupRecord; recordIndex: number; dict: Record<string, unknown> } | undefined {
+  ): { record: GroupRecord; recordIndex: number; dictIndex: number; dict: Record<string, unknown> } | undefined {
     const m = /^g#(\d+)#(\d+)$/.exec(groupId);
     if (!m) return undefined;
     const recordIndex = Number(m[1]);
+    const dictIndex = Number(m[2]);
     const record = doc.library.groups[recordIndex];
     if (!record) return undefined;
-    const dict = dictsOf(record.data)[Number(m[2])];
-    return dict ? { record, recordIndex, dict } : undefined;
+    const dict = dictsOf(record.data)[dictIndex];
+    return dict ? { record, recordIndex, dictIndex, dict } : undefined;
+  }
+
+  /** Find (or create an empty) group record of the given editable kind. */
+  private ensureGroupRecord(doc: OpenDoc, kind: 'static' | 'smart'): { index: number; arr: Record<string, unknown>[] } {
+    let index = doc.library.groups.findIndex((g) => g.kind === kind);
+    if (index === -1) {
+      doc.library.groups.push({ kind, data: [] });
+      index = doc.library.groups.length - 1;
+    }
+    return { index, arr: dictsOf(doc.library.groups[index]!.data) };
+  }
+
+  /**
+   * Apply one {@link GroupCommand}: create/rename/delete a group or change a
+   * static group's membership. Groups are stored as `@comment{BibDesk … Groups}`
+   * dict-arrays; the serializer writes them back. Marks the document dirty.
+   */
+  groupEdit(req: GroupEditRequest): GroupEditResult {
+    this.snapshot(req.documentId);
+    const doc = this.requireDoc(req.documentId);
+    const cmd = req.command;
+    const dedupe = (keys: readonly string[]): string[] => [...new Set(keys.map((k) => k.trim()).filter(Boolean))];
+
+    switch (cmd.kind) {
+      case 'createStatic': {
+        const { index, arr } = this.ensureGroupRecord(doc, 'static');
+        arr.push({ 'group name': cmd.name, keys: dedupe(cmd.citeKeys ?? []).join(',') });
+        doc.dirty = true;
+        return { dirty: true, groupId: `g#${index}#${arr.length - 1}` };
+      }
+      case 'createSmart': {
+        const { index, arr } = this.ensureGroupRecord(doc, 'smart');
+        arr.push({
+          'group name': cmd.name,
+          conjunction: plistInteger(String(cmd.conjunction)),
+          conditions: cmd.conditions.map((c) => ({
+            key: c.key,
+            value: c.value,
+            comparison: plistInteger(String(c.comparison)),
+            version: plistInteger('1'),
+          })),
+        });
+        doc.dirty = true;
+        return { dirty: true, groupId: `g#${index}#${arr.length - 1}` };
+      }
+      case 'rename': {
+        const r = this.resolveGroupDict(doc, cmd.groupId);
+        if (!r) throw new Error(`Unknown group: ${cmd.groupId}`);
+        r.dict['group name'] = cmd.name;
+        doc.dirty = true;
+        return { dirty: true, groupId: cmd.groupId };
+      }
+      case 'delete': {
+        const r = this.resolveGroupDict(doc, cmd.groupId);
+        if (!r) return { dirty: doc.dirty };
+        const arr = dictsOf(r.record.data);
+        arr.splice(r.dictIndex, 1);
+        if (arr.length === 0) doc.library.groups.splice(r.recordIndex, 1);
+        doc.dirty = true;
+        return { dirty: true };
+      }
+      case 'setMembers': {
+        const r = this.resolveGroupDict(doc, cmd.groupId);
+        if (!r || r.record.kind !== 'static') throw new Error('Not a static group');
+        const cur = typeof r.dict.keys === 'string' ? (r.dict.keys as string).split(',') : [];
+        const set = new Set(cur.map((k) => k.trim()).filter(Boolean));
+        for (const k of cmd.citeKeys) (cmd.add ? set.add(k) : set.delete(k));
+        r.dict.keys = [...set].join(',');
+        doc.dirty = true;
+        return { dirty: true, groupId: cmd.groupId };
+      }
+      default:
+        return { dirty: doc.dirty };
+    }
   }
 
   /** Full detail for one item. Throws if the document or item id is unknown. */

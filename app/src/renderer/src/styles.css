@@ -577,6 +577,67 @@ body {
   white-space: nowrap;
 }
 
+/* ---- Group editor (sidebar) -------------------------------------------- */
+
+.bd-sidebar__actions {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+}
+
+.bd-group {
+  position: relative;
+}
+
+.bd-group--drop {
+  outline: 2px dashed var(--bd-accent);
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+.bd-group__rename {
+  flex: 1 1 auto;
+  min-width: 0;
+  font: inherit;
+  border: 1px solid var(--bd-accent);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.bd-group__del {
+  border: 0;
+  background: none;
+  color: var(--bd-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  padding: 0 4px;
+  font-size: 15px;
+}
+
+.bd-group:hover .bd-group__del {
+  opacity: 0.8;
+}
+
+.bd-group__del:hover {
+  color: var(--bd-danger, #c0392b);
+  opacity: 1;
+}
+
+.bd-cond {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+
+.bd-cond .bd-select {
+  flex: 0 0 auto;
+}
+
+.bd-cond .bd-input:last-of-type {
+  flex: 1 1 auto;
+}
+
 /* ---- Claude Assistant panel -------------------------------------------- */
 
 .bd-assistant {

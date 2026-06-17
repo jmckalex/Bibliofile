@@ -228,9 +228,11 @@ export function PublicationsTable() {
                   draggable
                   onClick={() => void selectItem(row.original.id)}
                   onDragStart={(e) => {
-                    // Drag a row into a TeX editor to insert the cite command.
+                    // Drag a row into a TeX editor to insert the cite command,
+                    // or onto a static group to add it (custom cite-key flavor).
                     const cite = formatCiteCommand(citeTemplate, [row.original.citeKey]);
                     e.dataTransfer.setData('text/plain', cite);
+                    e.dataTransfer.setData('application/x-bibdesk-citekeys', row.original.citeKey);
                     e.dataTransfer.effectAllowed = 'copy';
                   }}
                 >

@@ -13,6 +13,7 @@ import type {
   AgentRunResponse,
   BibDeskApi,
   EditCommand,
+  GroupCommand,
   FindReplaceRequest,
   FindReplaceResult,
   FindDuplicatesResult,
@@ -176,6 +177,8 @@ export interface ViewerState {
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
   /** Show/hide one table column key (builtin or field name); persists + reloads. */
   toggleColumn: (key: string) => Promise<void>;
+  /** Apply a group command (create/rename/delete/membership); reloads the sidebar. */
+  groupEdit: (command: GroupCommand) => Promise<string | undefined>;
   /** Send one message to the Claude assistant; reloads the table if it mutated. */
   agentSend: (message: string) => Promise<AgentRunResponse>;
 }
@@ -534,6 +537,23 @@ export function createStore(api: BibDeskApi) {
       const cols = get().settings.columns;
       const next = cols.includes(key) ? cols.filter((c) => c !== key) : [...cols, key];
       await get().saveSettings({ columns: next });
+    },
+
+    groupEdit: async (command) => {
+      const { documentId } = get();
+      if (!documentId) return undefined;
+      try {
+        const res = await api.groupEdit({ documentId, command });
+        set({ dirty: res.dirty });
+        if (command.kind === 'delete') set({ selectedGroupId: undefined });
+        await get().loadGroups();
+        if (res.groupId) set({ selectedGroupId: res.groupId });
+        await get().loadPublications();
+        return res.groupId;
+      } catch (err) {
+        set({ error: errorMessage(err) });
+        return undefined;
+      }
     },
 
     agentSend: async (message) => {

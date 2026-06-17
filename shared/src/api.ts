@@ -38,6 +38,8 @@ import type {
   FindReplaceResult,
   FindDuplicatesRequest,
   FindDuplicatesResult,
+  GroupEditRequest,
+  GroupEditResult,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
   AutoFileRequest,
@@ -146,6 +148,9 @@ export interface BibDeskApi {
 
   /** Scan the document for duplicate entries (identical cite keys + equivalent content). */
   findDuplicates(request: FindDuplicatesRequest): Promise<FindDuplicatesResult>;
+
+  /** Create/rename/delete a group or change a static group's membership. */
+  groupEdit(request: GroupEditRequest): Promise<GroupEditResult>;
 
   /** Distinct existing values for a field (autocomplete in the field editors). */
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse>;

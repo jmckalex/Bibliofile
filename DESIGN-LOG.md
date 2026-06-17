@@ -106,24 +106,24 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   turn the renderer reloads. Default model `claude-opus-4-8` (editable in Preferences). *Revisit:*
   `app/src/main/agent.ts` (loop + tool schema) + the agent glue in `index.ts`.
 
-## Deferred this session (with rationale)
-
-- **Smart / static group EDITOR (#10) — deferred, not abandoned.** Creating/editing groups
-  means writing the BibDesk group-record format back out. Investigating the parser showed each
-  `@comment{BibDesk <Kind> Groups{…}}` block parses to ONE `GroupRecord` whose `data` is an
-  **array of per-group dictionaries**, yet the current `buildGroup`/`listGroups` read
-  `record.data['group name']` as if `data` were a single dict. That means parsed static/smart
-  groups (as opposed to the computed Author/Keyword *category* groups, which are what the demos
-  actually showed) are on an **unverified seam** — and the project's keystone is the byte-faithful
-  round-trip (56+14 golden tests). Building group *mutation* on top of that, without real
-  multi-group fixtures to verify against, risks the round-trip. **Decision:** first verify/fix the
-  record→groups granularity (expand each record's dict-array into N typed groups, with stable
-  `(recordIndex, dictIndex)` ids threaded through `listGroups`/`listPublications`), THEN add
-  create/rename/delete + static add/remove + a smart-condition builder. I chose to spend the
-  remaining time on the Claude assistant (#4) instead — higher user-value, self-contained, and
-  it builds on the already-shipped `plugins-sdk`. *Revisit:* `groupsFromLibrary`/`buildGroup` +
-  `core/bibtex` group round-trip, using a real BibDesk file that has several static AND smart
-  groups as the fixture.
+- **Smart / static group EDITOR (#10) — DONE (resolved the earlier deferral).** First I found the
+  real on-disk format in the synthesized fixtures (`bd-static-groups.bib`, `bd-all-groups.bib`,
+  which DO have golden round-trip coverage): a `@comment{BibDesk <Kind> Groups{…}}` block decodes
+  to ONE `GroupRecord` whose `data` is an **`<array>` of group dicts** (static `{group name, keys}`;
+  smart `{group name, conditions:[{comparison,key,value,version}], conjunction}`). The pre-existing
+  `buildGroup`/`listGroups` read that array AS a single dict → parsed static/smart groups had blank
+  names and no members (only computed *category* groups worked; no fixture had ever exercised it).
+  **Fix (a real bug):** `dictsOf` normalizes `record.data` to its dict array; `buildGroupFromDict`
+  builds one typed group per dict; `groupsFromLibrary`/`listGroups` (new `parsedGroupNodes`, stable
+  `g#record#dict` ids)/`listPublications`/`membersOf` (new `resolveParsedGroup`) all iterate dicts —
+  verified against `bd-all-groups.bib`. Serialization untouched, so the byte-faithful round-trip is
+  preserved. **Editor:** a single `groupEdit(GroupCommand)` IPC (create static/smart, rename, delete,
+  static add/remove members); smart integers use `plistInteger()` so they round-trip. *UI:* sidebar
+  ＋Group (inline-named) / ⚙Smart (a small condition builder — field + BDSKComparison + value, AND/OR;
+  `window.prompt` is disabled in Electron so all editing is inline/modal); rename on double-click,
+  delete ×, and **drag a row onto a static group** to add it (rows carry an
+  `application/x-bibdesk-citekeys` flavor). Verified by tests (incl. serialize→re-parse for both
+  kinds) + GUI. *Revisit:* `document-service.groupEdit` + `GroupsSidebar`/`SmartGroupDialog`.
 
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers

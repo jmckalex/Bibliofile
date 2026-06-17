@@ -55,6 +55,8 @@ import {
   type FindReplaceResult,
   type FindDuplicatesRequest,
   type FindDuplicatesResult,
+  type GroupEditRequest,
+  type GroupEditResult,
   type FieldSuggestionsRequest,
   type FieldSuggestionsResponse,
   type AutoFileRequest,
@@ -144,6 +146,9 @@ const api: BibDeskApi = {
   },
   findDuplicates(request: FindDuplicatesRequest): Promise<FindDuplicatesResult> {
     return ipcRenderer.invoke(IpcChannels.findDuplicates, request);
+  },
+  groupEdit(request: GroupEditRequest): Promise<GroupEditResult> {
+    return ipcRenderer.invoke(IpcChannels.groupEdit, request);
   },
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse> {
     return ipcRenderer.invoke(IpcChannels.fieldSuggestions, request);

@@ -187,6 +187,61 @@ describe('document-service: BD test.bib', () => {
     expect(rows.map((r) => r.citeKey).sort()).toEqual(['knuth-art', 'smith-2020']);
   });
 
+  it('groupEdit: create static group, add a member, rename, and it filters', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Title = {A}}\n@book{b, Title = {B}}',
+      '/tmp/g.bib',
+    );
+    const created = store.groupEdit({ documentId, command: { kind: 'createStatic', name: 'Picks', citeKeys: ['a'] } });
+    expect(created.groupId).toBeDefined();
+    const gid = created.groupId!;
+
+    // add 'b' too
+    store.groupEdit({ documentId, command: { kind: 'setMembers', groupId: gid, citeKeys: ['b'], add: true } });
+    let node = store.listGroups({ documentId }).groups.find((g) => g.id === gid)!;
+    expect(node.name).toBe('Picks');
+    expect(node.count).toBe(2);
+    expect(store.listPublications({ documentId, offset: 0, limit: -1, groupId: gid }).rows.map((r) => r.citeKey).sort()).toEqual(['a', 'b']);
+
+    // remove 'b', rename
+    store.groupEdit({ documentId, command: { kind: 'setMembers', groupId: gid, citeKeys: ['b'], add: false } });
+    store.groupEdit({ documentId, command: { kind: 'rename', groupId: gid, name: 'Favourites' } });
+    node = store.listGroups({ documentId }).groups.find((g) => g.id === gid)!;
+    expect(node.name).toBe('Favourites');
+    expect(node.count).toBe(1);
+
+    // the group survives a serialize → re-parse round-trip
+    const reopened = new DocumentStore();
+    const r2 = reopened.openText(store.serializeDocument(documentId), '/tmp/g.bib');
+    expect(reopened.listGroups({ documentId: r2.documentId }).groups.some((g) => g.name === 'Favourites' && g.kind === 'static')).toBe(true);
+  });
+
+  it('groupEdit: create a smart group that round-trips and filters', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{x, Title = {Quantum optics}}\n@book{y, Title = {Cooking}}',
+      '/tmp/sg.bib',
+    );
+    const res = store.groupEdit({
+      documentId,
+      command: { kind: 'createSmart', name: 'Optics', conjunction: 0, conditions: [{ key: 'Title', comparison: 2, value: 'optics' }] },
+    });
+    const gid = res.groupId!;
+    const node = store.listGroups({ documentId }).groups.find((g) => g.id === gid)!;
+    expect(node.kind).toBe('smart');
+    expect(node.count).toBe(1); // only the optics article
+    expect(store.listPublications({ documentId, offset: 0, limit: -1, groupId: gid }).rows[0]!.citeKey).toBe('x');
+
+    // smart group (with integer conditions) survives round-trip
+    const text = store.serializeDocument(documentId);
+    expect(text).toContain('BibDesk Smart Groups');
+    const re = new DocumentStore();
+    const r2 = re.openText(text, '/tmp/sg.bib');
+    const node2 = re.listGroups({ documentId: r2.documentId }).groups.find((g) => g.name === 'Optics')!;
+    expect(node2.count).toBe(1);
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');
