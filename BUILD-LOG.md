@@ -607,7 +607,6 @@ user-facing Help (`docs/help/`) was updated alongside:
   current one; each library gets its own window (its own renderer + store). The main shell tracks a
   `docWindows` registry and routes every doc-scoped action to the focused window; the Window menu
   lists open libraries; closing a window with unsaved changes prompts Save/Don't Save/Cancel.
-  *(On branch `multiple-open-libraries`, not yet merged to `main`.)*
 
 `pnpm -r test` = **1430 passing** (+3 skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.

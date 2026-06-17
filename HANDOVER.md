@@ -8,12 +8,12 @@
 > importantly — the **gap analysis** (what is still missing from BibDesk, and the
 > recommended order to tackle it).
 
-Last updated on branch `multiple-open-libraries` (full suite green — 1430 passing,
-3 skipped). This session shipped multi-column sort + bulk AutoFile on `main`, then
-**multiple open libraries** (window-per-library) on the `multiple-open-libraries`
-branch — committed locally, **not yet merged to `main`**. §5 reflects this. The
-recommended-order quick wins are done; remaining big items are the custom
-entry-type editor and the `.aux` workflow.
+Last updated on `main` (full suite green — 1430 passing, 3 skipped). This session
+shipped multi-column sort, bulk AutoFile, and **multiple open libraries**
+(window-per-library) — the last developed on the `multiple-open-libraries` branch
+and fast-forward-merged into `main`. §5 reflects this. The recommended-order quick
+wins are done; remaining big items are the custom entry-type editor and the `.aux`
+workflow.
 
 ---
 
@@ -186,7 +186,7 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
 
 ### Biggest genuine gaps
 
-1. ~~**Multiple open libraries.**~~ **DONE** (branch `multiple-open-libraries`) —
+1. ~~**Multiple open libraries.**~~ **DONE** (merged to `main`) —
    each `.bib` now opens in its own window (window-per-library); Open no longer
    replaces. The Window menu lists open libraries; closing a window with unsaved
    changes prompts Save/Don't Save/Cancel. `DocumentStore` was already
@@ -263,7 +263,7 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
 2. ~~**Bulk AutoFile / consolidate** — quick win.~~ ✅ done `88a0ff8`.
 3. **`.aux` workflow** — high value, self-contained. ← **next**
 4. **Custom entry-type / field editor** — gets us closest to "BibDesk-complete".
-5. ~~**Multiple open libraries** — the big architectural lift; do it last.~~ ✅ done (branch `multiple-open-libraries`).
+5. ~~**Multiple open libraries** — the big architectural lift; do it last.~~ ✅ done (merged to `main`).
 
 ---
 

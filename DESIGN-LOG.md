@@ -429,8 +429,8 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   Verified: production bundle (`electron-vite build`) builds; a headless launch
   smoke opens the fixture into a library window with the FTS self-test green. True
   N-window behaviour (two libraries side by side, the Window menu, close-with-
-  unsaved) is interactive — drive via `pnpm dev`. Shipped on the branch
-  `multiple-open-libraries` (the first feature off the linear `main` history).
+  unsaved) is interactive — drive via `pnpm dev`. Developed on the
+  `multiple-open-libraries` branch and fast-forward-merged into `main`.
 
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
