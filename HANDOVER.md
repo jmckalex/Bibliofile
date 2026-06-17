@@ -8,12 +8,11 @@
 > importantly — the **gap analysis** (what is still missing from BibDesk, and the
 > recommended order to tackle it).
 
-Last updated on branch `aux-workflow` (full suite green — 1439 passing, 3 skipped).
-Merged to `main` this session: multi-column sort, bulk AutoFile, multiple open
-libraries, and the custom entry-type editor. The **`.aux` workflow** is on the
-`aux-workflow` branch — committed locally, **not yet merged to `main`**. §5
-reflects this. Remaining gap-list items: user-editable export/preview templates,
-plus the user's folders idea and smaller polish.
+Last updated on `main` (full suite green — 1439 passing, 3 skipped). Merged to
+`main` this session: multi-column sort, bulk AutoFile, multiple open libraries,
+the custom entry-type editor, and the **`.aux` workflow**. §5 reflects this.
+Remaining gap-list items: user-editable export/preview templates, plus the user's
+folders idea and smaller polish.
 
 ---
 
@@ -199,7 +198,7 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
    IPC feeds the type dropdowns. *(Standard types are read-only; widening to edit
    their optional fields is a possible follow-up.)*
 3. ~~**`.aux`-file workflow** ("Select Publications from .aux file")~~ **DONE**
-   (branch `aux-workflow`) — `File → Select Publications from .aux File…` parses
+   (merged to `main`) — `File → Select Publications from .aux File…` parses
    the `.aux`'s cite keys and multi-selects the matching entries; Export →
    Selected Entries then yields just the cited subset.
 4. **User-editable export / preview templates.** Ours are built-in Handlebars

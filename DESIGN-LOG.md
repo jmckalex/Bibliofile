@@ -473,7 +473,7 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   a `'selectFromAux'` MenuCommand. *Revisit:* `aux.ts`, `selectFromAux` in
   `document-service.ts`, the handler + File menu in `index.ts`, the store action in
   `store.ts`. Tests: parser (all three forms, dedupe, `*` skip) + store
-  matching/missing. Developed on branch `aux-workflow`.
+  matching/missing. Developed on the `aux-workflow` branch and fast-forward-merged into `main`.
 
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
