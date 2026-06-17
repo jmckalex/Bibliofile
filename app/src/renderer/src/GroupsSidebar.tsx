@@ -57,6 +57,7 @@ function GroupRow({
   onDelete,
   onDropKeys,
   onEditSmart,
+  disclosure,
 }: {
   group: GroupNode;
   child: boolean;
@@ -68,6 +69,8 @@ function GroupRow({
   onDelete: (id: string) => void;
   onDropKeys: (id: string, keys: string[]) => void;
   onEditSmart: (id: string) => void;
+  /** When present, the row is a collapsible section header (disclosure triangle). */
+  disclosure?: { open: boolean; onToggle: () => void };
 }) {
   const [dropping, setDropping] = useState(false);
   const editable = EDITABLE(group.kind);
@@ -104,6 +107,23 @@ function GroupRow({
           }
         : {})}
     >
+      {!child &&
+        (disclosure ? (
+          <button
+            type="button"
+            className="bd-group__twisty"
+            aria-label={disclosure.open ? 'Collapse' : 'Expand'}
+            aria-expanded={disclosure.open}
+            onClick={(e) => {
+              e.stopPropagation();
+              disclosure.onToggle();
+            }}
+          >
+            {disclosure.open ? '▾' : '▸'}
+          </button>
+        ) : (
+          <span className="bd-group__twisty bd-group__twisty--leaf" aria-hidden="true" />
+        ))}
       <span className="bd-group__icon" aria-hidden="true">
         {KIND_ICON[group.kind]}
       </span>
@@ -164,8 +184,14 @@ export function GroupsSidebar() {
   const [smartOpen, setSmartOpen] = useState(false);
   // When set, the smart-group dialog opens in "edit conditions" mode for this id.
   const [editSmartId, setEditSmartId] = useState<string | undefined>();
+  // Per-section open override (id → open). Category sections (Authors/Keywords)
+  // default collapsed so their 1000s of children don't bury everything below.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
   const tree = useMemo(() => buildTree(groups), [groups]);
+  const isOpen = (node: GroupNode): boolean => openSections[node.id] ?? node.kind !== 'category';
+  const toggleSection = (node: GroupNode): void =>
+    setOpenSections((s) => ({ ...s, [node.id]: !isOpen(node) }));
 
   const newStatic = async (): Promise<void> => {
     const id = await groupEdit({ kind: 'createStatic', name: 'New Group' });
@@ -193,7 +219,10 @@ export function GroupsSidebar() {
           </button>
         </div>
       )}
-      {tree.map(({ node, children }) => (
+      {tree.map(({ node, children }) => {
+        const collapsible = children.length > 0;
+        const open = isOpen(node);
+        return (
         <div key={node.id}>
           <GroupRow
             group={node}
@@ -206,8 +235,9 @@ export function GroupsSidebar() {
             onDelete={(id) => void groupEdit({ kind: 'delete', groupId: id })}
             onDropKeys={(id, keys) => void groupEdit({ kind: 'setMembers', groupId: id, citeKeys: keys, add: true })}
             onEditSmart={setEditSmartId}
+            {...(collapsible ? { disclosure: { open, onToggle: () => toggleSection(node) } } : {})}
           />
-          {children.map((c) => (
+          {collapsible && open && children.map((c) => (
             <GroupRow
               key={c.id}
               group={c}
@@ -223,7 +253,8 @@ export function GroupsSidebar() {
             />
           ))}
         </div>
-      ))}
+        );
+      })}
       {smartOpen && <SmartGroupDialog onClose={() => setSmartOpen(false)} />}
       {editSmartId && (
         <SmartGroupDialog editGroupId={editSmartId} onClose={() => setEditSmartId(undefined)} />

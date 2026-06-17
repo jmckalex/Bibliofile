@@ -295,6 +295,28 @@ body {
   background: var(--bd-selected);
 }
 
+.bd-group__twisty {
+  flex: none;
+  width: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--bd-text-muted);
+  font-size: 10px;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.bd-group__twisty:hover {
+  color: var(--bd-text);
+}
+
+.bd-group__twisty--leaf {
+  visibility: hidden;
+  cursor: default;
+}
+
 .bd-group__icon {
   flex: none;
   width: 14px;
