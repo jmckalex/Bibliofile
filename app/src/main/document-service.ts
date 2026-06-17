@@ -62,6 +62,7 @@ import { exportRis, exportCsv, exportHtml } from './export.js';
 import { parseRis, type RisRecord } from './ris-import.js';
 import { parseEndnote } from './endnote.js';
 import { parseAuxCiteKeys } from './aux.js';
+import { readFolders, writeFolders, nextFolderId, isSelfOrDescendant } from './folders.js';
 import { FtsIndex } from './fts.js';
 import { extractPdfText } from './pdf-text.js';
 import {
@@ -1175,10 +1176,26 @@ export class DocumentStore {
       count: doc.library.items.length,
     });
 
+    // User folders (containers for groups / sub-folders). Build a group-name →
+    // folder-id map so each group node nests under its folder.
+    const folders = readFolders(doc.library);
+    const groupFolder = new Map<string, string>();
+    for (const f of folders) for (const g of f.groups) groupFolder.set(g.toLowerCase(), f.id);
+    for (const f of folders) {
+      groups.push({
+        id: f.id,
+        kind: 'folder',
+        name: f.name,
+        count: f.groups.length,
+        ...(f.parentId ? { parentId: f.parentId } : {}),
+      });
+    }
+
     // Parsed groups: one node per group DICT (a block can hold several), each
     // with a stable `g#record#dict` id. Counts via live membership; url/script
-    // are type-only => 0.
+    // are type-only => 0. parentId nests the group under its folder (if any).
     for (const node of this.parsedGroupNodes(doc)) {
+      const parentId = groupFolder.get(node.name.toLowerCase());
       groups.push({
         id: node.id,
         kind: node.kind,
@@ -1186,6 +1203,7 @@ export class DocumentStore {
         count: node.group
           ? doc.library.items.filter((it) => node.group!.containsItem(asEvaluable(it))).length
           : 0,
+        ...(parentId ? { parentId } : {}),
       });
     }
 
@@ -1321,6 +1339,64 @@ export class DocumentStore {
         const set = new Set(cur.map((k) => k.trim()).filter(Boolean));
         for (const k of cmd.citeKeys) (cmd.add ? set.add(k) : set.delete(k));
         r.dict.keys = [...set].join(',');
+        doc.dirty = true;
+        return { dirty: true, groupId: cmd.groupId };
+      }
+      case 'createFolder': {
+        const folders = readFolders(doc.library);
+        const id = nextFolderId(folders);
+        folders.push({ id, name: cmd.name, parentId: cmd.parentId ?? null, groups: [] });
+        writeFolders(doc.library, folders);
+        doc.dirty = true;
+        return { dirty: true, groupId: id };
+      }
+      case 'renameFolder': {
+        const folders = readFolders(doc.library);
+        if (!folders.some((f) => f.id === cmd.folderId)) return { dirty: doc.dirty };
+        writeFolders(
+          doc.library,
+          folders.map((f) => (f.id === cmd.folderId ? { ...f, name: cmd.name } : f)),
+        );
+        doc.dirty = true;
+        return { dirty: true, groupId: cmd.folderId };
+      }
+      case 'moveFolder': {
+        const folders = readFolders(doc.library);
+        if (!folders.some((f) => f.id === cmd.folderId)) return { dirty: doc.dirty };
+        const parentId = cmd.parentId ?? null;
+        // Refuse to move a folder under itself or a descendant (would orphan a cycle).
+        if (parentId && isSelfOrDescendant(folders, cmd.folderId, parentId)) return { dirty: doc.dirty };
+        writeFolders(
+          doc.library,
+          folders.map((f) => (f.id === cmd.folderId ? { ...f, parentId } : f)),
+        );
+        doc.dirty = true;
+        return { dirty: true, groupId: cmd.folderId };
+      }
+      case 'deleteFolder': {
+        const folders = readFolders(doc.library);
+        const target = folders.find((f) => f.id === cmd.folderId);
+        if (!target) return { dirty: doc.dirty };
+        // Child folders move up to the deleted folder's parent; its groups become unfiled.
+        const next = folders
+          .filter((f) => f.id !== cmd.folderId)
+          .map((f) => (f.parentId === cmd.folderId ? { ...f, parentId: target.parentId } : f));
+        writeFolders(doc.library, next);
+        doc.dirty = true;
+        return { dirty: true };
+      }
+      case 'setGroupFolder': {
+        const r = this.resolveGroupDict(doc, cmd.groupId);
+        if (!r) return { dirty: doc.dirty };
+        const name = nameOfDict(r.dict);
+        const lower = name.toLowerCase();
+        // Remove the group from every folder, then add it to the target folder (if any).
+        const next = readFolders(doc.library).map((f) => ({
+          ...f,
+          groups: f.groups.filter((g) => g.toLowerCase() !== lower),
+        }));
+        if (cmd.folderId) next.find((f) => f.id === cmd.folderId)?.groups.push(name);
+        writeFolders(doc.library, next);
         doc.dirty = true;
         return { dirty: true, groupId: cmd.groupId };
       }

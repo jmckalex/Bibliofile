@@ -740,6 +740,31 @@ describe('document-service: BD test.bib', () => {
     expect(res.missingKeys).toEqual(['missing2000']);
   });
 
+  it('folders: create, nest a group, and round-trip through the .bib', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {A}}', '/tmp/folders.bib');
+    const groupId = store.groupEdit({
+      documentId,
+      command: { kind: 'createStatic', name: 'Required', citeKeys: ['a'] },
+    }).groupId!;
+    const folderId = store.groupEdit({ documentId, command: { kind: 'createFolder', name: 'PH456' } }).groupId!;
+    store.groupEdit({ documentId, command: { kind: 'setGroupFolder', groupId, folderId } });
+
+    const { groups } = store.listGroups({ documentId });
+    expect(groups.find((n) => n.kind === 'folder' && n.name === 'PH456')?.id).toBe(folderId);
+    expect(groups.find((n) => n.id === groupId)?.parentId).toBe(folderId);
+
+    // Serialize → the folder block is embedded in the .bib; reopen and it survives.
+    const text = store.exportText(documentId, 'bibtex');
+    expect(text).toContain('BibDesk-Electron Folders');
+    const reopened = new DocumentStore();
+    const { documentId: d2 } = reopened.openText(text, '/tmp/folders.bib');
+    const g2 = reopened.listGroups({ documentId: d2 }).groups;
+    const folder2 = g2.find((n) => n.kind === 'folder' && n.name === 'PH456');
+    expect(folder2).toBeDefined();
+    expect(g2.find((n) => n.kind === 'static' && n.name === 'Required')?.parentId).toBe(folder2!.id);
+  });
+
   it('projects icon-column flags (keywords, attachments, read, rating)', () => {
     const store = new DocumentStore();
     const FLAGS = `

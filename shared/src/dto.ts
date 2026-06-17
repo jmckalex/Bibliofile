@@ -315,7 +315,8 @@ export type GroupKind =
   | 'category'
   | 'author'
   | 'url'
-  | 'script';
+  | 'script'
+  | 'folder';
 
 /** Request payload for the groups sidebar tree. */
 export interface ListGroupsRequest {
@@ -662,7 +663,15 @@ export type GroupCommand =
       readonly citeKeys: readonly string[];
       /** true = add to the static group, false = remove. */
       readonly add: boolean;
-    };
+    }
+  // --- folders (a folder contains other folders and/or groups) ---
+  | { readonly kind: 'createFolder'; readonly name: string; readonly parentId?: string }
+  | { readonly kind: 'renameFolder'; readonly folderId: string; readonly name: string }
+  | { readonly kind: 'deleteFolder'; readonly folderId: string }
+  /** Re-parent a folder (parentId omitted ⇒ top-level). */
+  | { readonly kind: 'moveFolder'; readonly folderId: string; readonly parentId?: string }
+  /** Place a group into a folder (folderId omitted ⇒ remove from any folder). */
+  | { readonly kind: 'setGroupFolder'; readonly groupId: string; readonly folderId?: string };
 
 /** Request to apply one {@link GroupCommand}. */
 export interface GroupEditRequest {

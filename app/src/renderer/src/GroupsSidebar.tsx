@@ -20,6 +20,7 @@ const KIND_ICON: Record<GroupKind, string> = {
   author: '👤',
   url: '🔗',
   script: '📜',
+  folder: '🗂',
 };
 
 const EDITABLE = (k: GroupKind): boolean => k === 'static' || k === 'smart';
