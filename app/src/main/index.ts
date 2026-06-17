@@ -39,6 +39,7 @@ import {
 
 import { DocumentStore } from './document-service.js';
 import { runAgentTurn } from './agent.js';
+import { parseAppUrl } from './app-url.js';
 import { formatCitation } from './csl.js';
 import { searchOnline } from './online.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
@@ -265,6 +266,55 @@ function openPathWhenReady(path: string): void {
     }
   } else {
     pendingOpenPath = path;
+  }
+}
+
+/** Re-notify the renderer of the open document so it reloads after a main-side mutation. */
+function refreshOpenDocument(): void {
+  if (lastDocumentId) notifyDocumentOpened(store.summarize(lastDocumentId));
+}
+
+/**
+ * Dispatch an `x-bibdesk://` automation URL (AppleScript / shell / other apps).
+ * Commands: `open?file=`, `import?bibtex=|doi=`, `new?type=&Field=…`. Mutating
+ * commands refresh the renderer; unknown/no-op commands are ignored.
+ */
+function handleAppUrl(raw: string): void {
+  const action = parseAppUrl(raw);
+  if (!action) return;
+  const { command, params } = action;
+  switch (command) {
+    case 'open':
+      if (params.file) openPathWhenReady(params.file);
+      return;
+    case 'import':
+      if (!lastDocumentId) return;
+      if (params.bibtex) {
+        store.importBibtexText(lastDocumentId, params.bibtex);
+        refreshOpenDocument();
+      } else if (params.doi) {
+        const docId = lastDocumentId;
+        void searchOnline('doi', params.doi)
+          .then((results) => {
+            const r = results[0];
+            if (r) {
+              store.importEntry(docId, r.entryType, r.fields);
+              refreshOpenDocument();
+            }
+          })
+          .catch((e) => console.error('[x-bibdesk] doi import failed:', e));
+      }
+      return;
+    case 'new': {
+      if (!lastDocumentId) return;
+      const fields: Record<string, string> = {};
+      for (const [k, v] of Object.entries(params)) if (k.toLowerCase() !== 'type') fields[k] = v;
+      store.importEntry(lastDocumentId, params.type || 'misc', fields);
+      refreshOpenDocument();
+      return;
+    }
+    default:
+      return; // unknown command — ignore
   }
 }
 
@@ -1176,6 +1226,12 @@ app.on('open-file', (event, path) => {
   }
 });
 
+// macOS automation: `open location "x-bibdesk://…"` (AppleScript) delivers here.
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleAppUrl(url);
+});
+
 // No untitled file: only re-show the main window on activate-with-no-windows.
 app.on('activate', () => {
   if (BrowserWindow.getAllWindows().length === 0) {
@@ -1200,7 +1256,12 @@ if (!gotLock) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
+    // Windows/Linux deliver the protocol URL (and .bib paths) via argv.
     for (const arg of argv.slice(1)) {
+      if (arg.startsWith('x-bibdesk://')) {
+        handleAppUrl(arg);
+        break;
+      }
       if (arg.toLowerCase().endsWith('.bib') && existsSync(arg)) {
         openPathWhenReady(arg);
         break;
@@ -1209,6 +1270,9 @@ if (!gotLock) {
   });
 
   void app.whenReady().then(() => {
+    // Register the automation URL scheme (AppleScript / shell / other apps).
+    app.setAsDefaultProtocolClient('x-bibdesk');
+
     const settings = loadSettings();
     store.setEditConfig({
       citeKeyFormat: settings.citeKeyFormat,
@@ -1224,6 +1288,10 @@ if (!gotLock) {
     const startup = pendingOpenPath ?? startupOpenPath();
     pendingOpenPath = null;
     if (startup) openPathWhenReady(startup);
+
+    // A protocol URL passed on the initial command line (Windows/Linux cold start).
+    const urlArg = process.argv.find((a) => a.startsWith('x-bibdesk://'));
+    if (urlArg) handleAppUrl(urlArg);
 
     if (process.env.BIBDESK_OPEN_HELP) setTimeout(openHelp, 600);
     if (process.env.BIBDESK_OPEN_PREFS) setTimeout(openPreferences, 1400);
