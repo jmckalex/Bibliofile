@@ -389,12 +389,16 @@ export interface ExportTextResponse {
 // --- Online search / import -------------------------------------------------
 
 /** An online bibliographic source. */
-export type OnlineSource = 'crossref' | 'arxiv';
+export type OnlineSource = 'crossref' | 'arxiv' | 'openalex' | 'pubmed' | 'doi' | 'isbn';
 
 /** The online sources the app offers. */
 export const ONLINE_SOURCES: readonly { id: OnlineSource; label: string }[] = [
   { id: 'crossref', label: 'CrossRef' },
+  { id: 'openalex', label: 'OpenAlex' },
+  { id: 'pubmed', label: 'PubMed' },
   { id: 'arxiv', label: 'arXiv' },
+  { id: 'doi', label: 'DOI lookup' },
+  { id: 'isbn', label: 'ISBN (book)' },
 ];
 
 /** One normalised online search result (display fields + BibTeX fields to import). */

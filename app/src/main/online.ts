@@ -186,9 +186,223 @@ async function searchArxiv(query: string): Promise<OnlineResult[]> {
   return parseArxiv(await res.text());
 }
 
+// --- DOI (CrossRef single work) ---------------------------------------------
+
+/** Look up one DOI via CrossRef `/works/{doi}` (accepts a bare DOI or a doi.org URL). */
+async function searchDoi(query: string): Promise<OnlineResult[]> {
+  const doi = query.trim().replace(/^(https?:\/\/(dx\.)?doi\.org\/|doi:)/i, '');
+  if (!doi) return [];
+  const res = await fetch(`https://api.crossref.org/works/${encodeURIComponent(doi)}`, {
+    headers: { 'User-Agent': UA },
+  });
+  if (!res.ok) throw new Error(`DOI lookup HTTP ${res.status}`);
+  const json = (await res.json()) as { message?: CrossrefItem };
+  // Reuse the list parser by wrapping the single work as a one-item message.
+  return json.message ? parseCrossref({ message: { items: [json.message] } }) : [];
+}
+
+// --- OpenAlex ---------------------------------------------------------------
+
+const OPENALEX_TYPE: Record<string, string> = {
+  article: 'article',
+  'journal-article': 'article',
+  'proceedings-article': 'inproceedings',
+  'book-chapter': 'incollection',
+  book: 'book',
+  monograph: 'book',
+  dissertation: 'phdthesis',
+  report: 'techreport',
+  dataset: 'misc',
+  preprint: 'article',
+};
+
+interface OpenAlexWork {
+  title?: string;
+  display_name?: string;
+  publication_year?: number;
+  type?: string;
+  doi?: string;
+  authorships?: { author?: { display_name?: string }; raw_author_name?: string }[];
+  primary_location?: { source?: { display_name?: string } };
+  biblio?: { volume?: string; issue?: string; first_page?: string; last_page?: string };
+}
+
+/** Parse an OpenAlex `/works` JSON response into normalised results. */
+export function parseOpenAlex(json: unknown): OnlineResult[] {
+  const works = (json as { results?: OpenAlexWork[] })?.results ?? [];
+  return works.map((w) => {
+    const names = asArray(w.authorships)
+      .map((a) => a.author?.display_name ?? a.raw_author_name ?? '')
+      .filter(Boolean);
+    const doi = (w.doi ?? '').replace(/^https?:\/\/doi\.org\//i, '');
+    const b = w.biblio ?? {};
+    const pages = b.first_page ? (b.last_page ? `${b.first_page}--${b.last_page}` : b.first_page) : '';
+    return makeResult('openalex', OPENALEX_TYPE[w.type ?? ''] ?? 'article', {
+      title: w.title ?? w.display_name ?? '',
+      authorsBib: names.join(' and '), // OpenAlex gives "Given Family"; our parser handles it
+      authorsDisplay: names.join(', '),
+      year: String(w.publication_year ?? ''),
+      venue: w.primary_location?.source?.display_name ?? '',
+      ...(doi ? { doi, url: `https://doi.org/${doi}` } : {}),
+      extra: { Volume: b.volume ?? '', Number: b.issue ?? '', Pages: pages },
+    });
+  });
+}
+
+async function searchOpenAlex(query: string): Promise<OnlineResult[]> {
+  const url = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&per_page=20`;
+  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  if (!res.ok) throw new Error(`OpenAlex HTTP ${res.status}`);
+  return parseOpenAlex(await res.json());
+}
+
+// --- ISBN (Open Library) ----------------------------------------------------
+
+/** Parse an Open Library `jscmd=data` response for one ISBN into a book result. */
+export function parseOpenLibrary(json: unknown, isbn: string): OnlineResult[] {
+  const book = (json as Record<string, OpenLibraryBook>)[`ISBN:${isbn}`];
+  if (!book) return [];
+  const authors = asArray(book.authors)
+    .map((a) => a.name ?? '')
+    .filter(Boolean);
+  return [
+    makeResult('isbn', 'book', {
+      title: book.title ?? '',
+      authorsBib: authors.join(' and '),
+      authorsDisplay: authors.join(', '),
+      year: (book.publish_date ?? '').match(/\d{4}/)?.[0] ?? '',
+      extra: {
+        Publisher: asArray(book.publishers).map((p) => p.name ?? '').filter(Boolean).join(', '),
+        Address: asArray(book.publish_places).map((p) => p.name ?? '').filter(Boolean).join(', '),
+        Isbn: isbn,
+        ...(book.url ? { Url: book.url } : {}),
+      },
+    }),
+  ];
+}
+
+interface OpenLibraryBook {
+  title?: string;
+  authors?: { name?: string }[];
+  publishers?: { name?: string }[];
+  publish_places?: { name?: string }[];
+  publish_date?: string;
+  url?: string;
+}
+
+async function searchIsbn(query: string): Promise<OnlineResult[]> {
+  const isbn = query.replace(/[^0-9Xx]/g, '');
+  if (!isbn) return [];
+  const url = `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`;
+  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  if (!res.ok) throw new Error(`Open Library HTTP ${res.status}`);
+  return parseOpenLibrary(await res.json(), isbn);
+}
+
+// --- PubMed (NCBI E-utilities) ----------------------------------------------
+
+interface PubmedArticle {
+  MedlineCitation?: {
+    PMID?: string | { '#text'?: string };
+    Article?: {
+      ArticleTitle?: string;
+      Abstract?: { AbstractText?: unknown };
+      AuthorList?: { Author?: PubmedAuthor | PubmedAuthor[] };
+      Journal?: {
+        Title?: string;
+        JournalIssue?: { Volume?: string; Issue?: string; PubDate?: { Year?: string; MedlineDate?: string } };
+      };
+      Pagination?: { MedlinePgn?: string };
+      ELocationID?: unknown;
+    };
+  };
+}
+interface PubmedAuthor {
+  LastName?: string;
+  ForeName?: string;
+  Initials?: string;
+  CollectiveName?: string;
+}
+
+/** Parse a PubMed efetch XML response into normalised results. */
+export function parsePubmed(xmlText: string): OnlineResult[] {
+  const doc = xml.parse(xmlText) as { PubmedArticleSet?: { PubmedArticle?: PubmedArticle | PubmedArticle[] } };
+  const articles = asArray(doc.PubmedArticleSet?.PubmedArticle);
+  return articles.map((a) => {
+    const art = a.MedlineCitation?.Article;
+    const authors = asArray(art?.AuthorList?.Author).map((au) =>
+      au.CollectiveName
+        ? au.CollectiveName
+        : au.LastName
+          ? `${au.LastName}, ${au.ForeName ?? au.Initials ?? ''}`.trim().replace(/,\s*$/, '')
+          : '',
+    );
+    const names = authors.filter(Boolean);
+    const issue = art?.Journal?.JournalIssue;
+    const year = issue?.PubDate?.Year ?? (issue?.PubDate?.MedlineDate ?? '').match(/\d{4}/)?.[0] ?? '';
+    // ELocationID may carry the DOI (with an EIdType attribute).
+    const doi = asArray(art?.ELocationID as unknown[])
+      .map((e) => (typeof e === 'object' && e ? ((e as Record<string, unknown>)['@_EIdType'] === 'doi' ? String((e as Record<string, unknown>)['#text'] ?? '') : '') : ''))
+      .find(Boolean);
+    const pmidRaw = a.MedlineCitation?.PMID;
+    const pmid = typeof pmidRaw === 'object' ? (pmidRaw?.['#text'] ?? '') : (pmidRaw ?? '');
+    const abstractText = art?.Abstract?.AbstractText;
+    const abstract = Array.isArray(abstractText)
+      ? abstractText.map((t) => (typeof t === 'object' && t ? String((t as Record<string, unknown>)['#text'] ?? '') : String(t))).join(' ')
+      : typeof abstractText === 'object' && abstractText
+        ? String((abstractText as Record<string, unknown>)['#text'] ?? '')
+        : String(abstractText ?? '');
+    return makeResult('pubmed', 'article', {
+      title: String(art?.ArticleTitle ?? '').replace(/\s+/g, ' ').trim(),
+      authorsBib: names.join(' and '),
+      authorsDisplay: names.join(', '),
+      year: String(year),
+      venue: art?.Journal?.Title ?? '',
+      ...(doi ? { doi } : {}),
+      extra: {
+        Volume: issue?.Volume ?? '',
+        Number: issue?.Issue ?? '',
+        Pages: (art?.Pagination?.MedlinePgn ?? '').replace('-', '--'),
+        ...(pmid ? { Pmid: String(pmid) } : {}),
+        ...(abstract ? { Abstract: abstract } : {}),
+      },
+    });
+  });
+}
+
+async function searchPubmed(query: string): Promise<OnlineResult[]> {
+  const base = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';
+  const esearch = await fetch(
+    `${base}/esearch.fcgi?db=pubmed&retmode=json&retmax=20&term=${encodeURIComponent(query)}`,
+    { headers: { 'User-Agent': UA } },
+  );
+  if (!esearch.ok) throw new Error(`PubMed esearch HTTP ${esearch.status}`);
+  const ids = ((await esearch.json()) as { esearchresult?: { idlist?: string[] } }).esearchresult?.idlist ?? [];
+  if (ids.length === 0) return [];
+  const efetch = await fetch(`${base}/efetch.fcgi?db=pubmed&retmode=xml&id=${ids.join(',')}`, {
+    headers: { 'User-Agent': UA },
+  });
+  if (!efetch.ok) throw new Error(`PubMed efetch HTTP ${efetch.status}`);
+  return parsePubmed(await efetch.text());
+}
+
 // --- dispatch ---------------------------------------------------------------
 
 /** Search the given online source. Throws on network/HTTP error. */
 export function searchOnline(source: OnlineSource, query: string): Promise<OnlineResult[]> {
-  return source === 'arxiv' ? searchArxiv(query) : searchCrossref(query);
+  switch (source) {
+    case 'arxiv':
+      return searchArxiv(query);
+    case 'openalex':
+      return searchOpenAlex(query);
+    case 'doi':
+      return searchDoi(query);
+    case 'isbn':
+      return searchIsbn(query);
+    case 'pubmed':
+      return searchPubmed(query);
+    case 'crossref':
+    default:
+      return searchCrossref(query);
+  }
 }

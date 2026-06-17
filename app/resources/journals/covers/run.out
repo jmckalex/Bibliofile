@@ -314,3 +314,797 @@
 [71] Filosofia Unisinos
     homepage: http://revistas.unisinos.br/index.php/filosofia
     try favicon: http://revistas.unisinos.br/favicon.ico
+      image 16x16 -> 1519-5023.ico
+[72] Filosofiya osvity Philosophy of Education
+    homepage: https://philosopheducation.com
+    try favicon: https://philosopheducation.com/public/journals/1/favicon_en_US.png
+      image 16x16 -> 2309-1606.png
+[73] Filozofia Chrześcijańska
+    homepage: http://filozofiachrzescijanska.amu.edu.pl
+    try favicon: http://filozofiachrzescijanska.amu.edu.pl/favico.ico?v=6
+      image 32x32 -> 1734-4530.ico
+[74] Filozofia Nauki
+    homepage: http://www.ceeol.com./search/journal-detal?d=859
+    try favicon: http://www.ceeol.com./favicon.ico
+      image 32x32 -> 1230-6894.ico
+[75] Filozofia Publiczna i Edukacja Demokratyczna
+    homepage: http://filozofiapubliczna.amu.edu.pl/
+    try favicon: http://filozofiapubliczna.amu.edu.pl/favicon.ico
+      not an image (ctype=text/html, 22 bytes)
+    NO USABLE IMAGE
+[76] Frontiers of Philosophy in China
+    homepage: http://www.springerlink.com/content/1673-355X
+    retry html fetch
+    FETCH FAILED
+[77] Future Human Image
+    homepage: http://www.fhijournal.org/
+    try apple-touch-icon: https://www.fhijournal.org/wp-content/uploads/2020/05/cropped-favicon_fhi-1-180x180.png
+      image 180x180 -> 2311-8822.png
+[78] Futurity Philosophy.
+    homepage: http://futurity-philosophy.com/index.php/FPH/index
+    try favicon: http://futurity-philosophy.com/public/journals/1/favicon_en_US.png
+      image 6181x2738 -> 2956-7238.png
+      thumbnailed -> 512x227
+[79] Graduate Faculty Philosophy Journal
+    homepage: http://www.pdcnet.org/gfpj
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_gfpj/$file/gfpj.jpg
+      image 200x200 -> 0093-4240.jpg
+[80] History & Philosophy of the Life Sciences
+    homepage: https://www.springer.com/journal/40656
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/40656.jpg
+      image 92x138 -> 0391-9714.jpg
+[81] History and Philosophy of Logic
+    homepage: https://www.tandfonline.com/toc/thpl20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 0144-5340.ico
+[82] History of Philosophy Quarterly
+    homepage: http://www.press.uillinois.edu/journals/hpq.html
+    try og:image: http://www.press.uillinois.edu/images/UIP_logo.jpg
+      not an image (ctype=text/html, 22429 bytes)
+    try favicon: http://www.press.uillinois.edu/favicon.ico
+      image 64x64 -> 0740-0675.ico
+[83] HOPOS The Journal of the International Society for the History of Philosophy of Science
+    homepage: http://www.journals.uchicago.edu/toc/hopos/current
+    try favicon: http://www.journals.uchicago.edu/favicon.ico
+      not an image (ctype=text/html, 5811 bytes)
+    NO USABLE IMAGE
+[84] Human Studies a collection of scientific articles Series of «Philosophy»
+    homepage: http://ddpu.drohobych.net/filos_lud
+    retry html fetch
+    FETCH FAILED
+[85] IAFOR Journal of Ethics Religion & Philosophy
+    homepage: https://iafor.org/journal/iafor-journal-of-ethics-religion-and-philosophy/
+    try og:image: https://iafor.org/wp-content/uploads/2017/01/IAFOR-Journal-of-Ethics-Religion-Philosophy.jpg
+      image 1500x750 -> 2187-0624.jpg
+      thumbnailed -> 512x256
+[86] Indonesian Journal of Islamic Theology and Philosophy
+    homepage: http://ejournal.radenintan.ac.id/index.php/ijitp
+    try favicon: http://ejournal.radenintan.ac.id/favicon.ico
+      not an image (ctype=text/html, 5768 bytes)
+    NO USABLE IMAGE
+[87] International Journal for Philosophy of Religion
+    homepage: https://link.springer.com/journal/11153
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/11153.jpg
+      image 92x139 -> 0020-7047.jpg
+[88] International Journal of Applied Philosophy
+    homepage: http://www.pdcnet.org/ijap
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_ijap/$file/ijap.jpg
+      image 200x200 -> 0739-098X.jpg
+[89] International Journal of Management Concepts and Philosophy
+    homepage: http://www.inderscience.com/jhome.php?jcode=ijmcp
+    try favicon: http://www.inderscience.com/favicon.ico
+      image 16x16 -> 1478-1484.jpg
+[90] International Journal of Philosophy
+    homepage: http://www.sciencepublishinggroup.com/journal/archive.aspx?journalid=204&issueid=-1
+    try favicon: http://www.sciencepublishinggroup.com/favicon.ico
+      image 48x48 -> 2330-7439.ico
+[91] International Journal of Philosophy and Theology
+    homepage: https://www.tandfonline.com/toc/rjpt20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 2169-2327.ico
+[92] International Journal of Philosophy and Theology (IJPT)
+    homepage: http://www.aripd.org/ijpt
+    try favicon: http://www.aripd.org/favicon.ico
+      not an image (ctype=, 0 bytes)
+    NO USABLE IMAGE
+[93] International journal of philosophy study
+    homepage: http://www.seipub.org/ijps
+    try favicon: http://www.seipub.org/favicon.ico
+      not an image (ctype=image/x-icon, 1163 bytes)
+    NO USABLE IMAGE
+[94] International Journal of Theology Philosophy and Science
+    homepage: http://ijtps.com/en/NO-1-YEAR-I-NOVEMBER-2017
+    NO USABLE IMAGE
+[95] International Journal of Yoga - Philosophy Psychology and Parapsychology
+    homepage: http://www.ijoyppp.org
+    try favicon: http://www.ijoyppp.org/favicon.ico
+      not an image (ctype=text/plain, 15 bytes)
+    NO USABLE IMAGE
+[96] International Perspectives in Christian Education and Philosophy
+    homepage: https://international.aripafi.or.id/index.php/IPCEP
+    try favicon: https://international.aripafi.or.id/public/journals/4/favicon_en_US.png
+      image 437x418 -> 3047-2997.png
+[97] International Studies in Philosophy
+    homepage: http://www.pdcnet.org/intstudphil/International-Studies-in-Philosophy
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_intstudphil/$file/intstudphil.jpg
+      image 200x200 -> 0270-5664.jpg
+[98] International Studies in the Philosophy of Science
+    homepage: https://www.tandfonline.com/toc/cisp20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 0269-8595.ico
+[99] International Theory
+    homepage: http://journals.cambridge.org/action/displayJournal?jid=INT
+    try og:image: https://static.cambridge.org/covers/INT_0_0_0/international_theory.jpg?send-full-size-image=true
+      image 1706x2560 -> 1752-9719.jpg
+      thumbnailed -> 341x512
+[100] Izvestiya of Saratov University Philosophy Psychology Pedagogy
+    homepage: https://phpp.sgu.ru/
+    try favicon: http://phpp.sgu.ru/sites/phpp.sgu.ru/files/logo.ico
+      image 64x64 -> 1819-7671.ico
+[101] JOLMA
+    homepage: https://edizionicafoscari.unive.it/en/edizioni4/riviste/the-journal-for-the-philosophy-of-language-mind-an/
+    try og:image: https://edizionicafoscari.it/static/ecfwebsite_4/assets/og.jpeg
+      image 1600x840 -> 2723-9640.jpg
+      thumbnailed -> 512x268
+[102] Journal for Continental Philosophy of Religion
+    homepage: https://brill.com/view/journals/jcpr/jcpr-overview.xml
+    try og:image: https://brill.com/cover/covers/37202.jpg
+      image 1832x2776 -> 2588-9605.jpg
+      thumbnailed -> 338x512
+[103] Journal for General Philosophy of Science
+    homepage: http://www.springer.com/philosophy/philosophy+of+sciences/journal/10838
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/10838.jpg
+      image 92x141 -> 0044-2216.jpg
+[104] Journal for the History of Analytical Philosophy
+    homepage: https://jhaponline.org
+    try favicon: https://jhaponline.org/favicon.ico
+      download failed
+    NO USABLE IMAGE
+[105] Journal for the Philosophy of Mathematics.
+    homepage: https://riviste.fupress.net/index.php/jpm/index
+    try favicon: https://riviste.fupress.net/favicon.ico
+      image 16x16 -> 3035-1863.ico
+[106] Journal of Advances in Education and Philosophy
+    homepage: http://saudijournals.com/jaep-archive
+    try favicon: http://saudijournals.com/favicon.ico
+      not an image (ctype=text/html, 77 bytes)
+    NO USABLE IMAGE
+[107] Journal of Ancient Philosophy
+    homepage: https://www.revistas.usp.br/filosofiaantiga
+    try favicon: https://www.revistas.usp.br/favicon.ico
+      image 32x32 -> 1981-9471.ico
+[108] Journal of Applied Philosophy
+    homepage: http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1468-5930
+    try favicon: http://onlinelibrary.wiley.com/favicon.ico
+      image 48x48 -> 0264-3758.ico
+[109] Journal of contemporary Chinese philosophy.
+    homepage: https://brill.com/
+    try og:image: https://brill.com/fileasset/fileasset/appbar/logo-brill-300x100-transparent-desktop.png
+      image 300x100 -> 2950-2799.png
+[110] Journal of Dharma Studies
+    homepage: https://link.springer.com/journal/42240
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/42240.jpg
+      image 92x139 -> 2522-0926.jpg
+[111] Journal of Eastern Philosophy
+    homepage: https://eastphil.jams.or.kr/co/com/EgovMenu.kci?s_url=/sj/search/sjSereClasList.kci&s_MenuId=MENU-000000000053000&accnId=
+    try favicon: https://eastphil.jams.or.kr/jams30/css/images/favicon-196x196.png
+      image 196x196 -> 1229-5965.png
+[112] Journal of Economic Philosophy
+    homepage: http://www.sciknow.org/journals/show/id/jep
+    retry html fetch
+    FETCH FAILED
+[113] Journal of Ethics and Social Philosophy
+    homepage: http://www.jesp.org/
+    try og:image: https://www.jesp.org/og-default.png
+      image 1200x630 -> 1559-3061.png
+      thumbnailed -> 512x269
+[114] Journal of French and Francophone Philosophy
+    homepage: http://jffp.pitt.edu
+    try favicon: http://jffp.pitt.edu/favicon.ico
+      image 16x16 -> 2155-1162.ico
+[115] Journal of Indian Philosophy
+    homepage: http://www.springer.com/philosophy/journal/10781
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/10781.jpg
+      image 92x141 -> 0022-1791.jpg
+[116] Journal of Indian Philosophy and Religion
+    homepage: https://www.pdcnet.org/jipr
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_jipr/$file/jipr.jpg
+      image 200x200 -> 0971-944X.jpg
+[117] Journal of Islamic Philosophy
+    homepage: http://secure.pdcnet.org/pdc/bvdb.nsf/journal?openform&journal=pdc_islamicphil
+    try favicon: http://secure.pdcnet.org/favicon.ico
+      not an image (ctype=text/html, 252 bytes)
+    NO USABLE IMAGE
+[118] Journal of Jewish Thought and Philosophy
+    homepage: http://www.ingentaconnect.com/content/brill/gjtp
+    try favicon: http://www.ingentaconnect.com/favicon.ico
+      image 32x32 -> 1053-699X.ico
+[119] Journal of Modern Philosophy
+    homepage: https://jmphil.org
+    try favicon: https://jmphil.org/media/press_carousel/e24ba697-16fb-48b3-884d-be1cf4415183.png
+      image 32x32 -> 2644-0652.png
+[120] Journal of Moral Philosophy
+    homepage: http://www.brill.com/jmp
+    try og:image: https://brill.com/cover/covers/29966.jpg
+      image 1885x2833 -> 1740-4681.jpg
+      thumbnailed -> 340x512
+[121] Journal Of pan-Korean Philosophical Society
+    homepage: https://www.kci.go.kr/kciportal/po/search/poSereArtiList.kci?sereId=001234
+    try favicon: https://www.kci.go.kr/favicon.ico
+      image 16x16 -> 1225-1410.ico
+[122] Journal of Philosophy A Cross-Disciplinary Inquiry
+    homepage: http://secure.pdcnet.org/pdc/bvdb.nsf/journal?openform&journal=pdc_jphilnepal
+    try favicon: http://secure.pdcnet.org/favicon.ico
+      not an image (ctype=text/html, 252 bytes)
+    NO USABLE IMAGE
+[123] Journal of Philosophy in Schools
+    homepage: https://jps.bham.ac.uk/
+    try og:image: https://storage.googleapis.com/jnl-up-j-jps-public/journals/1/journalThumbnail_en_US.png
+      image 113x115 -> 2204-2482.png
+[124] Journal of Philosophy of Education
+    homepage: https://academic.oup.com/jope
+    try favicon: https://academic.oup.com/favicon.ico
+      not an image (ctype=text/html, 5717 bytes)
+    NO USABLE IMAGE
+[125] Journal of Philosophy of Emotion
+    homepage: https://jpeonline.org/ojs/index.php/jpe
+    try og:image: https://lh3.googleusercontent.com/sitesv/AA5AbUCDzz6OANr33UomX2uP1IEBkqPn92ygJnuxPe3X_I_yMPbBQX4v3d69eg8tU8x608oFPkYtUERgLLJJjPvlJlrxKM469IHUiuRHoNvgysWpQCnP8O6euYC8_U4S1ZnTb-cAkdyXdKoNtuGRcjrXlCt2k1UX3newrgYS21Y=w16383
+      image 139x300 -> 2689-8187.png
+[126] Journal of philosophy, culture and religion.
+    homepage: https://www.iprjb.org/journals/index.php/JPCR
+    try favicon: https://www.iprjb.org/favicon.ico
+      image 32x32 -> 3007-9322.png
+[127] Journal of Political Philosophy
+    homepage: https://onlinelibrary.wiley.com/journal/14679760
+    try favicon: https://onlinelibrary.wiley.com/favicon.ico
+      image 48x48 -> 0963-8016.ico
+[128] Journal of Research in Philosophy and History
+    homepage: http://www.scholink.org/ojs/index.php/jrph
+    try favicon: http://www.scholink.org/favicon.ico
+      not an image (ctype=text/html, 263 bytes)
+    NO USABLE IMAGE
+[129] Journal of Scottish Philosophy
+    homepage: http://www.eupjournals.com/journal/jsp
+    try favicon: http://www.eupjournals.com/favicon.ico
+      image 48x48 -> 1479-6651.ico
+[130] Journal of Social Philosophy
+    homepage: https://onlinelibrary.wiley.com/journal/14679833
+    try favicon: https://onlinelibrary.wiley.com/favicon.ico
+      image 48x48 -> 0047-2786.ico
+[131] Journal of social philosophy research
+    homepage: http://www.sciknow.org/journals/show/id/jspr
+    retry html fetch
+    FETCH FAILED
+[132] Journal of the Faculty of Philosophy in Sarajevo / Radovi Filozofskog fakulteta u Sarajevu ISSN 2303-6990 on-line
+    homepage: http://www.sumins.hr/radovi
+    try apple-touch-icon: https://i0.wp.com/www.sumins.hr/wp-content/uploads/2018/03/cropped-header-logo-2.png?fit=180%2C180&ssl=1
+      image 180x180 -> 0581-7447.png
+[133] Journal of the history of philosophy
+    homepage: http://philosophy.wisc.edu/jhp/
+    try apple-touch-icon: https://philosophy.wisc.edu/wp-content/themes/uw-theme/dist/images/favicons/apple-touch-icon.png
+      image 180x180 -> 0022-5053.png
+[134] Journal of the Philosophy of Games
+    homepage: https://www.journals.uio.no/index.php/JPG/index
+    try favicon: https://www.journals.uio.no/favicon.ico
+      image 256x256 -> 2535-4388.ico
+[135] Journal of the Philosophy of History
+    homepage: http://brill.publisher.ingentaconnect.com/content/brill/jph
+    try favicon: http://brill.publisher.ingentaconnect.com/favicon.ico
+      image 32x32 -> 1872-261X.ico
+[136] Journal of the Philosophy of Sport
+    homepage: https://www.tandfonline.com/toc/rjps20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 0094-8705.ico
+[137] Jus Cogens
+    homepage: https://www.springer.com/journal/42439
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/42439.jpg
+      image 92x139 -> 2524-3977.jpg
+[138] Kanz Philosophia A Journal for Islamic Philosophy and Mysticism
+    homepage: https://journal.sadra.ac.id/ojs/index.php/kanz/
+    try favicon: https://journal.sadra.ac.id/favicon.ico
+      not an image (ctype=text/html, 1251 bytes)
+    NO USABLE IMAGE
+[139] Krisis | Journal for Contemporary Philosophy
+    homepage: http://www.krisis.org
+    try apple-touch-icon: https://www.krisis.org/wp-content/data/krisis-k-favicon-300x300.png
+      image 300x300 -> 0168-275X.png
+[140] Kriterion – Journal of Philosophy
+    homepage: http://www.kriterion-journal-of-philosophy.org
+    try favicon: http://www.kriterion-journal-of-philosophy.org/favicon.ico
+      not an image (ctype=text/html, 0 bytes)
+    NO USABLE IMAGE
+[141] Kritike An Online Journal of Philosophy
+    homepage: http://kritike.org/index.html
+    try favicon: http://kritike.org/favicon.ico
+      image 32x32 -> 1908-7330.ico
+[142] Labyrinth
+    homepage: http://www.axiapublishers.com/ojs/index.php/labyrinth/
+    try favicon: http://www.axiapublishers.com/favicon.ico
+      not an image (ctype=text/html, 1251 bytes)
+    NO USABLE IMAGE
+[143] Las Torres de Lucca International Journal of Political Philosophy
+    homepage: http://www.lastorresdelucca.org/
+    retry html fetch
+    FETCH FAILED
+[144] Law and Philosophy
+    homepage: https://link.springer.com/journal/10982
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/10982.jpg
+      image 92x139 -> 0167-5249.jpg
+[145] Law Ethics and Philosophy
+    homepage: http://www.raco.cat/index.php/LEAP
+    try favicon: http://www.raco.cat/favicon.ico
+      image 48x48 -> 2341-1465.ico
+[146] Lebenswelt Aesthetics and philosophy of experience
+    homepage: http://riviste.unimi.it/index.php/Lebenswelt/
+    try favicon: http://riviste.unimi.it/favicon.ico
+      image 16x16 -> 2240-9599.ico
+[147] Library philosophy and practice
+    homepage: http://www.uidaho.edu/%7Embolin/1p&p.htm
+    try favicon: http://www.uidaho.edu/favicon.ico
+      image 32x32 -> 1522-0222.ico
+[148] Linguistics and Philosophy
+    homepage: http://www.springer.com/linguistics/semantics/journal/10988
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/10988.jpg
+      image 92x139 -> 0165-0157.jpg
+[149] Logic and Logical Philosophy
+    homepage: http://wydawnictwoumk.pl/czasopisma/index.php/LLP
+    retry html fetch
+    FETCH FAILED
+[150] Medicine and Philosophy
+    homepage: http://www.yizhe.org
+    NO USABLE IMAGE
+[151] Medicine Health Care and Philosophy
+    homepage: https://www.springer.com/journal/11019
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/11019.jpg
+      image 92x122 -> 1386-7423.jpg
+[152] Medieval Philosophy and Theology
+    homepage: http://www.journals.cambridge.org/bin/bladerunner?REQUNIQ=1032331846&REQSESS=2656097&116000REQEVENT=&REQSTR1=MPT&REQAUTH=0
+    try favicon: http://www.journals.cambridge.org/favicon.ico
+      not an image (ctype=text/plain, 21 bytes)
+    NO USABLE IMAGE
+[153] Metascience
+    homepage: https://link.springer.com/journal/11016
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/11016.jpg
+      image 92x140 -> 0815-0796.jpg
+[154] Metodo International Studies in Phenomenology and Philosophy
+    homepage: http://www.metodo-rivista.eu/index.php/metodo/issue/archive
+    try favicon: http://www.metodo-rivista.eu/favicon.ico
+      not an image (ctype=text/html, 1128 bytes)
+    NO USABLE IMAGE
+[155] Midwest Studies in Philosophy
+    homepage: http://www.blackwellpublishing.com/journal.asp?ref=0363-6550&site=1
+    try favicon: http://www.blackwellpublishing.com/favicon.ico
+      not an image (ctype=text/html, 5369 bytes)
+    NO USABLE IMAGE
+[156] MISES Interdisciplinary Journal of Philosophy Law and Economics
+    homepage: https://www.misesjournal.org.br
+    retry html fetch
+    FETCH FAILED
+[157] NaUKMA Research Papers Philosophy and Religious Studies
+    homepage: http://nzpr.ukma.edu.ua/
+    try favicon: http://nzpr.ukma.edu.ua/favicon.ico
+      image 16x16 -> 2617-1678.ico
+[158] Nazariyat İslam Felsefe ve Bilim Tarihi Araştırmaları Dergisi (Journal for the History of Islamic Philosophy and Sciences)
+    homepage: http://www.nazariyat.org
+    try og:image: https://www.nazariyat.org/content/site_amblem_tr_en.png
+      image 1067x275 -> 2148-8088.png
+      thumbnailed -> 512x132
+[159] Netherlands Journal of Legal Philosophy
+    homepage: http://www.elevenjournals.com/tijdschrift/rechtsfilosofieentheorie
+    try favicon: http://www.elevenjournals.com/favicon.ico
+      not an image (ctype=text/html, 204388 bytes)
+    NO USABLE IMAGE
+[160] New Scholasticism
+    homepage: https://www.pdcnet.org/newscholas
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_newscholas/$file/newscholas.jpg
+      image 200x200 -> 0028-6621.jpg
+[161] New Yearbook for Phenomenology and Phenomenological Philosophy
+    homepage: http://books.google.com/books?id=ARFAAQAAIAAJ
+    try og:image: https://books.google.co.uk/books/content?id=ARFAAQAAIAAJ&printsec=frontcover&img=1&zoom=1&imgtk=AFLRE71UorxbfB0kRBX-lE_eYLlUrKHy3W1BCwLYA9j_ZYZFGTxfCeIsxgPLGUcDX3cUdti2Lb0d-_Fqcuvl1zgfcAxVSh6ueuONWVpjn3eo0xqwxi0EP45gqAO-BVEcOi63-IhooLJX
+      image 128x174 -> new-yearbook-for-phenomenology-and-phenomenological-philosophy.jpg
+[162] NTERNATIONAL JOURNAL OF PHILOSOPHY AND LIFE
+    homepage: https://tadqiqot.uz/jurnallar/falsafa-fanlari/
+    try favicon: https://tadqiqot.uz/favicon.ico
+      image 16x16 -> 2181-9505.ico
+[163] Nursing Philosophy
+    homepage: https://onlinelibrary.wiley.com/journal/1466769X
+    try favicon: https://onlinelibrary.wiley.com/favicon.ico
+      image 48x48 -> 1466-7681.ico
+[164] Open Journal for Studies in Philosophy
+    homepage: http://www.centerprode.com/ojsp.html
+    try favicon: http://www.centerprode.com/favicon.ico
+      not an image (ctype=text/html, 355 bytes)
+    NO USABLE IMAGE
+[165] Open Journal of Philosophy
+    homepage: http://www.scirp.org/journal/ojpp
+    try favicon: http://www.scirp.org/favicon.ico
+      image 32x32 -> 2163-9434.ico
+[166] Open Philosophy
+    homepage: https://www.degruyter.com/view/j/opphil
+    try og:image: https://www.degruyterbrill.com/document/cover/journal_key/OPPHIL/product
+      image 200x266 -> 2543-8875.jpg
+[167] Organon F
+    homepage: http://www.klemens.sav.sk/fiusav/organon/index_en.php/
+    try favicon: http://www.klemens.sav.sk/fiusav/organon/sites/default/files/favicon_0.png
+      image 16x16 -> 1335-0668.png
+[168] Oxford studies in ancient philosophy
+    homepage: http://ukcatalogue.oup.com/category/academic/series/philosophy/osap.do
+    try favicon: http://ukcatalogue.oup.com/favicon.ico
+      not an image (ctype=text/html, 2003 bytes)
+    NO USABLE IMAGE
+[169] Pacific Philosophy Forum
+    homepage: https://www.tandfonline.com/toc/gwof18/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 0275-1194.ico
+[170] Palgrave studies in educational philosophy and theory.
+    homepage: {https://link.springer.com/series/16752,http://link.springer.com/bookseries/16752}
+    try og:image: https://media.springernature.com/w92/springer-static/cover/series/16752.jpg
+      image 92x129 -> 2731-0787.jpg
+[171] Performance Philosophy
+    homepage: https://www.performancephilosophy.org/journal
+    try og:image: https://www.performancephilosophy.org/PP_Logo-200.png
+      image 200x200 -> 2057-7176.png
+[172] Perspectives
+    homepage: http://www.tandf.co.uk/journals/titles/13603108.asp
+    try og:image: https://taylorandfrancis.com/wp-content/uploads/2026/02/open-graph-tandf.jpg
+      image 1200x630 -> 2009-1842.jpg
+      thumbnailed -> 512x269
+[173] Phainomenon
+    homepage: http://revistas.unife.edu.pe/index.php/phainomenon
+    try favicon: http://revistas.unife.edu.pe/favicon.ico
+      image 16x16 -> 0874-9493.ico
+[174] Philo
+    homepage: http://www.philoonline.org/
+    try apple-touch-icon: http://www.philoonline.org/assets/img/favicon.png
+      image 32x32 -> 1098-3570.png
+[175] Philosophica Critica
+    homepage: http://philosophicacritica.ukf.sk
+    try og:image: https://philosophicacritica.ukf.sk/uploads/1/3/9/8/13980582/editor/erih.jpg?1506084487
+      image 122x30 -> 1339-8970.jpg
+[176] Philosophiegeschichte und logische Analyse
+    homepage: http://www.ruhr-uni-bochum.de/philosophy/pla
+    try favicon: http://www.ruhr-uni-bochum.de/mam/images/icons/favicon.ico
+      image 16x16 -> 1617-3473.ico
+[177] Philosophy
+    homepage: http://journals.cambridge.org/action/displayJournal?jid=PHI
+    try og:image: https://static.cambridge.org/covers/PHI_0_0_0/philosophy.jpg?send-full-size-image=true
+      image 1706x2560 -> 0031-8191.jpg
+      thumbnailed -> 341x512
+[178] Philosophy & Social Criticism
+    homepage: http://psc.sagepub.com/
+    try favicon: http://psc.sagepub.com/favicon.ico
+      not an image (ctype=text/html, 5045 bytes)
+    NO USABLE IMAGE
+[179] Philosophy & Technology
+    homepage: https://www.springer.com/journal/13347
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/13347.jpg
+      image 92x139 -> 2210-5433.jpg
+[180] Philosophy &amp Public Affairs
+    homepage: http://onlinelibrary.wiley.com/journal/10.1111/(ISSN)1088-4963
+    try favicon: http://onlinelibrary.wiley.com/favicon.ico
+      image 48x48 -> 0048-3915.ico
+[181] Philosophy and Cosmology
+    homepage: http://ispcjournal.org/
+    try apple-touch-icon: https://ispcjournal.org/wp-content/uploads/2020/05/cropped-favicon_ispc-1-300x300.png
+      image 300x300 -> 2307-3705.png
+[182] Philosophy and Geography
+    homepage: https://www.tandfonline.com/toc/cpag20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 1090-3771.ico
+[183] Philosophy and Humanism
+    homepage: http://philhum.esy.es/
+    retry html fetch
+    FETCH FAILED
+[184] Philosophy and literature
+    homepage: http://www.press.jhu.edu/journals/philosophy_and_literature/
+    try favicon: http://www.press.jhu.edu/favicon.ico
+      not an image (ctype=text/html, 5696 bytes)
+    NO USABLE IMAGE
+[185] Philosophy and Phenomenological Research
+    homepage: http://www.blackwellpublishing.com/journal.asp?ref=0031-8205
+    try favicon: http://www.blackwellpublishing.com/favicon.ico
+      not an image (ctype=text/html, 5369 bytes)
+    NO USABLE IMAGE
+[186] Philosophy and Progress
+    homepage: http://www.banglajol.info/index.php/PP/index
+    try favicon: https://banglajol.info/public/site/favicon.ico
+      image 16x16 -> 1607-2278.ico
+[187] Philosophy and Rhetoric
+    homepage: http://www.psupress.org/journals/jnls_pr.html
+    try og:image: https://www.psupress.org/journals/images/img_SM_PR.jpg
+      image 100x150 -> 0031-8213.jpg
+[188] Philosophy and the Mind Sciences
+    homepage: https://philosophymindscience.org/index.php/phimisci/index
+    try favicon: https://philosophymindscience.org/public/journals/19/favicon_en_US.png
+      image 493x591 -> 2699-0369.png
+      thumbnailed -> 427x512
+[189] Philosophy and Theology
+    homepage: http://www.pdcnet.org/philtheol
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_philtheol/$file/philtheol.jpg
+      image 200x200 -> 0890-2461.jpg
+[190] Philosophy and Theory in Biology
+    homepage: http://www.philosophyandtheoryinbiology.org
+    try favicon: http://www.philosophyandtheoryinbiology.org/favicon.ico
+      not an image (ctype=text/html, 4480 bytes)
+    NO USABLE IMAGE
+[191] Philosophy Compass
+    homepage: https://onlinelibrary.wiley.com/journal/17479991
+    try favicon: https://onlinelibrary.wiley.com/favicon.ico
+      image 48x48 -> 1747-9991.ico
+[192] Philosophy East and West
+    homepage: http://www.uhpress.hawaii.edu/journals/pew/
+    try og:image: https://uhpress.hawaii.edu/wp-content/uploads/2017/03/PEW-76-2-cover-1-scaled.jpg
+      image 1824x2560 -> 0031-8221.jpg
+      thumbnailed -> 365x512
+[193] Philosophy Ethics and Humanities in Medicine
+    homepage: https://peh-med.biomedcentral.com/
+    try og:image: https://media.springernature.com/w110/springer-static/cover/journal/13010.jpg
+      image 110x156 -> 1747-5341.jpg
+[194] Philosophy in Context
+    homepage: http://www.pdcnet.org/philcontext
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_philcontext/$file/philcontext.jpg
+      image 200x200 -> 0742-2733.jpg
+[195] Philosophy in Review
+    homepage: http://journals.uvic.ca/index.php/pir/index
+    try favicon: https://journals.uvic.ca/public/journals/10/favicon_en_US.png
+      image 500x500 -> 1920-8936.png
+[196] Philosophy in the Contemporary World
+    homepage: http://www.pdcnet.org/pcw
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_pcw/$file/pcw.jpg
+      image 200x200 -> 1077-1999.jpg
+[197] Philosophy Journal of the Higher School of Economics
+    homepage: https://philosophy.hse.ru
+    try favicon: https://philosophy.hse.ru/favicon.ico
+      image 16x16 -> 2587-8719.ico
+[198] Philosophy now
+    homepage: http://philosophynow.org/
+    try favicon: http://philosophynow.org/media/images/regulars/icon.png
+      image 32x32 -> 0961-5970.png
+[199] Philosophy of Coaching An International Journal
+    homepage: https://philosophyofcoaching.org/
+    try og:image: https://philosophyofcoaching.org/wp-content/uploads/2023/09/PoC_cover-scaled.jpg
+      image 1810x2560 -> 2371-5251.jpg
+      thumbnailed -> 362x512
+[200] Philosophy of Management
+    homepage: https://www.springer.com/journal/40926
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/40926.jpg
+      image 92x140 -> 1740-3812.jpg
+[201] Philosophy of mathematics education journal
+    homepage: http://www.ex.ac.uk/~PErnest/
+    try favicon: http://www.ex.ac.uk/favicon.ico
+      not an image (ctype=text/html, 0 bytes)
+    NO USABLE IMAGE
+[202] Philosophy of Medicine
+    homepage: https://philmed.pitt.edu/philmed
+    try favicon: https://philmed.pitt.edu/public/journals/1/favicon_en_US.png
+      image 67x67 -> 2692-3963.png
+[203] Philosophy of Music Education Review
+    homepage: http://muse.jhu.edu/journals/pme
+    try og:image: http://muse.jhu.edu/images/muselogo_dark.png
+      image 445x250 -> 1063-5734.png
+[204] Philosophy of Religion Analytic Researches
+    homepage: https://iphras.ru/almanac.htm
+    try og:image: https://iphras.ru/image/iphlogo.jpg
+      image 1500x2200 -> 2587-683X.jpg
+      thumbnailed -> 349x512
+[205] Philosophy of Science
+    homepage: https://www.cambridge.org/core/journals/philosophy-of-science
+    try og:image: https://static.cambridge.org/covers/PSA_0_0_0/philosophy_of science.jpg?send-full-size-image=true
+      download failed
+    try favicon: https://www.cambridge.org/core/cambridge-core/public/images/favicon.ico
+      image 16x16 -> 0031-8248.png
+[206] Philosophy of the Social Sciences
+    homepage: http://www.sagepub.com/journals/Journal200913/title
+    try apple-touch-icon: http://www.sagepub.com/global/icons/apple-touch-icon-180x180-precomposed.png
+      image 180x180 -> 0048-3931.png
+[207] Philosophy pathways
+    homepage: http://www.philosophypathways.com/newsletter/index.html
+    try og:image: https://philosophypathways.com/wp-content/uploads/elementor/thumbs/14-8-q7iercztu4dcke8esxgpdm612u4rit8lr801ye5in4.jpg
+      image 400x400 -> 2043-0728.jpg
+[208] Philosophy study
+    homepage: http://www.davidpublishing.org/journals_info.asp?jId=364
+    retry html fetch
+    FETCH FAILED
+[209] Philosophy Theology and the Sciences
+    homepage: http://www.mohr.de/ptsc
+    try favicon: http://www.mohr.de/favicon.ico
+      not an image (ctype=text/html, 0 bytes)
+    NO USABLE IMAGE
+[210] Philosophy Theory and Practice in Biology
+    homepage: https://www.ptpbio.org/
+    try favicon: https://www.ptpbio.org/favicon.ico
+      not an image (ctype=text/html, 4480 bytes)
+    NO USABLE IMAGE
+[211] Philosophy Today
+    homepage: http://www.pdcnet.org/philtoday
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_philtoday/$file/philtoday.jpg
+      image 200x200 -> 0031-8256.jpg
+[212] Philosophy, psychiatry & psychology
+    homepage: http://www.press.jhu.edu/journals/philosophy_psychiatry_and_psychology/
+    try favicon: http://www.press.jhu.edu/favicon.ico
+      not an image (ctype=text/html, 5696 bytes)
+    NO USABLE IMAGE
+[213] Polish Journal of Philosophy
+    homepage: http://www.pjp.edu.pl/index.htm
+    retry html fetch
+    FETCH FAILED
+[214] Politics Philosophy & Economics
+    homepage: http://www.sagepub.com/journals/Journal201490/title
+    try apple-touch-icon: http://www.sagepub.com/global/icons/apple-touch-icon-180x180-precomposed.png
+      image 180x180 -> 1470-594X.png
+[215] Praxis
+    homepage: http://www.praxisjp.org/
+    NO USABLE IMAGE
+[216] Precollege Philosophy and Public Practice
+    homepage: https://www.pdcnet.org/p4/toc
+    try favicon: https://www.pdcnet.org/favicon.ico
+      image 16x16 -> 2576-9901.ico
+[217] Pro-Fil
+    homepage: http://www.phil.muni.cz/journals/index.php/profil/index
+    try favicon: https://journals.phil.muni.cz/public/journals/120/favicon_en_US.ico
+      image 16x16 -> 1212-9097.ico
+[218] Proceedings of the National Aviation University Series Philosophy Cultural
+    homepage: http://jrnl.nau.edu.ua/index.php/visnik
+    try favicon: http://jrnl.nau.edu.ua/favicon.ico
+      image 16x16 -> 2411-5606.ico
+[219] Proceedings of The National Conference on Indonesian Philosophy and Theology
+    homepage: https://e-journal.usd.ac.id/index.php/senafil/index
+    try favicon: https://e-journal.usd.ac.id/public/journals/38/journalFavicon_en_US.png
+      image 500x500 -> 3047-0714.png
+[220] PSA Proceedings of the Biennial Meeting of the Philosophy of Science Association
+    homepage: http://www.jstor.org/journals/02708647.html
+    try apple-touch-icon: http://www.jstor.org/assets/global_20171026T1134/build/images/apple-touch-icon.png
+      image 144x144 -> 0270-8647.png
+[221] Quest
+    homepage: http://www.quest-journal.net/
+    try favicon: http://www.quest-journal.net/favicon.ico
+      not an image (ctype=image/x-icon, 0 bytes)
+    NO USABLE IMAGE
+[222] Questions Philosophy for Young People
+    homepage: http://www.pdcnet.org/questions
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_questions/$file/questions.jpg
+      image 200x200 -> 1541-4760.jpg
+[223] Quodlibet online journal of Christian theology and philosophy
+    homepage: http://www.quodlibet.net/
+    try favicon: http://www.quodlibet.net/favicon.ico
+      not an image (ctype=, 0 bytes)
+    NO USABLE IMAGE
+[224] Radical philosophy
+    homepage: http://www.radicalphilosophy.com/
+    try og:image: https://www.radicalphilosophy.com/wp-content/uploads/2026/02/2.20_cover-front-565x800.jpg
+      image 565x800 -> 0300-211X.jpg
+      thumbnailed -> 361x512
+[225] Radical Philosophy Review
+    homepage: http://www.pdcnet.org/radphilrev
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_radphilrev/$file/radphilrev.jpg
+      image 200x200 -> 1388-4441.jpg
+[226] Radical Philosophy Today
+    homepage: http://secure.pdcnet.org/pdc/bvdb.nsf/journal?openform&journal=pdc_radphiltoday
+    try favicon: http://secure.pdcnet.org/favicon.ico
+      not an image (ctype=text/html, 252 bytes)
+    NO USABLE IMAGE
+[227] RESEARCH JOURNAL OF PHILOSOPHY & SOCIAL SCIENCES
+    homepage: http://rjpsss.anubooks.com
+    try favicon: http://rjpsss.anubooks.com/assets/img/favicon.png
+      image 13x13 -> 0048-7325.png
+[228] Review Journal of Political Philosophy
+    homepage: http://rjpp.anubooks.com
+    try favicon: http://rjpp.anubooks.com/assets/img/favicon.png
+      image 13x13 -> 0976-3635.png
+[229] REVIEW JOURNAL PHILOSOPHY & SOCIAL SCIENCE
+    homepage: http://rjpss.anubooks.com
+    try favicon: http://rjpss.anubooks.com/assets/img/favicon.png
+      image 13x13 -> 0258-1701.png
+[230] Review of Contemporary Philosophy
+    homepage: http://search.ebscohost.com/direct.asp?db=hlh&jid=92J5&scope=site
+    try favicon: http://search.ebscohost.com/favicon.ico
+      not an image (ctype=text/html, 1929 bytes)
+    NO USABLE IMAGE
+[231] Review of Philosophy and Psychology
+    homepage: http://www.springer.com/13164
+    try og:image: https://media.springernature.com/w92/springer-static/cover/journal/13164.jpg
+      image 92x139 -> 1878-5158.jpg
+[232] Roczniki Filozoficzne
+    homepage: http://kul.lublin.pl/1933.html
+    try og:image: https://www.kul.pl/tpl/kul3/img/main/logo.png
+      image 328x100 -> 0035-7685.png
+[233] Royal Institute of Philosophy Lecture Series
+    homepage: http://journals.cambridge.org/PHS
+    try og:image: https://static.cambridge.org/covers/PHS_0_0_0/royal_institute of philosophy supplements.jpg?send-full-size-image=true
+      download failed
+    try favicon: http://journals.cambridge.org/core/cambridge-core/public/images/favicon.ico
+      not an image (ctype=text/html, 703618 bytes)
+    NO USABLE IMAGE
+[234] Royal Institute of Philosophy Supplement
+    homepage: http://journals.cambridge.org/action/displayJournal?jid=PHS
+    try og:image: https://static.cambridge.org/covers/PHS_0_0_0/royal_institute of philosophy supplements.jpg?send-full-size-image=true
+      download failed
+    try favicon: http://journals.cambridge.org/core/cambridge-core/public/images/favicon.ico
+      not an image (ctype=text/html, 703618 bytes)
+    NO USABLE IMAGE
+[235] RUDN Journal of Philosophy
+    homepage: http://journals.rudn.ru/philosophy
+    try og:image: https://journals.rudn.ru/public/journals/18/homepageImage_en_US.png
+      image 199x305 -> 2313-2302.png
+[236] Russian Studies in Philosophy
+    homepage: https://www.tandfonline.com/toc/mrsp20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 1061-1967.ico
+[237] Santalka filosofija komunikacija
+    homepage: http://www.cpc.vgtu.lt
+    retry html fetch
+    FETCH FAILED
+[238] Science & philosophy
+    homepage: http://eiris.it/ojs/index.php/scienceandphilosophy/index
+    try favicon: http://eiris.it/favicon.ico
+      not an image (ctype=image/vnd.microsoft.icon, 0 bytes)
+    NO USABLE IMAGE
+[239] Social Philosophy and Policy
+    homepage: https://www.cambridge.org/core/journals/social-philosophy-and-policy
+    try og:image: https://static.cambridge.org/covers/SOY_0_0_0/social_philosophy and policy.jpg?send-full-size-image=true
+      download failed
+    try favicon: https://www.cambridge.org/core/cambridge-core/public/images/favicon.ico
+      image 16x16 -> 0265-0525.png
+[240] Social Philosophy Today
+    homepage: http://www.pdcnet.org/socphiltoday
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_socphiltoday/$file/socphiltoday.jpg
+      image 200x200 -> 1543-4044.jpg
+[241] Society for Philosophy and Technology Quarterly Electronic Journal
+    homepage: http://www.pdcnet.org/techne
+    try og:image: https://www.pdcnet.org/pdc/productspdc_sandbox2.nsf/LUprodukt/pdc_techne/$file/Techne.jpg
+      image 200x200 -> 1091-8264.jpg
+[242] South African Journal of Philosophy
+    homepage: https://www.tandfonline.com/toc/rsph20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 0258-0136.ico
+[243] Southwest Philosophy Review
+    homepage: http://secure.pdcnet.org/pdc/bvdb.nsf/journal?openform&journal=pdc_swphilreview
+    try favicon: http://secure.pdcnet.org/favicon.ico
+      not an image (ctype=text/html, 252 bytes)
+    NO USABLE IMAGE
+[244] Southwestern Journal of Philosophy
+    homepage: http://www.jstor.org/action/showPublication?journalCode=soutjphil
+    try apple-touch-icon: http://www.jstor.org/assets/global_20171026T1134/build/images/apple-touch-icon.png
+      image 144x144 -> 0038-481X.png
+[245] Soviet Studies in Philosophy
+    homepage: https://www.tandfonline.com/toc/mrsp20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 0038-5883.ico
+[246] Spontaneous Generations A Journal for the History and Philosophy of Science
+    homepage: http://spontaneousgenerations.library.utoronto.ca/index.php/SpontaneousGenerations
+    try favicon: http://spontaneousgenerations.library.utoronto.ca/favicon.ico
+      image 16x16 -> 1913-0465.ico
+[247] Sport Ethics and Philosophy
+    homepage: https://www.tandfonline.com/toc/rsep20/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 1751-1321.ico
+[248] Springer graduate texts in philosophy.
+    homepage: https://link.springer.com/bookseries/13799
+    try og:image: https://media.springernature.com/w92/springer-static/cover/series/13799.jpg
+      image 92x137 -> 2627-6046.jpg
+[249] St Tikhon s University Review
+    homepage: http://vestnik1.pstgu.ru/en/series/index/1
+    try favicon: http://vestnik1.pstgu.ru/favicon.ico
+      image 16x16 -> 1991-640X.ico
+[250] Stance An International Undergraduate Philosophy Journal
+    homepage: http://stance.iweb.bsu.edu/
+    retry html fetch
+    FETCH FAILED
+[251] Stanford encyclopedia of philosophy
+    homepage: http://plato.stanford.edu/
+    try favicon: http://plato.stanford.edu/favicon.ico
+      image 16x16 -> 1095-5054.png
+[252] Studies in Educational Policy and Educational Philosophy
+    homepage: https://www.tandfonline.com/toc/znst19/current
+    try favicon: https://www.tandfonline.com/favicon.ico
+      image 16x16 -> 1652-2729.ico
+[253] Studies in History and Philosophy of Science Part A
+    homepage: https://www.journals.elsevier.com/studies-in-history-and-philosophy-of-science
+    try favicon: https://sdfestaticassets-eu-west-1.sciencedirectassets.com/shared-assets/103/images/favSD.ico
+      image 32x32 -> 0039-3681.ico
+[254] Studies in History and Philosophy of Science Part B Studies in History and Philosophy of Modern Physics
+    homepage: https://www.journals.elsevier.com/studies-in-history-and-philosophy-of-science-part-b-studies-in-history-and-philosophy-of-modern-physics
+    try favicon: https://sdfestaticassets-eu-west-1.sciencedirectassets.com/shared-assets/103/images/favSD.ico
+      image 32x32 -> 1355-2198.ico
+[255] Studies in History and Philosophy of Science Part C Studies in History and Philosophy of Biological and Biomedical Sciences
+    homepage: https://www.journals.elsevier.com/studies-in-history-and-philosophy-of-science-part-c-studies-in-history-and-philosophy-of-biological-and-biomedical-sciences

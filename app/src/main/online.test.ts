@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseCrossref, parseArxiv } from './online.js';
+import { parseCrossref, parseArxiv, parseOpenAlex, parseOpenLibrary, parsePubmed } from './online.js';
 
 describe('parseCrossref', () => {
   it('maps a CrossRef journal-article to normalised + BibTeX fields', () => {
@@ -69,5 +69,86 @@ describe('parseArxiv', () => {
     expect(results).toHaveLength(1);
     expect(results[0]!.fields.Author).toBe('A. Solo');
     expect(results[0]!.year).toBe('1999');
+  });
+});
+
+describe('parseOpenAlex', () => {
+  it('maps an OpenAlex work to normalised + BibTeX fields', () => {
+    const json = {
+      results: [
+        {
+          title: 'On Bullshit',
+          publication_year: 2005,
+          type: 'book',
+          doi: 'https://doi.org/10.1515/9781400826537',
+          authorships: [{ author: { display_name: 'Harry G. Frankfurt' } }],
+          primary_location: { source: { display_name: 'Princeton University Press' } },
+          biblio: { volume: '1', issue: '2', first_page: '1', last_page: '80' },
+        },
+      ],
+    };
+    const [r] = parseOpenAlex(json);
+    expect(r!.entryType).toBe('book');
+    expect(r!.title).toBe('On Bullshit');
+    expect(r!.year).toBe('2005');
+    expect(r!.fields.Author).toBe('Harry G. Frankfurt');
+    expect(r!.doi).toBe('10.1515/9781400826537'); // doi.org prefix stripped
+    expect(r!.fields.Pages).toBe('1--80');
+    expect(r!.fields.Booktitle).toBe('Princeton University Press'); // non-article venue
+  });
+});
+
+describe('parseOpenLibrary', () => {
+  it('maps an Open Library book record to a book entry', () => {
+    const json = {
+      'ISBN:9780691122946': {
+        title: 'The Construction of Social Reality',
+        authors: [{ name: 'John R. Searle' }],
+        publishers: [{ name: 'Free Press' }],
+        publish_date: '1995',
+        url: 'https://openlibrary.org/books/OL1.M',
+      },
+    };
+    const [r] = parseOpenLibrary(json, '9780691122946');
+    expect(r!.entryType).toBe('book');
+    expect(r!.title).toBe('The Construction of Social Reality');
+    expect(r!.fields.Author).toBe('John R. Searle');
+    expect(r!.fields.Publisher).toBe('Free Press');
+    expect(r!.year).toBe('1995');
+    expect(r!.fields.Isbn).toBe('9780691122946');
+  });
+
+  it('returns nothing when the ISBN is not found', () => {
+    expect(parseOpenLibrary({}, '0000000000')).toEqual([]);
+  });
+});
+
+describe('parsePubmed', () => {
+  it('maps a PubMed efetch article to normalised + BibTeX fields', () => {
+    const xml = `<?xml version="1.0"?>
+      <PubmedArticleSet><PubmedArticle><MedlineCitation>
+        <PMID>12345678</PMID>
+        <Article>
+          <ArticleTitle>Consciousness and  the brain.</ArticleTitle>
+          <AuthorList>
+            <Author><LastName>Dehaene</LastName><ForeName>Stanislas</ForeName></Author>
+            <Author><LastName>Naccache</LastName><ForeName>Lionel</ForeName></Author>
+          </AuthorList>
+          <Journal><Title>Cognition</Title>
+            <JournalIssue><Volume>79</Volume><Issue>1</Issue><PubDate><Year>2001</Year></PubDate></JournalIssue>
+          </Journal>
+          <Pagination><MedlinePgn>1-37</MedlinePgn></Pagination>
+          <ELocationID EIdType="doi">10.1016/S0010-0277(00)00123-2</ELocationID>
+        </Article>
+      </MedlineCitation></PubmedArticle></PubmedArticleSet>`;
+    const [r] = parsePubmed(xml);
+    expect(r!.entryType).toBe('article');
+    expect(r!.title).toBe('Consciousness and the brain.');
+    expect(r!.fields.Author).toBe('Dehaene, Stanislas and Naccache, Lionel');
+    expect(r!.venue).toBe('Cognition');
+    expect(r!.year).toBe('2001');
+    expect(r!.fields.Pages).toBe('1--37');
+    expect(r!.fields.Pmid).toBe('12345678');
+    expect(r!.doi).toBe('10.1016/S0010-0277(00)00123-2');
   });
 });
