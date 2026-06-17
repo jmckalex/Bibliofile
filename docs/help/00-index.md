@@ -29,9 +29,9 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
    **Find & Replace** across fields; the **Copy** clipboard commands and cite
    drag-out; `Crossref` inheritance; the `@string` macro editor; and explicit
    save.
-4. **[Attachments](04-attachments.md)** — Attaching, opening, and removing
-   files; the in-app **PDF preview**; **AutoFile** into a Papers folder; how
-   `Bdsk-File-N` links and relative paths work; keeping a library portable; and
+4. **[Attachments](04-attachments.md)** — Attaching, opening (in your OS default
+   apps), and removing files; the **Links** section for `Url`/`Doi`; **AutoFile**
+   into a Papers folder; how `Bdsk-File-N` links and relative paths work; keeping a library portable; and
    macOS BibDesk compatibility.
 5. **[Notes & Abstracts](05-notes-and-abstracts.md)** — Writing abstracts and
    per-entry notes in Markdown (with math), plus notes-only extras: `[[citeKey]]`

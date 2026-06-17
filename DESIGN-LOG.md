@@ -354,6 +354,16 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   component (files vs links split). Test: a DOI+URL entry → 0 file attachments,
   2 link entries, no "files" chip.
 
+- **Attachments: open in the system viewer + clickable preview chip + cover nudge.**
+  Three tweaks: (1) the journal cover thumbnail (`.bd-jcover`) was overlapping the
+  preview card border — nudged down + in (margin 8/6/8/12). (2) PDFs no longer open
+  in an in-app viewer — clicking any file attachment calls `openExternal(..,'file')`
+  → `shell.openPath` (system default app); the `PdfViewer` component is removed.
+  (3) The preview card's "📎 N files" chip is now a real button (`data-open-files`):
+  one file opens immediately, several drop a small `PreviewCard` menu (`bd-filemenu`)
+  to pick one. *Revisit:* `PreviewCard` (chip click + menu), `Attachments`
+  (openExternal, no onPreview), `buildPreviewHtml` chip, `.bd-jcover`/`.bd-filemenu`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

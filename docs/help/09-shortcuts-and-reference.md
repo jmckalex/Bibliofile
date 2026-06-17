@@ -140,7 +140,7 @@ useful ones:
 | **Add a field** | Fill the **New field** row and press **Enter** or click **+** |
 | **Remove a field** | Click the **×** at the end of its row (or clear the value and commit) |
 | **Switch theme** | Click the **☾ / ☀** toggle in the header (light ⇄ dark) |
-| **Open a link / file** | Click a DOI/URL chip or an attachment (PDFs open in the in-app preview) |
+| **Open a link / file** | Click a DOI/URL chip, the **📎 N files** chip, or an attachment (files open in your OS default app) |
 | **Jump to a cross-referenced note** | Click a `[[citeKey]]` link inside a rendered note |
 | **Import by drag-and-drop** | Drag `.bib`/`.ris`/PDF/other files onto the window |
 
@@ -452,7 +452,7 @@ fix the value in the editor.
 - [Getting Started](01-getting-started.md) — the window at a glance.
 - [Editing Entries](03-editing-entries.md) — fields, cite keys, types, macros,
   Find & Replace, the copy commands, and saving.
-- [Attachments](04-attachments.md) — `Bdsk-File` storage, the PDF preview, and
+- [Attachments](04-attachments.md) — `Bdsk-File` storage, opening in default apps, and
   AutoFile.
 - [Importing & Exporting](07-importing-and-exporting.md) — paste, drag-and-drop,
   import, and export.

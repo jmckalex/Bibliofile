@@ -13,9 +13,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { typesetMath } from './mathjax.js';
-import { PdfViewer } from './PdfViewer.js';
-
-const isPdf = (f: ItemFile): boolean => f.kind === 'file' && /\.pdf$/i.test(f.url);
 
 /** Common BibTeX entry types offered in the type picker. */
 const ENTRY_TYPES = [
@@ -32,20 +29,83 @@ function openExternal(target: string, kind: 'url' | 'file'): void {
   void window.bibdesk?.openExternal({ target, kind });
 }
 
-export function PreviewCard({ html }: { html: string }) {
+export function PreviewCard({ html, files = [] }: { html: string; files?: readonly ItemFile[] }) {
   const ref = useRef<HTMLDivElement>(null);
+  // When the "📎 N files" chip is clicked and there's more than one file, show a
+  // small menu (anchored at x/y) so the user can pick which one to open.
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+
   useEffect(() => {
     if (ref.current && html.includes('$')) void typesetMath(ref.current);
   }, [html]);
-  const onClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-open-url]');
-    if (el?.dataset.openUrl) {
-      e.preventDefault();
-      openExternal(el.dataset.openUrl, 'url');
-    }
-  }, []);
+
+  // Dismiss the file menu on any outside click or Escape.
+  useEffect(() => {
+    if (!menu) return;
+    const close = (): void => setMenu(null);
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') setMenu(null);
+    };
+    window.addEventListener('mousedown', close);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('mousedown', close);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menu]);
+
+  const openFile = (f: ItemFile): void => {
+    openExternal(f.url, f.kind === 'url' ? 'url' : 'file');
+    setMenu(null);
+  };
+
+  const onClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const urlEl = (e.target as HTMLElement).closest<HTMLElement>('[data-open-url]');
+      if (urlEl?.dataset.openUrl) {
+        e.preventDefault();
+        openExternal(urlEl.dataset.openUrl, 'url');
+        return;
+      }
+      const filesEl = (e.target as HTMLElement).closest<HTMLElement>('[data-open-files]');
+      if (filesEl) {
+        e.preventDefault();
+        if (files.length === 1) {
+          openFile(files[0]!);
+        } else if (files.length > 1) {
+          const r = filesEl.getBoundingClientRect();
+          setMenu({ x: r.left, y: r.bottom + 2 });
+        }
+      }
+    },
+    [files],
+  );
+
   return (
-    <div className="bd-preview" ref={ref} onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
+    <>
+      <div className="bd-preview" ref={ref} onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
+      {menu && (
+        <div
+          className="bd-filemenu"
+          style={{ left: menu.x, top: menu.y }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          {files.map((f, i) => (
+            <button
+              key={`${f.url}-${i}`}
+              type="button"
+              className="bd-filemenu__item"
+              onClick={() => openFile(f)}
+            >
+              <span className="bd-file__icon" aria-hidden="true">
+                📄
+              </span>
+              {f.displayName}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
@@ -427,11 +487,9 @@ function Fields({ detail }: { detail: ItemDetail }) {
 
 export function Attachments({
   detail,
-  onPreview,
   readOnly = false,
 }: {
   detail: ItemDetail;
-  onPreview: (f: ItemFile) => void;
   readOnly?: boolean;
 }) {
   const addAttachment = useStore((s) => s.addAttachment);
@@ -446,10 +504,8 @@ export function Attachments({
       <button
         type="button"
         className="bd-file__btn"
-        title={isPdf(file) ? `Preview ${file.displayName}` : `Open ${file.url}`}
-        onClick={() =>
-          isPdf(file) ? onPreview(file) : openExternal(file.url, file.kind === 'url' ? 'url' : 'file')
-        }
+        title={`Open ${file.displayName}`}
+        onClick={() => openExternal(file.url, file.kind === 'url' ? 'url' : 'file')}
       >
         <span className="bd-file__icon" aria-hidden="true">
           {fileIcon(file.kind)}
@@ -554,7 +610,6 @@ export function DetailPane() {
   const documentId = useStore((s) => s.documentId);
   const selectedItemId = useStore((s) => s.selectedItemId);
   const detailLoading = useStore((s) => s.detailLoading);
-  const [pdfFile, setPdfFile] = useState<ItemFile | null>(null);
 
   if (!selectedItemId) {
     return <div className="bd-detail__empty">Select a publication to see and edit its details.</div>;
@@ -566,13 +621,14 @@ export function DetailPane() {
   return (
     <div className="bd-detail">
       {documentId && <JournalCover documentId={documentId} itemId={detail.id} />}
-      {detail.previewHtml && <PreviewCard html={detail.previewHtml} />}
+      {detail.previewHtml && (
+        <PreviewCard html={detail.previewHtml} files={detail.files.filter((f) => f.kind === 'file')} />
+      )}
       <CitationBlock detail={detail} />
       <Identity detail={detail} />
       <Fields detail={detail} />
       <NotesSection detail={detail} />
-      <Attachments detail={detail} onPreview={setPdfFile} />
-      {pdfFile && <PdfViewer file={pdfFile} onClose={() => setPdfFile(null)} />}
+      <Attachments detail={detail} />
     </div>
   );
 }

@@ -6,12 +6,10 @@
  * ({@link EditorWindow}); changes there refresh this pane via documentChanged.
  */
 
-import { useState } from 'react';
-import type { ItemDetail, ItemFile } from '@bibdesk/shared';
+import type { ItemDetail } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { PreviewCard, CitationBlock, JournalCover, NotesSection, Attachments } from './DetailPane.js';
 import { MathText } from './MathText.js';
-import { PdfViewer } from './PdfViewer.js';
 
 /** Read-only field list: cite key, type, then each field's de-TeXified value. */
 function ReadOnlyFields({ detail }: { detail: ItemDetail }) {
@@ -45,7 +43,6 @@ export function ViewPane() {
   const selectedItemId = useStore((s) => s.selectedItemId);
   const detailLoading = useStore((s) => s.detailLoading);
   const openEditor = useStore((s) => s.openEditor);
-  const [pdfFile, setPdfFile] = useState<ItemFile | null>(null);
 
   if (!selectedItemId) {
     return <div className="bd-detail__empty">Select a publication to see its details.</div>;
@@ -67,12 +64,13 @@ export function ViewPane() {
         </button>
       </div>
       {documentId && <JournalCover documentId={documentId} itemId={detail.id} />}
-      {detail.previewHtml && <PreviewCard html={detail.previewHtml} />}
+      {detail.previewHtml && (
+        <PreviewCard html={detail.previewHtml} files={detail.files.filter((f) => f.kind === 'file')} />
+      )}
       <CitationBlock detail={detail} />
       <ReadOnlyFields detail={detail} />
       <NotesSection detail={detail} readOnly />
-      <Attachments detail={detail} onPreview={setPdfFile} readOnly />
-      {pdfFile && <PdfViewer file={pdfFile} onClose={() => setPdfFile(null)} />}
+      <Attachments detail={detail} readOnly />
     </div>
   );
 }

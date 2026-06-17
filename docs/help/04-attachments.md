@@ -78,40 +78,25 @@ Each chosen file is attached to the entry immediately as a new managed
 
 ## Opening an attachment
 
-Click an attachment in the list to open it:
+Click an attachment in the **Attachments** list to open it:
 
-- A **📄 PDF file** opens in the app's **built-in PDF preview** (see below) — you
-  don't have to leave the window to read it.
-- Any **other 📄 file** (an image, a dataset, a `.csv`, …) opens in your operating
-  system's default application for that file type.
-- A **🔗 link** opens the page in your default web browser. A bare DOI is opened
-  via `doi.org`.
+- A **📄 file** (a PDF, image, dataset, `.csv`, …) opens in your operating
+  system's **default application** for that file type — PDFs in your usual PDF
+  reader, exactly as if you had double-clicked the file in your file manager.
+- A **🔗 link** (under **Links**) opens the page in your default web browser. A
+  bare DOI is opened via `doi.org`.
 
-Opening a non-PDF file or a link is handled by the OS, exactly as if you had
-double-clicked the file in your file manager or pasted the URL into your browser.
+### Opening from the preview card
 
-### The in-app PDF preview
+The preview card carries quick-open chips. A **📎 *N* files** chip opens the
+entry's file attachments without scrolling down to the Attachments list:
 
-When you click a PDF attachment, it opens in a preview window right inside the
-app, so you can read the paper without switching to an external viewer. The
-preview:
+- If the entry has **one** file attachment, clicking the chip **opens it
+  immediately**.
+- If it has **several**, clicking the chip drops down a short **menu** of the
+  files; pick one to open it.
 
-- **Shows every page**, stacked in a continuous scrolling view — scroll down to
-  move through the document. The title bar shows the file name and the page
-  count.
-- **Zooms** with the **−** and **+** buttons (the zoom ranges from half size up to
-  three times size).
-- Has an **Open externally** button to hand the PDF to your operating system's
-  default PDF application if you'd rather read it there.
-- Closes with the **×** button or by clicking the dimmed backdrop outside it.
-
-The bytes are read through the same attachment link the rest of this chapter
-describes, so the preview works whenever the file resolves (see
-[How attachments resolve](#how-attachments-resolve)). Only PDF attachments get the
-in-app preview; other file types open in their default app as above.
-
-> **Note:** The PDF preview is read-only — it is for reading, not annotating. Use
-> **Open externally** (or your own PDF app) if you want to highlight or comment.
+The DOI and URL chips on the same card open the link / DOI directly.
 
 ## Removing an attachment
 
@@ -379,7 +364,7 @@ opens, so PDF matches may appear a moment after the first results. See
 |--------|-----|
 | Add file attachment(s) | Select entry → **＋ Add** in Attachments (or **Publication → Add File Attachment…**) → pick one or more files |
 | Add via drag-and-drop | Drag a PDF/file onto the window → new entry with the file attached |
-| Open a PDF attachment | Click it → opens in the in-app PDF preview (zoom, scroll, **Open externally**) |
+| Open an attachment | Click it → opens in your OS default app (PDFs in your usual reader); or click the **📎 N files** preview chip |
 | Open another file / link | Click it (file → default app; link → browser) |
 | Remove a file attachment | Click **×** beside it |
 | Remove a URL/DOI link | Edit/delete the `Url` or `Doi` field in **Fields** |
@@ -422,11 +407,11 @@ AutoFile** and choose a **Papers folder** (and, if you like, adjust the **File
 name** format). Then select an entry and run **Publication → AutoFile Linked
 Files** again.
 
-**"The PDF preview won't open / shows an error."**
-The preview reads the file through its attachment link, so the same things that
-stop an attachment opening stop the preview: the file has moved, been renamed, or
-been deleted relative to the `.bib`. Restore the layout or re-add the file. Only
-PDF attachments use the in-app preview; other files open in their default app.
+**"An attachment won't open / nothing happens."**
+Opening hands the file to your OS through its attachment link, so the same things
+that break a link break opening: the file has moved, been renamed, or been
+deleted relative to the `.bib`. Restore the layout or re-add the file (or use
+**Find Broken Links** to locate it).
 
 **Cross-machine sync tips.**
 Sync the *whole library folder* (e.g. via Git, Dropbox, or iCloud Drive) rather

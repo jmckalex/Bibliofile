@@ -897,7 +897,9 @@ body {
 .bd-jcover {
   float: right;
   width: 66px;
-  margin: 0 0 8px 12px;
+  /* top right bottom left — nudged down + in from the pane's edge so it doesn't
+     overlap the preview card's border. */
+  margin: 8px 6px 8px 12px;
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
@@ -1351,6 +1353,48 @@ button.bd-chip {
 .bd-chip[data-open-url]:hover {
   border-color: var(--bd-accent);
   color: var(--bd-accent);
+}
+
+.bd-chip--files[data-open-files]:hover {
+  border-color: var(--bd-warning);
+  filter: brightness(1.08);
+}
+
+/* Popup menu for choosing among several file attachments (preview "📎 N files"). */
+.bd-filemenu {
+  position: fixed;
+  z-index: 50;
+  min-width: 180px;
+  max-width: 360px;
+  padding: 4px;
+  background: var(--bd-surface);
+  border: 1px solid var(--bd-border-strong);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+}
+
+.bd-filemenu__item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bd-filemenu__item:hover {
+  background: var(--bd-accent);
+  color: #fff;
 }
 
 .bd-card__tags {

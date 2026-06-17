@@ -732,7 +732,7 @@ export function buildPreviewHtml(item: BibItem, fileCount: number): string | und
     );
   if (fileCount > 0)
     chips.push(
-      `<span class="bd-chip bd-chip--files">📎 ${fileCount} ${fileCount === 1 ? 'file' : 'files'}</span>`,
+      `<button type="button" class="bd-chip bd-chip--files" data-open-files="1">📎 ${fileCount} ${fileCount === 1 ? 'file' : 'files'}</button>`,
     );
   if (chips.length) p.push(`<div class="bd-card__chips">${chips.join('')}</div>`);
 
