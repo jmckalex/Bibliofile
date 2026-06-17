@@ -451,8 +451,13 @@ export function App() {
       });
     });
     const unsubCols = api.onMenuToggleColumn((key) => void getStore().getState().toggleColumn(key));
-    // An editor window (or another window) mutated the document → refresh.
-    const unsubChanged = api.onDocumentChanged(() => void getStore().getState().reloadAfterExternalChange());
+    // Another window mutated a document → refresh, but only if it was OURS
+    // (with several libraries open, each window ignores the others' edits).
+    const unsubChanged = api.onDocumentChanged((e) => {
+      if (e.documentId === getStore().getState().documentId) {
+        void getStore().getState().reloadAfterExternalChange();
+      }
+    });
     return () => {
       unsubOpen();
       unsubPrefs();

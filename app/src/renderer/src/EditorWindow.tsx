@@ -22,11 +22,14 @@ export function EditorWindow({ documentId, itemId }: { documentId: string; itemI
     void initEditor(documentId, itemId);
   }, [initEditor, documentId, itemId]);
 
-  // If the main window mutates this item (rename author, find/replace, …), refresh.
+  // If the main window mutates this item (rename author, find/replace, …), refresh
+  // — but only for this editor's own document, not some other open library.
   useEffect(() => {
-    const off = window.bibdesk?.onDocumentChanged(() => void reloadAfterExternalChange());
+    const off = window.bibdesk?.onDocumentChanged((e) => {
+      if (e.documentId === documentId) void reloadAfterExternalChange();
+    });
     return () => off?.();
-  }, [reloadAfterExternalChange]);
+  }, [reloadAfterExternalChange, documentId]);
 
   // Keep the OS window title on the entry being edited.
   useEffect(() => {
