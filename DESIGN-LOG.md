@@ -449,7 +449,10 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   use the dynamic list, falling back to the static list pre-load, so custom types
   are assignable to entries. Standard types stay read-only (their required fields
   are protected by the manager); widening to edit standard types' optional fields
-  is a possible follow-up. *Revisit:* `Settings.customTypes` + `apply()` in
+  is a possible follow-up. The editor surfaces a type's required/optional fields as
+  empty rows for any the entry lacks (so a new entry shows the fields to fill in);
+  these template rows persist only once given a value (FieldRow ignores empty
+  no-ops) and have no remove button. *Revisit:* `Settings.customTypes` + `apply()` in
   `settings.ts`, the `listEntryTypes` handler in `index.ts`, `EntryTypesSection` in
   `Preferences.tsx`, `Identity` in `DetailPane.tsx`. Verified: build + tests
   (TypeManager `bundledTypes`); a headless smoke opens Preferences without error.

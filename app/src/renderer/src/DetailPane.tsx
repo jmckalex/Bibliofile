@@ -138,8 +138,9 @@ function RatingStars({ value, onChange }: { value: string; onChange: (v: string)
   );
 }
 
-/** One editable field row (uncontrolled; commits on blur / Enter). */
-function FieldRow({ itemId, field }: { itemId: string; field: ItemField }) {
+/** One editable field row (uncontrolled; commits on blur / Enter). `template`
+ * marks a not-yet-saved row offered for the entry type (no remove button). */
+function FieldRow({ itemId, field, template = false }: { itemId: string; field: ItemField; template?: boolean }) {
   const edit = useStore((s) => s.edit);
   const fieldSuggestions = useStore((s) => s.fieldSuggestions);
   const long = field.name.toLowerCase() === 'abstract' || field.rawValue.length > 60;
@@ -211,7 +212,7 @@ function FieldRow({ itemId, field }: { itemId: string; field: ItemField }) {
             ))}
           </datalist>
         )}
-        {!field.isInherited && !field.required && (
+        {!field.isInherited && !field.required && !template && (
           <button
             type="button"
             className="bd-circbtn bd-circbtn--del"
@@ -453,10 +454,29 @@ function Fields({ detail }: { detail: ItemDetail }) {
   // Blank rows added on demand by the ＋ button (keyed by a monotonic id).
   const [pending, setPending] = useState<number[]>([]);
   const nextId = useRef(0);
+  const entryTypes = useStore((s) => s.entryTypes);
   // Drop any unsaved blank rows when switching to a different item.
   useEffect(() => {
     setPending([]);
   }, [detail.id]);
+
+  // Offer the entry type's required/optional fields the item doesn't have yet as
+  // empty rows, so a new (or incomplete) entry exposes the fields to fill in.
+  // They persist only once given a value (FieldRow ignores empty no-ops).
+  const present = new Set(detail.fields.map((f) => f.name.toLowerCase()));
+  const info = entryTypes.find((t) => t.name.toLowerCase() === detail.type.toLowerCase());
+  const templateRows: ItemField[] = [];
+  if (info) {
+    const seen = new Set(present);
+    const offer = (name: string, required: boolean): void => {
+      const lower = name.toLowerCase();
+      if (seen.has(lower)) return;
+      seen.add(lower);
+      templateRows.push({ name, value: '', rawValue: '', isInherited: false, required });
+    };
+    for (const name of info.required) offer(name, true);
+    for (const name of info.optional) offer(name, false);
+  }
 
   return (
     <>
@@ -464,6 +484,9 @@ function Fields({ detail }: { detail: ItemDetail }) {
       <div className="bd-fields">
         {detail.fields.map((f, i) => (
           <FieldRow key={`${f.name}-${i}`} itemId={detail.id} field={f} />
+        ))}
+        {templateRows.map((f) => (
+          <FieldRow key={`tmpl-${f.name}`} itemId={detail.id} field={f} template />
         ))}
         {pending.map((id) => (
           <NewFieldRow

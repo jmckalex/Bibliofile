@@ -230,13 +230,15 @@ function EntryTypesSection({
         />
         <button
           type="button"
-          className="bd-btn bd-btn--small"
+          className="bd-circbtn bd-circbtn--add"
+          title="Add entry type"
+          aria-label="Add entry type"
           onClick={() => {
             addType(newType);
             setNewType('');
           }}
         >
-          Add type
+          +
         </button>
       </div>
       <details className="bd-ctype__std">
