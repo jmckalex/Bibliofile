@@ -171,6 +171,35 @@ body {
 
 .bd-search {
   align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Toggle: include PDF body text in the filter (full-text search). */
+.bd-search__pdf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+  background: var(--bd-surface-alt);
+  border: 1px solid var(--bd-border-strong);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.bd-search__pdf:hover {
+  color: var(--bd-text);
+}
+
+.bd-search__pdf--on {
+  color: #fff;
+  background: var(--bd-accent);
+  border-color: var(--bd-accent);
 }
 
 .bd-search__input {

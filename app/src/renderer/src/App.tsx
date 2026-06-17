@@ -8,6 +8,8 @@
  */
 
 import { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFilePdf } from '@fortawesome/free-solid-svg-icons';
 import type { MenuCommand } from '@bibdesk/shared';
 import { formatCiteCommand } from '@bibdesk/shared';
 import { getStore, useStore, visibleRows } from './store.js';
@@ -45,14 +47,30 @@ function ThemeToggle() {
 function SearchBox() {
   const query = useStore((s) => s.query);
   const setQuery = useStore((s) => s.setQuery);
+  const fullText = useStore((s) => s.settings.fullTextSearch);
+  const setFullTextSearch = useStore((s) => s.setFullTextSearch);
   const hasDoc = useStore((s) => s.documentId !== undefined);
   if (!hasDoc) return null;
   return (
     <div className="bd-search">
+      <button
+        type="button"
+        className={'bd-search__pdf' + (fullText ? ' bd-search__pdf--on' : '')}
+        aria-pressed={fullText}
+        aria-label="Search PDF contents (full-text)"
+        title={
+          fullText
+            ? 'Full-text search ON — also matching PDF contents. Click to search fields only.'
+            : 'Full-text search OFF — matching fields only. Click to also search PDF contents.'
+        }
+        onClick={() => void setFullTextSearch(!fullText)}
+      >
+        <FontAwesomeIcon icon={faFilePdf} />
+      </button>
       <input
         className="bd-search__input"
         type="search"
-        placeholder="Filter publications…"
+        placeholder={fullText ? 'Search (incl. PDF text)…' : 'Filter publications…'}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         aria-label="Filter publications"

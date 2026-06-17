@@ -241,11 +241,9 @@ the box to see everything again.
 
 ### 2.3.1 What is matched
 
-By default the search is a **full-text search** that looks at far more than the
-visible columns. When you type, it queries an index of **all** of an entry's
-field text — including the cite key, type, authors, title, year, **and** the
-abstract, notes, keywords, and every other field — **plus the text extracted from
-attached PDFs**. So:
+The search queries an index of **all** of an entry's field text — the cite key,
+type, authors, title, year, **and** the abstract, notes, keywords, and every
+other field. So:
 
 - Typing `quantum` finds the word in any **title**, abstract, or note.
 - Typing an author's surname finds **their papers**.
@@ -253,14 +251,27 @@ attached PDFs**. So:
 - Typing `2019` finds entries from that **year** — and also any field that
   happens to contain "2019".
 - Typing part of a **cite key** (e.g. `einstein`) finds it directly.
-- Typing a phrase from a **PDF** finds the paper that contains it.
 
 Matching is **case-insensitive** (`QUANTUM`, `Quantum`, and `quantum` are
 equivalent), results are **ranked by relevance** (best matches first), and terms
 match by **word prefix**, so `bargain` finds *bargaining*. The index is an
-in-memory, rebuildable cache (your `.bib` file stays the source of truth); PDF
-text is folded in shortly after a library opens, so PDF matches can appear a
-moment after the first results.
+in-memory, rebuildable cache (your `.bib` file stays the source of truth).
+
+#### Including PDF contents (the PDF toggle)
+
+By default the search looks only at the bibliographic **fields** above — *not*
+the full text of attached PDFs. The round **PDF button** to the left of the
+search box toggles **full-text search**: switch it on (it highlights) and the
+search *also* matches the text extracted from attached PDFs, so a phrase from
+inside a paper finds it.
+
+This is off by default on purpose: PDF bodies mention many names and terms that
+aren't really about the entry (an author's name printed in a paper's references,
+say), so full-text search can return far more — and less relevant — results. Turn
+it on when you're hunting for something you know is *inside* a paper; leave it off
+for ordinary "find this reference" filtering. Your choice is remembered. (PDF text
+is indexed in the background shortly after a library opens, so newly-opened
+libraries gain PDF matches a moment later.)
 
 > **Note (the substring fallback):** Full-text search relies on a native
 > component. If it isn't available for your build, the box automatically falls

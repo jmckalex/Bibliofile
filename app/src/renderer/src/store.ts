@@ -156,6 +156,8 @@ export interface ViewerState {
   setSort: (key: string) => Promise<void>;
   /** Set the live search query; runs a full-text search (falls back to substring). */
   setQuery: (query: string) => Promise<void>;
+  /** Toggle whether the filter box also searches PDF body text; re-runs the query. */
+  setFullTextSearch: (on: boolean) => Promise<void>;
   /** Apply one edit command, then refresh the affected views + dirty state. */
   edit: (command: EditCommand) => Promise<void>;
   /** Save the document to disk (explicit save + backup). */
@@ -386,16 +388,23 @@ export function createStore(api: BibDeskApi) {
     setQuery: async (query) => {
       // Show the substring fallback immediately; refine with FTS results when ready.
       set({ query, ftsIds: null });
-      const { documentId } = get();
+      const { documentId, settings } = get();
       if (!documentId || !query.trim()) return;
       try {
-        const res = await api.ftsSearch({ documentId, query });
+        const res = await api.ftsSearch({ documentId, query, includePdf: settings.fullTextSearch });
         // ignore stale responses if the query changed while awaiting
         if (get().query !== query) return;
         set({ ftsIds: res.available ? [...res.ids] : null });
       } catch {
         set({ ftsIds: null });
       }
+    },
+
+    setFullTextSearch: async (on) => {
+      await get().saveSettings({ fullTextSearch: on });
+      // Re-run the active query under the new scope so results update immediately.
+      const { query } = get();
+      if (query.trim()) await get().setQuery(query);
     },
 
     edit: async (command) => {

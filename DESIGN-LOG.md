@@ -281,6 +281,19 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   (possibly-scrolled) width. Verified header/body cells share position + width after a
   resize-to-overflow + horizontal scroll.
 
+- **Toggleable full-text (PDF) search.** Searching used a single FTS index that
+  folded in extracted PDF body text, so a query like "Alexander" matched papers
+  that merely *mention* the name in their PDF — too noisy. Now the filter searches
+  **fields only by default**, and a FontAwesome PDF button left of the search box
+  toggles PDF-inclusive full-text. *Design:* the document keeps **two** FTS5
+  indexes — `ftsFields` (field text only) and `fts` (fields + PDF) — kept in lock
+  step by `reindex`/`dropFromIndex`; `ftsSearch(documentId, query, includePdf)`
+  picks the index. The toggle is a persisted setting (`fullTextSearch`, default
+  off); flipping it re-runs the active query. *Why two indexes, not query-time
+  filtering:* FTS5 can't exclude a column subset cheaply, and the field-only index
+  is small (PDF text is the bulk). *Revisit:* `OpenDoc.ftsFields`, `ftsSearch`,
+  `store.setFullTextSearch`, `SearchBox`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

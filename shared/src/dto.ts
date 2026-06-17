@@ -798,6 +798,8 @@ export interface FindDuplicatesResult {
 export interface FtsSearchRequest {
   readonly documentId: DocumentId;
   readonly query: string;
+  /** Search extracted PDF body text too (full-text). Default false = fields only. */
+  readonly includePdf?: boolean;
 }
 
 /** Full-text search results: matching item ids, best-match first. */
@@ -860,6 +862,8 @@ export interface Settings {
   readonly autoFileFormat: string;
   /** When true, save automatically a moment after each edit. */
   readonly autosave: boolean;
+  /** When true, the filter box also searches extracted PDF body text (full-text). */
+  readonly fullTextSearch: boolean;
   /** Anthropic model id for the Claude assistant (e.g. `claude-opus-4-8`). */
   readonly agentModel: string;
   /** Field-type classification overrides. */
@@ -891,6 +895,7 @@ export const DEFAULT_SETTINGS: Settings = {
   papersFolder: '',
   autoFileFormat: '%a1/%Y%u0',
   autosave: false,
+  fullTextSearch: false,
   agentModel: 'claude-opus-4-8',
   fieldTypes: {
     person: ['Author', 'Editor'],

@@ -1332,7 +1332,7 @@ function registerIpc(): void {
     },
     [IpcChannels.importOnline]: (req) =>
       store.importEntry(req.documentId, req.result.entryType, req.result.fields),
-    [IpcChannels.ftsSearch]: (req) => store.ftsSearch(req.documentId, req.query),
+    [IpcChannels.ftsSearch]: (req) => store.ftsSearch(req.documentId, req.query, req.includePdf),
     [IpcChannels.getSettings]: () => getSettings(),
     [IpcChannels.updateSettings]: (req) => {
       const s = updateSettings(req.patch);

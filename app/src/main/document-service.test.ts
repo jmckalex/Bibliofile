@@ -16,6 +16,15 @@ import {
   openLibraryFromText,
   toDisplay,
 } from './document-service.js';
+import { FtsIndex } from './fts.js';
+
+/** Whether the native FTS backend loads in this runtime (skips FTS tests if not). */
+const FTS_AVAILABLE = ((): boolean => {
+  const i = new FtsIndex();
+  const ok = i.available;
+  i.close();
+  return ok;
+})();
 
 // The verbatim BD test.bib copied into the repo by the golden-harness task (T1).
 const FIXTURE = fileURLToPath(
@@ -444,6 +453,25 @@ describe('document-service: BD test.bib', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Author = {Smith, John}}', '/tmp/ra2.bib');
     expect(store.renameAuthor(documentId, 'Nobody, X.', 'Someone, Y.').changed).toBe(0);
+  });
+
+  it.runIf(FTS_AVAILABLE)('ftsSearch: includePdf scopes PDF body text in/out of results', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-fts-'));
+    const pdf = join(dir, 'paper.pdf');
+    writeFileSync(pdf, '%PDF-1.4'); // must exist; extraction is injected below
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{x, Title = {Networks}}', join(dir, 'lib.bib'));
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    store.addAttachments(documentId, itemId, [pdf]);
+    // Fold a PDF body word ("alexander") into the FULL index only.
+    await store.indexAttachments(documentId, async () => 'alexander bargaining dynamics');
+
+    // A field word matches in both scopes.
+    expect(store.ftsSearch(documentId, 'networks', false).ids).toEqual([itemId]);
+    expect(store.ftsSearch(documentId, 'networks', true).ids).toEqual([itemId]);
+    // A PDF-only word matches ONLY when PDF text is included.
+    expect(store.ftsSearch(documentId, 'alexander', false).ids).toEqual([]);
+    expect(store.ftsSearch(documentId, 'alexander', true).ids).toEqual([itemId]);
   });
 
   it('undo/redo restore prior states across edits', () => {

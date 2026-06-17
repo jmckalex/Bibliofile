@@ -873,6 +873,8 @@ interface OpenDoc {
   readonly crossrefStore: LibraryCrossrefStore;
   /** SQLite FTS5 full-text index (field text + extracted PDF text). */
   readonly fts: FtsIndex;
+  /** Field-only FTS5 index (no PDF text) — used when full-text search is toggled off. */
+  readonly ftsFields: FtsIndex;
   /** itemId → extracted PDF text from its attachments (filled lazily). */
   readonly pdfText: Map<string, string>;
   /** True once attachment PDF text has been indexed for this document. */
@@ -989,9 +991,13 @@ export class DocumentStore {
     const { library, crossrefStore } = openLibraryFromText(text, prev.path);
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
+    const records = library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') }));
     const fts = new FtsIndex();
-    fts.rebuild(library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') })));
+    fts.rebuild(records);
+    const ftsFields = new FtsIndex();
+    ftsFields.rebuild(records);
     prev.fts.close();
+    prev.ftsFields.close();
     const next: OpenDoc = {
       documentId,
       path: prev.path,
@@ -1000,6 +1006,7 @@ export class DocumentStore {
       itemsById,
       crossrefStore,
       fts,
+      ftsFields,
       pdfText: new Map(),
       attachmentsIndexed: false,
       dirty: true,
@@ -1039,9 +1046,12 @@ export class DocumentStore {
     const { opened, library, crossrefStore } = result;
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
-    const fts = new FtsIndex();
     const pdfText = new Map<string, string>();
-    fts.rebuild(library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') })));
+    const records = library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') }));
+    const fts = new FtsIndex();
+    fts.rebuild(records);
+    const ftsFields = new FtsIndex();
+    ftsFields.rebuild(records);
     const doc: OpenDoc = {
       documentId: opened.documentId,
       path: opened.path,
@@ -1050,6 +1060,7 @@ export class DocumentStore {
       itemsById,
       crossrefStore,
       fts,
+      ftsFields,
       pdfText,
       attachmentsIndexed: false,
       dirty: false,
@@ -1058,9 +1069,21 @@ export class DocumentStore {
     return opened;
   }
 
-  /** Re-index one item's full-text entry (field text + any cached PDF text). */
+  /**
+   * Re-index one item in both FTS indexes: the field-only index (`ftsFields`) and
+   * the full index (`fts`, field text + any cached PDF text). Keeping them in lock
+   * step lets the renderer toggle PDF/full-text search on and off per query.
+   */
   private reindex(doc: OpenDoc, item: BibItem): void {
+    const fieldText = itemSearchText(item, '');
+    doc.ftsFields.upsert(item.id, fieldText);
     doc.fts.upsert(item.id, itemSearchText(item, doc.pdfText.get(item.id) ?? ''));
+  }
+
+  /** Drop one item from both FTS indexes (merge/delete). */
+  private dropFromIndex(doc: OpenDoc, id: string): void {
+    doc.fts.remove(id);
+    doc.ftsFields.remove(id);
   }
 
   /** Recompute the dynamic Author/Keyword category groups for the current state. */
@@ -1847,7 +1870,7 @@ export class DocumentStore {
       const idx = doc.library.items.indexOf(other);
       if (idx >= 0) doc.library.items.splice(idx, 1);
       doc.itemsById.delete(other.id);
-      doc.fts.remove(other.id);
+      this.dropFromIndex(doc, other.id);
     }
 
     this.reindex(doc, primary);
@@ -1937,7 +1960,7 @@ export class DocumentStore {
           const idx = doc.library.items.indexOf(item);
           if (idx >= 0) doc.library.items.splice(idx, 1);
           doc.itemsById.delete(item.id);
-          doc.fts.remove(item.id);
+          this.dropFromIndex(doc, item.id);
           count++;
           break;
         }
@@ -1969,12 +1992,19 @@ export class DocumentStore {
   /**
    * Full-text search via SQLite FTS5; returns matching item ids best-match first.
    * `available` is false when the native index couldn't load (caller should fall
-   * back to a client-side substring filter).
+   * back to a client-side substring filter). With `includePdf` it searches the
+   * full index (field text + extracted PDF body text); otherwise the field-only
+   * index, so attachment contents don't flood results.
    */
-  ftsSearch(documentId: string, query: string): { available: boolean; ids: string[] } {
+  ftsSearch(
+    documentId: string,
+    query: string,
+    includePdf = false,
+  ): { available: boolean; ids: string[] } {
     const doc = this.requireDoc(documentId);
-    const ids = doc.fts.search(query).filter((id) => doc.itemsById.has(id));
-    return { available: doc.fts.available, ids };
+    const index = includePdf ? doc.fts : doc.ftsFields;
+    const ids = index.search(query).filter((id) => doc.itemsById.has(id));
+    return { available: index.available, ids };
   }
 
   /**
@@ -2114,7 +2144,7 @@ export class DocumentStore {
         const idx = doc.library.items.indexOf(item);
         if (idx >= 0) doc.library.items.splice(idx, 1);
         doc.itemsById.delete(item.id);
-        doc.fts.remove(item.id);
+        this.dropFromIndex(doc, item.id);
         doc.dirty = true;
         return { dirty: true };
       }
