@@ -15,12 +15,16 @@ import { DetailPane } from './DetailPane.js';
 export function EditorWindow({ documentId, itemId }: { documentId: string; itemId: string }) {
   const initEditor = useStore((s) => s.initEditor);
   const reloadAfterExternalChange = useStore((s) => s.reloadAfterExternalChange);
+  const loadEntryTypes = useStore((s) => s.loadEntryTypes);
   const detail = useStore((s) => s.detail);
   const error = useStore((s) => s.error);
 
   useEffect(() => {
     void initEditor(documentId, itemId);
-  }, [initEditor, documentId, itemId]);
+    // This window runs its own store; load the type list so the type picker
+    // (DetailPane → Identity) includes custom entry types.
+    void loadEntryTypes();
+  }, [initEditor, loadEntryTypes, documentId, itemId]);
 
   // If the main window mutates this item (rename author, find/replace, …), refresh
   // — but only for this editor's own document, not some other open library.

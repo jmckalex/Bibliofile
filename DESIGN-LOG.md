@@ -432,6 +432,29 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   unsaved) is interactive — drive via `pnpm dev`. Developed on the
   `multiple-open-libraries` branch and fast-forward-merged into `main`.
 
+- **Custom entry-type / field editor.** The model was already capable
+  (`TypeManager.setTypeInfoOverlay` adds per-type required/optional field lists,
+  the 15 standard BibTeX types protected); this session wired it through to the
+  user. Added `Settings.customTypes` (name → {required, optional}) fed into
+  `sharedTypeManager.setTypeInfoOverlay` from `settings.apply()`, mirroring the
+  existing field-type-set override path. A new `listEntryTypes` IPC composes every
+  known type — bundled types from config (with any overrides applied) then brand-new
+  custom types from settings — as `{name, standard, required, optional}`; the
+  renderer store loads it on mount and after a `customTypes` edit, and the
+  standalone editor window (its own store) loads it too. Preferences gains an
+  **Entry Types** section: add / rename / delete custom types with comma-separated,
+  order-preserving required and optional field lists (the field-types idiom), plus a
+  read-only list of the standard types. The previously hardcoded `ENTRY_TYPES`
+  arrays in `DetailPane` (entry type picker) and `Preferences` (default type) now
+  use the dynamic list, falling back to the static list pre-load, so custom types
+  are assignable to entries. Standard types stay read-only (their required fields
+  are protected by the manager); widening to edit standard types' optional fields
+  is a possible follow-up. *Revisit:* `Settings.customTypes` + `apply()` in
+  `settings.ts`, the `listEntryTypes` handler in `index.ts`, `EntryTypesSection` in
+  `Preferences.tsx`, `Identity` in `DetailPane.tsx`. Verified: build + tests
+  (TypeManager `bundledTypes`); a headless smoke opens Preferences without error.
+  Developed on branch `custom-entry-types`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

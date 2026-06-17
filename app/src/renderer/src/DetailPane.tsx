@@ -14,7 +14,7 @@ import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from 
 import { useStore } from './store.js';
 import { typesetMath } from './mathjax.js';
 
-/** Common BibTeX entry types offered in the type picker. */
+/** Fallback BibTeX entry types if the dynamic list hasn't loaded yet. */
 const ENTRY_TYPES = [
   'article', 'book', 'inbook', 'incollection', 'inproceedings', 'conference',
   'proceedings', 'phdthesis', 'mastersthesis', 'techreport', 'manual', 'misc',
@@ -401,7 +401,10 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
 
 function Identity({ detail }: { detail: ItemDetail }) {
   const edit = useStore((s) => s.edit);
-  const types = ENTRY_TYPES.includes(detail.type) ? ENTRY_TYPES : [detail.type, ...ENTRY_TYPES];
+  const entryTypes = useStore((s) => s.entryTypes);
+  // Dynamic types (standard + custom); fall back to the static list pre-load.
+  const names = entryTypes.length ? entryTypes.map((t) => t.name) : ENTRY_TYPES;
+  const types = names.includes(detail.type) ? names : [detail.type, ...names];
   return (
     <div className="bd-identity">
       <div className="bd-identity__row">

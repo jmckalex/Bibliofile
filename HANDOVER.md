@@ -8,12 +8,12 @@
 > importantly — the **gap analysis** (what is still missing from BibDesk, and the
 > recommended order to tackle it).
 
-Last updated on `main` (full suite green — 1430 passing, 3 skipped). This session
-shipped multi-column sort, bulk AutoFile, and **multiple open libraries**
-(window-per-library) — the last developed on the `multiple-open-libraries` branch
-and fast-forward-merged into `main`. §5 reflects this. The recommended-order quick
-wins are done; remaining big items are the custom entry-type editor and the `.aux`
-workflow.
+Last updated on branch `custom-entry-types` (full suite green — 1431 passing,
+3 skipped). Earlier this session, merged to `main`: multi-column sort, bulk
+AutoFile, and multiple open libraries (window-per-library). Now the **custom
+entry-type / field editor** on the `custom-entry-types` branch — committed
+locally, **not yet merged to `main`**. §5 reflects this. Remaining big item from
+the gap list: the `.aux` workflow (plus the user's folders idea).
 
 ---
 
@@ -192,9 +192,12 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
    changes prompts Save/Don't Save/Cancel. `DocumentStore` was already
    multi-document; the work was retiring the `mainWindow`/`lastDocumentId`
    singletons in `index.ts` for a `docWindows` registry.
-2. **Custom BibTeX entry-type / field editor.** BibDesk's Preferences → Defaults
-   lets users define entry types plus their required/optional fields and field
-   order. We have a fixed type model.
+2. ~~**Custom BibTeX entry-type / field editor.**~~ **DONE** (branch
+   `custom-entry-types`) — Preferences → Entry Types defines custom types with
+   ordered required/optional fields (standard types protected). Persisted in
+   `Settings.customTypes` → `TypeManager.setTypeInfoOverlay`; a `listEntryTypes`
+   IPC feeds the type dropdowns. *(Standard types are read-only; widening to edit
+   their optional fields is a possible follow-up.)*
 3. **`.aux`-file workflow** ("Select Publications from .aux file") — parse a
    LaTeX `.aux`, select/export only the entries actually cited. High value,
    self-contained.

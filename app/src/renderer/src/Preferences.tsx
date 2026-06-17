@@ -437,7 +437,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                 value={settings.defaultEntryType}
                 onChange={(e) => void save({ defaultEntryType: e.target.value })}
               >
-                {ENTRY_TYPES.map((t) => (
+                {(entryTypes.length ? entryTypes.map((t) => t.name) : ENTRY_TYPES).map((t) => (
                   <option key={t} value={t}>
                     {t}
                   </option>
