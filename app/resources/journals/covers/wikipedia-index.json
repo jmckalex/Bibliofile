@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Physical Review E",
+    "file": "wiki-physical-review-e.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/3/35/Image_of_front_cover_of_the_journal_Physical_Review_B.jpg",
+    "wikiTitle": "Physical Review",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Historical Social Research",
+    "file": "wiki-historical-social-research.png",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/d/de/Historical_Social_Research%2C_Vol._50%2C_No._2_cover.png",
+    "wikiTitle": "Historical Social Research",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Southern Journal of Philosophy",
+    "file": "wiki-southern-journal-of-philosophy.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/d/d2/SJP_cover_1.jpg",
+    "wikiTitle": "Southern Journal of Philosophy",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Philosophical Transactions of the Royal Society B",
+    "file": "wiki-philosophical-transactions-of-the-royal-society-b.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/4/42/Philosophical_Transactions_Volume_1_frontispiece.jpg",
+    "wikiTitle": "Philosophical Transactions of the Royal Society",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "European Physical Journal B",
+    "file": "wiki-european-physical-journal-b.svg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/3/38/EPJ.svg",
+    "wikiTitle": "European Physical Journal",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "PLoS ONE",
+    "file": "wiki-plos-one.svg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e7/PLOS_ONE_logo_2012.svg",
+    "wikiTitle": "PLOS One",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Kyklos",
+    "file": "wiki-kyklos.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c2/Kyklos_logo_cover.jpg",
+    "wikiTitle": "Kyklos (journal)",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Scientific American",
+    "file": "wiki-scientific-american.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/d/dc/Scientific_American_LCCN2015645750.jpg",
+    "wikiTitle": "Scientific American",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Physical Review Letters",
+    "file": "wiki-physical-review-letters.jpg",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/3/35/Image_of_front_cover_of_the_journal_Physical_Review_B.jpg",
+    "wikiTitle": "Physical Review",
+    "kind": "wikipedia"
+  },
+  {
+    "name": "Biometrika",
+    "file": "wiki-biometrika.gif",
+    "sourceUrl": "https://upload.wikimedia.org/wikipedia/commons/0/05/Biometrikacover.gif",
+    "wikiTitle": "Biometrika",
+    "kind": "wikipedia"
+  }
+]
