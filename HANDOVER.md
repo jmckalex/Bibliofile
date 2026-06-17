@@ -8,7 +8,9 @@
 > importantly — the **gap analysis** (what is still missing from BibDesk, and the
 > recommended order to tackle it).
 
-Last updated at commit `6da935d` (working tree clean; full suite green).
+Last updated at commit `88a0ff8` (working tree clean; full suite green —
+1429 passing, 3 skipped). This session added multi-column sort + bulk AutoFile;
+the gap analysis in §5 is updated accordingly (next: the `.aux` workflow).
 
 ---
 
@@ -196,10 +198,12 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
 
 ### Smaller gaps
 
-- Secondary / multi-column sort.
+- ~~Secondary / multi-column sort.~~ **DONE** (`a296d74`) — Shift-click headers
+  to add/cycle secondary sort keys; priority badges.
 - Labeled undo/redo ("Undo Set Field", etc.) — skipped earlier over native-menu
   refresh friction; worth revisiting.
-- Bulk **AutoFile** / "Consolidate Linked Files".
+- ~~Bulk **AutoFile** / "Consolidate Linked Files".~~ **DONE** (`88a0ff8`) —
+  `Publication → Consolidate Linked Files…`, native confirm + summary.
 - More "Copy As" formats: RIS, Minimal BibTeX, LaTeX/AmsRefs, Item URL, PDF.
 - Person & date field editors (deferred — a date picker risks clobbering
   Date-Added / Date-Modified).
@@ -231,9 +235,9 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
 
 ### Recommended next order
 
-1. **Multi-column sort** — quick win.
-2. **Bulk AutoFile / consolidate** — quick win.
-3. **`.aux` workflow** — high value, self-contained.
+1. ~~**Multi-column sort** — quick win.~~ ✅ done `a296d74`.
+2. ~~**Bulk AutoFile / consolidate** — quick win.~~ ✅ done `88a0ff8`.
+3. **`.aux` workflow** — high value, self-contained. ← **next**
 4. **Custom entry-type / field editor** — gets us closest to "BibDesk-complete".
 5. **Multiple open libraries** — the big architectural lift; do it last.
 
