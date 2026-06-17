@@ -726,6 +726,25 @@ body {
   opacity: 1;
 }
 
+.bd-group__edit {
+  border: 0;
+  background: none;
+  color: var(--bd-text-muted);
+  cursor: pointer;
+  opacity: 0;
+  padding: 0 2px;
+  font-size: 12px;
+}
+
+.bd-group:hover .bd-group__edit {
+  opacity: 0.8;
+}
+
+.bd-group__edit:hover {
+  color: var(--bd-accent);
+  opacity: 1;
+}
+
 .bd-cond {
   display: flex;
   gap: 6px;

@@ -293,6 +293,67 @@ describe('document-service: BD test.bib', () => {
     expect(node2.count).toBe(1);
   });
 
+  it('groupEdit: editSmart changes name/conjunction/conditions; groupConditions reads them back', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{x, Title = {Quantum optics}, Author = {Bohr}}\n@article{y, Title = {Cooking}, Author = {Child}}',
+      '/tmp/sg2.bib',
+    );
+    const gid = store.groupEdit({
+      documentId,
+      command: { kind: 'createSmart', name: 'Optics', conjunction: 0, conditions: [{ key: 'Title', comparison: 2, value: 'optics' }] },
+    }).groupId!;
+
+    // Read back what we just created.
+    const before = store.groupConditions({ documentId, groupId: gid });
+    expect(before).toEqual({
+      name: 'Optics',
+      conjunction: 0,
+      conditions: [{ key: 'Title', comparison: 2, value: 'optics' }],
+    });
+
+    // Edit: rename, switch to OR, and broaden to two conditions.
+    store.groupEdit({
+      documentId,
+      command: {
+        kind: 'editSmart',
+        groupId: gid,
+        name: 'Physics or Food',
+        conjunction: 1,
+        conditions: [
+          { key: 'Author', comparison: 4, value: 'Bohr' },
+          { key: 'Title', comparison: 2, value: 'Cooking' },
+        ],
+      },
+    });
+
+    const after = store.groupConditions({ documentId, groupId: gid });
+    expect(after).toEqual({
+      name: 'Physics or Food',
+      conjunction: 1,
+      conditions: [
+        { key: 'Author', comparison: 4, value: 'Bohr' },
+        { key: 'Title', comparison: 2, value: 'Cooking' },
+      ],
+    });
+
+    // The OR now matches both entries, and the change survives a round-trip.
+    const node = store.listGroups({ documentId }).groups.find((g) => g.id === gid)!;
+    expect(node.name).toBe('Physics or Food');
+    expect(node.count).toBe(2);
+    const re = new DocumentStore();
+    const r2 = re.openText(store.serializeDocument(documentId), '/tmp/sg2.bib');
+    const node2 = re.listGroups({ documentId: r2.documentId }).groups.find((g) => g.name === 'Physics or Food')!;
+    expect(node2.count).toBe(2);
+  });
+
+  it('groupConditions throws for a non-smart group', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/ns.bib');
+    const gid = store.groupEdit({ documentId, command: { kind: 'createStatic', name: 'Picks', citeKeys: ['a'] } }).groupId!;
+    expect(() => store.groupConditions({ documentId, groupId: gid })).toThrow(/smart/i);
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');

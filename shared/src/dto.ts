@@ -573,6 +573,14 @@ export type GroupCommand =
       /** 0 = all conditions (AND), 1 = any (OR). */
       readonly conjunction: 0 | 1;
     }
+  | {
+      readonly kind: 'editSmart';
+      readonly groupId: string;
+      readonly name: string;
+      readonly conditions: readonly SmartCondition[];
+      /** 0 = all conditions (AND), 1 = any (OR). */
+      readonly conjunction: 0 | 1;
+    }
   | { readonly kind: 'rename'; readonly groupId: string; readonly name: string }
   | { readonly kind: 'delete'; readonly groupId: string }
   | {
@@ -593,6 +601,20 @@ export interface GroupEditRequest {
 export interface GroupEditResult {
   readonly dirty: boolean;
   readonly groupId?: string;
+}
+
+/** Read back a smart group's editable definition (to populate the editor). */
+export interface GroupConditionsRequest {
+  readonly documentId: DocumentId;
+  readonly groupId: string;
+}
+
+/** A smart group's current name, conjunction, and conditions. */
+export interface GroupConditionsResponse {
+  readonly name: string;
+  /** 0 = all conditions (AND), 1 = any (OR). */
+  readonly conjunction: 0 | 1;
+  readonly conditions: readonly SmartCondition[];
 }
 
 // --- Claude assistant -------------------------------------------------------

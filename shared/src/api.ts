@@ -46,6 +46,8 @@ import type {
   FindDuplicatesResult,
   GroupEditRequest,
   GroupEditResult,
+  GroupConditionsRequest,
+  GroupConditionsResponse,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
   AutoFileRequest,
@@ -166,6 +168,9 @@ export interface BibDeskApi {
 
   /** Create/rename/delete a group or change a static group's membership. */
   groupEdit(request: GroupEditRequest): Promise<GroupEditResult>;
+
+  /** Read back a smart group's name/conjunction/conditions (to edit it). */
+  groupConditions(request: GroupConditionsRequest): Promise<GroupConditionsResponse>;
 
   /** Distinct existing values for a field (autocomplete in the field editors). */
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse>;

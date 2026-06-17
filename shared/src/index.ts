@@ -125,6 +125,8 @@ export {
   type GroupCommand,
   type GroupEditRequest,
   type GroupEditResult,
+  type GroupConditionsRequest,
+  type GroupConditionsResponse,
   type FieldSuggestionsRequest,
   type FieldSuggestionsResponse,
   type AutoFileRequest,

@@ -15,6 +15,7 @@ import type {
   BibDeskApi,
   EditCommand,
   GroupCommand,
+  GroupConditionsResponse,
   FindReplaceRequest,
   FindReplaceResult,
   FindDuplicatesResult,
@@ -190,6 +191,8 @@ export interface ViewerState {
   toggleColumn: (key: string) => Promise<void>;
   /** Apply a group command (create/rename/delete/membership); reloads the sidebar. */
   groupEdit: (command: GroupCommand) => Promise<string | undefined>;
+  /** Read a smart group's name/conjunction/conditions (to pre-fill the editor). */
+  groupConditions: (groupId: string) => Promise<GroupConditionsResponse | undefined>;
   /** Send one message to the Claude assistant; reloads the table if it mutated. */
   agentSend: (message: string) => Promise<AgentRunResponse>;
 }
@@ -610,6 +613,17 @@ export function createStore(api: BibDeskApi) {
         if (res.groupId) set({ selectedGroupId: res.groupId });
         await get().loadPublications();
         return res.groupId;
+      } catch (err) {
+        set({ error: errorMessage(err) });
+        return undefined;
+      }
+    },
+
+    groupConditions: async (groupId) => {
+      const { documentId } = get();
+      if (!documentId) return undefined;
+      try {
+        return await api.groupConditions({ documentId, groupId });
       } catch (err) {
         set({ error: errorMessage(err) });
         return undefined;

@@ -1,11 +1,13 @@
 /**
- * Smart-group creation dialog — a small condition builder (BibDesk smart groups).
+ * Smart-group editor — a small condition builder (BibDesk smart groups).
  * Each row is field + comparison + value; the group matches all (AND) or any (OR)
- * of them. Persists via the store's groupEdit (createSmart) and selects the new
- * group. Comparison integers mirror `@bibdesk/groups` BDSKComparison (string ops).
+ * of them. With no `editGroupId` it creates a new smart group (groupEdit
+ * `createSmart`); with one it loads that group's current definition (store
+ * `groupConditions`) and saves changes back (`editSmart`). Comparison integers
+ * mirror `@bibdesk/groups` BDSKComparison (string ops).
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { SmartCondition } from '@bibdesk/shared';
 import { useStore } from './store.js';
 
@@ -26,30 +28,67 @@ interface Row {
   value: string;
 }
 
-export function SmartGroupDialog({ onClose }: { onClose: () => void }) {
+const NEW_ROW: Row = { key: 'Title', comparison: 2, value: '' };
+
+export function SmartGroupDialog({
+  onClose,
+  editGroupId,
+}: {
+  onClose: () => void;
+  editGroupId?: string;
+}) {
   const groupEdit = useStore((s) => s.groupEdit);
+  const groupConditions = useStore((s) => s.groupConditions);
+  const editing = editGroupId !== undefined;
   const [name, setName] = useState('Smart Group');
   const [conjunction, setConjunction] = useState<0 | 1>(0);
-  const [rows, setRows] = useState<Row[]>([{ key: 'Title', comparison: 2, value: '' }]);
+  const [rows, setRows] = useState<Row[]>([{ ...NEW_ROW }]);
+  // While editing, hold input until the existing definition has loaded.
+  const [loaded, setLoaded] = useState(!editing);
+
+  useEffect(() => {
+    if (!editGroupId) return;
+    let cancelled = false;
+    void groupConditions(editGroupId).then((res) => {
+      if (cancelled || !res) return;
+      setName(res.name || 'Smart Group');
+      setConjunction(res.conjunction);
+      setRows(
+        res.conditions.length
+          ? res.conditions.map((c) => ({ key: c.key || 'Title', comparison: c.comparison, value: c.value }))
+          : [{ ...NEW_ROW }],
+      );
+      setLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [editGroupId, groupConditions]);
 
   const update = (i: number, patch: Partial<Row>): void =>
     setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
-  const addRow = (): void => setRows((rs) => [...rs, { key: 'Title', comparison: 2, value: '' }]);
+  const addRow = (): void => setRows((rs) => [...rs, { ...NEW_ROW }]);
   const removeRow = (i: number): void => setRows((rs) => (rs.length > 1 ? rs.filter((_, j) => j !== i) : rs));
 
-  const create = async (): Promise<void> => {
+  const submit = async (): Promise<void> => {
     const conditions: SmartCondition[] = rows
       .filter((r) => r.key)
       .map((r) => ({ key: r.key, comparison: r.comparison, value: r.value }));
-    await groupEdit({ kind: 'createSmart', name: name.trim() || 'Smart Group', conditions, conjunction });
+    const groupName = name.trim() || 'Smart Group';
+    if (editGroupId) {
+      await groupEdit({ kind: 'editSmart', groupId: editGroupId, name: groupName, conditions, conjunction });
+    } else {
+      await groupEdit({ kind: 'createSmart', name: groupName, conditions, conjunction });
+    }
     onClose();
   };
 
+  const title = editing ? 'Edit Smart Group' : 'New Smart Group';
   return (
     <div className="bd-modal-backdrop" onClick={onClose}>
-      <div className="bd-modal bd-modal--wide" role="dialog" aria-label="New smart group" onClick={(e) => e.stopPropagation()}>
+      <div className="bd-modal bd-modal--wide" role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="bd-modal__header">
-          <span>New Smart Group</span>
+          <span>{title}</span>
           <button type="button" className="bd-field__del" title="Close" onClick={onClose}>
             ×
           </button>
@@ -70,7 +109,8 @@ export function SmartGroupDialog({ onClose }: { onClose: () => void }) {
           {rows.map((r, i) => (
             <div className="bd-cond" key={i}>
               <select className="bd-input bd-select" value={r.key} onChange={(e) => update(i, { key: e.target.value })}>
-                {FIELDS.map((f) => (
+                {/* Allow an unknown stored field to round-trip even if not in the preset list. */}
+                {(FIELDS.includes(r.key) ? FIELDS : [r.key, ...FIELDS]).map((f) => (
                   <option key={f} value={f}>
                     {f}
                   </option>
@@ -97,8 +137,8 @@ export function SmartGroupDialog({ onClose }: { onClose: () => void }) {
           <button type="button" className="bd-btn" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" className="bd-btn bd-btn--primary" onClick={() => void create()}>
-            Create
+          <button type="button" className="bd-btn bd-btn--primary" disabled={!loaded} onClick={() => void submit()}>
+            {editing ? 'Save' : 'Create'}
           </button>
         </div>
       </div>

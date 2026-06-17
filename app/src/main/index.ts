@@ -215,8 +215,12 @@ function createWindow(): BrowserWindow {
         const multi = process.env.BIBDESK_SMOKE_MULTI
           ? "document.querySelectorAll('.bd-tr')[1]?.dispatchEvent(new MouseEvent('click',{bubbles:true,metaKey:true}));document.querySelectorAll('.bd-tr')[2]?.dispatchEvent(new MouseEvent('click',{bubbles:true,metaKey:true}));"
           : '';
+        // optionally click an arbitrary selector after a short delay (opens a panel/dialog)
+        const click = process.env.BIBDESK_SMOKE_CLICK
+          ? `setTimeout(()=>document.querySelector(${JSON.stringify(process.env.BIBDESK_SMOKE_CLICK)})?.click(),700);`
+          : '';
         void win.webContents
-          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf}${paste}${multi} true`)
+          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf}${paste}${multi}${click} true`)
           .catch(() => undefined)
           .finally(() => setTimeout(capture, process.env.BIBDESK_OPEN_PDF ? 4200 : 1800));
       }, 1800);
@@ -1245,6 +1249,7 @@ function registerIpc(): void {
     [IpcChannels.findReplace]: (req) => store.findReplace(req),
     [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
     [IpcChannels.groupEdit]: (req) => store.groupEdit(req),
+    [IpcChannels.groupConditions]: (req) => store.groupConditions(req),
     [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
     [IpcChannels.autoFile]: (req) => {
       const res = store.autoFile(req.documentId, req.itemId);
@@ -1374,6 +1379,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.groupEdit, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.groupEdit](req),
+  );
+  ipcMain.handle(IpcChannels.groupConditions, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.groupConditions](req),
   );
   ipcMain.handle(IpcChannels.fieldSuggestions, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.fieldSuggestions](req),

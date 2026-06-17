@@ -45,6 +45,8 @@ import type {
   FindDuplicatesResult,
   GroupEditRequest,
   GroupEditResult,
+  GroupConditionsRequest,
+  GroupConditionsResponse,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
   AutoFileRequest,
@@ -112,6 +114,7 @@ export interface IpcContract {
   [IpcChannels.findReplace]: IpcEntry<FindReplaceRequest, FindReplaceResult>;
   [IpcChannels.findDuplicates]: IpcEntry<FindDuplicatesRequest, FindDuplicatesResult>;
   [IpcChannels.groupEdit]: IpcEntry<GroupEditRequest, GroupEditResult>;
+  [IpcChannels.groupConditions]: IpcEntry<GroupConditionsRequest, GroupConditionsResponse>;
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;
   [IpcChannels.autoFile]: IpcEntry<AutoFileRequest, AutoFileResult>;
   [IpcChannels.chooseFolder]: IpcEntry<Record<string, never>, ChooseFolderResponse>;

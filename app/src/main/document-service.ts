@@ -104,6 +104,9 @@ import type {
   DuplicateGroup,
   GroupEditRequest,
   GroupEditResult,
+  GroupConditionsRequest,
+  GroupConditionsResponse,
+  SmartCondition,
   SaveDocumentRequest,
   SaveDocumentResult,
 } from '@bibdesk/shared';
@@ -1240,6 +1243,20 @@ export class DocumentStore {
         doc.dirty = true;
         return { dirty: true, groupId: `g#${index}#${arr.length - 1}` };
       }
+      case 'editSmart': {
+        const r = this.resolveGroupDict(doc, cmd.groupId);
+        if (!r || r.record.kind !== 'smart') throw new Error('Not a smart group');
+        r.dict['group name'] = cmd.name;
+        r.dict.conjunction = plistInteger(String(cmd.conjunction));
+        r.dict.conditions = cmd.conditions.map((c) => ({
+          key: c.key,
+          value: c.value,
+          comparison: plistInteger(String(c.comparison)),
+          version: plistInteger('1'),
+        }));
+        doc.dirty = true;
+        return { dirty: true, groupId: cmd.groupId };
+      }
       case 'rename': {
         const r = this.resolveGroupDict(doc, cmd.groupId);
         if (!r) throw new Error(`Unknown group: ${cmd.groupId}`);
@@ -1269,6 +1286,30 @@ export class DocumentStore {
       default:
         return { dirty: doc.dirty };
     }
+  }
+
+  /**
+   * Read back a smart group's editable definition (name, conjunction, and
+   * conditions) so the renderer can pre-populate the smart-group editor.
+   * Throws if the group id isn't a smart group.
+   */
+  groupConditions(req: GroupConditionsRequest): GroupConditionsResponse {
+    const doc = this.requireDoc(req.documentId);
+    const r = this.resolveGroupDict(doc, req.groupId);
+    if (!r || r.record.kind !== 'smart') throw new Error('Not a smart group');
+    const raw = Array.isArray(r.dict.conditions)
+      ? (r.dict.conditions as Array<Record<string, unknown>>)
+      : [];
+    const conditions: SmartCondition[] = raw.map((c) => ({
+      key: typeof c.key === 'string' ? c.key : '',
+      comparison: toInt(c.comparison) || 2,
+      value: typeof c.value === 'string' ? c.value : '',
+    }));
+    return {
+      name: nameOfDict(r.dict),
+      conjunction: toInt(r.dict.conjunction) === 1 ? 1 : 0,
+      conditions,
+    };
   }
 
   /** Full detail for one item. Throws if the document or item id is unknown. */

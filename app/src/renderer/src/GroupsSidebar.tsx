@@ -54,6 +54,7 @@ function GroupRow({
   onCommitRename,
   onDelete,
   onDropKeys,
+  onEditSmart,
 }: {
   group: GroupNode;
   child: boolean;
@@ -64,6 +65,7 @@ function GroupRow({
   onCommitRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
   onDropKeys: (id: string, keys: string[]) => void;
+  onEditSmart: (id: string) => void;
 }) {
   const [dropping, setDropping] = useState(false);
   const editable = EDITABLE(group.kind);
@@ -118,6 +120,19 @@ function GroupRow({
         <span className="bd-group__name">{group.name}</span>
       )}
       <span className="bd-group__count">{group.count}</span>
+      {group.kind === 'smart' && !editing && (
+        <button
+          type="button"
+          className="bd-group__edit"
+          title={`Edit conditions for “${group.name}”`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onEditSmart(group.id);
+          }}
+        >
+          ✎
+        </button>
+      )}
       {editable && !editing && (
         <button
           type="button"
@@ -143,6 +158,8 @@ export function GroupsSidebar() {
   const hasDoc = useStore((s) => s.documentId !== undefined);
   const [editingId, setEditingId] = useState<string | undefined>();
   const [smartOpen, setSmartOpen] = useState(false);
+  // When set, the smart-group dialog opens in "edit conditions" mode for this id.
+  const [editSmartId, setEditSmartId] = useState<string | undefined>();
 
   const tree = useMemo(() => buildTree(groups), [groups]);
 
@@ -181,6 +198,7 @@ export function GroupsSidebar() {
             onCommitRename={commitRename}
             onDelete={(id) => void groupEdit({ kind: 'delete', groupId: id })}
             onDropKeys={(id, keys) => void groupEdit({ kind: 'setMembers', groupId: id, citeKeys: keys, add: true })}
+            onEditSmart={setEditSmartId}
           />
           {children.map((c) => (
             <GroupRow
@@ -194,11 +212,15 @@ export function GroupsSidebar() {
               onCommitRename={commitRename}
               onDelete={(id) => void groupEdit({ kind: 'delete', groupId: id })}
               onDropKeys={(id, keys) => void groupEdit({ kind: 'setMembers', groupId: id, citeKeys: keys, add: true })}
+              onEditSmart={setEditSmartId}
             />
           ))}
         </div>
       ))}
       {smartOpen && <SmartGroupDialog onClose={() => setSmartOpen(false)} />}
+      {editSmartId && (
+        <SmartGroupDialog editGroupId={editSmartId} onClose={() => setEditSmartId(undefined)} />
+      )}
     </nav>
   );
 }
