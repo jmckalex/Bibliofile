@@ -42,3 +42,25 @@ describe('resolveCover', () => {
     expect(resolveCover(idx, '', '')).toBeNull();
   });
 });
+
+describe('resolveCover with name-keyed (Wikipedia) covers', () => {
+  const idx = buildCoverIndex(MANIFEST, RECORDS, [
+    { name: 'Synthese', file: 'wiki-synthese.jpg', kind: 'wikipedia' },
+    { name: 'Erkenntnis', file: 'wiki-erkenntnis.png', kind: 'wikipedia', issn: '0165-0106' },
+  ]);
+
+  it('resolves a journal with no ISSN directly by name', () => {
+    const hit = resolveCover(idx, '', 'Synthese');
+    expect(hit?.file).toBe('wiki-synthese.jpg');
+    expect(hit?.kind).toBe('wikipedia');
+  });
+
+  it('also registers a name-keyed cover under its ISSN', () => {
+    expect(resolveCover(idx, '0165-0106', '')?.file).toBe('wiki-erkenntnis.png');
+  });
+
+  it('still prefers a curated ISSN-matched cover over a name fallback', () => {
+    // Biology & Philosophy has a real ISSN cover; a name match must not override it.
+    expect(resolveCover(idx, '0028-0836', 'Synthese')?.file).toBe('nature.jpg');
+  });
+});

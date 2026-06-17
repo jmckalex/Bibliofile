@@ -23,6 +23,8 @@ export interface CoverIndex {
   readonly issnLToCover: Map<string, CoverHit>;
   readonly issnToIssnL: Map<string, string>;
   readonly nameToIssnL: Map<string, string>;
+  /** Covers keyed directly by normalized journal name (e.g. Wikipedia-sourced, no ISSN). */
+  readonly nameToCover: Map<string, CoverHit>;
 }
 
 /** Normalize an ISSN to bare digits/X, uppercase (e.g. `0028-0836` → `00280836`). */
@@ -50,8 +52,26 @@ interface ManifestEntry {
   kind?: string;
 }
 
-/** Build the lookup indexes from the manifest + metadata records. */
-export function buildCoverIndex(manifest: ManifestEntry[], records: JournalRecord[]): CoverIndex {
+/** A name-keyed cover (e.g. fetched from Wikipedia), optionally carrying ISSNs. */
+interface NamedCover {
+  name?: string;
+  file?: string;
+  kind?: string;
+  issnL?: string | null;
+  issn?: string | string[];
+}
+
+/**
+ * Build the lookup indexes from the ISSN-keyed manifest + metadata records, plus
+ * any name-keyed covers (`named`, e.g. `wikipedia-index.json`). Name-keyed covers
+ * resolve directly by journal name; if they also carry an ISSN, they register for
+ * ISSN lookup too.
+ */
+export function buildCoverIndex(
+  manifest: ManifestEntry[],
+  records: JournalRecord[],
+  named: NamedCover[] = [],
+): CoverIndex {
   const issnLToCover = new Map<string, CoverHit>();
   for (const e of manifest) {
     if (e.issnL && e.file) issnLToCover.set(normIssn(e.issnL), { file: e.file, kind: e.kind ?? 'unknown' });
@@ -65,7 +85,21 @@ export function buildCoverIndex(manifest: ManifestEntry[], records: JournalRecor
     for (const issn of r.issn ?? []) issnToIssnL.set(normIssn(issn), il);
     if (r.name) nameToIssnL.set(normName(r.name), il);
   }
-  return { issnLToCover, issnToIssnL, nameToIssnL };
+  const nameToCover = new Map<string, CoverHit>();
+  for (const e of named) {
+    if (!e.name || !e.file) continue;
+    const hit: CoverHit = { file: e.file, kind: e.kind ?? 'wikipedia' };
+    nameToCover.set(normName(e.name), hit);
+    // Register any ISSN so ISSN-based lookups find it too.
+    const issns = Array.isArray(e.issn) ? e.issn : e.issn ? [e.issn] : [];
+    const il = e.issnL ? normIssn(e.issnL) : issns[0] ? normIssn(issns[0]) : undefined;
+    if (il) {
+      if (!issnLToCover.has(il)) issnLToCover.set(il, hit);
+      issnToIssnL.set(il, il);
+      for (const s of issns) issnToIssnL.set(normIssn(s), il);
+    }
+  }
+  return { issnLToCover, issnToIssnL, nameToIssnL, nameToCover };
 }
 
 /** Resolve a cover from an entry's ISSN and/or journal name; null if none. */
@@ -76,7 +110,11 @@ export function resolveCover(idx: CoverIndex, issn: string, journalName: string)
     if (hit) return hit;
   }
   if (journalName) {
-    const il = idx.nameToIssnL.get(normName(journalName));
+    const n = normName(journalName);
+    // A direct name-keyed cover (e.g. Wikipedia) — covers journals with no ISSN match.
+    const direct = idx.nameToCover.get(n);
+    if (direct) return direct;
+    const il = idx.nameToIssnL.get(n);
     if (il) {
       const hit = idx.issnLToCover.get(il);
       if (hit) return hit;
@@ -116,7 +154,9 @@ export function loadCoverIndex(appPath: string): { dir: string; index: CoverInde
     ...readJson<JournalRecord[]>(join(dir, 'philosophy.json'), []),
     ...readJson<JournalRecord[]>(join(dir, 'top-journals.json'), []),
   ];
-  cached = { dir, index: buildCoverIndex(manifest, records) };
+  // Name-keyed covers fetched from Wikipedia (optional; written by the cover agent).
+  const named = readJson<NamedCover[]>(join(dir, 'covers', 'wikipedia-index.json'), []);
+  cached = { dir, index: buildCoverIndex(manifest, records, named) };
   return cached;
 }
 
