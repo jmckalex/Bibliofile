@@ -108,6 +108,26 @@ export interface ApplyEditRequest {
   readonly command: EditCommand;
 }
 
+/** A bulk operation applied to every selected item (one undo step). */
+export type BatchOp =
+  | { readonly kind: 'setField'; readonly field: string; readonly value: string }
+  | { readonly kind: 'addKeyword'; readonly keyword: string }
+  | { readonly kind: 'removeKeyword'; readonly keyword: string }
+  | { readonly kind: 'delete' };
+
+/** Apply a {@link BatchOp} to a set of items. */
+export interface BatchEditRequest {
+  readonly documentId: DocumentId;
+  readonly itemIds: readonly ItemId[];
+  readonly op: BatchOp;
+}
+
+/** Outcome of a batch edit: the new dirty state + how many items changed. */
+export interface BatchEditResult {
+  readonly dirty: boolean;
+  readonly count: number;
+}
+
 /** Outcome of an edit: the new dirty state and (when relevant) the affected item. */
 export interface EditResult {
   readonly dirty: boolean;

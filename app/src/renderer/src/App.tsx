@@ -20,6 +20,7 @@ import { Preferences } from './Preferences.js';
 import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
 import { Assistant } from './Assistant.js';
+import { BatchBar } from './BatchBar.js';
 
 function ThemeToggle() {
   const theme = useStore((s) => s.settings.theme);
@@ -429,6 +430,7 @@ export function App() {
         </section>
       </div>
       <Footer />
+      <BatchBar />
       {macrosOpen && <MacroEditor onClose={() => setMacrosOpen(false)} />}
       {onlineOpen && <OnlineSearch onClose={() => setOnlineOpen(false)} />}
       {prefsOpen && <Preferences onClose={() => setPrefsOpen(false)} />}

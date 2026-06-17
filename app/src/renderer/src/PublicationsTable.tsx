@@ -152,8 +152,11 @@ export function PublicationsTable() {
   const query = useStore((s) => s.query);
   const ftsIds = useStore((s) => s.ftsIds);
   const selectedItemId = useStore((s) => s.selectedItemId);
+  const selectedIds = useStore((s) => s.selectedIds);
   const sort = useStore((s) => s.sort);
   const selectItem = useStore((s) => s.selectItem);
+  const toggleSelect = useStore((s) => s.toggleSelect);
+  const rangeSelectTo = useStore((s) => s.rangeSelectTo);
   const setSort = useStore((s) => s.setSort);
   const loading = useStore((s) => s.loading);
   const citeTemplate = useStore((s) => s.settings.citeCommandTemplate);
@@ -217,16 +220,26 @@ export function PublicationsTable() {
             {virtualItems.map((vItem) => {
               const row = tableRows[vItem.index];
               if (!row) return null;
-              const selected = row.original.id === selectedItemId;
+              const isPrimary = row.original.id === selectedItemId;
+              const selected = isPrimary || selectedIds.includes(row.original.id);
               return (
                 <div
                   key={row.id}
                   role="row"
-                  className={'bd-tr' + (selected ? ' bd-tr--selected' : '')}
+                  className={
+                    'bd-tr' +
+                    (selected ? ' bd-tr--selected' : '') +
+                    (selected && !isPrimary ? ' bd-tr--multi' : '')
+                  }
                   style={{ height: ROW_HEIGHT, transform: `translateY(${vItem.start}px)` }}
                   aria-selected={selected}
                   draggable
-                  onClick={() => void selectItem(row.original.id)}
+                  onClick={(e) => {
+                    // Cmd/Ctrl = toggle; Shift = range; plain = single-select.
+                    if (e.metaKey || e.ctrlKey) toggleSelect(row.original.id);
+                    else if (e.shiftKey) rangeSelectTo(row.original.id, data.map((r) => r.id));
+                    else void selectItem(row.original.id);
+                  }}
                   onDragStart={(e) => {
                     // Drag a row into a TeX editor to insert the cite command,
                     // or onto a static group to add it (custom cite-key flavor).

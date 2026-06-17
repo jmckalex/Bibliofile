@@ -36,6 +36,8 @@ export const IpcChannels = {
   openExternal: 'bibdesk:openExternal',
   /** Apply one edit command (mutate the in-memory model). */
   applyEdit: 'bibdesk:applyEdit',
+  /** Apply a bulk operation to a set of selected items (one undo step). */
+  batchEdit: 'bibdesk:batchEdit',
   /** List a document's `@string` macros. */
   listMacros: 'bibdesk:listMacros',
   /** Save a document to disk (explicit save + backup). */

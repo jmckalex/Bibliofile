@@ -132,6 +132,31 @@ describe('document-service: BD test.bib', () => {
     expect(store.fieldSuggestions(documentId, 'Keywords').values).toEqual(['lasers', 'optics', 'physics']);
   });
 
+  it('batchEdit applies set-field / add-keyword / delete across a selection', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Title = {A}}\n@article{b, Title = {B}, Keywords = {x}}\n@book{c, Title = {C}}',
+      '/tmp/batch.bib',
+    );
+    const ids = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    const idOf = (k: string): string => ids.find((r) => r.citeKey === k)!.id;
+
+    // set a field on a + b
+    const r1 = store.batchEdit(documentId, [idOf('a'), idOf('b')], { kind: 'setField', field: 'Year', value: '2020' });
+    expect(r1.count).toBe(2);
+    expect(store.getItemDetail({ documentId, itemId: idOf('a') }).fields.find((f) => f.name === 'Year')?.rawValue).toBe('2020');
+
+    // add a keyword to a + b (b already has 'x' → union)
+    store.batchEdit(documentId, [idOf('a'), idOf('b')], { kind: 'addKeyword', keyword: 'topic' });
+    const bKw = store.getItemDetail({ documentId, itemId: idOf('b') }).fields.find((f) => f.name === 'Keywords')?.rawValue ?? '';
+    expect(bKw.split(',').map((k) => k.trim()).sort()).toEqual(['topic', 'x']);
+
+    // delete a + c
+    const del = store.batchEdit(documentId, [idOf('a'), idOf('c')], { kind: 'delete' });
+    expect(del.count).toBe(2);
+    expect(store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.citeKey)).toEqual(['b']);
+  });
+
   it('mergeEntries fills missing fields, unions keywords, and deletes the others', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText(

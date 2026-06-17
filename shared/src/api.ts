@@ -10,6 +10,8 @@
 import type {
   AddAttachmentRequest,
   ApplyEditRequest,
+  BatchEditRequest,
+  BatchEditResult,
   CloseDocumentRequest,
   ClosedDocument,
   EditResult,
@@ -96,6 +98,9 @@ export interface BibDeskApi {
 
   /** Apply one edit command to a document; resolves with the new dirty state. */
   applyEdit(request: ApplyEditRequest): Promise<EditResult>;
+
+  /** Apply a bulk operation to a set of selected items (one undo step). */
+  batchEdit(request: BatchEditRequest): Promise<BatchEditResult>;
 
   /** List a document's `@string` macros (for the macro editor). */
   listMacros(request: ListMacrosRequest): Promise<ListMacrosResponse>;

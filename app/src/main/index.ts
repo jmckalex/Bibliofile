@@ -210,8 +210,12 @@ function createWindow(): BrowserWindow {
             900,
           );
         }
+        // optionally Cmd-click extra rows to exercise multi-select + the batch bar
+        const multi = process.env.BIBDESK_SMOKE_MULTI
+          ? "document.querySelectorAll('.bd-tr')[1]?.dispatchEvent(new MouseEvent('click',{bubbles:true,metaKey:true}));document.querySelectorAll('.bd-tr')[2]?.dispatchEvent(new MouseEvent('click',{bubbles:true,metaKey:true}));"
+          : '';
         void win.webContents
-          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf}${paste} true`)
+          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf}${paste}${multi} true`)
           .catch(() => undefined)
           .finally(() => setTimeout(capture, process.env.BIBDESK_OPEN_PDF ? 4200 : 1800));
       }, 1800);
@@ -1114,6 +1118,7 @@ function registerIpc(): void {
     [IpcChannels.getItemDetail]: (req) => store.getItemDetail(req),
     [IpcChannels.openExternal]: (req) => openExternalTarget(req),
     [IpcChannels.applyEdit]: (req) => store.applyEdit(req),
+    [IpcChannels.batchEdit]: (req) => store.batchEdit(req.documentId, req.itemIds, req.op),
     [IpcChannels.listMacros]: (req) => store.listMacros(req),
     [IpcChannels.saveDocument]: (req) => {
       const res = store.saveDocument(req.documentId, req.targetPath);
@@ -1286,6 +1291,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.applyEdit, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.applyEdit](req),
+  );
+  ipcMain.handle(IpcChannels.batchEdit, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.batchEdit](req),
   );
   ipcMain.handle(IpcChannels.listMacros, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.listMacros](req),

@@ -11,6 +11,7 @@
 import { createStore as createZustandStore, useStore as useZustandStore } from 'zustand';
 import type {
   AgentRunResponse,
+  BatchOp,
   BibDeskApi,
   EditCommand,
   GroupCommand,
@@ -101,9 +102,11 @@ export interface ViewerState {
   groups: GroupNode[];
   selectedGroupId?: string;
 
-  /** Detail pane. */
+  /** Detail pane: the primary (last-clicked) item. */
   selectedItemId?: string;
   detail?: ItemDetail;
+  /** Multi-selection (always includes selectedItemId); drives batch operations. */
+  selectedIds: string[];
 
   /** Current table sort (default: cite key asc). */
   sort: SortState;
@@ -135,8 +138,16 @@ export interface ViewerState {
   loadPublications: () => Promise<void>;
   /** Select a group and reload the filtered publications. */
   selectGroup: (groupId: string) => Promise<void>;
-  /** Select a row and load its full detail. */
+  /** Select a row and load its full detail (replaces any multi-selection). */
   selectItem: (itemId: string) => Promise<void>;
+  /** Load one item's detail into the pane WITHOUT touching the multi-selection. */
+  loadDetail: (itemId: string) => Promise<void>;
+  /** Cmd/Ctrl-click: toggle one row in/out of the multi-selection. */
+  toggleSelect: (itemId: string) => void;
+  /** Shift-click: extend the selection from the primary to this row (visible order). */
+  rangeSelectTo: (itemId: string, orderedIds: readonly string[]) => void;
+  /** Apply a batch operation to the current multi-selection; reload. */
+  batchEdit: (op: BatchOp) => Promise<void>;
   /** Select an entry by cite key (used by notes `[[citeKey]]` cross-references). */
   selectByCiteKey: (citeKey: string) => Promise<void>;
   /** Toggle sort on a column key (asc⇄desc) and reload. */
@@ -201,6 +212,7 @@ export function createStore(api: BibDeskApi) {
     ftsIds: null,
     settings: DEFAULT_SETTINGS,
     macros: [],
+    selectedIds: [],
     dirty: false,
     saving: false,
     loading: false,
@@ -215,6 +227,7 @@ export function createStore(api: BibDeskApi) {
         // reset per-document view state
         selectedGroupId: undefined,
         selectedItemId: undefined,
+        selectedIds: [],
         detail: undefined,
         rows: [],
         total: 0,
@@ -275,17 +288,63 @@ export function createStore(api: BibDeskApi) {
       await get().loadPublications();
     },
 
-    selectItem: async (itemId) => {
+    loadDetail: async (itemId) => {
       const { documentId } = get();
       if (!documentId) return;
       set({ selectedItemId: itemId, detailLoading: true });
       try {
         const detail = await api.getItemDetail({ documentId, itemId });
-        // ignore stale responses if selection changed mid-flight
-        if (get().selectedItemId !== itemId) return;
+        if (get().selectedItemId !== itemId) return; // ignore stale responses
         set({ detail, detailLoading: false });
       } catch (err) {
         set({ detailLoading: false, error: errorMessage(err) });
+      }
+    },
+
+    selectItem: async (itemId) => {
+      set({ selectedIds: [itemId] });
+      await get().loadDetail(itemId);
+    },
+
+    toggleSelect: (itemId) => {
+      const cur = get().selectedIds;
+      const next = cur.includes(itemId) ? cur.filter((id) => id !== itemId) : [...cur, itemId];
+      set({ selectedIds: next }); // synchronous — no race with the async detail load
+      const primary = next.includes(itemId) ? itemId : next[next.length - 1];
+      if (primary) void get().loadDetail(primary);
+      else set({ selectedItemId: undefined, detail: undefined });
+    },
+
+    rangeSelectTo: (itemId, orderedIds) => {
+      const anchor = get().selectedItemId ?? get().selectedIds[0];
+      const a = anchor ? orderedIds.indexOf(anchor) : -1;
+      const b = orderedIds.indexOf(itemId);
+      if (a === -1 || b === -1) {
+        void get().selectItem(itemId);
+        return;
+      }
+      const [lo, hi] = a <= b ? [a, b] : [b, a];
+      set({ selectedIds: orderedIds.slice(lo, hi + 1) });
+      void get().loadDetail(itemId);
+    },
+
+    batchEdit: async (op) => {
+      const { documentId, selectedIds } = get();
+      if (!documentId || selectedIds.length === 0) return;
+      try {
+        await api.batchEdit({ documentId, itemIds: selectedIds, op });
+        set({ dirty: true });
+        await get().loadGroups();
+        await get().loadPublications();
+        if (op.kind === 'delete') {
+          set({ selectedItemId: undefined, selectedIds: [], detail: undefined });
+        } else {
+          const sel = get().selectedItemId;
+          // loadDetail refreshes the pane without disturbing the multi-selection.
+          if (sel) await get().loadDetail(sel);
+        }
+      } catch (err) {
+        set({ error: errorMessage(err) });
       }
     },
 

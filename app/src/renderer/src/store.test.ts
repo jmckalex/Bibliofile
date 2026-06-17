@@ -78,6 +78,7 @@ function makeFakeApi() {
     getItemDetail: async () => DETAIL,
     openExternal: async () => ({ ok: true }),
     applyEdit: async () => ({ dirty: true }),
+    batchEdit: async (r) => ({ dirty: true, count: r.itemIds.length }),
     listMacros: async () => ({ macros: [] }),
     saveDocument: async (r) => ({ documentId: r.documentId, path: '/tmp/test.bib' }),
     formatCitation: async (r) => ({ styleId: r.styleId, html: '<div>cite</div>' }),

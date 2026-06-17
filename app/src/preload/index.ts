@@ -26,6 +26,8 @@ import {
   type OpenExternalRequest,
   type OpenExternalResult,
   type ApplyEditRequest,
+  type BatchEditRequest,
+  type BatchEditResult,
   type EditResult,
   type ListMacrosRequest,
   type ListMacrosResponse,
@@ -92,6 +94,9 @@ const api: BibDeskApi = {
   },
   applyEdit(request: ApplyEditRequest): Promise<EditResult> {
     return ipcRenderer.invoke(IpcChannels.applyEdit, request);
+  },
+  batchEdit(request: BatchEditRequest): Promise<BatchEditResult> {
+    return ipcRenderer.invoke(IpcChannels.batchEdit, request);
   },
   listMacros(request: ListMacrosRequest): Promise<ListMacrosResponse> {
     return ipcRenderer.invoke(IpcChannels.listMacros, request);

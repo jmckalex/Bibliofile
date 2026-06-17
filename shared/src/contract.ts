@@ -9,6 +9,8 @@ import type { IpcChannels, IpcEvents } from './channels.js';
 import type {
   AddAttachmentRequest,
   ApplyEditRequest,
+  BatchEditRequest,
+  BatchEditResult,
   CloseDocumentRequest,
   ClosedDocument,
   EditResult,
@@ -87,6 +89,7 @@ export interface IpcContract {
   [IpcChannels.getItemDetail]: IpcEntry<GetItemDetailRequest, ItemDetail>;
   [IpcChannels.openExternal]: IpcEntry<OpenExternalRequest, OpenExternalResult>;
   [IpcChannels.applyEdit]: IpcEntry<ApplyEditRequest, EditResult>;
+  [IpcChannels.batchEdit]: IpcEntry<BatchEditRequest, BatchEditResult>;
   [IpcChannels.listMacros]: IpcEntry<ListMacrosRequest, ListMacrosResponse>;
   [IpcChannels.saveDocument]: IpcEntry<SaveDocumentRequest, SaveDocumentResult>;
   [IpcChannels.formatCitation]: IpcEntry<FormatCitationRequest, FormatCitationResult>;

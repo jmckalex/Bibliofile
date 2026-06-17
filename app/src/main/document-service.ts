@@ -93,6 +93,8 @@ import type {
   ListMacrosRequest,
   ListMacrosResponse,
   MacroDef,
+  BatchOp,
+  BatchEditResult,
   ExportFormat,
   ImportResult,
   FindReplaceRequest,
@@ -1734,6 +1736,64 @@ export class DocumentStore {
       if (seen.size >= 500) break;
     }
     return { values: [...seen.values()].sort((a, b) => a.localeCompare(b)) };
+  }
+
+  /**
+   * Apply a {@link BatchOp} to many items as ONE undo step: set/clear a field,
+   * add/remove a keyword (deduped, case-insensitive), or delete. Returns how many
+   * items actually changed.
+   */
+  batchEdit(documentId: string, itemIds: readonly string[], op: BatchOp): BatchEditResult {
+    this.snapshot(documentId);
+    const doc = this.requireDoc(documentId);
+    const splitKw = (s: string): string[] => s.split(/[,;]/).map((k) => k.trim()).filter(Boolean);
+    let count = 0;
+
+    for (const id of itemIds) {
+      const item = doc.itemsById.get(id);
+      if (!item) continue;
+      switch (op.kind) {
+        case 'setField': {
+          if (op.value === '') item.removeField(op.field);
+          else item.setField(op.field, op.value);
+          this.reindex(doc, item);
+          count++;
+          break;
+        }
+        case 'addKeyword': {
+          const kws = splitKw(item.stringValueOfField('Keywords', false));
+          if (!kws.some((k) => k.toLowerCase() === op.keyword.toLowerCase())) {
+            kws.push(op.keyword);
+            item.setField('Keywords', kws.join(', '));
+            this.reindex(doc, item);
+            count++;
+          }
+          break;
+        }
+        case 'removeKeyword': {
+          const kws = splitKw(item.stringValueOfField('Keywords', false));
+          const next = kws.filter((k) => k.toLowerCase() !== op.keyword.toLowerCase());
+          if (next.length !== kws.length) {
+            if (next.length) item.setField('Keywords', next.join(', '));
+            else item.removeField('Keywords');
+            this.reindex(doc, item);
+            count++;
+          }
+          break;
+        }
+        case 'delete': {
+          const idx = doc.library.items.indexOf(item);
+          if (idx >= 0) doc.library.items.splice(idx, 1);
+          doc.itemsById.delete(item.id);
+          doc.fts.remove(item.id);
+          count++;
+          break;
+        }
+      }
+    }
+
+    if (count) doc.dirty = true;
+    return { dirty: doc.dirty, count };
   }
 
   /** True if the document has unsaved edits. */
