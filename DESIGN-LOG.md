@@ -294,6 +294,26 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   is small (PDF text is the bulk). *Revisit:* `OpenDoc.ftsFields`, `ftsSearch`,
   `store.setFullTextSearch`, `SearchBox`.
 
+- **Editing moved to a separate window (read-only main view).** The right pane is
+  now a read-only `ViewPane` (preview, citation, fields-as-text, notes, attachments
+  open-only) + an **✎ Edit…** button — so edits can't happen by accident. Editing
+  opens a **separate BrowserWindow** (BibDesk-style): main `createEditorWindow`
+  loads the same renderer with a `#editor=<doc>::<item>` hash; `main.tsx` mounts
+  `EditorWindow` (which `initEditor`s this window's own store for the one item and
+  renders the full `DetailPane`). Triggers: Edit button, **double-click** a row,
+  **Publication → Edit Publication… (⌘E)**. *Cross-window sync:* a `mutating()`
+  wrapper around content-changing IPC channels broadcasts `documentChanged` to all
+  windows except the sender; the main window's listener reloads table + view +
+  dirty, and editor windows reload their item. The editor's store runs in
+  `editorMode` (skips table/sidebar reloads). Save stays on the main window (⌘S).
+  *Design choices:* reuse the existing `DetailPane`/store in the editor window
+  (lean `initEditor`) rather than a parallel edit UI; broadcast at the IPC layer so
+  it's source-agnostic and future-proof for more windows. *Revisit:*
+  `createEditorWindow`/`broadcastDocumentChanged`/`mutating` in `index.ts`,
+  `EditorWindow`, `ViewPane`, `store.initEditor`/`reloadAfterExternalChange`.
+  Verified end-to-end headless: editor opens with the full form; a title edit
+  there updates the main table cell, preview, citation, and dirty flag.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

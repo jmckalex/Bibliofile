@@ -700,6 +700,17 @@ export interface RenameAuthorResult {
   readonly dirty: boolean;
 }
 
+/** Open the standalone editor window for a single item. */
+export interface OpenEditorRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+}
+
+/** Payload of the {@link IpcEvents.documentChanged} event (cross-window refresh). */
+export interface DocumentChangedEvent {
+  readonly documentId: DocumentId;
+}
+
 // --- Claude assistant -------------------------------------------------------
 
 /** Whether the user's Anthropic API key is stored (via Electron safeStorage). */
@@ -953,6 +964,7 @@ export type MenuCommand =
   | 'newPublication'
   | 'pastePublication'
   | 'importFile'
+  | 'editEntry'
   | 'duplicate'
   | 'delete'
   | 'generateCiteKey'

@@ -90,6 +90,8 @@ export const IpcChannels = {
   groupConditions: 'bibdesk:groupConditions',
   /** Rename (and thereby merge) an author/editor across every entry. */
   renameAuthor: 'bibdesk:renameAuthor',
+  /** Open the standalone editor window for one item. */
+  openEditor: 'bibdesk:openEditor',
   /** Distinct existing values for a field (editor autocomplete). */
   fieldSuggestions: 'bibdesk:fieldSuggestions',
   /** AutoFile an item's attachments into the Papers folder. */
@@ -121,6 +123,8 @@ export const IpcEvents = {
   menuCommand: 'bibdesk:event:menuCommand',
   /** View→Columns toggle: payload is the column key to show/hide. */
   menuToggleColumn: 'bibdesk:event:menuToggleColumn',
+  /** The open document's content changed (e.g. an edit from the editor window). */
+  documentChanged: 'bibdesk:event:documentChanged',
 } as const;
 
 /** Union of all request/response channel-name string-literal values. */

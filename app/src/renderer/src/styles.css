@@ -176,6 +176,82 @@ body {
   gap: 6px;
 }
 
+/* ---- Standalone editor window ----------------------------------------- */
+.bd-editorwin {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bd-surface);
+}
+
+.bd-editorwin__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--bd-border-strong);
+  background: var(--bd-surface-alt);
+  -webkit-app-region: drag; /* let the toolbar drag the window */
+}
+
+.bd-editorwin__bar .bd-btn {
+  -webkit-app-region: no-drag;
+}
+
+.bd-editorwin__title {
+  font-weight: 600;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+}
+
+.bd-editorwin__spacer {
+  flex: 1;
+}
+
+.bd-editorwin__error {
+  padding: 6px 10px;
+  color: var(--bd-danger, #c0392b);
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-editorwin__body {
+  flex: 1;
+  overflow: auto;
+}
+
+/* ---- Read-only view pane (main window) -------------------------------- */
+.bd-view__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.bd-viewfields {
+  display: grid;
+  grid-template-columns: minmax(90px, auto) 1fr;
+  gap: 2px 10px;
+  margin: 0;
+  font-size: var(--bd-fs-sm);
+}
+
+.bd-viewfields dt {
+  color: var(--bd-text-muted);
+  text-align: right;
+}
+
+.bd-viewfields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.bd-viewfields__mono {
+  font-family: var(--bd-mono);
+}
+
+.bd-viewfields__inherited {
+  font-style: italic;
+}
+
 /* Toggle: include PDF body text in the filter (full-text search). */
 .bd-search__pdf {
   display: inline-flex;

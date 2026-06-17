@@ -69,6 +69,7 @@ Every item needs an open library.
 | Item | macOS | Win/Linux | What it does |
 | --- | --- | --- | --- |
 | New Publication | ⌘N | Ctrl+N | Add a new entry |
+| Edit Publication… | ⌘E | Ctrl+E | Open the selected entry in a separate editor window (also: ✎ Edit… / double-click a row) |
 | Duplicate | ⇧⌘D | Shift+Ctrl+D | Copy the selected entry under a new cite key |
 | Delete Publication | — | — | Delete the selected entry |
 | Generate Cite Key | ⌘K | Ctrl+K | Generate a cite key for the selected entry |

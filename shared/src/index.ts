@@ -137,6 +137,8 @@ export {
   type GroupConditionsResponse,
   type RenameAuthorRequest,
   type RenameAuthorResult,
+  type OpenEditorRequest,
+  type DocumentChangedEvent,
   type FieldSuggestionsRequest,
   type FieldSuggestionsResponse,
   type AutoFileRequest,

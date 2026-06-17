@@ -57,6 +57,8 @@ import type {
   GroupConditionsResponse,
   RenameAuthorRequest,
   RenameAuthorResult,
+  OpenEditorRequest,
+  DocumentChangedEvent,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
   AutoFileRequest,
@@ -196,6 +198,9 @@ export interface BibDeskApi {
   /** Rename (and thereby merge) an author/editor across every entry. */
   renameAuthor(request: RenameAuthorRequest): Promise<RenameAuthorResult>;
 
+  /** Open the standalone editor window for one item. */
+  openEditor(request: OpenEditorRequest): Promise<{ ok: true }>;
+
   /** Distinct existing values for a field (autocomplete in the field editors). */
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse>;
 
@@ -237,6 +242,13 @@ export interface BibDeskApi {
 
   /** Subscribe to "document closed" notifications. Returns an unsubscribe fn. */
   onDocumentClosed(listener: (doc: ClosedDocument) => void): Unsubscribe;
+
+  /**
+   * Subscribe to "document content changed" notifications — fired to a window
+   * when another window (e.g. the editor) mutates the open document, so it can
+   * refresh. Returns an unsubscribe function.
+   */
+  onDocumentChanged(listener: (e: DocumentChangedEvent) => void): Unsubscribe;
 }
 
 /**

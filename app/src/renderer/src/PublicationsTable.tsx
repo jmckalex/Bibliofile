@@ -183,6 +183,7 @@ export function PublicationsTable() {
   const toggleSelect = useStore((s) => s.toggleSelect);
   const rangeSelectTo = useStore((s) => s.rangeSelectTo);
   const setSort = useStore((s) => s.setSort);
+  const openEditor = useStore((s) => s.openEditor);
   const loading = useStore((s) => s.loading);
   const citeTemplate = useStore((s) => s.settings.citeCommandTemplate);
   const columnKeys = useStore((s) => s.settings.columns);
@@ -404,6 +405,7 @@ export function PublicationsTable() {
                     else if (e.shiftKey) rangeSelectTo(row.original.id, data.map((r) => r.id));
                     else void selectItem(row.original.id);
                   }}
+                  onDoubleClick={() => openEditor(row.original.id)}
                   onDragStart={(e) => {
                     // Drag a row into a TeX editor to insert the cite command,
                     // or onto a static group to add it (custom cite-key flavor).

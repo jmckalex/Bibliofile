@@ -15,7 +15,7 @@ import { formatCiteCommand } from '@bibdesk/shared';
 import { getStore, useStore, visibleRows } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
-import { DetailPane } from './DetailPane.js';
+import { ViewPane } from './ViewPane.js';
 import { MacroEditor } from './MacroEditor.js';
 import { OnlineSearch } from './OnlineSearch.js';
 import { Preferences } from './Preferences.js';
@@ -229,6 +229,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'importFile':
       await store.importFromDialog();
       return;
+    case 'editEntry':
+      if (selectedItemId) store.openEditor(selectedItemId);
+      return;
     case 'duplicate':
       if (selectedItemId) await store.edit({ kind: 'duplicateEntry', itemId: selectedItemId });
       return;
@@ -437,11 +440,14 @@ export function App() {
       });
     });
     const unsubCols = api.onMenuToggleColumn((key) => void getStore().getState().toggleColumn(key));
+    // An editor window (or another window) mutated the document → refresh.
+    const unsubChanged = api.onDocumentChanged(() => void getStore().getState().reloadAfterExternalChange());
     return () => {
       unsubOpen();
       unsubPrefs();
       unsubMenu();
       unsubCols();
+      unsubChanged();
     };
   }, [onDocumentOpened]);
 
@@ -457,7 +463,7 @@ export function App() {
           <PublicationsTable />
         </section>
         <section className="bd-pane bd-pane--detail">
-          <DetailPane />
+          <ViewPane />
         </section>
       </div>
       <Footer />

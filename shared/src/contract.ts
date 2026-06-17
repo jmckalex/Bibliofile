@@ -56,6 +56,8 @@ import type {
   GroupConditionsResponse,
   RenameAuthorRequest,
   RenameAuthorResult,
+  OpenEditorRequest,
+  DocumentChangedEvent,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
   AutoFileRequest,
@@ -129,6 +131,7 @@ export interface IpcContract {
   [IpcChannels.groupEdit]: IpcEntry<GroupEditRequest, GroupEditResult>;
   [IpcChannels.groupConditions]: IpcEntry<GroupConditionsRequest, GroupConditionsResponse>;
   [IpcChannels.renameAuthor]: IpcEntry<RenameAuthorRequest, RenameAuthorResult>;
+  [IpcChannels.openEditor]: IpcEntry<OpenEditorRequest, { ok: true }>;
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;
   [IpcChannels.autoFile]: IpcEntry<AutoFileRequest, AutoFileResult>;
   [IpcChannels.chooseFolder]: IpcEntry<Record<string, never>, ChooseFolderResponse>;
@@ -148,6 +151,7 @@ export interface IpcEventMap {
   [IpcEvents.showPreferences]: null;
   [IpcEvents.menuCommand]: MenuCommand;
   [IpcEvents.menuToggleColumn]: string;
+  [IpcEvents.documentChanged]: DocumentChangedEvent;
 }
 
 /** Request payload type for a given request/response channel. */

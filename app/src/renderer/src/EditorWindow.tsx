@@ -1,0 +1,53 @@
+/**
+ * Standalone editor window (BibDesk-style). Mounted by main.tsx when the window
+ * was launched with a `#editor=<documentId>::<itemId>` hash. It drives this
+ * window's own store via {@link initEditor} (no table/sidebar) and renders the
+ * full edit UI ({@link DetailPane}) for the one item. Edits mutate the shared
+ * main-process document; main broadcasts the change so the main window refreshes.
+ * Save is done from the main window (⌘S / File → Save).
+ */
+
+import { useEffect } from 'react';
+
+import { useStore } from './store.js';
+import { DetailPane } from './DetailPane.js';
+
+export function EditorWindow({ documentId, itemId }: { documentId: string; itemId: string }) {
+  const initEditor = useStore((s) => s.initEditor);
+  const reloadAfterExternalChange = useStore((s) => s.reloadAfterExternalChange);
+  const detail = useStore((s) => s.detail);
+  const error = useStore((s) => s.error);
+
+  useEffect(() => {
+    void initEditor(documentId, itemId);
+  }, [initEditor, documentId, itemId]);
+
+  // If the main window mutates this item (rename author, find/replace, …), refresh.
+  useEffect(() => {
+    const off = window.bibdesk?.onDocumentChanged(() => void reloadAfterExternalChange());
+    return () => off?.();
+  }, [reloadAfterExternalChange]);
+
+  // Keep the OS window title on the entry being edited.
+  useEffect(() => {
+    document.title = detail ? `Edit · ${detail.citeKey} — BibDesk` : 'Edit Publication — BibDesk';
+  }, [detail]);
+
+  return (
+    <div className="bd-editorwin bd-app">
+      <header className="bd-editorwin__bar">
+        <span className="bd-editorwin__title">
+          Editing{detail ? ` · ${detail.citeKey}` : '…'}
+        </span>
+        <span className="bd-editorwin__spacer" />
+        <button type="button" className="bd-btn bd-btn--small" onClick={() => window.close()}>
+          Close
+        </button>
+      </header>
+      {error && <div className="bd-editorwin__error">{error}</div>}
+      <div className="bd-editorwin__body">
+        <DetailPane />
+      </div>
+    </div>
+  );
+}

@@ -241,6 +241,61 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
+/** Standalone editor windows, keyed by `${documentId}::${itemId}` (one per item). */
+const editorWindows = new Map<string, BrowserWindow>();
+
+/**
+ * Open (or focus) the standalone editor window for one item — the BibDesk-style
+ * separate editor. It loads the same renderer with a `#editor=<doc>::<item>`
+ * hash; the renderer mounts the edit UI for that item and talks to the shared
+ * main-process document store. Edits broadcast back so the main window refreshes.
+ */
+function createEditorWindow(documentId: string, itemId: string): void {
+  const key = `${documentId}::${itemId}`;
+  const existing = editorWindows.get(key);
+  if (existing && !existing.isDestroyed()) {
+    existing.focus();
+    return;
+  }
+  const win = new BrowserWindow({
+    width: 560,
+    height: 720,
+    minWidth: 420,
+    minHeight: 360,
+    show: false,
+    title: 'Edit Publication — BibDesk',
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.mjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+    },
+  });
+  win.once('ready-to-show', () => win.show());
+  const hash = `editor=${encodeURIComponent(documentId)}::${encodeURIComponent(itemId)}`;
+  const devUrl = process.env.ELECTRON_RENDERER_URL;
+  if (devUrl) {
+    void win.loadURL(`${devUrl}#${hash}`);
+  } else {
+    void win.loadFile(join(__dirname, '../renderer/index.html'), { hash });
+  }
+  editorWindows.set(key, win);
+  win.on('closed', () => editorWindows.delete(key));
+}
+
+/**
+ * Tell every window EXCEPT the originator that the open document changed, so it
+ * can refresh (e.g. the main window's table + read-only view after an edit made
+ * in a separate editor window, or an editor after a main-window edit).
+ */
+function broadcastDocumentChanged(documentId: string, except?: Electron.WebContents): void {
+  for (const w of BrowserWindow.getAllWindows()) {
+    if (!w.isDestroyed() && w.webContents !== except && w !== helpWindow) {
+      w.webContents.send(IpcEvents.documentChanged, { documentId });
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Open lifecycle
 // ---------------------------------------------------------------------------
@@ -951,6 +1006,12 @@ function buildMenu(): void {
         click: () => sendMenuCommand('newPublication'),
       },
       {
+        label: 'Edit Publication…',
+        accelerator: 'CmdOrCtrl+E',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('editEntry'),
+      },
+      {
         label: 'Duplicate',
         accelerator: 'Shift+CmdOrCtrl+D',
         enabled: docEnabled,
@@ -1387,6 +1448,10 @@ function registerIpc(): void {
     [IpcChannels.groupEdit]: (req) => store.groupEdit(req),
     [IpcChannels.groupConditions]: (req) => store.groupConditions(req),
     [IpcChannels.renameAuthor]: (req) => store.renameAuthor(req.documentId, req.oldName, req.newName),
+    [IpcChannels.openEditor]: (req) => {
+      createEditorWindow(req.documentId, req.itemId);
+      return { ok: true };
+    },
     [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
     [IpcChannels.autoFile]: (req) => {
       const res = store.autoFile(req.documentId, req.itemId);
@@ -1433,6 +1498,17 @@ function registerIpc(): void {
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
+  // Register a content-mutating channel so that, after it runs, every OTHER window
+  // is told the document changed (cross-window refresh for the separate editor).
+  const mutating = (channel: (typeof IpcChannels)[keyof typeof IpcChannels]): void => {
+    ipcMain.handle(channel, async (e: IpcMainInvokeEvent, req: { documentId?: string }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = await (handlers as any)[channel](req);
+      if (typeof req?.documentId === 'string') broadcastDocumentChanged(req.documentId, e.sender);
+      return result;
+    });
+  };
+
   ipcMain.handle(IpcChannels.openDocument, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.openDocument](req),
   );
@@ -1451,12 +1527,8 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.openExternal, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.openExternal](req),
   );
-  ipcMain.handle(IpcChannels.applyEdit, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.applyEdit](req),
-  );
-  ipcMain.handle(IpcChannels.batchEdit, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.batchEdit](req),
-  );
+  mutating(IpcChannels.applyEdit);
+  mutating(IpcChannels.batchEdit);
   ipcMain.handle(IpcChannels.listMacros, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.listMacros](req),
   );
@@ -1472,18 +1544,12 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.journalCover, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.journalCover](req),
   );
-  ipcMain.handle(IpcChannels.addAttachment, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.addAttachment](req),
-  );
-  ipcMain.handle(IpcChannels.removeAttachment, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.removeAttachment](req),
-  );
+  mutating(IpcChannels.addAttachment);
+  mutating(IpcChannels.removeAttachment);
   ipcMain.handle(IpcChannels.searchOnline, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.searchOnline](req),
   );
-  ipcMain.handle(IpcChannels.importOnline, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.importOnline](req),
-  );
+  mutating(IpcChannels.importOnline);
   ipcMain.handle(IpcChannels.ftsSearch, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.ftsSearch](req),
   );
@@ -1505,42 +1571,29 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.exportSelection, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.exportSelection](req),
   );
-  ipcMain.handle(IpcChannels.pasteEntries, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.pasteEntries](req),
-  );
-  ipcMain.handle(IpcChannels.importFiles, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.importFiles](req),
-  );
-  ipcMain.handle(IpcChannels.importDialog, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.importDialog](req),
-  );
-  ipcMain.handle(IpcChannels.findReplace, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.findReplace](req),
-  );
+  mutating(IpcChannels.pasteEntries);
+  mutating(IpcChannels.importFiles);
+  mutating(IpcChannels.importDialog);
+  mutating(IpcChannels.findReplace);
   ipcMain.handle(IpcChannels.findDuplicates, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.findDuplicates](req),
   );
   ipcMain.handle(IpcChannels.findBrokenLinks, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.findBrokenLinks](req),
   );
-  ipcMain.handle(IpcChannels.relocateAttachment, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.relocateAttachment](req),
-  );
-  ipcMain.handle(IpcChannels.groupEdit, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.groupEdit](req),
-  );
+  mutating(IpcChannels.relocateAttachment);
+  mutating(IpcChannels.groupEdit);
   ipcMain.handle(IpcChannels.groupConditions, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.groupConditions](req),
   );
-  ipcMain.handle(IpcChannels.renameAuthor, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.renameAuthor](req),
+  mutating(IpcChannels.renameAuthor);
+  ipcMain.handle(IpcChannels.openEditor, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.openEditor](req),
   );
   ipcMain.handle(IpcChannels.fieldSuggestions, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.fieldSuggestions](req),
   );
-  ipcMain.handle(IpcChannels.autoFile, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.autoFile](req),
-  );
+  mutating(IpcChannels.autoFile);
   ipcMain.handle(IpcChannels.chooseFolder, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.chooseFolder](req),
   );
@@ -1553,9 +1606,7 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.agentReset, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.agentReset](req),
   );
-  ipcMain.handle(IpcChannels.agentRun, (_e: IpcMainInvokeEvent, req) =>
-    handlers[IpcChannels.agentRun](req),
-  );
+  mutating(IpcChannels.agentRun);
 }
 
 // ---------------------------------------------------------------------------

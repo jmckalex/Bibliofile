@@ -130,10 +130,18 @@ export interface ViewerState {
   loading: boolean;
   detailLoading: boolean;
   error?: string;
+  /** True in the standalone editor window: skip table/group reloads on edits. */
+  editorMode: boolean;
 
   // --- actions ---
   /** Handle a `documentOpened` event: store ids, then load groups + rows. */
   onDocumentOpened: (doc: OpenedDocument) => Promise<void>;
+  /** Initialise the standalone editor window for one item (no table/sidebar). */
+  initEditor: (documentId: string, itemId: string) => Promise<void>;
+  /** Another window changed the document: reload sidebar + rows + current detail. */
+  reloadAfterExternalChange: () => Promise<void>;
+  /** Open the standalone editor window for an item (BibDesk-style separate editor). */
+  openEditor: (itemId: string) => void;
   /** (Re)load the groups sidebar for the active document. */
   loadGroups: () => Promise<void>;
   /** (Re)load publications for the current group + sort (limit -1 = all). */
@@ -233,6 +241,7 @@ export function createStore(api: BibDeskApi) {
     saving: false,
     loading: false,
     detailLoading: false,
+    editorMode: false,
 
     onDocumentOpened: async (doc) => {
       set({
@@ -259,6 +268,33 @@ export function createStore(api: BibDeskApi) {
       await get().loadGroups();
       await get().loadPublications();
       await get().loadMacros();
+    },
+
+    initEditor: async (documentId, itemId) => {
+      set({ editorMode: true, documentId, error: undefined });
+      await get().loadSettings();
+      set({ selectedItemId: itemId, selectedIds: [itemId] });
+      await get().loadDetail(itemId);
+    },
+
+    openEditor: (itemId) => {
+      const { documentId } = get();
+      if (documentId && itemId) void api.openEditor({ documentId, itemId });
+    },
+
+    reloadAfterExternalChange: async () => {
+      const { documentId, editorMode, selectedItemId } = get();
+      if (!documentId) return;
+      if (editorMode) {
+        // Editor window: just refresh the item being edited.
+        if (selectedItemId) await get().loadDetail(selectedItemId);
+        return;
+      }
+      // Main window: refresh sidebar counts, the table, and the open view.
+      await get().loadGroups();
+      await get().loadPublications();
+      set({ dirty: true });
+      if (selectedItemId) await get().loadDetail(selectedItemId);
     },
 
     loadGroups: async () => {
@@ -408,7 +444,7 @@ export function createStore(api: BibDeskApi) {
     },
 
     edit: async (command) => {
-      const { documentId } = get();
+      const { documentId, editorMode } = get();
       if (!documentId) return;
       const structural =
         command.kind === 'addEntry' ||
@@ -418,10 +454,14 @@ export function createStore(api: BibDeskApi) {
       try {
         const res = await api.applyEdit({ documentId, command });
         set({ dirty: res.dirty, error: undefined });
-        // structural edits can change category-group ids → re-default to Library
-        if (structural) set({ selectedGroupId: undefined });
-        await get().loadGroups();
-        await get().loadPublications();
+        // The standalone editor has no table/sidebar to refresh; the main window
+        // gets a documentChanged broadcast instead. Skip the heavy reloads here.
+        if (!editorMode) {
+          // structural edits can change category-group ids → re-default to Library
+          if (structural) set({ selectedGroupId: undefined });
+          await get().loadGroups();
+          await get().loadPublications();
+        }
         if (res.affectedItemId) {
           set({ selectedItemId: res.affectedItemId, detail: res.detail });
         } else if (command.kind === 'deleteEntry') {

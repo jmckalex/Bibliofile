@@ -1,12 +1,20 @@
 # Editing Entries
 
-The detail pane on the right of the window is not merely a preview — it is a
-full-featured editor for the selected publication. Everything about an entry can
-be changed here: its individual fields, its cite key, its BibTeX type, the files
-attached to it, and the free-form notes that travel with it. The toolbar above
-the panes complements the detail pane with library-wide operations: creating,
-duplicating, and deleting entries; editing the library's `@string` macros; and
-the all-important **Save**.
+The pane on the right of the main window is a **read-only view** of the selected
+publication — its preview, citation, fields, notes, and attachments — so you can
+browse without any risk of changing something by accident. **Editing happens in a
+separate window.** Click **✎ Edit…** at the top of the view pane, **double-click**
+a row in the table, or choose **Publication → Edit Publication…** (**⌘E** /
+**Ctrl+E**) to open the editor window for that entry. (This mirrors BibDesk's
+separate editor windows.)
+
+The **editor window** is the full-featured editor: everything about an entry can
+be changed there — its individual fields, its cite key, its BibTeX type, the
+files attached to it, and the free-form notes that travel with it. You can open
+several editor windows at once (one per entry). Changes you make there update the
+main window live, and are saved with the rest of the library from the main window
+(**Save**, ⌘S / Ctrl+S). The sections below describe the fields, cite key, type,
+notes, and attachments as they appear in that editor window.
 
 This chapter explains the editing model in depth. It is worth understanding two
 ideas up front, because they govern almost everything else:
@@ -23,8 +31,8 @@ ideas up front, because they govern almost everything else:
 
 ![Editing an entry](../viewer-editing.png)
 
-> **Note:** The detail pane only appears once a publication is selected. If you
-> see "Select a publication to see and edit its details," click any row in the
+> **Note:** The view pane only shows an entry once a publication is selected. If
+> you see "Select a publication to see its details," click any row in the
 > publications table first. See [Browsing & Searching](02-browsing-and-searching.md).
 
 ## Anatomy of the detail pane

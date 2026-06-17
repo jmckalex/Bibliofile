@@ -74,6 +74,8 @@ import {
   type GroupConditionsResponse,
   type RenameAuthorRequest,
   type RenameAuthorResult,
+  type OpenEditorRequest,
+  type DocumentChangedEvent,
   type FieldSuggestionsRequest,
   type FieldSuggestionsResponse,
   type AutoFileRequest,
@@ -194,6 +196,9 @@ const api: BibDeskApi = {
   renameAuthor(request: RenameAuthorRequest): Promise<RenameAuthorResult> {
     return ipcRenderer.invoke(IpcChannels.renameAuthor, request);
   },
+  openEditor(request: OpenEditorRequest): Promise<{ ok: true }> {
+    return ipcRenderer.invoke(IpcChannels.openEditor, request);
+  },
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse> {
     return ipcRenderer.invoke(IpcChannels.fieldSuggestions, request);
   },
@@ -237,6 +242,11 @@ const api: BibDeskApi = {
     const handler = (_e: IpcRendererEvent, doc: ClosedDocument): void => listener(doc);
     ipcRenderer.on(IpcEvents.documentClosed, handler);
     return () => ipcRenderer.removeListener(IpcEvents.documentClosed, handler);
+  },
+  onDocumentChanged(listener: (e: DocumentChangedEvent) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, payload: DocumentChangedEvent): void => listener(payload);
+    ipcRenderer.on(IpcEvents.documentChanged, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.documentChanged, handler);
   },
 };
 

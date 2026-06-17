@@ -111,12 +111,14 @@ function makeFakeApi() {
     groupEdit: async () => ({ dirty: true, groupId: 'g#0#0' }),
     groupConditions: async () => ({ name: 'Smart', conjunction: 0, conditions: [] }),
     renameAuthor: async () => ({ changed: 0, dirty: false }),
+    openEditor: async () => ({ ok: true as const }),
     fieldSuggestions: async () => ({ values: [] }),
     pathForFile: () => '',
     onMenuCommand: (): Unsubscribe => () => {},
     onMenuToggleColumn: (): Unsubscribe => () => {},
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
+    onDocumentChanged: (): Unsubscribe => () => {},
     onShowPreferences: (): Unsubscribe => () => {},
   };
   return { api, calls };

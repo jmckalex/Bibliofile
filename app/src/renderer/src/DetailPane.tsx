@@ -32,7 +32,7 @@ function openExternal(target: string, kind: 'url' | 'file'): void {
   void window.bibdesk?.openExternal({ target, kind });
 }
 
-function PreviewCard({ html }: { html: string }) {
+export function PreviewCard({ html }: { html: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (ref.current && html.includes('$')) void typesetMath(ref.current);
@@ -207,7 +207,7 @@ function AddFieldRow({ itemId }: { itemId: string }) {
 }
 
 /** Formatted CSL citation with a style picker. Refetches on edit (detail change). */
-function CitationBlock({ detail }: { detail: ItemDetail }) {
+export function CitationBlock({ detail }: { detail: ItemDetail }) {
   const documentId = useStore((s) => s.documentId);
   const defaultStyle = useStore((s) => s.settings.defaultCiteStyle);
   const [styleId, setStyleId] = useState(defaultStyle);
@@ -256,7 +256,7 @@ function CitationBlock({ detail }: { detail: ItemDetail }) {
 }
 
 /** Notes: rendered markdown (with [[citeKey]] cross-refs + iframes) + an editor. */
-function NotesSection({ detail }: { detail: ItemDetail }) {
+export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail; readOnly?: boolean }) {
   const edit = useStore((s) => s.edit);
   const selectByCiteKey = useStore((s) => s.selectByCiteKey);
   const [editing, setEditing] = useState(false);
@@ -287,15 +287,17 @@ function NotesSection({ detail }: { detail: ItemDetail }) {
     <>
       <div className="bd-detail__section bd-detail__section--withaction">
         <span>Notes</span>
-        <button
-          type="button"
-          className="bd-btn bd-btn--small"
-          onClick={() => setEditing((v) => !v)}
-        >
-          {editing ? 'Done' : 'Edit'}
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            className="bd-btn bd-btn--small"
+            onClick={() => setEditing((v) => !v)}
+          >
+            {editing ? 'Done' : 'Edit'}
+          </button>
+        )}
       </div>
-      {editing ? (
+      {editing && !readOnly ? (
         <textarea
           key={`${detail.id}:notes`}
           className="bd-input bd-input--area bd-notes__editor"
@@ -316,7 +318,9 @@ function NotesSection({ detail }: { detail: ItemDetail }) {
           dangerouslySetInnerHTML={{ __html: detail.notesHtml }}
         />
       ) : (
-        <div className="bd-notes__empty">No notes. Click Edit to add markdown notes.</div>
+        <div className="bd-notes__empty">
+          {readOnly ? 'No notes.' : 'No notes. Click Edit to add markdown notes.'}
+        </div>
       )}
     </>
   );
@@ -383,21 +387,31 @@ function Fields({ detail }: { detail: ItemDetail }) {
   );
 }
 
-function Attachments({ detail, onPreview }: { detail: ItemDetail; onPreview: (f: ItemFile) => void }) {
+export function Attachments({
+  detail,
+  onPreview,
+  readOnly = false,
+}: {
+  detail: ItemDetail;
+  onPreview: (f: ItemFile) => void;
+  readOnly?: boolean;
+}) {
   const addAttachment = useStore((s) => s.addAttachment);
   const removeAttachment = useStore((s) => s.removeAttachment);
   return (
     <>
       <div className="bd-detail__section bd-detail__section--withaction">
         <span>Attachments</span>
-        <button
-          type="button"
-          className="bd-btn bd-btn--small"
-          title="Attach file(s)"
-          onClick={() => void addAttachment(detail.id)}
-        >
-          ＋ Add
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            className="bd-btn bd-btn--small"
+            title="Attach file(s)"
+            onClick={() => void addAttachment(detail.id)}
+          >
+            ＋ Add
+          </button>
+        )}
       </div>
       {detail.files.length === 0 ? (
         <div className="bd-files__empty">No attachments.</div>
@@ -418,7 +432,7 @@ function Attachments({ detail, onPreview }: { detail: ItemDetail; onPreview: (f:
                 </span>
                 <span className="bd-file__name">{file.displayName}</span>
               </button>
-              {file.field && (
+              {!readOnly && file.field && (
                 <button
                   type="button"
                   className="bd-field__del"
@@ -455,7 +469,7 @@ function GeneratedCover({ journal }: { journal: string }) {
 }
 
 /** The entry's journal cover thumbnail (downloaded), or a generated fallback. */
-function JournalCover({ documentId, itemId }: { documentId: string; itemId: string }) {
+export function JournalCover({ documentId, itemId }: { documentId: string; itemId: string }) {
   const [state, setState] = useState<{ url?: string; journal?: string }>({});
   useEffect(() => {
     let cancelled = false;
