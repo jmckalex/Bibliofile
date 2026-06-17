@@ -7,19 +7,44 @@
 
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const require = createRequire(import.meta.url);
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/**
+ * pdfjs warns "Ensure that the `standardFontDataUrl` API parameter is provided"
+ * once per PDF that references a standard font when it can't find the bundled
+ * font metrics. Point it at pdfjs-dist's `standard_fonts/` directory (which sits
+ * at the package root, beside `legacy/`) so the warning never fires and font
+ * metrics load. Resolved once and memoised.
+ */
+let standardFontDataUrl: string | undefined;
+function fontDataUrl(pdfMjsPath: string): string {
+  if (standardFontDataUrl === undefined) {
+    // <root>/legacy/build/pdf.mjs → fonts at <root>/standard_fonts/ (trailing slash required).
+    const root = dirname(dirname(dirname(pdfMjsPath)));
+    standardFontDataUrl = pathToFileURL(join(root, 'standard_fonts')).href + '/';
+  }
+  return standardFontDataUrl;
+}
+
 /** Extract up to `maxPages` of text from a local PDF. Never throws. */
 export async function extractPdfText(absPath: string, maxPages = 40): Promise<string> {
   if (!/\.pdf$/i.test(absPath)) return '';
   try {
-    const pdfjs: any = await import(require.resolve('pdfjs-dist/legacy/build/pdf.mjs'));
+    const pdfMjsPath = require.resolve('pdfjs-dist/legacy/build/pdf.mjs');
+    const pdfjs: any = await import(pdfMjsPath);
     const data = new Uint8Array(readFileSync(absPath));
-    const doc = await pdfjs.getDocument({ data, isEvalSupported: false, useSystemFonts: false })
-      .promise;
+    const doc = await pdfjs.getDocument({
+      data,
+      isEvalSupported: false,
+      useSystemFonts: false,
+      standardFontDataUrl: fontDataUrl(pdfMjsPath),
+      verbosity: 0, // errors only — silence pdfjs's per-PDF info/warning chatter
+    }).promise;
     const pages = Math.min(doc.numPages, maxPages);
     let text = '';
     for (let p = 1; p <= pages; p++) {
