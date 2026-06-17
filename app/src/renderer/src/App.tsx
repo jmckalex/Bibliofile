@@ -248,6 +248,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'autoFile':
       if (selectedItemId) await store.autoFile(selectedItemId);
       return;
+    case 'consolidate':
+      await store.consolidateLinkedFiles();
+      return;
     case 'online':
       modals.setOnlineOpen(true);
       return;

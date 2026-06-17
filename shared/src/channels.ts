@@ -100,6 +100,8 @@ export const IpcChannels = {
   fieldSuggestions: 'bibdesk:fieldSuggestions',
   /** AutoFile an item's attachments into the Papers folder. */
   autoFile: 'bibdesk:autoFile',
+  /** Bulk AutoFile: consolidate every entry's linked files into the Papers folder. */
+  consolidateLinkedFiles: 'bibdesk:consolidateLinkedFiles',
   /** Open a folder picker (e.g. choosing the Papers folder). */
   chooseFolder: 'bibdesk:chooseFolder',
   /** Whether the Anthropic API key is stored (Claude assistant). */

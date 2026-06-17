@@ -143,6 +143,8 @@ export {
   type FieldSuggestionsResponse,
   type AutoFileRequest,
   type AutoFileResult,
+  type ConsolidateRequest,
+  type ConsolidateResult,
   type ChooseFolderResponse,
   type AgentKeyStatus,
   type AgentSetKeyRequest,

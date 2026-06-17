@@ -577,6 +577,70 @@ describe('document-service: BD test.bib', () => {
     expect(detail.files[0]!.url).toContain(filed[0]!);
   });
 
+  it('consolidateLinkedFiles bulk-files every entry, then is idempotent', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-consolidate-'));
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      [
+        '@article{euler1748, Author = {Leonhard Euler}, Year = {1748}}',
+        '@book{gauss1801, Author = {Carl Gauss}, Year = {1801}}',
+      ].join('\n\n'),
+      join(dir, 'lib.bib'),
+    );
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+
+    const incoming = join(dir, 'incoming');
+    mkdirSync(incoming);
+    for (const r of rows) {
+      const src = join(incoming, `${r.citeKey}.pdf`);
+      writeFileSync(src, '%PDF-1.4 test');
+      store.addAttachments(documentId, r.id, [src]);
+    }
+
+    const papers = join(dir, 'Papers');
+    store.setEditConfig({ papersFolder: papers, autoFileFormat: '%a1%Y' });
+
+    const res = store.consolidateLinkedFiles(documentId);
+    expect(res.scanned).toBe(2);
+    expect(res.itemsAffected).toBe(2);
+    expect(res.moved).toBe(2);
+    expect(res.errors).toEqual([]);
+    expect(res.dirty).toBe(true);
+    expect(readdirSync(papers).filter((f) => f.endsWith('.pdf'))).toHaveLength(2);
+
+    // Re-running is a no-op: every file is already filed under Papers.
+    expect(store.consolidateLinkedFiles(documentId).moved).toBe(0);
+  });
+
+  it('consolidateLinkedFiles can be limited to a subset of itemIds', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-consolidate-sub-'));
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      [
+        '@article{euler1748, Author = {Leonhard Euler}, Year = {1748}}',
+        '@book{gauss1801, Author = {Carl Gauss}, Year = {1801}}',
+      ].join('\n\n'),
+      join(dir, 'lib.bib'),
+    );
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    const incoming = join(dir, 'incoming');
+    mkdirSync(incoming);
+    const srcs = new Map<string, string>();
+    for (const r of rows) {
+      const src = join(incoming, `${r.citeKey}.pdf`);
+      writeFileSync(src, '%PDF-1.4 test');
+      store.addAttachments(documentId, r.id, [src]);
+      srcs.set(r.id, src);
+    }
+    store.setEditConfig({ papersFolder: join(dir, 'Papers'), autoFileFormat: '%a1%Y' });
+
+    const res = store.consolidateLinkedFiles(documentId, [rows[0]!.id]);
+    expect(res.scanned).toBe(1);
+    expect(res.moved).toBe(1);
+    expect(existsSync(srcs.get(rows[0]!.id)!)).toBe(false); // filed
+    expect(existsSync(srcs.get(rows[1]!.id)!)).toBe(true); // untouched
+  });
+
   it('importRisText merges RIS records as new entries', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{seed, Title = {Seed}}', '/tmp/ris.bib');

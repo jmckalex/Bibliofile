@@ -62,6 +62,8 @@ import type {
   FieldSuggestionsResponse,
   AutoFileRequest,
   AutoFileResult,
+  ConsolidateRequest,
+  ConsolidateResult,
   ChooseFolderResponse,
   AgentKeyStatus,
   AgentSetKeyRequest,
@@ -136,6 +138,7 @@ export interface IpcContract {
   [IpcChannels.newDocument]: IpcEntry<Record<string, never>, { ok: true }>;
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;
   [IpcChannels.autoFile]: IpcEntry<AutoFileRequest, AutoFileResult>;
+  [IpcChannels.consolidateLinkedFiles]: IpcEntry<ConsolidateRequest, ConsolidateResult>;
   [IpcChannels.chooseFolder]: IpcEntry<Record<string, never>, ChooseFolderResponse>;
   [IpcChannels.agentKeyStatus]: IpcEntry<Record<string, never>, AgentKeyStatus>;
   [IpcChannels.agentSetKey]: IpcEntry<AgentSetKeyRequest, AgentKeyStatus>;

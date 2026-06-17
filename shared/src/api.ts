@@ -63,6 +63,8 @@ import type {
   FieldSuggestionsResponse,
   AutoFileRequest,
   AutoFileResult,
+  ConsolidateRequest,
+  ConsolidateResult,
   ChooseFolderResponse,
   AgentKeyStatus,
   AgentSetKeyRequest,
@@ -212,6 +214,9 @@ export interface BibDeskApi {
 
   /** AutoFile an item's attachments into the Papers folder; returns refreshed detail. */
   autoFile(request: AutoFileRequest): Promise<AutoFileResult>;
+
+  /** Bulk AutoFile: consolidate every entry's linked files into the Papers folder. */
+  consolidateLinkedFiles(request: ConsolidateRequest): Promise<ConsolidateResult>;
 
   /** Open a native folder picker (e.g. the Papers folder). Resolves to {path|null}. */
   chooseFolder(): Promise<ChooseFolderResponse>;

@@ -599,8 +599,12 @@ user-facing Help (`docs/help/`) was updated alongside:
 - **Multi-column (secondary) sort** — `ListPublicationsRequest.sort` is now an ordered
   `SortSpec[]`; Shift-click a header to add/cycle (asc→desc→remove) secondary sort keys, with a
   priority badge on each sorted column (`setSort(key, additive)`).
+- **Bulk AutoFile / Consolidate Linked Files** — `Publication → Consolidate Linked Files…` files
+  every entry's (or the selection's) managed attachments into the Papers folder in one undo step,
+  behind a native confirm + summary dialog (`consolidateLinkedFiles`); also fixed an AutoFile
+  idempotency bug (re-filing no longer coins `name-1`, `name-2`, …).
 
-`pnpm -r test` = **1404 passing** (+2 app FTS tests skipped under the Node test ABI — expected);
+`pnpm -r test` = **1429 passing** (+3 skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.
 
 ### Still pending (deeper BibDesk features; not yet built) — do NOT claim these are done

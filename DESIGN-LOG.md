@@ -381,6 +381,27 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   `PublicationsTable.tsx`. Tests: store additive asc→desc→remove cycle + a
   secondary-key tie-break; service multi-key priority order.
 
+- **Bulk AutoFile ("Consolidate Linked Files").** Extracted the per-item file-move
+  loop out of `autoFile` into a private `autoFileItemFiles(doc, item, papers,
+  baseDir)` helper, then added `consolidateLinkedFiles(documentId, itemIds?)` that
+  runs it across the whole library (or an itemId subset) under a single undo
+  snapshot, reindexing only items that actually moved a file and returning
+  `{ scanned, itemsAffected, moved, dirty, errors }` (each error prefixed with its
+  cite key). New IPC channel `consolidateLinkedFiles`; the main handler shows a
+  native **confirm** dialog before moving anything (files move on disk — that part
+  is not undone by the snapshot, which only restores the `.bib` pointers) and a
+  **summary** dialog after, matching the native-dialog-in-handler pattern already
+  used by relocate / chooseFolder. New `Publication → Consolidate Linked Files…`
+  menu item + a `'consolidate'` MenuCommand; the renderer files the current
+  multi-selection (2+ rows) or the whole library. **Fixed a latent idempotency bug**
+  in the shared move path: `uniquePath` was applied before the "already filed"
+  check, so re-filing an already-filed entry coined `name-1`, `name-2`, … each run;
+  now we compare the source against the *intended* (pre-uniquified) target and skip
+  when equal. Tests: bulk-file two entries + idempotent re-run; subset by `itemIds`
+  leaves the others untouched. *Revisit:* `autoFileItemFiles` /
+  `consolidateLinkedFiles` in `document-service.ts`, the handler in `index.ts`,
+  `consolidateLinkedFiles` in `store.ts`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

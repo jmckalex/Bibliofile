@@ -1438,9 +1438,30 @@ export class DocumentStore {
     const papers = this.editConfig.papersFolder;
     if (!papers) throw new Error('No Papers folder is configured (set one in Preferences).');
     const baseDir = doc.path ? dirname(doc.path) : '';
+    const { moved, errors } = this.autoFileItemFiles(doc, item, papers, baseDir);
+    if (moved) {
+      doc.dirty = true;
+      this.reindex(doc, item);
+    }
+    return { moved, errors, detail: this.detailFor(doc, item) };
+  }
+
+  /**
+   * Move one item's managed `Bdsk-File-N` attachments into the Papers folder,
+   * named by the AutoFile format, rewriting each stored relative path. Cross-volume
+   * moves fall back to copy + delete. Mutates the item + library and returns the
+   * file count moved plus any per-file failures (relative to that item). The
+   * caller owns the snapshot / `dirty` / reindex so this can back both single-item
+   * AutoFile and bulk Consolidate.
+   */
+  private autoFileItemFiles(
+    doc: OpenDoc,
+    item: BibItem,
+    papers: string,
+    baseDir: string,
+  ): { moved: number; errors: string[] } {
     const errors: string[] = [];
     let moved = 0;
-
     for (const name of item.fieldNames()) {
       if (!BDSK_FILE_RE.test(name)) continue;
       const plist = doc.library.bdskFiles.get(bdskFileKey(item.id, name));
@@ -1455,10 +1476,14 @@ export class DocumentStore {
       const stem = parseFormat(this.editConfig.autoFileFormat, item, LOCAL_FILE_FIELD, {
         typeManager: sharedTypeManager,
       });
-      const dest = uniquePath(join(papers, (stem || item.citeKey || 'paper') + ext));
+      // Compare against the *intended* name before uniquifying, so a file already
+      // at its target is left alone (otherwise uniquePath would keep coining
+      // `name-1`, `name-2`, … each run — not idempotent).
+      const intended = join(papers, (stem || item.citeKey || 'paper') + ext);
       try {
-        mkdirSync(dirname(dest), { recursive: true });
-        if (resolve(src) === dest) continue; // already filed
+        if (resolve(src) === resolve(intended)) continue; // already filed
+        mkdirSync(dirname(intended), { recursive: true });
+        const dest = uniquePath(intended);
         try {
           renameSync(src, dest);
         } catch {
@@ -1478,12 +1503,46 @@ export class DocumentStore {
         errors.push(`${basename(src)}: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
+    return { moved, errors };
+  }
 
-    if (moved) {
-      doc.dirty = true;
-      this.reindex(doc, item);
+  /**
+   * Bulk AutoFile ("Consolidate Linked Files"): run {@link autoFile}'s move logic
+   * across every item (or the given `itemIds` subset), moving each managed
+   * attachment into the Papers folder. One snapshot backs the whole batch; only
+   * items that actually moved a file are reindexed. Returns counts plus per-item
+   * errors (each prefixed with the owning entry's cite key). Mirrors BibDesk's
+   * "Consolidate Linked Files".
+   */
+  consolidateLinkedFiles(
+    documentId: string,
+    itemIds?: readonly string[],
+  ): { scanned: number; itemsAffected: number; moved: number; dirty: boolean; errors: string[] } {
+    this.snapshot(documentId);
+    const doc = this.requireDoc(documentId);
+    const papers = this.editConfig.papersFolder;
+    if (!papers) throw new Error('No Papers folder is configured (set one in Preferences).');
+    const baseDir = doc.path ? dirname(doc.path) : '';
+
+    const targets: readonly BibItem[] =
+      itemIds && itemIds.length > 0
+        ? itemIds.map((id) => doc.itemsById.get(id)).filter((it): it is BibItem => it !== undefined)
+        : doc.library.items;
+
+    const errors: string[] = [];
+    let moved = 0;
+    let itemsAffected = 0;
+    for (const item of targets) {
+      const res = this.autoFileItemFiles(doc, item, papers, baseDir);
+      if (res.moved > 0) {
+        moved += res.moved;
+        itemsAffected++;
+        this.reindex(doc, item);
+      }
+      for (const e of res.errors) errors.push(`${item.citeKey}: ${e}`);
     }
-    return { moved, errors, detail: this.detailFor(doc, item) };
+    if (moved) doc.dirty = true;
+    return { scanned: targets.length, itemsAffected, moved, dirty: doc.dirty, errors };
   }
 
   /**

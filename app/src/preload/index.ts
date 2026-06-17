@@ -80,6 +80,8 @@ import {
   type FieldSuggestionsResponse,
   type AutoFileRequest,
   type AutoFileResult,
+  type ConsolidateRequest,
+  type ConsolidateResult,
   type ChooseFolderResponse,
   type AgentKeyStatus,
   type AgentSetKeyRequest,
@@ -210,6 +212,9 @@ const api: BibDeskApi = {
   },
   autoFile(request: AutoFileRequest): Promise<AutoFileResult> {
     return ipcRenderer.invoke(IpcChannels.autoFile, request);
+  },
+  consolidateLinkedFiles(request: ConsolidateRequest): Promise<ConsolidateResult> {
+    return ipcRenderer.invoke(IpcChannels.consolidateLinkedFiles, request);
   },
   chooseFolder(): Promise<ChooseFolderResponse> {
     return ipcRenderer.invoke(IpcChannels.chooseFolder, {});

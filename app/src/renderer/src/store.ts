@@ -177,6 +177,8 @@ export interface ViewerState {
   removeAttachment: (itemId: string, field: string) => Promise<void>;
   /** AutoFile an item's attachments into the Papers folder; refresh detail. */
   autoFile: (itemId: string) => Promise<void>;
+  /** Consolidate linked files for the current selection (2+ rows) or the whole library. */
+  consolidateLinkedFiles: () => Promise<void>;
   /** Import an online search result as a new entry; refresh + select it. */
   importOnline: (result: OnlineResult) => Promise<void>;
   /** Paste BibTeX text as new entries; refresh + select the first added. */
@@ -545,6 +547,26 @@ export function createStore(api: BibDeskApi) {
         const res = await api.autoFile({ documentId, itemId });
         set({ dirty: res.dirty, detail: res.detail });
         if (res.errors.length) set({ error: res.errors.join('; ') });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    consolidateLinkedFiles: async () => {
+      const { documentId, selectedIds, selectedItemId } = get();
+      if (!documentId) return;
+      try {
+        // Confirm + summary dialogs (incl. any per-file errors) are shown by main.
+        const itemIds = selectedIds.length >= 2 ? selectedIds : undefined;
+        const res = await api.consolidateLinkedFiles({
+          documentId,
+          ...(itemIds ? { itemIds } : {}),
+        });
+        if (res.moved > 0) {
+          set({ dirty: res.dirty });
+          await get().loadPublications();
+          if (selectedItemId) await get().loadDetail(selectedItemId);
+        }
       } catch (err) {
         set({ error: errorMessage(err) });
       }

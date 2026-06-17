@@ -1070,6 +1070,11 @@ function buildMenu(): void {
         click: () => sendMenuCommand('autoFile'),
       },
       {
+        label: 'Consolidate Linked Files…',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('consolidate'),
+      },
+      {
         label: 'Find Broken Links…',
         enabled: docEnabled,
         click: () => sendMenuCommand('findBrokenLinks'),
@@ -1489,6 +1494,43 @@ function registerIpc(): void {
       const res = store.autoFile(req.documentId, req.itemId);
       return { ...res, dirty: store.isDirty(req.documentId) };
     },
+    [IpcChannels.consolidateLinkedFiles]: async (req) => {
+      const scope =
+        req.itemIds && req.itemIds.length > 0
+          ? `the ${req.itemIds.length} selected ${req.itemIds.length === 1 ? 'entry' : 'entries'}`
+          : 'every entry in the library';
+      const confirmOpts: Electron.MessageBoxOptions = {
+        type: 'warning',
+        buttons: ['Consolidate', 'Cancel'],
+        defaultId: 0,
+        cancelId: 1,
+        message: 'Consolidate linked files?',
+        detail: `This moves the managed file attachments for ${scope} into your Papers folder, renaming them by the AutoFile format. Files are moved on disk.`,
+      };
+      const choice = mainWindow
+        ? await dialog.showMessageBox(mainWindow, confirmOpts)
+        : await dialog.showMessageBox(confirmOpts);
+      if (choice.response !== 0) {
+        return { scanned: 0, itemsAffected: 0, moved: 0, dirty: store.isDirty(req.documentId), errors: [] };
+      }
+      const res = store.consolidateLinkedFiles(req.documentId, req.itemIds);
+      const summaryOpts: Electron.MessageBoxOptions = {
+        type: res.errors.length ? 'warning' : 'info',
+        buttons: ['OK'],
+        message:
+          res.moved > 0
+            ? `Filed ${res.moved} ${res.moved === 1 ? 'file' : 'files'} across ${res.itemsAffected} ${res.itemsAffected === 1 ? 'entry' : 'entries'}.`
+            : 'No linked files needed filing.',
+        ...(res.errors.length
+          ? {
+              detail: `${res.errors.length} ${res.errors.length === 1 ? 'problem' : 'problems'}:\n${res.errors.slice(0, 12).join('\n')}${res.errors.length > 12 ? '\n…' : ''}`,
+            }
+          : {}),
+      };
+      if (mainWindow) void dialog.showMessageBox(mainWindow, summaryOpts);
+      else void dialog.showMessageBox(summaryOpts);
+      return res;
+    },
     [IpcChannels.chooseFolder]: async () => {
       const opts: Electron.OpenDialogOptions = {
         title: 'Choose Papers Folder',
@@ -1632,6 +1674,7 @@ function registerIpc(): void {
     handlers[IpcChannels.fieldSuggestions](req),
   );
   mutating(IpcChannels.autoFile);
+  mutating(IpcChannels.consolidateLinkedFiles);
   ipcMain.handle(IpcChannels.chooseFolder, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.chooseFolder](req),
   );

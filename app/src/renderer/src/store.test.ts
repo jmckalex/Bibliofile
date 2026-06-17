@@ -92,6 +92,7 @@ function makeFakeApi() {
     addAttachment: async () => ({ dirty: true }),
     removeAttachment: async () => ({ dirty: true }),
     autoFile: async () => ({ moved: 0, errors: [], dirty: true, detail: DETAIL }),
+    consolidateLinkedFiles: async () => ({ scanned: 0, itemsAffected: 0, moved: 0, dirty: true, errors: [] }),
     chooseFolder: async () => ({ path: null }),
     agentKeyStatus: async () => ({ hasKey: false, encryptionAvailable: true }),
     agentSetKey: async () => ({ hasKey: true, encryptionAvailable: true }),

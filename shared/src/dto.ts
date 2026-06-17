@@ -763,6 +763,27 @@ export interface AutoFileResult {
   readonly detail: ItemDetail;
 }
 
+/** Bulk AutoFile ("Consolidate Linked Files") — file every entry's attachments. */
+export interface ConsolidateRequest {
+  readonly documentId: DocumentId;
+  /** When present and non-empty, file only these items; otherwise the whole library. */
+  readonly itemIds?: readonly ItemId[];
+}
+
+/** Result of a Consolidate run: items scanned/affected, files moved, per-item errors. */
+export interface ConsolidateResult {
+  /** Items considered (library size, or the selection size). */
+  readonly scanned: number;
+  /** Items that had at least one file moved. */
+  readonly itemsAffected: number;
+  /** Total files moved across all items. */
+  readonly moved: number;
+  /** Whether the document now has unsaved changes. */
+  readonly dirty: boolean;
+  /** Per-file failures, each prefixed with the owning entry's cite key. */
+  readonly errors: readonly string[];
+}
+
 /** Response from the folder picker (null when cancelled). */
 export interface ChooseFolderResponse {
   readonly path: string | null;
@@ -976,6 +997,7 @@ export type MenuCommand =
   | 'generateCiteKey'
   | 'addAttachment'
   | 'autoFile'
+  | 'consolidate'
   | 'online'
   | 'editMacros'
   | 'findDuplicates'
