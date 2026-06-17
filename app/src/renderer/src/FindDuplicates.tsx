@@ -5,14 +5,19 @@
  * compare, merge, or delete. Read-only: it never mutates the library itself.
  */
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { FindDuplicatesResult } from '@bibdesk/shared';
 import { useStore } from './store.js';
 
 export function FindDuplicates({ onClose }: { onClose: () => void }) {
   const findDuplicates = useStore((s) => s.findDuplicates);
   const selectByCiteKey = useStore((s) => s.selectByCiteKey);
+  const edit = useStore((s) => s.edit);
   const [result, setResult] = useState<FindDuplicatesResult | undefined>();
+
+  const scan = useCallback(async (): Promise<void> => {
+    setResult(await findDuplicates());
+  }, [findDuplicates]);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,6 +33,14 @@ export function FindDuplicates({ onClose }: { onClose: () => void }) {
   const pick = (citeKey: string): void => {
     void selectByCiteKey(citeKey);
     onClose();
+  };
+
+  // Merge a group into its first entry, then re-scan (the group should be gone).
+  const merge = async (entryIds: readonly string[]): Promise<void> => {
+    const [primaryId, ...otherIds] = entryIds;
+    if (!primaryId || otherIds.length === 0) return;
+    await edit({ kind: 'mergeEntries', primaryId, otherIds });
+    await scan();
   };
 
   return (
@@ -62,8 +75,18 @@ export function FindDuplicates({ onClose }: { onClose: () => void }) {
             result.groups.map((g, gi) => (
               <div className="bd-dup__group" key={gi}>
                 <div className="bd-dup__kind">
-                  {g.kind === 'citeKey' ? 'Identical cite key' : 'Equivalent content'} ·{' '}
-                  {g.entries.length} entries
+                  <span>
+                    {g.kind === 'citeKey' ? 'Identical cite key' : 'Equivalent content'} ·{' '}
+                    {g.entries.length} entries
+                  </span>
+                  <button
+                    type="button"
+                    className="bd-btn bd-btn--small"
+                    title="Merge into the first entry (fills missing fields, unions keywords + attachments, deletes the rest)"
+                    onClick={() => void merge(g.entries.map((e) => e.id))}
+                  >
+                    Merge
+                  </button>
                 </div>
                 <ul className="bd-dup__entries">
                   {g.entries.map((e) => (

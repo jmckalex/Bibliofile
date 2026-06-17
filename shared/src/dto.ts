@@ -98,6 +98,7 @@ export type EditCommand =
   | { readonly kind: 'addEntry'; readonly entryType: string }
   | { readonly kind: 'duplicateEntry'; readonly itemId: ItemId }
   | { readonly kind: 'deleteEntry'; readonly itemId: ItemId }
+  | { readonly kind: 'mergeEntries'; readonly primaryId: ItemId; readonly otherIds: readonly ItemId[] }
   | { readonly kind: 'setMacro'; readonly name: string; readonly value: string }
   | { readonly kind: 'removeMacro'; readonly name: string };
 

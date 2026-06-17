@@ -331,7 +331,8 @@ export function createStore(api: BibDeskApi) {
       const structural =
         command.kind === 'addEntry' ||
         command.kind === 'duplicateEntry' ||
-        command.kind === 'deleteEntry';
+        command.kind === 'deleteEntry' ||
+        command.kind === 'mergeEntries';
       try {
         const res = await api.applyEdit({ documentId, command });
         set({ dirty: res.dirty, error: undefined });

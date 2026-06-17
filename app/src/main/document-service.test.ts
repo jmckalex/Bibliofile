@@ -132,6 +132,32 @@ describe('document-service: BD test.bib', () => {
     expect(store.fieldSuggestions(documentId, 'Keywords').values).toEqual(['lasers', 'optics', 'physics']);
   });
 
+  it('mergeEntries fills missing fields, unions keywords, and deletes the others', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      [
+        '@article{a, Author = {A. Smith}, Title = {Widgets}, Keywords = {x, y}}',
+        '@article{b, Author = {A. Smith}, Title = {Widgets}, Year = {2020}, Doi = {10.1/w}, Keywords = {y, z}}',
+      ].join('\n'),
+      '/tmp/m.bib',
+    );
+    const ids = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    const a = ids.find((r) => r.citeKey === 'a')!.id;
+    const b = ids.find((r) => r.citeKey === 'b')!.id;
+
+    const res = store.applyEdit({ documentId, command: { kind: 'mergeEntries', primaryId: a, otherIds: [b] } });
+    expect(res.affectedItemId).toBe(a);
+
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    expect(rows).toHaveLength(1); // b was deleted
+    const detail = store.getItemDetail({ documentId, itemId: a });
+    const field = (n: string): string => detail.fields.find((f) => f.name.toLowerCase() === n)?.rawValue ?? '';
+    expect(field('year')).toBe('2020'); // gained from b (a had none)
+    expect(field('doi')).toBe('10.1/w'); // gained from b
+    // keywords unioned (order preserved, deduped)
+    expect(field('keywords').split(',').map((k) => k.trim()).sort()).toEqual(['x', 'y', 'z']);
+  });
+
   it('findDuplicates groups identical cite keys and equivalent content', () => {
     const store = new DocumentStore();
     // Two entries that are content-equivalent (same type + fields) with different

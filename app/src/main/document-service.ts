@@ -1636,6 +1636,55 @@ export class DocumentStore {
     return { groups, total: involved.size };
   }
 
+  /**
+   * Merge `otherIds` into `primaryId`: the primary keeps its own field values and
+   * gains any it lacks from the others; `Keywords` are unioned and all managed
+   * attachments are carried over; then the other entries are deleted. The caller
+   * (applyEdit) handles the undo snapshot. Returns the primary's refreshed detail.
+   */
+  private doMerge(doc: OpenDoc, primaryId: string, otherIds: readonly string[]): EditResult {
+    const primary = this.itemOf(doc, primaryId);
+    const splitKw = (s: string): string[] => s.split(/[,;]/).map((k) => k.trim()).filter(Boolean);
+
+    for (const otherId of otherIds) {
+      const other = doc.itemsById.get(otherId);
+      if (!other || other === primary) continue;
+
+      // 1) fill missing scalar fields; union Keywords.
+      for (const name of other.fieldNames()) {
+        if (BDSK_FILE_RE.test(name)) continue;
+        const val = other.stringValueOfField(name, false).trim();
+        if (!val) continue;
+        if (name.toLowerCase() === 'keywords') {
+          const merged = [...new Set([...splitKw(primary.stringValueOfField('Keywords', false)), ...splitKw(val)])];
+          primary.setField('Keywords', merged.join(', '));
+        } else if (!primary.stringValueOfField(name, false).trim()) {
+          primary.setField(name, val);
+        }
+      }
+
+      // 2) carry over managed (`Bdsk-File-N`) attachments under fresh indices.
+      let n = nextBdskFileIndex(primary);
+      for (const name of other.fieldNames()) {
+        if (!BDSK_FILE_RE.test(name)) continue;
+        const plist = doc.library.bdskFiles.get(bdskFileKey(other.id, name));
+        if (!plist) continue;
+        const field = `Bdsk-File-${n++}`;
+        primary.setField(field, encodeBdskFile(plist));
+        doc.library.bdskFiles.set(bdskFileKey(primary.id, field), plist);
+      }
+
+      // 3) delete the merged-away entry.
+      const idx = doc.library.items.indexOf(other);
+      if (idx >= 0) doc.library.items.splice(idx, 1);
+      doc.itemsById.delete(other.id);
+      doc.fts.remove(other.id);
+    }
+
+    this.reindex(doc, primary);
+    return this.dirtyDetail(doc, primary);
+  }
+
   /** Items in scope for an operation: a group's members, or the whole library. */
   private membersOf(doc: OpenDoc, groupId?: string): readonly BibItem[] {
     if (!groupId || groupId === this.libraryGroupId(doc)) return doc.library.items;
@@ -1823,6 +1872,8 @@ export class DocumentStore {
         doc.dirty = true;
         return { dirty: true };
       }
+      case 'mergeEntries':
+        return this.doMerge(doc, cmd.primaryId, cmd.otherIds);
       case 'setMacro': {
         this.fileTier(doc).define(cmd.name, cmd.value);
         doc.dirty = true;

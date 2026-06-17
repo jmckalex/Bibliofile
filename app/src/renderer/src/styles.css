@@ -534,7 +534,11 @@ body {
 }
 
 .bd-dup__kind {
-  padding: 5px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px 4px 10px;
   background: var(--bd-accent-soft);
   color: var(--bd-text-muted);
   font-size: var(--bd-fs-sm);
