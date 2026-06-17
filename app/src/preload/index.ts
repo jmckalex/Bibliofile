@@ -49,6 +49,7 @@ import {
   type GetSettingsRequest,
   type UpdateSettingsRequest,
   type Settings,
+  type ListEntryTypesResponse,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
   type ExportTextRequest,
@@ -150,6 +151,9 @@ const api: BibDeskApi = {
   },
   updateSettings(request: UpdateSettingsRequest): Promise<Settings> {
     return ipcRenderer.invoke(IpcChannels.updateSettings, request);
+  },
+  listEntryTypes(): Promise<ListEntryTypesResponse> {
+    return ipcRenderer.invoke(IpcChannels.listEntryTypes, {});
   },
   onShowPreferences(listener: () => void): Unsubscribe {
     const handler = (): void => listener();

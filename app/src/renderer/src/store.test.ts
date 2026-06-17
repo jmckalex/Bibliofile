@@ -103,6 +103,7 @@ function makeFakeApi() {
     ftsSearch: async () => ({ available: false, ids: [] }),
     getSettings: async () => DEFAULT_SETTINGS,
     updateSettings: async (r) => ({ ...DEFAULT_SETTINGS, ...r.patch }),
+    listEntryTypes: async () => ({ types: [] }),
     readAttachment: async () => ({ data: null }),
     exportText: async () => ({ text: '' }),
     pasteEntries: async () => ({ dirty: true, addedIds: [], warnings: [] }),

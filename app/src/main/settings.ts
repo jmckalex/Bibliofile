@@ -38,6 +38,15 @@ function apply(s: Settings): void {
     'Three state fields': [...ft.triState],
     'Citation fields': [...ft.citation],
   });
+  // User-defined entry types overlay (standard types are protected in the manager).
+  sharedTypeManager.setTypeInfoOverlay(
+    Object.fromEntries(
+      Object.entries(s.customTypes).map(([name, t]) => [
+        name,
+        { required: [...t.required], optional: [...t.optional] },
+      ]),
+    ),
+  );
 }
 
 /** Load settings from disk (merged over defaults) and apply them. */

@@ -32,6 +32,7 @@ import type {
   GetSettingsRequest,
   UpdateSettingsRequest,
   Settings,
+  ListEntryTypesResponse,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -154,6 +155,9 @@ export interface BibDeskApi {
 
   /** Update preferences with a partial patch; resolves with the merged settings. */
   updateSettings(request: UpdateSettingsRequest): Promise<Settings>;
+
+  /** List every known entry type (standard + custom) with its required/optional fields. */
+  listEntryTypes(): Promise<ListEntryTypesResponse>;
 
   /** Subscribe to "open Preferences" requests from the menu. Returns unsubscribe. */
   onShowPreferences(listener: () => void): Unsubscribe;

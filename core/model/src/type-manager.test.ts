@@ -193,4 +193,16 @@ describe('TypeManager — required/optional fields & TypeInfo overlay', () => {
     tm2.clearTypeInfoOverlay();
     expect(tm2.isKnownType('dataset')).toBe(false);
   });
+
+  it('bundledTypes lists the standard BibTeX types (canonical casing)', () => {
+    const bundled = tm.bundledTypes();
+    expect(bundled).toContain('article');
+    expect(bundled).toContain('book');
+    // every protected standard type is among the bundled types
+    expect(bundled.some((t) => tm.isStandardType(t))).toBe(true);
+    // an overlay-only custom type is NOT in the bundled list
+    const tm2 = new TypeManager();
+    tm2.setTypeInfoOverlay({ dataset: { required: ['Author'], optional: [] } });
+    expect(tm2.bundledTypes()).not.toContain('dataset');
+  });
 });

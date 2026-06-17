@@ -29,6 +29,7 @@ import type {
   PublicationRow,
   Settings,
   SortSpec,
+  EntryTypeInfo,
 } from '@bibdesk/shared';
 import { DEFAULT_SETTINGS, BUILTIN_COLUMNS } from '@bibdesk/shared';
 
@@ -199,8 +200,12 @@ export interface ViewerState {
   relocateAttachment: (itemId: string, field: string) => Promise<void>;
   /** Distinct existing values for a field (editor autocomplete). */
   fieldSuggestions: (field: string) => Promise<readonly string[]>;
+  /** Known entry types (standard + custom) for the type dropdowns and editor. */
+  entryTypes: readonly EntryTypeInfo[];
   /** Load preferences from main and apply the theme. */
   loadSettings: () => Promise<void>;
+  /** Load the known entry types (standard + custom) from main. */
+  loadEntryTypes: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
   /** Show/hide one table column key (builtin or field name); persists + reloads. */
@@ -236,6 +241,7 @@ export function createStore(api: BibDeskApi) {
     query: '',
     ftsIds: null,
     settings: DEFAULT_SETTINGS,
+    entryTypes: [],
     macros: [],
     selectedIds: [],
     dirty: false,
@@ -704,6 +710,15 @@ export function createStore(api: BibDeskApi) {
       }
     },
 
+    loadEntryTypes: async () => {
+      try {
+        const { types } = await api.listEntryTypes();
+        set({ entryTypes: types });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
     saveSettings: async (patch) => {
       try {
         const settings = await api.updateSettings({ patch });
@@ -711,6 +726,8 @@ export function createStore(api: BibDeskApi) {
         applyTheme(settings.theme);
         // a column change alters which extra fields each row carries → reload
         if (patch.columns) await get().loadPublications();
+        // editing custom entry types changes the type list/field sets → reload
+        if (patch.customTypes) await get().loadEntryTypes();
         // re-fetch the open detail so a changed default citation style etc. shows
         const { selectedItemId } = get();
         if (selectedItemId) await get().selectItem(selectedItemId);

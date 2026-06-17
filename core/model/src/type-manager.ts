@@ -28,6 +28,7 @@ import {
   optionalFieldsFor as configOptionalFieldsFor,
   isStandardType,
   isKnownType as configIsKnownType,
+  typesForBibTeX,
   type FieldTypeSetKey,
 } from '@bibdesk/config';
 
@@ -369,6 +370,11 @@ export class TypeManager {
   /** The user-default extra fields shown on every type (BibDesk userDefaultFields). */
   userDefaultFields(): string[] {
     return [...this.fieldArrays['Default Fields']];
+  }
+
+  /** All bundled BibTeX entry-type names (canonical casing; excludes user overlay types). */
+  bundledTypes(): string[] {
+    return [...typesForBibTeX];
   }
 }
 

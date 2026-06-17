@@ -42,7 +42,9 @@ import {
   type PrintResponse,
   type ExportSelectionRequest,
   type ExportSelectionResponse,
+  type EntryTypeInfo,
 } from '@bibdesk/shared';
+import { sharedTypeManager } from '@bibdesk/model';
 
 import { DocumentStore } from './document-service.js';
 import { runAgentTurn } from './agent.js';
@@ -1651,6 +1653,27 @@ function registerIpc(): void {
       if (req.patch.columns) buildMenu(); // refresh View→Columns checkmarks
       return s;
     },
+    [IpcChannels.listEntryTypes]: () => {
+      // Bundled types (with any custom overrides the manager applied), then any
+      // brand-new custom types not present in the bundled set.
+      const custom = getSettings().customTypes;
+      const seen = new Set<string>();
+      const types: EntryTypeInfo[] = [];
+      for (const name of sharedTypeManager.bundledTypes()) {
+        seen.add(name.toLowerCase());
+        types.push({
+          name,
+          standard: sharedTypeManager.isStandardType(name),
+          required: sharedTypeManager.requiredFieldsForType(name),
+          optional: sharedTypeManager.optionalFieldsForType(name),
+        });
+      }
+      for (const [name, t] of Object.entries(custom)) {
+        if (seen.has(name.toLowerCase())) continue;
+        types.push({ name, standard: false, required: [...t.required], optional: [...t.optional] });
+      }
+      return { types };
+    },
     [IpcChannels.readAttachment]: (req) => {
       const p = store.attachmentPath(req.documentId, req.itemId, req.url);
       if (!p) return { data: null, error: 'Attachment not found or not readable' };
@@ -1851,6 +1874,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.updateSettings, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.updateSettings](req),
+  );
+  ipcMain.handle(IpcChannels.listEntryTypes, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.listEntryTypes](req),
   );
   ipcMain.handle(IpcChannels.readAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.readAttachment](req),

@@ -867,6 +867,18 @@ export interface FieldTypeSettings {
   readonly citation: readonly string[];
 }
 
+/** A user-defined entry type's ordered required + optional field lists. */
+export interface CustomEntryType {
+  readonly required: readonly string[];
+  readonly optional: readonly string[];
+}
+
+/**
+ * User-defined entry types, keyed by type name. Matching is case-insensitive;
+ * the 15 standard BibTeX types are protected and cannot be redefined here.
+ */
+export type CustomEntryTypes = Readonly<Record<string, CustomEntryType>>;
+
 /** Application preferences (persisted; the BibDesk-equivalent options this app has). */
 export interface Settings {
   /** UI theme. `system` follows the OS appearance. */
@@ -906,6 +918,8 @@ export interface Settings {
   readonly agentModel: string;
   /** Field-type classification overrides. */
   readonly fieldTypes: FieldTypeSettings;
+  /** User-defined entry types (name → required/optional fields); standard types are protected. */
+  readonly customTypes: CustomEntryTypes;
 }
 
 /** Builtin (non-field) table column keys. */
@@ -944,6 +958,7 @@ export const DEFAULT_SETTINGS: Settings = {
     triState: [],
     citation: ['Cited-By', 'Cites'],
   },
+  customTypes: {},
 };
 
 /** Request to read the current settings (no payload). */
@@ -952,6 +967,20 @@ export type GetSettingsRequest = Readonly<Record<string, never>>;
 /** Request to update settings: a partial patch merged over the current values. */
 export interface UpdateSettingsRequest {
   readonly patch: Partial<Settings>;
+}
+
+/** One entry type for the Preferences type editor and the type dropdowns. */
+export interface EntryTypeInfo {
+  readonly name: string;
+  /** True for the 15 protected standard BibTeX types (read-only in the editor). */
+  readonly standard: boolean;
+  readonly required: readonly string[];
+  readonly optional: readonly string[];
+}
+
+/** Response: every known entry type (standard + custom) with its field lists. */
+export interface ListEntryTypesResponse {
+  readonly types: readonly EntryTypeInfo[];
 }
 
 /**

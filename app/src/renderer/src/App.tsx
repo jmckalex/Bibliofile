@@ -339,6 +339,7 @@ const BIBTEX_RE = /@\w+\s*\{/;
 export function App() {
   const onDocumentOpened = useStore((s) => s.onDocumentOpened);
   const loadSettings = useStore((s) => s.loadSettings);
+  const loadEntryTypes = useStore((s) => s.loadEntryTypes);
   const hasDoc = useStore((s) => s.documentId !== undefined);
   const [macrosOpen, setMacrosOpen] = useState(false);
   const [onlineOpen, setOnlineOpen] = useState(false);
@@ -351,7 +352,8 @@ export function App() {
 
   useEffect(() => {
     void loadSettings();
-  }, [loadSettings]);
+    void loadEntryTypes();
+  }, [loadSettings, loadEntryTypes]);
 
   // Autosave: a short debounce after the document becomes dirty (opt-in).
   const dirty = useStore((s) => s.dirty);
