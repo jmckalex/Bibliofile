@@ -581,6 +581,33 @@ body {
   white-space: nowrap;
 }
 
+/* ---- Field-type editor widgets ----------------------------------------- */
+
+.bd-rating {
+  display: inline-flex;
+  gap: 1px;
+}
+
+.bd-rating__star {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  padding: 0 1px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--bd-text-muted);
+}
+
+.bd-rating__star--on {
+  color: #e0a91b;
+}
+
+.bd-field__check {
+  width: 16px;
+  height: 16px;
+  margin: 4px 0;
+}
+
 /* ---- Group editor (sidebar) -------------------------------------------- */
 
 .bd-sidebar__actions {

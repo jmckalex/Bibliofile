@@ -84,6 +84,7 @@ import type {
   GetItemDetailRequest,
   ItemDetail,
   ItemField,
+  FieldKind,
   ItemFile,
   PublicationRow,
   ParseWarning,
@@ -597,6 +598,18 @@ function displayNameForUrl(kind: 'file' | 'url', url: string): string {
  * de-TeXified display values; the attachment list; and a small, safe
  * typographic `previewHtml` card.
  */
+/** Classify a field for the renderer's editor widget (TypeManager-driven). */
+function fieldKindOf(name: string): FieldKind {
+  const tm = sharedTypeManager;
+  if (tm.isRatingField(name)) return 'rating';
+  if (tm.isBooleanField(name)) return 'boolean';
+  if (tm.isTriStateField(name)) return 'triState';
+  if (tm.isCitationField(name)) return 'citation';
+  if (tm.isPersonField(name)) return 'person';
+  if (tm.isURLField(name)) return 'url';
+  return 'plain';
+}
+
 export function toItemDetail(
   item: BibItem,
   files: ItemFile[],
@@ -615,6 +628,7 @@ export function toItemDetail(
       value: fieldDisplayValue(name, item.stringValueOfField(name, false)),
       rawValue: rawFieldText(item, name),
       isInherited: false,
+      kind: fieldKindOf(name),
     });
   }
 
@@ -632,6 +646,7 @@ export function toItemDetail(
         value: fieldDisplayValue(name, item.stringValueOfField(name, true)),
         rawValue: rawFieldText(parent, name),
         isInherited: true,
+        kind: fieldKindOf(name),
       });
     }
   }

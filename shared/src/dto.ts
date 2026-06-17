@@ -301,6 +301,13 @@ export interface GetItemDetailRequest {
 }
 
 /** One field row in the detail view (display value, not raw BibTeX). */
+/**
+ * Field-type hint so the renderer can show the right editor widget. Classified by
+ * the TypeManager (`rating`/`boolean`/`triState`/`person`/`citation`/`url`) with
+ * everything else `plain` (a text input).
+ */
+export type FieldKind = 'plain' | 'person' | 'rating' | 'boolean' | 'triState' | 'url' | 'citation';
+
 export interface ItemField {
   /** Canonical field name (e.g. `Author`, `Title`, `Journal`). */
   readonly name: string;
@@ -310,6 +317,8 @@ export interface ItemField {
   readonly rawValue: string;
   /** True when the value is inherited from a crossref parent rather than set locally. */
   readonly isInherited: boolean;
+  /** Editor-widget hint (see {@link FieldKind}); absent = `plain`. */
+  readonly kind?: FieldKind;
 }
 
 /** One attachment (linked file or remote URL) in the detail view. */

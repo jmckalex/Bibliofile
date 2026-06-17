@@ -106,6 +106,7 @@ export {
   type ImportFilesRequest,
   type ImportDialogRequest,
   type ImportResult,
+  type FieldKind,
   type FindReplaceRequest,
   type FindReplaceMatch,
   type FindReplaceResult,

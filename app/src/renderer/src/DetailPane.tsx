@@ -49,6 +49,35 @@ function PreviewCard({ html }: { html: string }) {
   );
 }
 
+/** Map a raw tri-state field value to the select's UI value ('' | '0' | '2'). */
+function triStateUi(raw: string): string {
+  const s = raw.trim().toLowerCase();
+  if (/^(2|yes|on)$/.test(s)) return '2';
+  if (/^(0|no|off)$/.test(s)) return '0';
+  return '';
+}
+
+/** A 0–5 clickable star rating. Clicking the current value clears it. */
+function RatingStars({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const n = Math.max(0, Math.min(5, parseInt(value, 10) || 0));
+  return (
+    <span className="bd-rating" role="radiogroup" aria-label="Rating">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button
+          type="button"
+          key={i}
+          className={'bd-rating__star' + (i <= n ? ' bd-rating__star--on' : '')}
+          aria-label={`${i} star${i === 1 ? '' : 's'}`}
+          aria-checked={i === n}
+          onClick={() => onChange(i === n ? '' : String(i))}
+        >
+          {i <= n ? '★' : '☆'}
+        </button>
+      ))}
+    </span>
+  );
+}
+
 /** One editable field row (uncontrolled; commits on blur / Enter). */
 function FieldRow({ itemId, field }: { itemId: string; field: ItemField }) {
   const edit = useStore((s) => s.edit);
@@ -75,7 +104,26 @@ function FieldRow({ itemId, field }: { itemId: string; field: ItemField }) {
         {field.isInherited && <span className="bd-field__badge">(inherited)</span>}
       </div>
       <div className="bd-field__edit">
-        {long ? (
+        {field.kind === 'rating' ? (
+          <RatingStars value={field.rawValue} onChange={commit} />
+        ) : field.kind === 'boolean' ? (
+          <input
+            type="checkbox"
+            className="bd-field__check"
+            checked={/^(yes|true|1|on)$/i.test(field.rawValue.trim())}
+            onChange={(e) => commit(e.target.checked ? 'Yes' : '')}
+          />
+        ) : field.kind === 'triState' ? (
+          <select
+            className="bd-input bd-select"
+            value={triStateUi(field.rawValue)}
+            onChange={(e) => commit(e.target.value)}
+          >
+            <option value="">—</option>
+            <option value="0">No</option>
+            <option value="2">Yes</option>
+          </select>
+        ) : long ? (
           <textarea
             key={`${itemId}:${field.name}`}
             className="bd-input bd-input--area"
