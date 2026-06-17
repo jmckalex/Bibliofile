@@ -475,6 +475,31 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   `store.ts`. Tests: parser (all three forms, dedupe, `*` skip) + store
   matching/missing. Developed on the `aux-workflow` branch and fast-forward-merged into `main`.
 
+- **Folders (nestable containers over groups).** A "beyond BibDesk" layer: a folder
+  holds other folders and/or groups — groups hold the publications; folders never
+  hold publications directly (a refinement the user made over the initial "nested
+  groups" framing). The tree persists IN the `.bib` as a namespaced
+  `@comment{BibDesk-Electron Folders{<base64 JSON>}}` block: the parser already
+  preserves unrecognised free `@comment`s verbatim in `preambles` (and the serializer
+  re-emits them), so `folders.ts` just reads/rewrites that one entry in
+  `library.preambles` — no `core/bibtex` changes, real BibDesk ignores it, and the
+  `.bib` stays the source of truth. Model: folder = `{id, name, parentId, groups:
+  string[]}` (groups referenced by name). `groupEdit` gained createFolder /
+  renameFolder / deleteFolder (children re-parent up) / moveFolder (cycle-guarded) /
+  setGroupFolder; `listGroups` emits `kind:'folder'` nodes and nests each group under
+  its folder via `parentId`. Sidebar: the 2-level tree builder became recursive
+  N-level rendering; folders create/rename/delete + drag-to-file/nest (drop a
+  group/folder onto a folder, or onto Library to move to top level); a 📤 button runs
+  **Export Folder to PDF Tree** — `folderExportPlan` walks the subtree to one entry
+  per group (relative dir + members' attachment paths), and the `exportFolderTree`
+  handler mkdir/copies the PDFs (de-colliding duplicate names) with a summary.
+  `groupEdit` auto-select was narrowed to createStatic/createSmart so making a folder
+  doesn't grab selection and empty the table. *Revisit:* `folders.ts`, the folder
+  cases + `folderExportPlan` / `groupFilePaths` in `document-service.ts`, the
+  `exportFolderTree` handler in `index.ts`, `GroupsSidebar.tsx`. Tests: persistence
+  round-trip (+ base64 safety/ids/cycles), create→file→serialize→reopen, and
+  folderExportPlan. Developed on branch `folders`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

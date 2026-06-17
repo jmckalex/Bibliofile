@@ -616,8 +616,15 @@ user-facing Help (`docs/help/`) was updated alongside:
   LaTeX `.aux`'s cite keys (`\citation` / `\bibcite` / biblatex `\abx@aux@cite`) and multi-selects
   the matching library entries (then Export → Selected Entries gives just the cited subset). Parser
   `aux.ts` + `DocumentStore.selectFromAux` + `selectFromAux` IPC; summary dialog reports missing keys.
+- **Folders** — a nestable container layer over groups (a folder holds folders and/or groups; groups
+  hold publications). Persisted in the `.bib` as a namespaced `@comment{BibDesk-Electron Folders{…}}`
+  block (base64 JSON; real BibDesk ignores it). Sidebar: create/rename/delete folders, drag a group
+  into a folder / nest folders / drop on Library to un-file (N-level tree). **📤 Export Folder to PDF
+  Tree** copies each group's publications' attached PDFs into a folder→group directory structure.
+  `folders.ts` + groupEdit folder ops + `folderExportPlan` + `exportFolderTree` IPC.
+  *(On branch `folders`, not yet merged to `main`.)*
 
-`pnpm -r test` = **1439 passing** (+3 skipped under the Node test ABI — expected);
+`pnpm -r test` = **1446 passing** (+3 skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.
 
 ### Still pending (deeper BibDesk features; not yet built) — do NOT claim these are done
