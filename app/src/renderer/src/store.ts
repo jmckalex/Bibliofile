@@ -771,10 +771,11 @@ export function createStore(api: BibDeskApi) {
         set({ dirty: res.dirty });
         if (command.kind === 'delete') set({ selectedGroupId: undefined });
         await get().loadGroups();
-        // Selecting the affected group is right for create/rename/edit, but a
-        // drag-drop "add to group" (setMembers) must NOT switch the table to the
-        // target group — keep whatever view is currently selected.
-        if (res.groupId && command.kind !== 'setMembers') set({ selectedGroupId: res.groupId });
+        // Jump to a newly created group, but never to setMembers (drag-drop add)
+        // or folder ops — folders aren't filterable and shouldn't grab selection.
+        if (res.groupId && (command.kind === 'createStatic' || command.kind === 'createSmart')) {
+          set({ selectedGroupId: res.groupId });
+        }
         await get().loadPublications();
         return res.groupId;
       } catch (err) {
