@@ -11,7 +11,7 @@
  * only. The renderer talks exclusively to `window.bibdesk` (see preload).
  */
 
-import { basename, join } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -71,14 +71,123 @@ app.setName('BibDesk');
 /** The one document store for this process (pure; no Electron deps). */
 const store = new DocumentStore();
 
-/** The main window (one window in this read-only viewer session). */
-let mainWindow: BrowserWindow | null = null;
+/**
+ * Open library windows, keyed by the documentId each one shows. The app is
+ * multi-document: one library window per open `.bib`. (Per-entry editor windows
+ * live in `editorWindows`; the manual is `helpWindow`.)
+ */
+const docWindows = new Map<string, BrowserWindow>();
 
-/** A `.bib` path requested before the window/renderer was ready. */
+/** documentId of the most recently focused library window (menu/save fallback). */
+let lastFocusedDocId: string | null = null;
+
+/** A `.bib` path requested before any window/renderer was ready. */
 let pendingOpenPath: string | null = null;
 
-/** Most recently opened document id (used by the smoke-test FTS self-check). */
-let lastDocumentId: string | null = null;
+/** The documentId shown in `win`, or null if it is not a library window. */
+function docIdForWindow(win: BrowserWindow | null): string | null {
+  if (!win) return null;
+  for (const [id, w] of docWindows) if (w === win) return id;
+  return null;
+}
+
+/** Any still-open library window's documentId (last-resort fallback). */
+function firstLibraryDocId(): string | null {
+  for (const [id, w] of docWindows) if (!w.isDestroyed()) return id;
+  return null;
+}
+
+/** The library window showing `documentId`, if still open. */
+function windowForDoc(documentId: string | null): BrowserWindow | undefined {
+  if (!documentId) return undefined;
+  const w = docWindows.get(documentId);
+  return w && !w.isDestroyed() ? w : undefined;
+}
+
+/**
+ * The documentId the document-scoped actions (Save, Undo, Export, the bridge…)
+ * apply to: the focused library window's document, else the last focused one,
+ * else any open library. Null when no library is open.
+ */
+function focusedDocId(): string | null {
+  const id = docIdForWindow(BrowserWindow.getFocusedWindow());
+  if (id) return id;
+  if (windowForDoc(lastFocusedDocId)) return lastFocusedDocId;
+  return firstLibraryDocId();
+}
+
+/** The library window the document-scoped dialogs/menus should attach to. */
+function focusedWindow(): BrowserWindow | undefined {
+  return windowForDoc(focusedDocId());
+}
+
+/**
+ * A focused, document-less window a newly opened library can be loaded into (so
+ * opening from the welcome screen reuses that window). Undefined → make a new one.
+ */
+function reusableWelcomeWindow(): BrowserWindow | undefined {
+  const f = BrowserWindow.getFocusedWindow();
+  if (!f || f.isDestroyed() || f === helpWindow) return undefined;
+  if (docIdForWindow(f)) return undefined; // already shows a library
+  for (const w of editorWindows.values()) if (w === f) return undefined; // a per-entry editor
+  return f;
+}
+
+/** The library window currently showing `path`, if that file is already open. */
+function windowForPath(path: string): BrowserWindow | undefined {
+  const abs = resolve(path);
+  for (const [id, w] of docWindows) {
+    if (w.isDestroyed()) continue;
+    try {
+      if (resolve(store.summarize(id).path) === abs) return w;
+    } catch {
+      /* doc no longer in the store */
+    }
+  }
+  return undefined;
+}
+
+/** Windows that already have their focus/closed listeners wired (attach once). */
+const wiredWindows = new WeakSet<BrowserWindow>();
+
+/**
+ * Bind `win` to `documentId` (the library it now shows). Idempotent per window:
+ * reusing a window for a new document (welcome-screen reuse, Revert) drops and
+ * closes the previously shown document, but the focus/closed listeners attach
+ * only once.
+ */
+function bindWindowToDoc(win: BrowserWindow, documentId: string): void {
+  const prev = docIdForWindow(win);
+  if (prev && prev !== documentId) {
+    docWindows.delete(prev);
+    try {
+      store.closeDocument({ documentId: prev });
+    } catch {
+      /* already gone */
+    }
+  }
+  docWindows.set(documentId, win);
+  lastFocusedDocId = documentId;
+  if (wiredWindows.has(win)) return;
+  wiredWindows.add(win);
+  win.on('focus', () => {
+    const id = docIdForWindow(win);
+    if (id) lastFocusedDocId = id;
+  });
+  win.on('closed', () => {
+    const id = docIdForWindow(win);
+    if (id) {
+      docWindows.delete(id);
+      if (lastFocusedDocId === id) lastFocusedDocId = firstLibraryDocId();
+      try {
+        store.closeDocument({ documentId: id });
+      } catch {
+        /* already gone */
+      }
+    }
+    buildMenu(); // refresh document-scoped + Window menus
+  });
+}
 
 /** The Help manual window (singleton). */
 let helpWindow: BrowserWindow | null = null;
@@ -171,9 +280,10 @@ function createWindow(): BrowserWindow {
     );
     const capture = (): void => {
       // FTS self-test: prove SQLite FTS5 (better-sqlite3) loaded under Electron.
-      if (lastDocumentId) {
+      const smokeDocId = focusedDocId();
+      if (smokeDocId) {
         try {
-          const r = store.ftsSearch(lastDocumentId, 'basel');
+          const r = store.ftsSearch(smokeDocId, 'basel');
           console.log(`[smoke] fts available=${r.available} hits("basel")=${r.ids.length}`);
         } catch (e) {
           console.log('[smoke] fts self-test error:', e instanceof Error ? e.message : String(e));
@@ -331,30 +441,60 @@ async function pdfExtract(absPath: string): Promise<string> {
   return text;
 }
 
-function openPath(path: string): OpenedDocument {
+/**
+ * Open a `.bib` by absolute path into a library window. If the file is already
+ * open, focus its window instead of re-parsing. Otherwise load it into the
+ * supplied `target`, a reusable focused welcome window, or a fresh window; bind
+ * the window to the parsed document, set the title, and notify it. Returns the
+ * document summary. Throws on read/parse failure.
+ */
+function openPath(path: string, target?: BrowserWindow): OpenedDocument {
+  const existing = windowForPath(path);
+  if (existing) {
+    if (existing.isMinimized()) existing.restore();
+    existing.focus();
+    return store.summarize(docIdForWindow(existing)!);
+  }
+  const win = target ?? reusableWelcomeWindow() ?? createWindow();
+  return loadDocumentInto(win, path);
+}
+
+/**
+ * Parse `path` and show it in `win` (binding, title, notify, background index).
+ * Bypasses the "already open" check so Revert can re-read into the same window.
+ */
+function loadDocumentInto(win: BrowserWindow, path: string): OpenedDocument {
   const opened = store.openFile(path);
   app.addRecentDocument(path);
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.setTitle(`${opened.displayName} — BibDesk`);
-    mainWindow.setRepresentedFilename?.(opened.path);
-  }
-  lastDocumentId = opened.documentId;
-  buildMenu(); // refresh document-scoped menu items now that a doc is open
-  notifyDocumentOpened(opened);
-  // Index attachment PDF text in the background; field-text search works already.
-  // Extraction runs in a worker pool (off the main loop) with a persistent cache,
-  // so reopening a library is near-instant and the UI never freezes. Deferred so
-  // the renderer's initial load (groups/rows) gets an unblocked main process first.
-  const docId = opened.documentId;
-  setTimeout(() => {
-    void store.indexAttachments(docId, pdfExtract).then(() => pdfCache?.flush());
-  }, 2000);
+  bindWindowToDoc(win, opened.documentId);
+  setWindowTitle(win, opened.displayName, opened.path);
+  buildMenu(); // refresh document-scoped + Window menu now that a doc is open
+  notifyDocumentOpened(opened, win);
+  scheduleIndex(opened.documentId);
   return opened;
 }
 
-/** Push a `documentOpened` event to the renderer (or buffer until ready). */
-function notifyDocumentOpened(opened: OpenedDocument): void {
-  const wc = mainWindow?.webContents;
+/**
+ * Index a document's attachment PDF text in the background — a worker pool (off
+ * the main loop) with a persistent cache, deferred so the renderer's initial
+ * load (groups/rows) gets an unblocked main process first.
+ */
+function scheduleIndex(documentId: string): void {
+  setTimeout(() => {
+    void store.indexAttachments(documentId, pdfExtract).then(() => pdfCache?.flush());
+  }, 2000);
+}
+
+/** Set a window's title + represented file (macOS proxy icon) for a document. */
+function setWindowTitle(win: BrowserWindow, displayName: string, path: string): void {
+  if (win.isDestroyed()) return;
+  win.setTitle(`${displayName} — BibDesk`);
+  win.setRepresentedFilename?.(path);
+}
+
+/** Push a `documentOpened` event to a window's renderer (or buffer until ready). */
+function notifyDocumentOpened(opened: OpenedDocument, win: BrowserWindow | undefined): void {
+  const wc = win && !win.isDestroyed() ? win.webContents : undefined;
   if (!wc) return;
   if (wc.isLoading()) {
     wc.once('did-finish-load', () => wc.send(IpcEvents.documentOpened, opened));
@@ -363,32 +503,36 @@ function notifyDocumentOpened(opened: OpenedDocument): void {
   }
 }
 
-/** Ask the renderer to open the Preferences pane. */
+/** Ask the focused library window's renderer to open the Preferences pane. */
 function openPreferences(): void {
-  mainWindow?.webContents.send(IpcEvents.showPreferences, null);
+  focusedWindow()?.webContents.send(IpcEvents.showPreferences, null);
 }
 
-/** Open a path now if the window exists, else stash it for after launch. */
+/** Open a path now if the app is ready, else stash it for after launch. */
 function openPathWhenReady(path: string): void {
-  if (mainWindow) {
-    try {
-      openPath(path);
-    } catch (err) {
-      console.error('[open] failed:', err instanceof Error ? err.stack : String(err));
-      void dialog.showMessageBox(mainWindow, {
-        type: 'error',
-        message: `Could not open ${path}`,
-        detail: err instanceof Error ? err.message : String(err),
-      });
-    }
-  } else {
+  if (!app.isReady()) {
     pendingOpenPath = path;
+    return;
+  }
+  try {
+    openPath(path);
+  } catch (err) {
+    console.error('[open] failed:', err instanceof Error ? err.stack : String(err));
+    const win = focusedWindow();
+    const opts = {
+      type: 'error' as const,
+      message: `Could not open ${path}`,
+      detail: err instanceof Error ? err.message : String(err),
+    };
+    if (win) void dialog.showMessageBox(win, opts);
+    else void dialog.showMessageBox(opts);
   }
 }
 
-/** Re-notify the renderer of the open document so it reloads after a main-side mutation. */
-function refreshOpenDocument(): void {
-  if (lastDocumentId) notifyDocumentOpened(store.summarize(lastDocumentId));
+/** Re-notify a document's window so it reloads after a main-side mutation. */
+function refreshDocument(documentId: string | null): void {
+  const win = windowForDoc(documentId);
+  if (documentId && win) notifyDocumentOpened(store.summarize(documentId), win);
 }
 
 /** Strip an HTML citation fragment to plain text (for the clipboard text flavor). */
@@ -514,30 +658,32 @@ function handleAppUrl(raw: string): void {
     case 'open':
       if (params.file) openPathWhenReady(params.file);
       return;
-    case 'import':
-      if (!lastDocumentId) return;
+    case 'import': {
+      const docId = focusedDocId();
+      if (!docId) return;
       if (params.bibtex) {
-        store.importBibtexText(lastDocumentId, params.bibtex);
-        refreshOpenDocument();
+        store.importBibtexText(docId, params.bibtex);
+        refreshDocument(docId);
       } else if (params.doi) {
-        const docId = lastDocumentId;
         void searchOnline('doi', params.doi)
           .then((results) => {
             const r = results[0];
             if (r) {
               store.importEntry(docId, r.entryType, r.fields);
-              refreshOpenDocument();
+              refreshDocument(docId);
             }
           })
           .catch((e) => console.error('[x-bibdesk] doi import failed:', e));
       }
       return;
+    }
     case 'new': {
-      if (!lastDocumentId) return;
+      const docId = focusedDocId();
+      if (!docId) return;
       const fields: Record<string, string> = {};
       for (const [k, v] of Object.entries(params)) if (k.toLowerCase() !== 'type') fields[k] = v;
-      store.importEntry(lastDocumentId, params.type || 'misc', fields);
-      refreshOpenDocument();
+      store.importEntry(docId, params.type || 'misc', fields);
+      refreshDocument(docId);
       return;
     }
     default:
@@ -566,12 +712,13 @@ function startBridge(): void {
     const params: Record<string, string> = {};
     for (const [k, v] of url.searchParams) if (k !== 'token') params[k] = v;
     let result;
+    const bridgeDocId = focusedDocId();
     try {
-      result = dispatchBridge(store, lastDocumentId, { method, params });
+      result = dispatchBridge(store, bridgeDocId, { method, params });
     } catch (e) {
       result = { ok: false, error: e instanceof Error ? e.message : String(e) };
     }
-    if ((result as { mutated?: boolean }).mutated) refreshOpenDocument();
+    if ((result as { mutated?: boolean }).mutated) refreshDocument(bridgeDocId);
     res.writeHead(result.ok ? 200 : 400, { 'content-type': 'application/json' });
     res.end(JSON.stringify(result));
   });
@@ -612,8 +759,15 @@ function startupOpenPath(): string | undefined {
 // File → Open menu + dialog
 // ---------------------------------------------------------------------------
 
+/** The window a menu-driven dialog should attach to: the literally focused one. */
+function dialogParent(): BrowserWindow | undefined {
+  const f = BrowserWindow.getFocusedWindow();
+  if (f && !f.isDestroyed() && f !== helpWindow) return f;
+  return focusedWindow();
+}
+
 async function showOpenDialog(): Promise<void> {
-  const win = mainWindow ?? undefined;
+  const win = dialogParent();
   const result = win
     ? await dialog.showOpenDialog(win, openDialogOptions())
     : await dialog.showOpenDialog(openDialogOptions());
@@ -648,7 +802,7 @@ function openDialogOptions(): Electron.OpenDialogOptions {
  * `.bib` there, then open it (so it has a real path and Save works normally).
  */
 async function newDocument(): Promise<void> {
-  const win = mainWindow ?? undefined;
+  const win = dialogParent();
   const result = win
     ? await dialog.showSaveDialog(win, { title: 'New Bibliography', defaultPath: 'Untitled.bib', filters: [{ name: 'BibTeX', extensions: ['bib'] }] })
     : await dialog.showSaveDialog({ title: 'New Bibliography', defaultPath: 'Untitled.bib', filters: [{ name: 'BibTeX', extensions: ['bib'] }] });
@@ -667,51 +821,48 @@ async function newDocument(): Promise<void> {
   }
 }
 
-/** Send a menu command to the renderer (which acts on its own state). */
+/** Send a menu command to the focused library window (which acts on its own state). */
 function sendMenuCommand(command: MenuCommand): void {
-  mainWindow?.webContents.send(IpcEvents.menuCommand, command);
+  focusedWindow()?.webContents.send(IpcEvents.menuCommand, command);
 }
 
-/** Is there an open document to act on? Gates document-scoped menu items. */
+/** Is any library open? Gates document-scoped menu items. */
 function hasOpenDocument(): boolean {
-  return lastDocumentId !== null;
+  return docWindows.size > 0;
 }
 
-/** Document-level Undo: restore the previous snapshot and re-sync the renderer. */
+/** Document-level Undo: restore the previous snapshot and re-sync that window. */
 function doUndo(): void {
-  if (lastDocumentId && store.undo(lastDocumentId)) {
-    notifyDocumentOpened(store.summarize(lastDocumentId));
-  }
+  const id = focusedDocId();
+  if (id && store.undo(id)) notifyDocumentOpened(store.summarize(id), windowForDoc(id));
 }
 
 /** Document-level Redo. */
 function doRedo(): void {
-  if (lastDocumentId && store.redo(lastDocumentId)) {
-    notifyDocumentOpened(store.summarize(lastDocumentId));
-  }
+  const id = focusedDocId();
+  if (id && store.redo(id)) notifyDocumentOpened(store.summarize(id), windowForDoc(id));
 }
 
 /** Save As: pick a new path, write there, and re-sync the renderer (name + dirty). */
 async function saveDocumentAs(): Promise<void> {
-  if (!lastDocumentId) return;
-  const current = store.summarize(lastDocumentId);
-  const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
+  const id = focusedDocId();
+  if (!id) return;
+  const win = windowForDoc(id);
+  const current = store.summarize(id);
+  const result = await dialog.showSaveDialog(win!, {
     title: 'Save As',
     defaultPath: current.path,
     filters: [{ name: 'BibTeX', extensions: ['bib'] }],
   });
   if (result.canceled || !result.filePath) return;
   try {
-    const saved = store.saveDocument(lastDocumentId, result.filePath);
+    const saved = store.saveDocument(id, result.filePath);
     app.addRecentDocument(saved.path);
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.setTitle(`${basename(saved.path)} — BibDesk`);
-      mainWindow.setRepresentedFilename?.(saved.path);
-    }
+    if (win) setWindowTitle(win, basename(saved.path), saved.path);
     // Re-notify so the renderer picks up the new display name + cleared dirty.
-    notifyDocumentOpened(store.summarize(lastDocumentId));
+    notifyDocumentOpened(store.summarize(id), win);
   } catch (err) {
-    void dialog.showMessageBox(mainWindow ?? undefined!, {
+    void dialog.showMessageBox(win!, {
       type: 'error',
       message: 'Could not save the document',
       detail: err instanceof Error ? err.message : String(err),
@@ -721,9 +872,11 @@ async function saveDocumentAs(): Promise<void> {
 
 /** Revert to Saved: re-read the document from disk, discarding unsaved edits. */
 async function revertToSaved(): Promise<void> {
-  if (!lastDocumentId) return;
-  const { path } = store.summarize(lastDocumentId);
-  const choice = await dialog.showMessageBox(mainWindow ?? undefined!, {
+  const id = focusedDocId();
+  if (!id) return;
+  const win = windowForDoc(id);
+  const { path } = store.summarize(id);
+  const choice = await dialog.showMessageBox(win!, {
     type: 'warning',
     buttons: ['Revert', 'Cancel'],
     defaultId: 0,
@@ -731,8 +884,8 @@ async function revertToSaved(): Promise<void> {
     message: 'Revert to the last saved version?',
     detail: 'Any unsaved changes will be lost.',
   });
-  if (choice.response !== 0) return;
-  openPathWhenReady(path);
+  if (choice.response !== 0 || !win) return;
+  loadDocumentInto(win, path); // re-read from disk into the same window
 }
 
 /** File extension for each export format. */
@@ -746,11 +899,12 @@ const EXPORT_EXT: Record<'bibtex' | 'ris' | 'csv' | 'html' | 'rtf', string> = {
 
 /** Export the whole library to a file in the given format. */
 async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html' | 'rtf'): Promise<void> {
-  if (!lastDocumentId) return;
-  const current = store.summarize(lastDocumentId);
+  const id = focusedDocId();
+  if (!id) return;
+  const current = store.summarize(id);
   const ext = EXPORT_EXT[format];
   const base = current.displayName.replace(/\.bib$/i, '');
-  const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
+  const result = await dialog.showSaveDialog(focusedWindow()!, {
     title: 'Export',
     defaultPath: `${base}.${ext}`,
     filters: [{ name: format.toUpperCase(), extensions: [ext] }],
@@ -760,11 +914,11 @@ async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html' | 'rtf
     // RTF is a CSL-formatted bibliography (built here); the rest serialize in the store.
     const text =
       format === 'rtf'
-        ? buildLibraryRtf(lastDocumentId, getSettings().defaultCiteStyle)
-        : store.exportText(lastDocumentId, format);
+        ? buildLibraryRtf(id, getSettings().defaultCiteStyle)
+        : store.exportText(id, format);
     writeFileSync(result.filePath, text, 'utf8');
   } catch (err) {
-    void dialog.showMessageBox(mainWindow ?? undefined!, {
+    void dialog.showMessageBox(focusedWindow()!, {
       type: 'error',
       message: 'Could not export the document',
       detail: err instanceof Error ? err.message : String(err),
@@ -781,7 +935,7 @@ async function exportSelectionAs(req: ExportSelectionRequest): Promise<ExportSel
   if (!req.itemIds.length) return { ok: false, error: 'No entries are selected.' };
   if (!store.has(req.documentId)) return { ok: false, error: 'No document open.' };
   const base = store.summarize(req.documentId).displayName.replace(/\.bib$/i, '');
-  const result = await dialog.showSaveDialog(mainWindow ?? undefined!, {
+  const result = await dialog.showSaveDialog((windowForDoc(req.documentId) ?? focusedWindow())!, {
     title: 'Export Selected Entries',
     defaultPath: `${base}-selection.bib`,
     filters: [{ name: 'BibTeX', extensions: ['bib'] }],
@@ -827,7 +981,7 @@ function columnMenuItems(): MenuItemConstructorOptions[] {
     type: 'checkbox' as const,
     checked: shown.has(c.key),
     enabled: hasOpenDocument(),
-    click: () => mainWindow?.webContents.send(IpcEvents.menuToggleColumn, c.key),
+    click: () => focusedWindow()?.webContents.send(IpcEvents.menuToggleColumn, c.key),
   }));
 }
 
@@ -901,7 +1055,8 @@ function buildMenu(): void {
         label: isMac ? 'Show in Finder' : 'Show in File Manager',
         enabled: docEnabled,
         click: () => {
-          if (lastDocumentId) shell.showItemInFolder(store.summarize(lastDocumentId).path);
+          const id = focusedDocId();
+          if (id) shell.showItemInFolder(store.summarize(id).path);
         },
       },
       { type: 'separator' },
@@ -1236,7 +1391,7 @@ async function callAnthropic(body: any, apiKey: string): Promise<any> {
 
 /** Ask the user to approve a mutating assistant action (native dialog). */
 async function approveAgentTool(name: string, input: unknown): Promise<boolean> {
-  const result = await dialog.showMessageBox(mainWindow ?? undefined!, {
+  const result = await dialog.showMessageBox(focusedWindow()!, {
     type: 'question',
     buttons: ['Approve', 'Deny'],
     defaultId: 0,
@@ -1336,10 +1491,8 @@ function registerIpc(): void {
     [IpcChannels.listMacros]: (req) => store.listMacros(req),
     [IpcChannels.saveDocument]: (req) => {
       const res = store.saveDocument(req.documentId, req.targetPath);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.setTitle(`${basename(res.path)} — BibDesk`);
-        mainWindow.setRepresentedFilename?.(res.path);
-      }
+      const win = windowForDoc(req.documentId);
+      if (win) setWindowTitle(win, basename(res.path), res.path);
       return res;
     },
     [IpcChannels.formatCitation]: (req) => {
@@ -1383,8 +1536,9 @@ function registerIpc(): void {
         title: 'Add Attachment',
         properties: ['openFile', 'multiSelections'],
       };
-      const result = mainWindow
-        ? await dialog.showOpenDialog(mainWindow, opts)
+      const parent = dialogParent();
+      const result = parent
+        ? await dialog.showOpenDialog(parent, opts)
         : await dialog.showOpenDialog(opts);
       if (result.canceled || result.filePaths.length === 0) {
         return {
@@ -1399,8 +1553,9 @@ function registerIpc(): void {
       store.removeAttachment(req.documentId, req.itemId, req.field),
     [IpcChannels.findBrokenLinks]: (req) => ({ links: store.findBrokenLinks(req.documentId) }),
     [IpcChannels.relocateAttachment]: async (req) => {
-      const result = mainWindow
-        ? await dialog.showOpenDialog(mainWindow, { title: 'Locate File', properties: ['openFile'] })
+      const parent = dialogParent();
+      const result = parent
+        ? await dialog.showOpenDialog(parent, { title: 'Locate File', properties: ['openFile'] })
         : await dialog.showOpenDialog({ title: 'Locate File', properties: ['openFile'] });
       const picked = result.canceled ? undefined : result.filePaths[0];
       if (!picked) {
@@ -1464,8 +1619,9 @@ function registerIpc(): void {
           { name: 'All Files', extensions: ['*'] },
         ],
       };
-      const result = mainWindow
-        ? await dialog.showOpenDialog(mainWindow, opts)
+      const parent = dialogParent();
+      const result = parent
+        ? await dialog.showOpenDialog(parent, opts)
         : await dialog.showOpenDialog(opts);
       if (result.canceled || result.filePaths.length === 0) {
         return { dirty: store.isDirty(req.documentId), addedIds: [], warnings: [] };
@@ -1507,8 +1663,9 @@ function registerIpc(): void {
         message: 'Consolidate linked files?',
         detail: `This moves the managed file attachments for ${scope} into your Papers folder, renaming them by the AutoFile format. Files are moved on disk.`,
       };
-      const choice = mainWindow
-        ? await dialog.showMessageBox(mainWindow, confirmOpts)
+      const parent = dialogParent();
+      const choice = parent
+        ? await dialog.showMessageBox(parent, confirmOpts)
         : await dialog.showMessageBox(confirmOpts);
       if (choice.response !== 0) {
         return { scanned: 0, itemsAffected: 0, moved: 0, dirty: store.isDirty(req.documentId), errors: [] };
@@ -1527,7 +1684,7 @@ function registerIpc(): void {
             }
           : {}),
       };
-      if (mainWindow) void dialog.showMessageBox(mainWindow, summaryOpts);
+      if (parent) void dialog.showMessageBox(parent, summaryOpts);
       else void dialog.showMessageBox(summaryOpts);
       return res;
     },
@@ -1536,8 +1693,9 @@ function registerIpc(): void {
         title: 'Choose Papers Folder',
         properties: ['openDirectory', 'createDirectory'],
       };
-      const result = mainWindow
-        ? await dialog.showOpenDialog(mainWindow, opts)
+      const parent = dialogParent();
+      const result = parent
+        ? await dialog.showOpenDialog(parent, opts)
         : await dialog.showOpenDialog(opts);
       return { path: result.canceled || !result.filePaths[0] ? null : result.filePaths[0] };
     },
@@ -1707,11 +1865,9 @@ app.on('open-url', (event, url) => {
   handleAppUrl(url);
 });
 
-// No untitled file: only re-show the main window on activate-with-no-windows.
+// Re-show a welcome window on dock-activate when nothing is open (macOS).
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    mainWindow = createWindow();
-  }
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
 app.on('window-all-closed', () => {
@@ -1733,9 +1889,10 @@ if (!gotLock) {
   app.quit();
 } else {
   app.on('second-instance', (_event, argv) => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
+    const win = focusedWindow() ?? BrowserWindow.getAllWindows().find((w) => !w.isDestroyed());
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
     }
     // Windows/Linux deliver the protocol URL (and .bib paths) via argv.
     for (const arg of argv.slice(1)) {
@@ -1764,12 +1921,24 @@ if (!gotLock) {
     registerIpc();
     buildMenu();
     startBridge();
-    mainWindow = createWindow();
+    const first = createWindow();
 
-    // Auto-open from BIBDESK_OPEN / CLI, or honor a path buffered by open-file.
+    // Auto-open from BIBDESK_OPEN / CLI, or honor a path buffered by open-file —
+    // into the initial (welcome) window so no empty window is left behind.
     const startup = pendingOpenPath ?? startupOpenPath();
     pendingOpenPath = null;
-    if (startup) openPathWhenReady(startup);
+    if (startup) {
+      try {
+        openPath(startup, first);
+      } catch (err) {
+        console.error('[open] startup failed:', err instanceof Error ? err.stack : String(err));
+        void dialog.showMessageBox(first, {
+          type: 'error',
+          message: `Could not open ${startup}`,
+          detail: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
 
     // A protocol URL passed on the initial command line (Windows/Linux cold start).
     const urlArg = process.argv.find((a) => a.startsWith('x-bibdesk://'));
