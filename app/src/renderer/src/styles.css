@@ -1662,18 +1662,18 @@ button.bd-chip {
 /* Circular add (green) / remove (red) buttons for field rows. */
 .bd-circbtn {
   flex: none;
+  align-self: center; /* vertically centre against the field input */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
+  width: 14px;
+  height: 14px;
   padding: 0;
-  border: 1.5px solid currentColor;
+  border: 1px solid currentColor;
   border-radius: 50%;
   background: transparent;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 10px;
   line-height: 1;
   font-weight: 700;
 }
