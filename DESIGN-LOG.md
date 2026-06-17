@@ -125,6 +125,41 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   `application/x-bibdesk-citekeys` flavor). Verified by tests (incl. serialize→re-parse for both
   kinds) + GUI. *Revisit:* `document-service.groupEdit` + `GroupsSidebar`/`SmartGroupDialog`.
 
+## Post-port gap-closing (BibDesk parity batch)
+
+- **More internet importers.** Added OpenAlex, PubMed (NCBI eutils esearch+efetch),
+  DOI lookup (CrossRef `/works/{doi}`), and ISBN (Open Library) to the online search,
+  reusing the `OnlineResult` shape + `makeResult`. Pure parsers exported + tested.
+- **Merge duplicates.** `mergeEntries` EditCommand (one undo step): primary keeps its
+  values + gains missing ones, Keywords unioned, attachments carried over, others
+  deleted. Merge button per group in Find Duplicates.
+- **Rich field editors.** `ItemField.kind` (TypeManager-classified) drives per-type
+  widgets: rating stars, boolean checkbox, tri-state select. *Deferred within this:*
+  a date picker (timestamp-clobbering risk on Date-Added/Modified) and a full
+  author/person editor — left as text + autocomplete.
+- **Automation (native by design).** Two layers: (1) `x-bibdesk://` URL scheme for
+  fire-and-forget commands; (2) a **loopback, token-authed HTTP bridge** (`bridge.json`
+  discovery) that returns data, so queries work — AppleScript/shell drive it today
+  (`bibdesk-bridge.sh`); native helper apps (macOS `.sdef`, Windows PowerShell, Linux)
+  are thin translators on top. *Native helper apps are scaffolded/designed only* —
+  compiling+signing needs platform toolchains (see `docs/automation/native-helpers.md`).
+  `app.setName('BibDesk')` so userData/`bridge.json` sit at a predictable path.
+- **RTF.** `rtf.ts` (htmlToRtf + wrapRtf); Copy Citation as RTF (clipboard) + RTF
+  bibliography export. *Why main-side:* `clipboard.writeRTF` is main-only.
+- **PDF → DOI import.** Dropped PDFs: extract text (pdfjs) → find a DOI → CrossRef
+  lookup → import the real metadata + attach the PDF; no-DOI PDFs fall back to a stub.
+- **Multi-select + batch ops.** Cmd/Shift-click selection; one-undo-step batch
+  setField / add+remove keyword / delete via a floating BatchBar. *Design note:*
+  detail-loading was split into `loadDetail` so it never clobbers `selectedIds`
+  (fixed a race that dropped rows under rapid Cmd-clicks).
+- **Journal thumbnails (data).** Two background agents downloaded **309 covers**
+  (philosophy + top-tier science/social-science) into `app/resources/journals/covers/`
+  + a manifest, with `philosophy.json`/`top-journals.json` metadata indexes. *Honest
+  finding:* big subscription publishers (Elsevier/Wiley/ACS/OUP/APA) serve JS
+  bot-challenges or logo favicons, not cover art; the manifest tags each by `kind` so
+  the view panel can prefer real `og:image` covers and fall back to a generated
+  typographic cover. **View-panel wiring is still pending** (the payoff step).
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

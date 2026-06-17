@@ -54,9 +54,25 @@ Times are local. Newest entries appended at the bottom of each section.
 | AGENT | Claude scripting assistant (Tools→Claude Assistant, plugin-API tools, safeStorage key) | ✅ done (`a18b4b1`) |
 | GRPFIX | Parse static/smart group blocks correctly (array-of-dicts; real bug fix) | ✅ done (`b8d247a`) |
 | GRP | Smart/static group editor (create/rename/delete/members, drag-to-add, condition builder) | ✅ done (`08dc701`) |
+| IMP2 | More importers — OpenAlex, PubMed, DOI lookup, ISBN (Open Library) | ✅ done (`0b4f031`) |
+| DUP2 | Merge duplicates (union fields/keywords/attachments, delete rest) | ✅ done (`8c6f938`) |
+| FED | Rich field-type editors — rating stars / boolean / tri-state | ✅ done (`5b74e04`) |
+| URL | `x-bibdesk://` automation URL scheme | ✅ done (`29f438b`) |
+| BRDG | Local automation bridge (loopback HTTP + token) + native-helper scaffolding | ✅ done (`97faf6a`) |
+| RTF | Copy Citation as RTF + RTF bibliography export | ✅ done (`f55060d`) |
+| PDFDOI | PDF→DOI import on drop (extract DOI → CrossRef → import + attach) | ✅ done (`880c804`) |
+| MULTI | Multi-select + batch ops (set field / +/- keyword / delete) | ✅ done (`dcb74b7`) |
+| JCOV | Journal cover thumbnails downloaded (309; data only — view-panel wiring pending) | ◧ data done |
 
-**Current state (resume here):** `pnpm -r test` = **1361 passing** (+2 FTS tests skipped on the
+**Current state (resume here):** `pnpm -r test` = **1383 passing** (+2 FTS tests skipped on the
 Node test ABI; flip with `app` script `rebuild:node`/`rebuild:electron`), `pnpm -r build` clean.
+Beyond the original roadmap, a **BibDesk-parity batch** has shipped: more importers (OpenAlex/
+PubMed/DOI/ISBN), merge duplicates, rich field editors (rating/boolean/tri-state), RTF copy +
+export, PDF→DOI import on drop, multi-select + batch operations, and an automation **bridge**
+(`x-bibdesk://` + a loopback HTTP bridge; native helper apps designed/scaffolded). Journal cover
+thumbnails (309) are downloaded; wiring them into the view panel is the next step. Still open:
+edit-existing-smart-group-conditions, TeX preview + cite-completion, more importers (EndNote/MARC,
+Z39.50/WoS/DBLP), multiple-document windows, custom type/field editor, print.
 Per-package: tex 719 · names 88 · config 26 · model 120 · bibtex 70 · formats 94 · groups 106 ·
 shared 15 · plugins-sdk 45 · app 78 (+2 skip). **All 15 roadmap items + the full BibDesk-feature
 survey are shipped.** The headless core + a **full, working cross-platform BibDesk replacement**
