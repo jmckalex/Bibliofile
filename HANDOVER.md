@@ -233,6 +233,25 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
 - Cross-platform automation bridge + native helpers (vs BibDesk's mac-only
   AppleScript).
 
+### User-requested ideas (post-parity, not in classic BibDesk)
+
+- **Folders — a new container concept, distinct from groups.** Today "groups"
+  are effectively flat (static manual-membership, smart query, plus parsed-only
+  kinds). The user wants **folders**: a separate, **nestable** organizational
+  hierarchy for assembling curated reading lists. Keep the two concepts distinct —
+  *groups* = query/membership collections (current behaviour); *folders* =
+  hierarchical containers an entry can be placed into.
+  - **Motivating use case:** build a course's readings as a folder with sub-folders
+    like "Required" / "Recommended", then **export every attached PDF to a
+    destination directory that mirrors the folder tree** (one sub-directory per
+    sub-folder).
+  - **Implies:** a folders data model (decide persistence — in/alongside the `.bib`,
+    like BibDesk's static-group encoding, or a sidecar; the `.bib` stays the source
+    of truth), nesting + drag-into-folder in the sidebar, and an "Export attachments
+    to folder tree" command that reproduces the hierarchy on disk.
+  - Note: nested **groups** were the user's first framing, then refined to a separate
+    **folders** feature — implement folders, don't just add nesting to groups.
+
 ### Recommended next order
 
 1. ~~**Multi-column sort** — quick win.~~ ✅ done `a296d74`.
