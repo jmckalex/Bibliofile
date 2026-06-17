@@ -162,6 +162,18 @@ describe('viewer store', () => {
     expect(last.limit).toBe(-1);
   });
 
+  it('dropping entries onto a group (setMembers) does not switch the selected group', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    expect(store.getState().selectedGroupId).toBe('lib'); // library view
+
+    // Drag-drop add-to-group: the fake groupEdit returns groupId 'g#0#0', but the
+    // table must stay on the library — the dropped-on group is not selected.
+    await store.getState().groupEdit({ kind: 'setMembers', groupId: 'g1', citeKeys: ['alpha2019'], add: true });
+    expect(store.getState().selectedGroupId).toBe('lib');
+  });
+
   it('selectItem populates detail', async () => {
     const { api } = makeFakeApi();
     const store = createStore(api);

@@ -733,7 +733,10 @@ export function createStore(api: BibDeskApi) {
         set({ dirty: res.dirty });
         if (command.kind === 'delete') set({ selectedGroupId: undefined });
         await get().loadGroups();
-        if (res.groupId) set({ selectedGroupId: res.groupId });
+        // Selecting the affected group is right for create/rename/edit, but a
+        // drag-drop "add to group" (setMembers) must NOT switch the table to the
+        // target group — keep whatever view is currently selected.
+        if (res.groupId && command.kind !== 'setMembers') set({ selectedGroupId: res.groupId });
         await get().loadPublications();
         return res.groupId;
       } catch (err) {
