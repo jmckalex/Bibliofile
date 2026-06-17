@@ -222,8 +222,12 @@ function createWindow(): BrowserWindow {
         const click = process.env.BIBDESK_SMOKE_CLICK
           ? `setTimeout(()=>document.querySelector(${JSON.stringify(process.env.BIBDESK_SMOKE_CLICK)})?.click(),700);`
           : '';
+        // optionally double-click a selector (exercises inline-rename editors)
+        const dblclick = process.env.BIBDESK_SMOKE_DBLCLICK
+          ? `setTimeout(()=>document.querySelector(${JSON.stringify(process.env.BIBDESK_SMOKE_DBLCLICK)})?.dispatchEvent(new MouseEvent('dblclick',{bubbles:true})),700);`
+          : '';
         void win.webContents
-          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf}${paste}${multi}${click} true`)
+          .executeJavaScript(`document.querySelector('.bd-tr')?.click();${dark}${pdf}${paste}${multi}${click}${dblclick} true`)
           .catch(() => undefined)
           .finally(() => setTimeout(capture, process.env.BIBDESK_OPEN_PDF ? 4200 : 1800));
       }, 1800);
@@ -1321,6 +1325,7 @@ function registerIpc(): void {
     [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
     [IpcChannels.groupEdit]: (req) => store.groupEdit(req),
     [IpcChannels.groupConditions]: (req) => store.groupConditions(req),
+    [IpcChannels.renameAuthor]: (req) => store.renameAuthor(req.documentId, req.oldName, req.newName),
     [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
     [IpcChannels.autoFile]: (req) => {
       const res = store.autoFile(req.documentId, req.itemId);
@@ -1462,6 +1467,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.groupConditions, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.groupConditions](req),
+  );
+  ipcMain.handle(IpcChannels.renameAuthor, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.renameAuthor](req),
   );
   ipcMain.handle(IpcChannels.fieldSuggestions, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.fieldSuggestions](req),

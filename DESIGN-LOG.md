@@ -214,6 +214,20 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   BibDesk's broken-link finding; complements AutoFile (bulk re-file when originals
   still exist). *Revisit:* `findBrokenLinks`/`relocateAttachment`, `BrokenLinks.tsx`.
 
+- **Rename / merge authors.** Double-clicking an author in the sidebar renames
+  that person across every entry's `Author` and `Editor` field
+  (`document-service.renameAuthor`, one undo step) — and thereby **merges** two
+  name forms (rename `Smith, J.` → `Smith, John` and the two author categories
+  collapse). *Design choices:* (1) match by `@bibdesk/names` **canonical
+  normalized name**, not fuzzy first-initial equivalence — predictable, never
+  silently fuses two people who share a surname (the user picks the exact target
+  spelling); (2) operate on the raw field via `splitNameList` and replace only
+  the matched token, re-joining with ` and `, so every other name is byte-stable;
+  (3) reuse the existing inline-rename affordance from group rows (author rows
+  become `RENAMABLE`; `commitRename` routes author kind → `renameAuthor`).
+  *Revisit:* `document-service.renameAuthor`, `GroupsSidebar` commitRename.
+  Added a reusable `BIBDESK_SMOKE_DBLCLICK` dev hook to verify inline-rename UIs.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

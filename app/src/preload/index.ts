@@ -70,6 +70,8 @@ import {
   type GroupEditResult,
   type GroupConditionsRequest,
   type GroupConditionsResponse,
+  type RenameAuthorRequest,
+  type RenameAuthorResult,
   type FieldSuggestionsRequest,
   type FieldSuggestionsResponse,
   type AutoFileRequest,
@@ -183,6 +185,9 @@ const api: BibDeskApi = {
   },
   groupConditions(request: GroupConditionsRequest): Promise<GroupConditionsResponse> {
     return ipcRenderer.invoke(IpcChannels.groupConditions, request);
+  },
+  renameAuthor(request: RenameAuthorRequest): Promise<RenameAuthorResult> {
+    return ipcRenderer.invoke(IpcChannels.renameAuthor, request);
   },
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse> {
     return ipcRenderer.invoke(IpcChannels.fieldSuggestions, request);

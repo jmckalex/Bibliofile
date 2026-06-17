@@ -405,6 +405,47 @@ describe('document-service: BD test.bib', () => {
     expect(store.findBrokenLinks(documentId)).toHaveLength(0);
   });
 
+  it('renameAuthor rewrites the matched name in Author/Editor across entries (and merges forms)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      [
+        '@article{a, Author = {Smith, J. and Jones, Mary}}',
+        '@book{b, Author = {John Smith}, Editor = {Smith, J.}}',
+        '@misc{c, Author = {Adams, Ann}}',
+      ].join('\n'),
+      '/tmp/ra.bib',
+    );
+    // Matching is by canonical normalized name: "Smith, J." matches a's author and b's
+    // editor; b's author "John Smith" (a distinct first-name form) is left untouched.
+    const res = store.renameAuthor(documentId, 'Smith, J.', 'Smith, John');
+    expect(res.changed).toBe(2); // entry a (author) + entry b (editor); c untouched
+    expect(res.dirty).toBe(true);
+
+    const idOf = (key: string): string =>
+      store.listPublications({ documentId, offset: 0, limit: -1 }).rows.find((r) => r.citeKey === key)!.id;
+    const field = (key: string, f: string): string | undefined =>
+      store.getItemDetail({ documentId, itemId: idOf(key) }).fields.find((x) => x.name.toLowerCase() === f)
+        ?.rawValue;
+
+    expect(field('a', 'author')).toBe('Smith, John and Jones, Mary'); // only Smith changed; Jones preserved
+    expect(field('b', 'author')).toBe('John Smith'); // distinct first-name form not matched
+    expect(field('b', 'editor')).toBe('Smith, John'); // the "Smith, J." editor token was rewritten
+    expect(field('c', 'author')).toBe('Adams, Ann'); // unrelated author untouched
+
+    // "John Smith" and the new "Smith, John" share a canonical name → one Authors-group entry.
+    const authors = store
+      .listGroups({ documentId })
+      .groups.filter((g) => g.kind === 'author')
+      .map((g) => g.name);
+    expect(authors.filter((n) => /smith/i.test(n))).toHaveLength(1);
+  });
+
+  it('renameAuthor with an unknown name changes nothing', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Author = {Smith, John}}', '/tmp/ra2.bib');
+    expect(store.renameAuthor(documentId, 'Nobody, X.', 'Someone, Y.').changed).toBe(0);
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');

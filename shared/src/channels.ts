@@ -86,6 +86,8 @@ export const IpcChannels = {
   groupEdit: 'bibdesk:groupEdit',
   /** Read back a smart group's name/conjunction/conditions (for the editor). */
   groupConditions: 'bibdesk:groupConditions',
+  /** Rename (and thereby merge) an author/editor across every entry. */
+  renameAuthor: 'bibdesk:renameAuthor',
   /** Distinct existing values for a field (editor autocomplete). */
   fieldSuggestions: 'bibdesk:fieldSuggestions',
   /** AutoFile an item's attachments into the Papers folder. */

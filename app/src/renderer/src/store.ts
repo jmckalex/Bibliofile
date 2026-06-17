@@ -198,6 +198,8 @@ export interface ViewerState {
   groupEdit: (command: GroupCommand) => Promise<string | undefined>;
   /** Read a smart group's name/conjunction/conditions (to pre-fill the editor). */
   groupConditions: (groupId: string) => Promise<GroupConditionsResponse | undefined>;
+  /** Rename (and merge) an author across all entries; reloads the table + sidebar. */
+  renameAuthor: (oldName: string, newName: string) => Promise<void>;
   /** Print the current selection (if >1) or the whole current view as a bibliography. */
   print: () => Promise<void>;
   /** Send one message to the Claude assistant; reloads the table if it mutated. */
@@ -659,6 +661,25 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         set({ error: errorMessage(err) });
         return undefined;
+      }
+    },
+
+    renameAuthor: async (oldName, newName) => {
+      const { documentId } = get();
+      if (!documentId) return;
+      const trimmed = newName.trim();
+      if (!trimmed || trimmed === oldName) return;
+      try {
+        const res = await api.renameAuthor({ documentId, oldName, newName: trimmed });
+        if (res.changed > 0) {
+          set({ dirty: res.dirty });
+          await get().loadGroups();
+          await get().loadPublications();
+          const sel = get().selectedItemId;
+          if (sel) await get().loadDetail(sel);
+        }
+      } catch (err) {
+        set({ error: errorMessage(err) });
       }
     },
 

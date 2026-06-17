@@ -52,6 +52,8 @@ import type {
   GroupEditResult,
   GroupConditionsRequest,
   GroupConditionsResponse,
+  RenameAuthorRequest,
+  RenameAuthorResult,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
   AutoFileRequest,
@@ -123,6 +125,7 @@ export interface IpcContract {
   [IpcChannels.relocateAttachment]: IpcEntry<RelocateAttachmentRequest, EditResult>;
   [IpcChannels.groupEdit]: IpcEntry<GroupEditRequest, GroupEditResult>;
   [IpcChannels.groupConditions]: IpcEntry<GroupConditionsRequest, GroupConditionsResponse>;
+  [IpcChannels.renameAuthor]: IpcEntry<RenameAuthorRequest, RenameAuthorResult>;
   [IpcChannels.fieldSuggestions]: IpcEntry<FieldSuggestionsRequest, FieldSuggestionsResponse>;
   [IpcChannels.autoFile]: IpcEntry<AutoFileRequest, AutoFileResult>;
   [IpcChannels.chooseFolder]: IpcEntry<Record<string, never>, ChooseFolderResponse>;

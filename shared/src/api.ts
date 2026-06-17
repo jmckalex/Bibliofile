@@ -53,6 +53,8 @@ import type {
   GroupEditResult,
   GroupConditionsRequest,
   GroupConditionsResponse,
+  RenameAuthorRequest,
+  RenameAuthorResult,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
   AutoFileRequest,
@@ -185,6 +187,9 @@ export interface BibDeskApi {
 
   /** Read back a smart group's name/conjunction/conditions (to edit it). */
   groupConditions(request: GroupConditionsRequest): Promise<GroupConditionsResponse>;
+
+  /** Rename (and thereby merge) an author/editor across every entry. */
+  renameAuthor(request: RenameAuthorRequest): Promise<RenameAuthorResult>;
 
   /** Distinct existing values for a field (autocomplete in the field editors). */
   fieldSuggestions(request: FieldSuggestionsRequest): Promise<FieldSuggestionsResponse>;

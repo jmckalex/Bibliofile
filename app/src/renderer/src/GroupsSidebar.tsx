@@ -23,6 +23,8 @@ const KIND_ICON: Record<GroupKind, string> = {
 };
 
 const EDITABLE = (k: GroupKind): boolean => k === 'static' || k === 'smart';
+/** Renamable via inline edit: static/smart groups, plus author groups (rename = library-wide). */
+const RENAMABLE = (k: GroupKind): boolean => EDITABLE(k) || k === 'author';
 
 interface TreeNode {
   node: GroupNode;
@@ -69,6 +71,7 @@ function GroupRow({
 }) {
   const [dropping, setDropping] = useState(false);
   const editable = EDITABLE(group.kind);
+  const renamable = RENAMABLE(group.kind);
 
   return (
     <div
@@ -80,7 +83,7 @@ function GroupRow({
       }
       aria-current={selected ? 'true' : undefined}
       onClick={() => !editing && onSelect(group.id)}
-      onDoubleClick={() => editable && onStartRename(group.id)}
+      onDoubleClick={() => renamable && onStartRename(group.id)}
       title={group.name}
       {...(group.kind === 'static'
         ? {
@@ -155,6 +158,7 @@ export function GroupsSidebar() {
   const selectedGroupId = useStore((s) => s.selectedGroupId);
   const selectGroup = useStore((s) => s.selectGroup);
   const groupEdit = useStore((s) => s.groupEdit);
+  const renameAuthor = useStore((s) => s.renameAuthor);
   const hasDoc = useStore((s) => s.documentId !== undefined);
   const [editingId, setEditingId] = useState<string | undefined>();
   const [smartOpen, setSmartOpen] = useState(false);
@@ -170,8 +174,11 @@ export function GroupsSidebar() {
   const commitRename = (id: string, name: string): void => {
     setEditingId(undefined);
     const trimmed = name.trim();
-    const current = groups.find((g) => g.id === id)?.name;
-    if (trimmed && trimmed !== current) void groupEdit({ kind: 'rename', groupId: id, name: trimmed });
+    const group = groups.find((g) => g.id === id);
+    if (!group || !trimmed || trimmed === group.name) return;
+    // Author rows rename the person across every entry; static/smart rename the group.
+    if (group.kind === 'author') void renameAuthor(group.name, trimmed);
+    else void groupEdit({ kind: 'rename', groupId: id, name: trimmed });
   };
 
   return (

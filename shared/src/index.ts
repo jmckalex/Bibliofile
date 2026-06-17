@@ -133,6 +133,8 @@ export {
   type GroupEditResult,
   type GroupConditionsRequest,
   type GroupConditionsResponse,
+  type RenameAuthorRequest,
+  type RenameAuthorResult,
   type FieldSuggestionsRequest,
   type FieldSuggestionsResponse,
   type AutoFileRequest,

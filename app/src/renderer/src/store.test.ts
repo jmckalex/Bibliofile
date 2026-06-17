@@ -109,6 +109,7 @@ function makeFakeApi() {
     relocateAttachment: async () => ({ dirty: true }),
     groupEdit: async () => ({ dirty: true, groupId: 'g#0#0' }),
     groupConditions: async () => ({ name: 'Smart', conjunction: 0, conditions: [] }),
+    renameAuthor: async () => ({ changed: 0, dirty: false }),
     fieldSuggestions: async () => ({ values: [] }),
     pathForFile: () => '',
     onMenuCommand: (): Unsubscribe => () => {},

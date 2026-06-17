@@ -669,6 +669,22 @@ export interface GroupConditionsResponse {
   readonly conditions: readonly SmartCondition[];
 }
 
+/**
+ * Rename an author/editor across every entry (also merges two name forms when
+ * `newName` matches another existing author). Matching is by canonical name.
+ */
+export interface RenameAuthorRequest {
+  readonly documentId: DocumentId;
+  readonly oldName: string;
+  readonly newName: string;
+}
+
+/** Outcome of an author rename: entries changed + new dirty state. */
+export interface RenameAuthorResult {
+  readonly changed: number;
+  readonly dirty: boolean;
+}
+
 // --- Claude assistant -------------------------------------------------------
 
 /** Whether the user's Anthropic API key is stored (via Electron safeStorage). */

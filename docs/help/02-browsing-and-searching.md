@@ -390,6 +390,26 @@ toward the Authors-section total).
 > category appears (or its count rises) the next time the sidebar refreshes after
 > an edit.
 
+#### Renaming an author (and merging duplicate name forms)
+
+**Double-click an author** in the sidebar to rename them. The new name replaces
+that author **everywhere they appear** — in every entry's `Author` *and* `Editor`
+field — in a single, undoable step. Only the matched name is touched; the other
+names in each list are left exactly as they were.
+
+This is also how you **merge** two spellings of the same person. If your library
+has grown both a `Smith, J.` author and a `Smith, John` author, double-click
+`Smith, J.` and type `Smith, John`: every `Smith, J.` becomes `Smith, John`, the
+two author categories collapse into one, and citations that format the author now
+agree. Matching is by BibTeX's canonical name form, so picking either spelling of
+a name as the starting point works — you choose the spelling you want to keep by
+what you type.
+
+> **Note:** Renaming is deliberately **exact** about *which* author it matches
+> (the canonical `Last, First` form), so it never silently fuses two genuinely
+> different people who merely share a surname. To merge an abbreviated form into a
+> full one, rename the abbreviated entry to the exact full name you want.
+
 ### 2.4.6 The two-level tree
 
 The sidebar is a **two-level tree**. Top-level rows are the Library, your saved

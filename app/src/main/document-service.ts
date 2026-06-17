@@ -55,7 +55,7 @@ import {
   itemsEquivalent,
 } from '@bibdesk/model';
 import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT, parseFormat, LOCAL_FILE_FIELD } from '@bibdesk/formats';
-import type { Author } from '@bibdesk/names';
+import { makeAuthor, splitNameList, OTHERS, type Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
 import { exportRis, exportCsv, exportHtml } from './export.js';
@@ -1312,6 +1312,49 @@ export class DocumentStore {
       conjunction: toInt(r.dict.conjunction) === 1 ? 1 : 0,
       conditions,
     };
+  }
+
+  /**
+   * Rename an author/editor everywhere it appears, across all entries — also the
+   * way to **merge** two name forms (rename "J. Smith" to "John Smith" and the two
+   * authors collapse into one). Matching is by canonical normalized name, so
+   * `oldName` need only be one spelling of the person; only the matched token in
+   * each `Author`/`Editor` list is replaced (the others are preserved verbatim).
+   * Returns how many entries changed. One undo step.
+   */
+  renameAuthor(documentId: string, oldName: string, newName: string): { changed: number; dirty: boolean } {
+    this.snapshot(documentId);
+    const doc = this.requireDoc(documentId);
+    const target = makeAuthor(oldName).normalizedName;
+    const replacement = newName.trim();
+    if (!target || !replacement) return { changed: 0, dirty: doc.dirty };
+    let changed = 0;
+    for (const item of doc.library.items) {
+      let itemTouched = false;
+      for (const field of [FieldNames.Author, FieldNames.Editor]) {
+        const raw = item.stringValueOfField(field, false);
+        if (!raw) continue;
+        let touched = false;
+        const out = splitNameList(raw).map((n) => {
+          if (n === OTHERS) return 'others';
+          if (makeAuthor(n).normalizedName === target) {
+            touched = true;
+            return replacement;
+          }
+          return n;
+        });
+        if (touched) {
+          item.setField(field, out.join(' and '));
+          itemTouched = true;
+        }
+      }
+      if (itemTouched) {
+        this.reindex(doc, item);
+        changed++;
+      }
+    }
+    if (changed) doc.dirty = true;
+    return { changed, dirty: doc.dirty };
   }
 
   /** Full detail for one item. Throws if the document or item id is unknown. */
