@@ -303,7 +303,10 @@ export function PublicationsTable() {
     overscan: 12,
   });
 
-  const onHeaderClick = useCallback((key: string) => void setSort(key), [setSort]);
+  const onHeaderClick = useCallback(
+    (key: string, additive: boolean) => void setSort(key, additive),
+    [setSort],
+  );
 
   const headerGroups = table.getHeaderGroups();
   const virtualItems = virtualizer.getVirtualItems();
@@ -315,7 +318,9 @@ export function PublicationsTable() {
         <div className="bd-table__head-inner" style={{ width: layout.total }}>
           {headerGroups[0]?.headers.map((header) => {
             const id = header.column.id;
-            const active = sort.key === id;
+            const spec = sort.find((s) => s.key === id);
+            // Show a priority number only when more than one column is sorted.
+            const rank = spec && sort.length > 1 ? sort.indexOf(spec) + 1 : 0;
             const width = layout.widths[id] ?? 120;
             return (
               <div
@@ -325,7 +330,7 @@ export function PublicationsTable() {
                 }
                 role="columnheader"
                 style={{ flex: `0 0 ${width}px`, width }}
-                aria-sort={active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                aria-sort={spec ? (spec.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
                 onDragOver={(e) => {
                   if (!e.dataTransfer.types.includes(COL_DND)) return;
                   e.preventDefault();
@@ -344,8 +349,8 @@ export function PublicationsTable() {
                 <div
                   className="bd-th__label"
                   draggable
-                  title="Click to sort · drag to reorder"
-                  onClick={() => onHeaderClick(id)}
+                  title="Click to sort · Shift-click to add a secondary sort · drag to reorder"
+                  onClick={(e) => onHeaderClick(id, e.shiftKey)}
                   onDragStart={(e) => {
                     e.dataTransfer.setData(COL_DND, id);
                     e.dataTransfer.effectAllowed = 'move';
@@ -357,9 +362,10 @@ export function PublicationsTable() {
                   }}
                 >
                   {flexRender(header.column.columnDef.header, header.getContext())}
-                  {active && (
+                  {spec && (
                     <span className="bd-th__sort" aria-hidden="true">
-                      {sort.direction === 'asc' ? '▲' : '▼'}
+                      {spec.direction === 'asc' ? '▲' : '▼'}
+                      {rank > 0 && <span className="bd-th__sort-rank">{rank}</span>}
                     </span>
                   )}
                 </div>

@@ -232,7 +232,8 @@ export interface FormatCitationResult {
 export type SortDirection = 'asc' | 'desc';
 
 /**
- * Sort spec for a publications listing. `key` is a {@link PublicationRow} column
+ * One sort key + direction. A listing's sort is an ordered list of these
+ * (primary first, then tie-breakers). `key` is a {@link PublicationRow} column
  * key (or any BibTeX field name the main process knows how to sort by); main
  * does the actual sorting using the core comparators.
  */
@@ -248,8 +249,11 @@ export interface ListPublicationsRequest {
   readonly offset: number;
   /** Maximum number of rows to return. */
   readonly limit: number;
-  /** Optional sort; main applies a default (cite key asc) when omitted. */
-  readonly sort?: SortSpec;
+  /**
+   * Optional sort keys in priority order (primary first, then tie-breakers).
+   * Main applies a default (cite key asc) when omitted or empty.
+   */
+  readonly sort?: readonly SortSpec[];
   /** When present, restrict rows to members of this group (see {@link GroupNode}). */
   readonly groupId?: string;
   /** Extra (non-builtin) field names to include in each row's `extra` map. */

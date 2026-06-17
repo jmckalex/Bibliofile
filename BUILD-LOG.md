@@ -596,6 +596,9 @@ user-facing Help (`docs/help/`) was updated alongside:
   (`findBrokenLinks`/`relocateAttachment`, `BrokenLinks.tsx`).
 - **Rename / merge authors** — double-click an author in the sidebar to rename across all entries
   (canonical-name match; merges duplicate forms) (`renameAuthor`).
+- **Multi-column (secondary) sort** — `ListPublicationsRequest.sort` is now an ordered
+  `SortSpec[]`; Shift-click a header to add/cycle (asc→desc→remove) secondary sort keys, with a
+  priority badge on each sorted column (`setSort(key, additive)`).
 
 `pnpm -r test` = **1404 passing** (+2 app FTS tests skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.

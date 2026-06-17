@@ -78,6 +78,7 @@ import type {
   CloseDocumentRequest,
   ListPublicationsRequest,
   ListPublicationsResponse,
+  SortSpec,
   ListGroupsRequest,
   ListGroupsResponse,
   GroupNode,
@@ -400,6 +401,9 @@ export function toPublicationRow(item: BibItem, extraFields?: readonly string[])
 function compareStrings(a: string, b: string): number {
   return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
 }
+
+/** Default sort applied to a listing when none is requested: cite key ascending. */
+const DEFAULT_SORT_SPECS: readonly SortSpec[] = [{ key: 'citeKey', direction: 'asc' }];
 
 /**
  * Sort key extractor for a {@link PublicationRow} by sort key name. Recognises
@@ -1135,11 +1139,16 @@ export class DocumentStore {
     // 2) project to rows (including any configured extra-field columns)
     const rows = items.map((it) => toPublicationRow(it, req.extraFields));
 
-    // 3) sort (default cite key asc)
-    const sortKey = req.sort?.key ?? 'citeKey';
-    const dir = req.sort?.direction ?? 'asc';
-    const factor = dir === 'desc' ? -1 : 1;
-    rows.sort((a, b) => factor * compareStrings(rowSortValue(a, sortKey), rowSortValue(b, sortKey)));
+    // 3) sort by the requested keys in priority order (default: cite key asc).
+    //    Stable sort preserves library order for rows equal on every key.
+    const specs = req.sort && req.sort.length > 0 ? req.sort : DEFAULT_SORT_SPECS;
+    rows.sort((a, b) => {
+      for (const spec of specs) {
+        const cmp = compareStrings(rowSortValue(a, spec.key), rowSortValue(b, spec.key));
+        if (cmp !== 0) return spec.direction === 'desc' ? -cmp : cmp;
+      }
+      return 0;
+    });
 
     const total = rows.length;
 

@@ -562,6 +562,14 @@ body {
   color: var(--bd-accent);
 }
 
+/* Sort-priority badge shown on each column when more than one is sorted. */
+.bd-th__sort-rank {
+  font-size: 9px;
+  font-weight: 600;
+  vertical-align: super;
+  margin-left: 1px;
+}
+
 .bd-table__body {
   flex: 1;
   overflow: auto;

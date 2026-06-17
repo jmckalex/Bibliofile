@@ -364,6 +364,23 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   to pick one. *Revisit:* `PreviewCard` (chip click + menu), `Attachments`
   (openExternal, no onPreview), `buildPreviewHtml` chip, `.bd-jcover`/`.bd-filemenu`.
 
+- **Multi-column (secondary) sort.** The listing sort went from a single
+  `SortSpec` to an ordered `readonly SortSpec[]` (`ListPublicationsRequest.sort`).
+  `listPublications` now walks the keys in priority order and returns the first
+  non-zero comparison; a stable sort preserves library order for rows equal on
+  every key (no implicit cite-key tie-breaker is appended — the user builds the
+  key list). UX (`PublicationsTable`): a plain header click sorts by that column
+  alone, flipping direction only when it is already the *sole* key; **Shift-click**
+  cycles a column within the multi-key sort (absent → asc → desc → removed, and
+  never empty — removing the last key falls back to cite-key asc). Each sorted
+  column shows its ▲/▼ arrow plus a small priority badge (`.bd-th__sort-rank`,
+  "1/2/3…") that appears only when more than one column is active. Sort stays
+  per-session (reset to the default on document open) — not persisted, matching
+  prior behaviour. *Revisit:* `setSort(key, additive)` in `store.ts`, the
+  comparator + `DEFAULT_SORT_SPECS` in `document-service.ts`, the header in
+  `PublicationsTable.tsx`. Tests: store additive asc→desc→remove cycle + a
+  secondary-key tie-break; service multi-key priority order.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

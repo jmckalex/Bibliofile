@@ -751,10 +751,32 @@ describe('document-service: BD test.bib', () => {
       documentId,
       offset: 0,
       limit: 2,
-      sort: { key: 'citeKey', direction: 'asc' },
+      sort: [{ key: 'citeKey', direction: 'asc' }],
     });
     expect(page.total).toBe(3);
     expect(page.rows).toHaveLength(2);
+  });
+
+  it('sorts by multiple keys in priority order (secondary breaks ties)', () => {
+    const store = new DocumentStore();
+    const text = [
+      '@article{a, title={A}, year={2020}}',
+      '@book{b, title={B}, year={2019}}',
+      '@article{c, title={C}, year={2018}}',
+    ].join('\n\n');
+    const { documentId } = store.openText(text, '/tmp/multi.bib');
+
+    // Primary: type asc (article < book). Secondary: year desc.
+    const { rows } = store.listPublications({
+      documentId,
+      offset: 0,
+      limit: -1,
+      sort: [
+        { key: 'type', direction: 'asc' },
+        { key: 'year', direction: 'desc' },
+      ],
+    });
+    expect(rows.map((r) => r.citeKey)).toEqual(['a', 'c', 'b']);
   });
 
   it('builds Author category groups and filters by them', () => {

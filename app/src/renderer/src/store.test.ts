@@ -66,13 +66,16 @@ function makeFakeApi() {
       // other groups filter to their members.
       const base =
         req.groupId && req.groupId !== 'lib' ? (GROUP_ROWS[req.groupId] ?? []) : ALL_ROWS;
-      const dir = req.sort?.direction ?? 'asc';
-      const key = (req.sort?.key ?? 'citeKey') as keyof PublicationRow;
-      const sorted = [...base].sort((a, b) =>
-        dir === 'asc'
-          ? String(a[key]).localeCompare(String(b[key]))
-          : String(b[key]).localeCompare(String(a[key])),
-      );
+      const specs =
+        req.sort && req.sort.length > 0 ? req.sort : [{ key: 'citeKey', direction: 'asc' as const }];
+      const sorted = [...base].sort((a, b) => {
+        for (const s of specs) {
+          const k = s.key as keyof PublicationRow;
+          const cmp = String(a[k]).localeCompare(String(b[k]));
+          if (cmp !== 0) return s.direction === 'asc' ? cmp : -cmp;
+        }
+        return 0;
+      });
       return { rows: sorted, total: sorted.length };
     },
     getItemDetail: async () => DETAIL,
@@ -176,10 +179,10 @@ describe('viewer store', () => {
     await store.getState().onDocumentOpened(DOC);
 
     // default is citeKey asc
-    expect(store.getState().sort).toEqual({ key: 'citeKey', direction: 'asc' });
+    expect(store.getState().sort).toEqual([{ key: 'citeKey', direction: 'asc' }]);
 
     await store.getState().setSort('citeKey');
-    expect(store.getState().sort).toEqual({ key: 'citeKey', direction: 'desc' });
+    expect(store.getState().sort).toEqual([{ key: 'citeKey', direction: 'desc' }]);
     expect(store.getState().rows.map((r) => r.citeKey)).toEqual([
       'gamma2021',
       'beta2020',
@@ -188,10 +191,49 @@ describe('viewer store', () => {
 
     // switching to a new key starts at asc
     await store.getState().setSort('year');
-    expect(store.getState().sort).toEqual({ key: 'year', direction: 'asc' });
+    expect(store.getState().sort).toEqual([{ key: 'year', direction: 'asc' }]);
 
     const last = calls.listPublications.at(-1)!;
-    expect(last.sort).toEqual({ key: 'year', direction: 'asc' });
+    expect(last.sort).toEqual([{ key: 'year', direction: 'asc' }]);
+  });
+
+  it('setSort with additive builds a multi-key sort and cycles asc→desc→remove', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    // Primary: type asc. Then shift-click year to add it as a secondary key.
+    await store.getState().setSort('type');
+    await store.getState().setSort('year', true);
+    expect(store.getState().sort).toEqual([
+      { key: 'type', direction: 'asc' },
+      { key: 'year', direction: 'asc' },
+    ]);
+    // Secondary key breaks ties: both 'article' rows ordered by year asc, then 'book'.
+    expect(store.getState().rows.map((r) => r.citeKey)).toEqual([
+      'beta2020',
+      'gamma2021',
+      'alpha2019',
+    ]);
+
+    // Shift-click again flips the secondary key to desc.
+    await store.getState().setSort('year', true);
+    expect(store.getState().sort).toEqual([
+      { key: 'type', direction: 'asc' },
+      { key: 'year', direction: 'desc' },
+    ]);
+    expect(store.getState().rows.map((r) => r.citeKey)).toEqual([
+      'gamma2021',
+      'beta2020',
+      'alpha2019',
+    ]);
+
+    // A third shift-click removes it, leaving just the primary key.
+    await store.getState().setSort('year', true);
+    expect(store.getState().sort).toEqual([{ key: 'type', direction: 'asc' }]);
+
+    const last = calls.listPublications.at(-1)!;
+    expect(last.sort).toEqual([{ key: 'type', direction: 'asc' }]);
   });
 
   it('edit marks dirty + refreshes; save clears dirty', async () => {

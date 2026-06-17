@@ -28,7 +28,7 @@ import type {
   OpenedDocument,
   PublicationRow,
   Settings,
-  SortDirection,
+  SortSpec,
 } from '@bibdesk/shared';
 import { DEFAULT_SETTINGS, BUILTIN_COLUMNS } from '@bibdesk/shared';
 
@@ -46,11 +46,6 @@ export function applyTheme(theme: Settings['theme']): void {
 function findDefaultGroupId(groups: readonly GroupNode[]): string | undefined {
   const library = groups.find((g) => g.kind === 'library');
   return library?.id ?? groups[0]?.id;
-}
-
-export interface SortState {
-  readonly key: string;
-  readonly direction: SortDirection;
 }
 
 /**
@@ -110,8 +105,8 @@ export interface ViewerState {
   /** Multi-selection (always includes selectedItemId); drives batch operations. */
   selectedIds: string[];
 
-  /** Current table sort (default: cite key asc). */
-  sort: SortState;
+  /** Current table sort keys in priority order (default: cite key asc). */
+  sort: readonly SortSpec[];
 
   /** Live search query. */
   query: string;
@@ -160,8 +155,12 @@ export interface ViewerState {
   batchEdit: (op: BatchOp) => Promise<void>;
   /** Select an entry by cite key (used by notes `[[citeKey]]` cross-references). */
   selectByCiteKey: (citeKey: string) => Promise<void>;
-  /** Toggle sort on a column key (asc⇄desc) and reload. */
-  setSort: (key: string) => Promise<void>;
+  /**
+   * Sort by a column header. Plain click sorts by that column alone (toggling
+   * direction when it is already the sole key); `additive` (shift-click) cycles
+   * the column within the multi-key sort: add ascending → descending → remove.
+   */
+  setSort: (key: string, additive?: boolean) => Promise<void>;
   /** Set the live search query; runs a full-text search (falls back to substring). */
   setQuery: (query: string) => Promise<void>;
   /** Toggle whether the filter box also searches PDF body text; re-runs the query. */
@@ -218,7 +217,7 @@ export interface ViewerState {
   agentSend: (message: string) => Promise<AgentRunResponse>;
 }
 
-const DEFAULT_SORT: SortState = { key: 'citeKey', direction: 'asc' };
+const DEFAULT_SORT: readonly SortSpec[] = [{ key: 'citeKey', direction: 'asc' }];
 
 /**
  * Build a Zustand vanilla store wired to the given api. Exported (rather than a
@@ -413,11 +412,28 @@ export function createStore(api: BibDeskApi) {
       if (row) await get().selectItem(row.id);
     },
 
-    setSort: async (key) => {
+    setSort: async (key, additive = false) => {
       const { sort } = get();
-      const direction: SortDirection =
-        sort.key === key && sort.direction === 'asc' ? 'desc' : 'asc';
-      set({ sort: { key, direction } });
+      let next: SortSpec[];
+      if (additive) {
+        // Shift-click cycles this column within the multi-key sort:
+        // absent → ascending → descending → removed.
+        const existing = sort.find((s) => s.key === key);
+        if (!existing) {
+          next = [...sort, { key, direction: 'asc' }];
+        } else if (existing.direction === 'asc') {
+          next = sort.map((s): SortSpec => (s.key === key ? { key, direction: 'desc' } : s));
+        } else {
+          next = sort.filter((s) => s.key !== key);
+        }
+        if (next.length === 0) next = [...DEFAULT_SORT];
+      } else {
+        // Plain click sorts by this column alone, flipping direction when it is
+        // already the sole sort key.
+        const sole = sort.length === 1 && sort[0]!.key === key;
+        next = [{ key, direction: sole && sort[0]!.direction === 'asc' ? 'desc' : 'asc' }];
+      }
+      set({ sort: next });
       await get().loadPublications();
     },
 
