@@ -102,6 +102,8 @@ export {
   type ExportFormat,
   type ExportTextRequest,
   type ExportTextResponse,
+  type PrintRequest,
+  type PrintResponse,
   type PasteEntriesRequest,
   type ImportFilesRequest,
   type ImportDialogRequest,

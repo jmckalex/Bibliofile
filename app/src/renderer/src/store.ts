@@ -193,6 +193,8 @@ export interface ViewerState {
   groupEdit: (command: GroupCommand) => Promise<string | undefined>;
   /** Read a smart group's name/conjunction/conditions (to pre-fill the editor). */
   groupConditions: (groupId: string) => Promise<GroupConditionsResponse | undefined>;
+  /** Print the current selection (if >1) or the whole current view as a bibliography. */
+  print: () => Promise<void>;
   /** Send one message to the Claude assistant; reloads the table if it mutated. */
   agentSend: (message: string) => Promise<AgentRunResponse>;
 }
@@ -627,6 +629,23 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         set({ error: errorMessage(err) });
         return undefined;
+      }
+    },
+
+    print: async () => {
+      const { documentId, selectedIds, rows, groups, selectedGroupId, displayName, settings } = get();
+      if (!documentId) return;
+      // The multi-selection if any, else every row in the current view (group).
+      const itemIds = selectedIds.length > 1 ? selectedIds : rows.map((r) => r.id);
+      if (!itemIds.length) return;
+      const group = groups.find((g) => g.id === selectedGroupId);
+      const docName = (displayName ?? 'Bibliography').replace(/\.bib$/i, '');
+      const title = group && group.kind !== 'library' ? `${docName} — ${group.name}` : docName;
+      try {
+        const res = await api.print({ documentId, itemIds, styleId: settings.defaultCiteStyle, title });
+        if (!res.ok && res.error) set({ error: res.error });
+      } catch (err) {
+        set({ error: errorMessage(err) });
       }
     },
 

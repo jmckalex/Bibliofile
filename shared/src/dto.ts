@@ -434,6 +434,26 @@ export interface ExportTextResponse {
   readonly error?: string;
 }
 
+/**
+ * Print a formatted bibliography. Main renders the items as a CSL-formatted
+ * HTML document and invokes the OS print dialog (which also offers Save as PDF).
+ */
+export interface PrintRequest {
+  readonly documentId: DocumentId;
+  /** Items to print, in order (e.g. the current group, or the multi-selection). */
+  readonly itemIds: readonly ItemId[];
+  /** CSL style id used to format each entry. */
+  readonly styleId: string;
+  /** Heading printed above the list (typically the document/group name). */
+  readonly title: string;
+}
+
+/** Outcome of a print request; `ok` is true even if the user cancels the dialog. */
+export interface PrintResponse {
+  readonly ok: boolean;
+  readonly error?: string;
+}
+
 // --- Online search / import -------------------------------------------------
 
 /** An online bibliographic source. */
@@ -878,4 +898,5 @@ export type MenuCommand =
   // View
   | 'toggleTheme'
   // App
-  | 'save';
+  | 'save'
+  | 'print';

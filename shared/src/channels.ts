@@ -66,6 +66,8 @@ export const IpcChannels = {
   readAttachment: 'bibdesk:readAttachment',
   /** Serialize a document (or a subset of items) to text in a given format. */
   exportText: 'bibdesk:exportText',
+  /** Print a CSL-formatted bibliography for a set of items (OS print dialog). */
+  print: 'bibdesk:print',
   /** Paste BibTeX text into a document (parse + merge as new entries). */
   pasteEntries: 'bibdesk:pasteEntries',
   /** Import dropped files (`.bib` merge; other files → entry + attachment). */

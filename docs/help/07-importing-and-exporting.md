@@ -303,6 +303,29 @@ so titles with `<`, `>`, or `&` export safely.
 > [formatted-citation block](06-preview-and-citations.md#formatted-citations) or
 > **Edit → Copy Citation**.
 
+### 7.6.4 Printing a bibliography
+
+**File → Print…** (**⌘P** / **Ctrl+P**) produces a printed, **CSL-formatted**
+bibliography — the same styled citations you see in the detail pane, one per
+entry, with a hanging indent and a heading. Choosing it opens your system's
+standard **Print** dialog, which on macOS also offers **Save as PDF** (a quick
+way to get a formatted PDF reading list without exporting a file first).
+
+Unlike **Export**, Print follows **what you are looking at**:
+
+- If you have **two or more entries selected**, only those are printed.
+- Otherwise the **current group** is printed (the whole library, a static or
+  smart group's members — whatever the table is currently showing).
+
+The heading is your library's name, and — when a group other than the whole
+library is selected — the group name too (for example *math-demo — To Read*).
+The entries are formatted with your **default citation style** (set in
+**Preferences**), so switching styles there changes how the printout reads.
+
+> **Note:** Print uses the CSL citation formatter, *not* the HTML-export
+> template — so a printout matches your chosen reference style, whereas
+> **File → Export → HTML…** always writes the same fixed, glance-able layout.
+
 ## 7.7 Quick reference
 
 | Action | How |
@@ -316,6 +339,7 @@ so titles with `<`, `>`, or `&` export safely.
 | Export RIS | **File → Export → RIS…** |
 | Export CSV | **File → Export → CSV…** |
 | Export HTML | **File → Export → HTML…** |
+| Print / Save as PDF | **File → Print…** (**⌘P** / **Ctrl+P**) — prints the selection or current group |
 | Persist imports | **Save** (**⌘S** / **Ctrl+S**) — imports are in memory until saved |
 
 ## 7.8 Troubleshooting

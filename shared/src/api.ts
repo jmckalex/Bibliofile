@@ -36,6 +36,8 @@ import type {
   ReadAttachmentResponse,
   ExportTextRequest,
   ExportTextResponse,
+  PrintRequest,
+  PrintResponse,
   PasteEntriesRequest,
   ImportFilesRequest,
   ImportDialogRequest,
@@ -150,6 +152,9 @@ export interface BibDeskApi {
 
   /** Serialize a document (or a subset of items) to text — e.g. BibTeX export/copy. */
   exportText(request: ExportTextRequest): Promise<ExportTextResponse>;
+
+  /** Print a CSL-formatted bibliography for the given items (OS print dialog). */
+  print(request: PrintRequest): Promise<PrintResponse>;
 
   /** Paste BibTeX text into the document as new entries (parse + merge). */
   pasteEntries(request: PasteEntriesRequest): Promise<ImportResult>;

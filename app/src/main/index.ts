@@ -38,6 +38,8 @@ import {
   type OpenedDocument,
   type OpenExternalRequest,
   type OpenExternalResult,
+  type PrintRequest,
+  type PrintResponse,
 } from '@bibdesk/shared';
 
 import { DocumentStore } from './document-service.js';
@@ -45,6 +47,7 @@ import { runAgentTurn } from './agent.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
 import { htmlToRtf, wrapRtf } from './rtf.js';
+import { buildPrintHtml } from './print.js';
 import { loadCoverIndex, resolveCover, coverFilePath } from './journal-covers.js';
 import { formatCitation } from './csl.js';
 import { searchOnline, extractDoi } from './online.js';
@@ -362,6 +365,46 @@ function buildLibraryRtf(documentId: string, styleId: string): string {
   const ids = store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.id);
   const paras = ids.map((id) => htmlToRtf(formatCitation(store.cslItemFor(documentId, id), styleId)));
   return wrapRtf(paras);
+}
+
+/**
+ * Print a CSL-formatted bibliography for the given items: render to a print-ready
+ * HTML document, load it into an offscreen window, and invoke the OS print
+ * dialog (which on macOS also offers Save as PDF). A user cancel counts as ok.
+ */
+async function printItems(req: PrintRequest): Promise<PrintResponse> {
+  const entries = req.itemIds.map((id) => formatCitation(store.cslItemFor(req.documentId, id), req.styleId));
+  const html = buildPrintHtml(entries, req.title);
+  // A temp file avoids data-URL length limits for large bibliographies.
+  const file = join(tmpdir(), `bibdesk-print-${randomBytes(6).toString('hex')}.html`);
+  const win = new BrowserWindow({
+    show: false,
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false },
+  });
+  try {
+    writeFileSync(file, html, 'utf8');
+    await win.loadFile(file);
+    await new Promise<void>((resolvePrint, reject) => {
+      win.webContents.print({ silent: false }, (success, failureReason) => {
+        // Chromium reports a user cancel as success=false / 'cancelled' — not an error.
+        if (!success && failureReason && failureReason !== 'cancelled') {
+          reject(new Error(failureReason));
+        } else {
+          resolvePrint();
+        }
+      });
+    });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  } finally {
+    if (!win.isDestroyed()) win.close();
+    try {
+      rmSync(file, { force: true });
+    } catch {
+      /* best-effort temp cleanup */
+    }
+  }
 }
 
 /**
@@ -747,6 +790,13 @@ function buildMenu(): void {
           { label: 'HTML…', enabled: docEnabled, click: () => void exportDocumentAs('html') },
           { label: 'RTF (formatted bibliography)…', enabled: docEnabled, click: () => void exportDocumentAs('rtf') },
         ],
+      },
+      { type: 'separator' },
+      {
+        label: 'Print…',
+        accelerator: 'CmdOrCtrl+P',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('print'),
       },
       { type: 'separator' },
       ...(isMac
@@ -1227,6 +1277,7 @@ function registerIpc(): void {
         return { text: '', error: e instanceof Error ? e.message : String(e) };
       }
     },
+    [IpcChannels.print]: (req) => printItems(req),
     [IpcChannels.pasteEntries]: (req) => store.importBibtexText(req.documentId, req.text),
     [IpcChannels.importFiles]: (req) => importFilesSmart(req.documentId, req.paths),
     [IpcChannels.importDialog]: async (req) => {
@@ -1361,6 +1412,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.exportText, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.exportText](req),
+  );
+  ipcMain.handle(IpcChannels.print, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.print](req),
   );
   ipcMain.handle(IpcChannels.pasteEntries, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.pasteEntries](req),

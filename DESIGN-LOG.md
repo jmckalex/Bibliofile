@@ -158,7 +158,35 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   finding:* big subscription publishers (Elsevier/Wiley/ACS/OUP/APA) serve JS
   bot-challenges or logo favicons, not cover art; the manifest tags each by `kind` so
   the view panel can prefer real `og:image` covers and fall back to a generated
-  typographic cover. **View-panel wiring is still pending** (the payoff step).
+  typographic cover.
+- **Journal thumbnails (view panel).** `journal-covers.ts` resolves an entry to a
+  bundled cover by ISSN-L → any alternate ISSN → journal name (pure `resolveCover`,
+  unit-tested); the `journalCover` IPC handler reads the bytes (basename-guarded) and
+  the detail card shows the image floated by the title. *Design choice:* every entry
+  gets art — when no real cover exists, the renderer draws a deterministic hue +
+  abbreviation placeholder (`GeneratedCover`) rather than leaving a gap. *Revisit:*
+  `main/journal-covers.ts`, `DetailPane` JournalCover/GeneratedCover.
+- **Edit existing smart groups.** Smart groups were write-once (create only). Added a
+  `GroupCommand` `editSmart` + a read-back `groupConditions` so the smart-group dialog
+  re-opens pre-filled (name/conjunction/conditions) and rewrites the stored dict in
+  place (serializer round-trips it). A ✎ button on smart-group sidebar rows opens it.
+  *Design choice:* an unknown stored condition field (e.g. `Date-Added`, not in the
+  preset list) is preserved by prepending it to the field `<select>` so editing never
+  silently drops it. *Revisit:* `document-service.groupConditions`/`groupEdit`,
+  `SmartGroupDialog` (editGroupId mode).
+
+- **Print.** `File → Print…` (⌘P) renders a **CSL-formatted** bibliography (the
+  detail-pane citation style, hanging-indented) to a print-ready HTML doc
+  (`print.ts buildPrintHtml`, pure + unit-tested), loads it into an offscreen
+  window, and invokes the OS print dialog (macOS also gives Save-as-PDF for free).
+  *Design choices:* (1) **renderer-driven** so it respects the current view — the
+  multi-selection if >1 is selected, else the current group's rows — whereas
+  Export always writes the whole library; (2) reuses the existing CSL formatter
+  (same path as RTF export) rather than the HTML-export Handlebars template, so a
+  printout matches the user's chosen reference style; (3) a temp file (not a
+  data: URL) avoids URL-length limits for large libraries; a user-cancelled dialog
+  counts as success. *Revisit:* `main/print.ts`, `printItems` in `index.ts`,
+  `store.print`.
 
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
