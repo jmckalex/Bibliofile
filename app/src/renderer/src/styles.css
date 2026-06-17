@@ -297,12 +297,16 @@ body {
 }
 
 .bd-table__head {
-  display: flex;
   position: sticky;
   top: 0;
   z-index: 1;
+  overflow: hidden; /* clips horizontally; scrolled in sync with the body via JS */
   background: var(--bd-surface-alt);
   border-bottom: 1px solid var(--bd-border-strong);
+}
+
+.bd-table__head-inner {
+  display: flex;
 }
 
 .bd-th {

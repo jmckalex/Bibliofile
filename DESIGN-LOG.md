@@ -271,6 +271,15 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   writes `settings.columns` (pure `reorderColumns`, unit-tested). The Preferences
   "Columns" panel loses its ↑/↓ reorder (now header drag) and keeps show/hide/add.
   *Revisit:* `PublicationsTable` (startResize/reorder/flexFor), `settings.columnWidths`.
+  *Follow-up fix:* the first cut used flex-grow, which let the body overflow + scroll
+  horizontally while the sticky header didn't follow (header/body desynced when scrolled
+  past the window). Replaced with a **measured layout**: a ResizeObserver tracks the
+  viewport width and every column gets an explicit px width (grow columns split the slack
+  to fill; once base widths exceed the viewport the table scrolls). The header is an
+  overflow-hidden clip whose inner row is kept at the body's `scrollLeft` on every scroll,
+  so header + rows scroll in lockstep and stay aligned; row backgrounds span the full
+  (possibly-scrolled) width. Verified header/body cells share position + width after a
+  resize-to-overflow + horizontal scroll.
 
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers

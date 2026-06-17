@@ -7,7 +7,15 @@
  * client-side sorted row model.
  */
 
-import { useCallback, useMemo, useRef, useState, type MouseEvent } from 'react';
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+  type UIEvent,
+} from 'react';
 import {
   createColumnHelper,
   flexRender,
@@ -184,30 +192,58 @@ export function PublicationsTable() {
   // Column-reorder drag-and-drop state (header drag).
   const [dragCol, setDragCol] = useState<string | null>(null);
   const [dropCol, setDropCol] = useState<string | null>(null);
+  // Available width of the table viewport (tracked so grow columns fill exactly).
+  const [viewportWidth, setViewportWidth] = useState(0);
   const resizeRef = useRef<{ id: string; startX: number; startWidth: number } | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const headRef = useRef<HTMLDivElement>(null);
 
   const data = useMemo(() => visibleRows(rows, query, ftsIds), [rows, query, ftsIds]);
   const columns = useMemo(() => buildColumns(columnKeys), [columnKeys]);
 
-  // A column's width: live drag value > stored override > its built-in default.
-  const widthOf = useCallback(
-    (id: string, meta?: ColMeta): number =>
-      (dragWidth?.id === id ? dragWidth.width : columnWidths[id]) ?? meta?.width ?? 120,
-    [dragWidth, columnWidths],
-  );
-  // Authors/Title grow to fill — until the user drag-resizes them (then they pin).
-  const isGrow = useCallback(
-    (id: string, meta?: ColMeta): boolean =>
-      !!meta?.grow && columnWidths[id] === undefined && dragWidth?.id !== id,
-    [columnWidths, dragWidth],
-  );
-  const flexFor = useCallback(
-    (id: string, meta?: ColMeta): string =>
-      isGrow(id, meta) ? `1 1 ${widthOf(id, meta)}px` : `0 0 ${widthOf(id, meta)}px`,
-    [isGrow, widthOf],
-  );
-  // When no column grows, a trailing spacer absorbs slack so rows still fill the width.
-  const anyGrow = columns.some((c) => isGrow(c.id as string, c.meta as ColMeta | undefined));
+  // Track the scroll viewport width so the layout can distribute slack to grow columns.
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setViewportWidth(el.clientWidth);
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width;
+      if (w) setViewportWidth(w);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  /**
+   * Resolve every column to an explicit pixel width. Authors/Title (grow) split
+   * any slack so the table fills the viewport; once all columns' base widths
+   * exceed the viewport the table scrolls horizontally (header + body together).
+   */
+  const layout = useMemo(() => {
+    const base = columns.map((c) => {
+      const id = c.id as string;
+      const meta = c.meta as ColMeta | undefined;
+      const width = (dragWidth?.id === id ? dragWidth.width : columnWidths[id]) ?? meta?.width ?? 120;
+      const grow = !!meta?.grow && columnWidths[id] === undefined && dragWidth?.id !== id;
+      return { id, width, grow };
+    });
+    const totalBase = base.reduce((s, c) => s + c.width, 0);
+    const growers = base.filter((c) => c.grow);
+    const widths: Record<string, number> = {};
+    if (growers.length > 0 && viewportWidth > 0 && totalBase < viewportWidth) {
+      const extra = (viewportWidth - totalBase) / growers.length;
+      for (const c of base) widths[c.id] = c.grow ? c.width + extra : c.width;
+    } else {
+      for (const c of base) widths[c.id] = c.width;
+    }
+    const total = base.reduce((s, c) => s + widths[c.id]!, 0);
+    return { widths, total };
+  }, [columns, columnWidths, dragWidth, viewportWidth]);
+
+  // Keep the (overflow-hidden) header scrolled in lockstep with the body.
+  const syncHeaderScroll = useCallback((e: UIEvent<HTMLDivElement>) => {
+    if (headRef.current) headRef.current.scrollLeft = e.currentTarget.scrollLeft;
+  }, []);
 
   const startResize = useCallback(
     (e: MouseEvent, id: string): void => {
@@ -255,7 +291,6 @@ export function PublicationsTable() {
     manualSorting: true,
   });
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const tableRows = table.getRowModel().rows;
 
   const virtualizer = useVirtualizer({
@@ -272,76 +307,78 @@ export function PublicationsTable() {
 
   return (
     <div className="bd-table">
-      <div className="bd-table__head" role="row">
-        {headerGroups[0]?.headers.map((header) => {
-          const id = header.column.id;
-          const meta = header.column.columnDef.meta as ColMeta | undefined;
-          const active = sort.key === id;
-          return (
-            <div
-              key={header.id}
-              className={
-                'bd-th' + (dropCol === id ? ' bd-th--drop' : '') + (dragCol === id ? ' bd-th--dragging' : '')
-              }
-              role="columnheader"
-              style={{ flex: flexFor(id, meta) }}
-              aria-sort={active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
-              onDragOver={(e) => {
-                if (!e.dataTransfer.types.includes(COL_DND)) return;
-                e.preventDefault();
-                if (dropCol !== id) setDropCol(id);
-              }}
-              onDragLeave={() => setDropCol((d) => (d === id ? null : d))}
-              onDrop={(e) => {
-                if (!e.dataTransfer.types.includes(COL_DND)) return;
-                e.preventDefault();
-                const dragged = e.dataTransfer.getData(COL_DND);
-                setDropCol(null);
-                setDragCol(null);
-                if (dragged) reorder(dragged, id);
-              }}
-            >
+      {/* Header clips horizontally; its inner row is scrolled in sync with the body. */}
+      <div className="bd-table__head" role="row" ref={headRef}>
+        <div className="bd-table__head-inner" style={{ width: layout.total }}>
+          {headerGroups[0]?.headers.map((header) => {
+            const id = header.column.id;
+            const active = sort.key === id;
+            const width = layout.widths[id] ?? 120;
+            return (
               <div
-                className="bd-th__label"
-                draggable
-                title="Click to sort · drag to reorder"
-                onClick={() => onHeaderClick(id)}
-                onDragStart={(e) => {
-                  e.dataTransfer.setData(COL_DND, id);
-                  e.dataTransfer.effectAllowed = 'move';
-                  setDragCol(id);
+                key={header.id}
+                className={
+                  'bd-th' + (dropCol === id ? ' bd-th--drop' : '') + (dragCol === id ? ' bd-th--dragging' : '')
+                }
+                role="columnheader"
+                style={{ flex: `0 0 ${width}px`, width }}
+                aria-sort={active ? (sort.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
+                onDragOver={(e) => {
+                  if (!e.dataTransfer.types.includes(COL_DND)) return;
+                  e.preventDefault();
+                  if (dropCol !== id) setDropCol(id);
                 }}
-                onDragEnd={() => {
-                  setDragCol(null);
+                onDragLeave={() => setDropCol((d) => (d === id ? null : d))}
+                onDrop={(e) => {
+                  if (!e.dataTransfer.types.includes(COL_DND)) return;
+                  e.preventDefault();
+                  const dragged = e.dataTransfer.getData(COL_DND);
                   setDropCol(null);
+                  setDragCol(null);
+                  if (dragged) reorder(dragged, id);
                 }}
               >
-                {flexRender(header.column.columnDef.header, header.getContext())}
-                {active && (
-                  <span className="bd-th__sort" aria-hidden="true">
-                    {sort.direction === 'asc' ? '▲' : '▼'}
-                  </span>
-                )}
+                <div
+                  className="bd-th__label"
+                  draggable
+                  title="Click to sort · drag to reorder"
+                  onClick={() => onHeaderClick(id)}
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData(COL_DND, id);
+                    e.dataTransfer.effectAllowed = 'move';
+                    setDragCol(id);
+                  }}
+                  onDragEnd={() => {
+                    setDragCol(null);
+                    setDropCol(null);
+                  }}
+                >
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                  {active && (
+                    <span className="bd-th__sort" aria-hidden="true">
+                      {sort.direction === 'asc' ? '▲' : '▼'}
+                    </span>
+                  )}
+                </div>
+                <div
+                  className="bd-th__resize"
+                  role="separator"
+                  aria-orientation="vertical"
+                  aria-label="Resize column"
+                  onMouseDown={(e) => startResize(e, id)}
+                  onClick={(e) => e.stopPropagation()}
+                />
               </div>
-              <div
-                className="bd-th__resize"
-                role="separator"
-                aria-orientation="vertical"
-                aria-label="Resize column"
-                onMouseDown={(e) => startResize(e, id)}
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
-          );
-        })}
-        {!anyGrow && <div className="bd-th bd-th--spacer" aria-hidden="true" style={{ flex: '1 1 0' }} />}
+            );
+          })}
+        </div>
       </div>
 
-      <div className="bd-table__body" ref={scrollRef}>
+      <div className="bd-table__body" ref={scrollRef} onScroll={syncHeaderScroll}>
         {tableRows.length === 0 ? (
           <div className="bd-empty-state">{loading ? 'Loading…' : 'No publications'}</div>
         ) : (
-          <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
+          <div style={{ height: virtualizer.getTotalSize(), width: layout.total, position: 'relative' }}>
             {virtualItems.map((vItem) => {
               const row = tableRows[vItem.index];
               if (!row) return null;
@@ -356,7 +393,7 @@ export function PublicationsTable() {
                     (selected ? ' bd-tr--selected' : '') +
                     (selected && !isPrimary ? ' bd-tr--multi' : '')
                   }
-                  style={{ height: ROW_HEIGHT, transform: `translateY(${vItem.start}px)` }}
+                  style={{ height: ROW_HEIGHT, width: layout.total, transform: `translateY(${vItem.start}px)` }}
                   aria-selected={selected}
                   draggable
                   onClick={(e) => {
@@ -376,18 +413,18 @@ export function PublicationsTable() {
                 >
                   {row.getVisibleCells().map((cell) => {
                     const meta = cell.column.columnDef.meta as ColMeta | undefined;
+                    const width = layout.widths[cell.column.id] ?? 120;
                     return (
                       <div
                         key={cell.id}
                         role="gridcell"
                         className={'bd-td' + (meta?.cellClass ? ' ' + meta.cellClass : '')}
-                        style={{ flex: flexFor(cell.column.id, meta) }}
+                        style={{ flex: `0 0 ${width}px`, width }}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </div>
                     );
                   })}
-                  {!anyGrow && <div className="bd-td bd-td--spacer" aria-hidden="true" style={{ flex: '1 1 0' }} />}
                 </div>
               );
             })}
