@@ -54,6 +54,8 @@ import { loadCoverIndex, resolveCover, coverFilePath } from './journal-covers.js
 import { formatCitation } from './csl.js';
 import { searchOnline, extractDoi } from './online.js';
 import { extractPdfText } from './pdf-text.js';
+import { PdfPool } from './pdf-pool.js';
+import { PdfTextCache } from './pdf-cache.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
 import { getSettings, loadSettings, updateSettings } from './settings.js';
 
@@ -249,6 +251,31 @@ function createWindow(): BrowserWindow {
  * {@link IpcEvents.documentOpened}. Returns the summary (also used by the
  * `openDocument` IPC handler). Throws on read/parse failure.
  */
+/**
+ * Lazily-created PDF extraction pool + persistent text cache. The pool runs
+ * pdfjs in worker threads (off the main loop, parallel across cores); the cache
+ * skips re-extraction of unchanged files across sessions. `pdfExtract` is the
+ * combined extractor handed to {@link DocumentStore.indexAttachments}.
+ */
+let pdfPool: PdfPool | undefined;
+let pdfCache: PdfTextCache | undefined;
+
+function ensurePdf(): { pool: PdfPool; cache: PdfTextCache } {
+  if (!pdfPool) pdfPool = new PdfPool(join(__dirname, 'pdf-worker.js'));
+  if (!pdfCache) pdfCache = new PdfTextCache(join(app.getPath('userData'), 'pdf-text-cache.json'));
+  return { pool: pdfPool, cache: pdfCache };
+}
+
+/** Extract one PDF's text: cache hit, else a worker-thread extraction (then cached). */
+async function pdfExtract(absPath: string): Promise<string> {
+  const { pool, cache } = ensurePdf();
+  const cached = cache.get(absPath);
+  if (cached !== undefined) return cached;
+  const text = await pool.extract(absPath);
+  cache.set(absPath, text);
+  return text;
+}
+
 function openPath(path: string): OpenedDocument {
   const opened = store.openFile(path);
   app.addRecentDocument(path);
@@ -260,10 +287,13 @@ function openPath(path: string): OpenedDocument {
   buildMenu(); // refresh document-scoped menu items now that a doc is open
   notifyDocumentOpened(opened);
   // Index attachment PDF text in the background; field-text search works already.
-  // Deferred so the renderer's initial load (groups/rows) gets an unblocked main
-  // process first; indexAttachments itself yields between PDFs to stay responsive.
+  // Extraction runs in a worker pool (off the main loop) with a persistent cache,
+  // so reopening a library is near-instant and the UI never freezes. Deferred so
+  // the renderer's initial load (groups/rows) gets an unblocked main process first.
   const docId = opened.documentId;
-  setTimeout(() => void store.indexAttachments(docId), 2000);
+  setTimeout(() => {
+    void store.indexAttachments(docId, pdfExtract).then(() => pdfCache?.flush());
+  }, 2000);
   return opened;
 }
 
@@ -1554,6 +1584,12 @@ app.on('activate', () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+// Persist the PDF text cache and tear down the worker pool on quit.
+app.on('will-quit', () => {
+  pdfCache?.flush();
+  void pdfPool?.destroy();
 });
 
 // ---------------------------------------------------------------------------

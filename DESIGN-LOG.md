@@ -238,6 +238,25 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   (MenuCommand carries no payload). The five whole-library Export formats are
   unchanged. *Revisit:* `exportSelectionAs` in `index.ts`, `store.exportSelection`.
 
+- **PDF full-text indexing off the main thread + cached.** Opening a large
+  library (measured: 1337 entries, ~100ms to parse+index+list) felt slow because
+  background full-text indexing extracted ~347 PDFs via pdfjs *on the main
+  process* (~19s of solid CPU), starving IPC/UI. Fixed in three steps: (1) a
+  worker-thread **pool** (`pdf-pool.ts` + `pdf-worker.ts`) runs pdfjs off the main
+  loop, parallel across cores (size = min(4, cores−1)) — the main thread never
+  blocks; (2) a persistent **text cache** (`pdf-cache.ts`, keyed by abs path +
+  mtime + size under userData) so reopening a library skips re-extraction
+  entirely; (3) indexing is **deferred 2s** after open so the renderer's first
+  load wins the thread. *Design choices:* `indexAttachments` takes an injectable
+  `extract` (default = inline single-PDF extractor) so the store stays pure/
+  testable and Electron-only concerns (workers, userData) live in `index.ts`; the
+  pool always resolves (''-on-crash) and respawns dead workers so one bad PDF
+  can't wedge the queue; cache validated against live file stat so a moved/edited
+  PDF transparently re-extracts. *Known follow-up:* the JSON cache grows
+  unbounded across libraries (~22MB for this one) — fine now, an LRU/size cap or
+  sqlite store is the next step if it matters. *Revisit:* `pdf-pool.ts`,
+  `pdf-cache.ts`, `pdfExtract`/`openPath` in `index.ts`, `indexAttachments`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

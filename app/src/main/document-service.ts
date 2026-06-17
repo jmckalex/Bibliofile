@@ -1981,16 +1981,22 @@ export class DocumentStore {
    * Extract text from local PDF attachments and fold it into the full-text index
    * (best-effort, once per document). Intended to run in the background after a
    * document opens; the field-text index already works immediately.
+   *
+   * `extract` is injected so the main process can run pdfjs in a worker-thread
+   * pool (off the main loop) and consult a persistent text cache; the default is
+   * the inline single-PDF extractor (used by tests and any non-Electron caller).
    */
-  async indexAttachments(documentId: string): Promise<void> {
+  async indexAttachments(
+    documentId: string,
+    extract: (absPath: string) => Promise<string> = extractPdfText,
+  ): Promise<void> {
     const doc = this.docs.get(documentId);
     if (!doc || doc.attachmentsIndexed || !doc.fts.available) return;
     doc.attachmentsIndexed = true;
     const stripScheme = (u: string): string => u.replace(/^file:\/\/(localhost)?/i, '');
     const baseDir = doc.path ? dirname(doc.path) : '';
-    // Yield to the event loop so IPC/UI is serviced between PDFs — pdfjs runs on
-    // the main process, so extracting hundreds of PDFs back-to-back would freeze
-    // the app; cooperative yielding keeps it responsive while indexing trickles in.
+    // Yield to the event loop between items so a long all-cache-hit reopen (no
+    // worker round-trip to interleave) still services IPC/UI rather than bursting.
     const yieldToLoop = (): Promise<void> => new Promise((r) => setImmediate(r));
     for (const item of doc.library.items) {
       // The document may be closed (or re-opened) while indexing is in flight.
@@ -2001,8 +2007,8 @@ export class DocumentStore {
         const p = stripScheme(f.url);
         const abs = isAbsolute(p) ? p : baseDir ? resolve(baseDir, p) : p;
         if (!existsSync(abs)) continue;
-        await yieldToLoop(); // let queued IPC run before each (CPU-heavy) extraction
-        const text = await extractPdfText(abs);
+        await yieldToLoop();
+        const text = await extract(abs);
         if (text) added += ` \n ${text}`;
       }
       if (added) {
