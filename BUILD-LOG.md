@@ -603,14 +603,18 @@ user-facing Help (`docs/help/`) was updated alongside:
   every entry's (or the selection's) managed attachments into the Papers folder in one undo step,
   behind a native confirm + summary dialog (`consolidateLinkedFiles`); also fixed an AutoFile
   idempotency bug (re-filing no longer coins `name-1`, `name-2`, …).
+- **Multiple open libraries (window per library)** — opening a `.bib` no longer replaces the
+  current one; each library gets its own window (its own renderer + store). The main shell tracks a
+  `docWindows` registry and routes every doc-scoped action to the focused window; the Window menu
+  lists open libraries; closing a window with unsaved changes prompts Save/Don't Save/Cancel.
+  *(On branch `multiple-open-libraries`, not yet merged to `main`.)*
 
-`pnpm -r test` = **1429 passing** (+3 skipped under the Node test ABI — expected);
+`pnpm -r test` = **1430 passing** (+3 skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.
 
 ### Still pending (deeper BibDesk features; not yet built) — do NOT claim these are done
 
 - **Custom BibTeX type/field editor** — user-defined entry types + required/optional fields.
 - **Labeled undo** — per-action labels in the Edit → Undo/Redo menu (stack + autosave exist).
-- **Multiple open documents/windows** — the app is currently single-document.
 - **Person/date field-type editors** — still plain text + autocomplete (date-picker deferred over
   Date-Added/Modified clobbering risk).

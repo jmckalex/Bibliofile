@@ -402,6 +402,36 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   `consolidateLinkedFiles` in `document-service.ts`, the handler in `index.ts`,
   `consolidateLinkedFiles` in `store.ts`.
 
+- **Multiple open libraries (window per library).** The `DocumentStore` was
+  already multi-document (every method keyed by `documentId`); the single-library
+  limit lived entirely in the main-process shell. Replaced the `mainWindow` /
+  `lastDocumentId` singletons with a `docWindows` registry (Map<documentId,
+  BrowserWindow>) + `focusedDocId()` / `focusedWindow()` / `windowForDoc()` /
+  `docIdForWindow()`. Every document-scoped action (Open, New, Save, Save As,
+  Revert, Export, Undo/Redo, print, the x-bibdesk bridge, recent docs, Show in
+  Finder, menu commands, agent approval) resolves the *focused* library window's
+  document; dialogs parent to the focused window. **Open no longer replaces:**
+  `openPath` focuses an already-open file (dedup by resolved path), else loads into
+  a reusable focused welcome window, else a fresh window. `loadDocumentInto` is
+  shared by open and Revert (Revert re-reads into the same window, bypassing the
+  dedup). `bindWindowToDoc` is idempotent (welcome-reuse / Revert drop+close the
+  prior document) and wires focus/close/closed once per window; a window's close
+  frees its document (`store.closeDocument`). The renderer needed almost nothing —
+  each window already ran its own single-document store and shows the welcome
+  screen until it receives a (now per-window-targeted) `documentOpened`; the only
+  change was scoping `documentChanged` by `documentId` so a window ignores other
+  libraries' edits (same fix for editor windows). Added a Window menu listing open
+  libraries (focus on select) and a Save / Don't Save / Cancel prompt when closing
+  a window with unsaved changes. Startup opens the launch file into the initial
+  welcome window so none is stranded. *Revisit:* the registry + helpers,
+  `openPath` / `loadDocumentInto` / `bindWindowToDoc`, and the app lifecycle in
+  `index.ts`; the `onDocumentChanged` filter in `App.tsx` / `EditorWindow.tsx`.
+  Verified: production bundle (`electron-vite build`) builds; a headless launch
+  smoke opens the fixture into a library window with the FTS self-test green. True
+  N-window behaviour (two libraries side by side, the Window menu, close-with-
+  unsaved) is interactive — drive via `pnpm dev`. Shipped on the branch
+  `multiple-open-libraries` (the first feature off the linear `main` history).
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

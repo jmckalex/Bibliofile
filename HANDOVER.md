@@ -8,9 +8,12 @@
 > importantly — the **gap analysis** (what is still missing from BibDesk, and the
 > recommended order to tackle it).
 
-Last updated at commit `88a0ff8` (working tree clean; full suite green —
-1429 passing, 3 skipped). This session added multi-column sort + bulk AutoFile;
-the gap analysis in §5 is updated accordingly (next: the `.aux` workflow).
+Last updated on branch `multiple-open-libraries` (full suite green — 1430 passing,
+3 skipped). This session shipped multi-column sort + bulk AutoFile on `main`, then
+**multiple open libraries** (window-per-library) on the `multiple-open-libraries`
+branch — committed locally, **not yet merged to `main`**. §5 reflects this. The
+recommended-order quick wins are done; remaining big items are the custom
+entry-type editor and the `.aux` workflow.
 
 ---
 
@@ -183,10 +186,12 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
 
 ### Biggest genuine gaps
 
-1. **Multiple open libraries.** We are single-document — opening a library
-   replaces the current one. (The editor window is per-*entry*, not per-*library*.)
-   BibDesk lets you have several libraries open at once. This is the big
-   architectural lift.
+1. ~~**Multiple open libraries.**~~ **DONE** (branch `multiple-open-libraries`) —
+   each `.bib` now opens in its own window (window-per-library); Open no longer
+   replaces. The Window menu lists open libraries; closing a window with unsaved
+   changes prompts Save/Don't Save/Cancel. `DocumentStore` was already
+   multi-document; the work was retiring the `mainWindow`/`lastDocumentId`
+   singletons in `index.ts` for a `docWindows` registry.
 2. **Custom BibTeX entry-type / field editor.** BibDesk's Preferences → Defaults
    lets users define entry types plus their required/optional fields and field
    order. We have a fixed type model.
@@ -258,7 +263,7 @@ app). This is the prioritized backlog. **Capture these recommendations as writte
 2. ~~**Bulk AutoFile / consolidate** — quick win.~~ ✅ done `88a0ff8`.
 3. **`.aux` workflow** — high value, self-contained. ← **next**
 4. **Custom entry-type / field editor** — gets us closest to "BibDesk-complete".
-5. **Multiple open libraries** — the big architectural lift; do it last.
+5. ~~**Multiple open libraries** — the big architectural lift; do it last.~~ ✅ done (branch `multiple-open-libraries`).
 
 ---
 
