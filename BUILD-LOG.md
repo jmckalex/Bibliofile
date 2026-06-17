@@ -571,11 +571,39 @@ landed as committed increments (each GUI/test-verified; tree kept green):
 `pnpm -r test` = **1351 passing** (+2 app FTS tests skipped under the Node test ABI — expected,
 not a failure); `pnpm -r build` clean.
 
-### Still pending (per task list / FEATURE-SURVEY.md) — do NOT claim these are done
+### Post-port BibDesk-parity batch (later sessions)
 
-- **Editing depth** — undo/redo stack + autosave option; person/date field-type editors.
-- **Smart / static group editor** — condition builder + static-group membership UI, persisted to
-  the `.bib`. (Groups are read/filter-complete; no editor yet.)
-- **Claude scripting assistant** — the in-app assistant over the `plugins-sdk` API (latest Claude
-  model, Anthropic key via `safeStorage`, approval-gated mutations). API foundation done; assistant
-  not started.
+These shipped after the foundation above; each has tests + a DESIGN-LOG entry, and the
+user-facing Help (`docs/help/`) was updated alongside:
+
+- **Claude assistant** — in-app assistant over `plugins-sdk` (Anthropic key via `safeStorage`,
+  approval-gated mutations, `agent.ts`).
+- **Smart/static group editor** — condition builder + static membership UI, persisted to the
+  `.bib`; **editing existing smart groups** (`editSmart` + `groupConditions`, ✎ on smart rows).
+- **Rich field-type editors** — rating/boolean/tri-state widgets (TypeManager `ItemField.kind`).
+- **Internet importers** — CrossRef, arXiv, OpenAlex, PubMed, DOI, ISBN online search + import.
+- **Automation (native by design)** — `x-bibdesk://` URL scheme + loopback token-authed HTTP
+  bridge; native-helper scaffolding (macOS/Win/Linux) under `docs/automation/`.
+- **RTF** — Copy Citation as RTF + RTF bibliography export (`rtf.ts`).
+- **Multi-select + batch field ops** — Cmd/Shift-click selection + floating BatchBar.
+- **PDF → DOI import** — dropped PDFs: extract DOI → CrossRef → real metadata + attach.
+- **Journal cover thumbnails** — 309 bundled covers; ISSN/name resolution in the detail pane,
+  generated typographic fallback (`journal-covers.ts`, `JournalCover`).
+- **Print** — `File → Print…` (⌘P) renders a CSL-formatted bibliography to the OS print dialog
+  (Save-as-PDF on macOS); respects selection/current group (`print.ts`).
+- **EndNote import** — Refer/tagged `.enw` (Google Scholar export) + EndNote XML (`endnote.ts`).
+- **Find & repair broken file links** — `Publication → Find Broken Links…`: scan + Locate/Remove
+  (`findBrokenLinks`/`relocateAttachment`, `BrokenLinks.tsx`).
+- **Rename / merge authors** — double-click an author in the sidebar to rename across all entries
+  (canonical-name match; merges duplicate forms) (`renameAuthor`).
+
+`pnpm -r test` = **1404 passing** (+2 app FTS tests skipped under the Node test ABI — expected);
+`pnpm -r build` + `tsc` clean.
+
+### Still pending (deeper BibDesk features; not yet built) — do NOT claim these are done
+
+- **Custom BibTeX type/field editor** — user-defined entry types + required/optional fields.
+- **Labeled undo** — per-action labels in the Edit → Undo/Redo menu (stack + autosave exist).
+- **Multiple open documents/windows** — the app is currently single-document.
+- **Person/date field-type editors** — still plain text + autocomplete (date-picker deferred over
+  Date-Added/Modified clobbering risk).
