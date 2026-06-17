@@ -260,7 +260,10 @@ function openPath(path: string): OpenedDocument {
   buildMenu(); // refresh document-scoped menu items now that a doc is open
   notifyDocumentOpened(opened);
   // Index attachment PDF text in the background; field-text search works already.
-  void store.indexAttachments(opened.documentId);
+  // Deferred so the renderer's initial load (groups/rows) gets an unblocked main
+  // process first; indexAttachments itself yields between PDFs to stay responsive.
+  const docId = opened.documentId;
+  setTimeout(() => void store.indexAttachments(docId), 2000);
   return opened;
 }
 

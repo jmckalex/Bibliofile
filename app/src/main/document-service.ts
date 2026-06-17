@@ -1988,13 +1988,20 @@ export class DocumentStore {
     doc.attachmentsIndexed = true;
     const stripScheme = (u: string): string => u.replace(/^file:\/\/(localhost)?/i, '');
     const baseDir = doc.path ? dirname(doc.path) : '';
+    // Yield to the event loop so IPC/UI is serviced between PDFs — pdfjs runs on
+    // the main process, so extracting hundreds of PDFs back-to-back would freeze
+    // the app; cooperative yielding keeps it responsive while indexing trickles in.
+    const yieldToLoop = (): Promise<void> => new Promise((r) => setImmediate(r));
     for (const item of doc.library.items) {
+      // The document may be closed (or re-opened) while indexing is in flight.
+      if (this.docs.get(documentId) !== doc) return;
       let added = '';
       for (const f of itemFiles(item, doc.library, doc.path)) {
         if (f.kind !== 'file' || !/\.pdf$/i.test(f.url)) continue;
         const p = stripScheme(f.url);
         const abs = isAbsolute(p) ? p : baseDir ? resolve(baseDir, p) : p;
         if (!existsSync(abs)) continue;
+        await yieldToLoop(); // let queued IPC run before each (CPU-heavy) extraction
         const text = await extractPdfText(abs);
         if (text) added += ` \n ${text}`;
       }
