@@ -68,3 +68,35 @@ export async function typesetMath(el: HTMLElement): Promise<void> {
     /* leave raw TeX; viewer remains usable */
   }
 }
+
+/** True if a string plausibly contains TeX math (worth a MathJax pass). */
+export function hasMath(s: string): boolean {
+  return /\$[^$]+\$|\\\(|\\\[/.test(s);
+}
+
+/**
+ * Typeset the math in a short plain-text string and return the resulting HTML
+ * (inline SVG), or null on failure. Renders in a detached offscreen node so it
+ * never disturbs layout. Callers should cache the result (e.g. per title) —
+ * suitable for one-line cells like table titles.
+ */
+export async function renderMathToHtml(text: string): Promise<string | null> {
+  try {
+    await ensureMathJax();
+    const mj = window.MathJax;
+    if (!mj?.typesetPromise) return null;
+    const span = document.createElement('span');
+    span.textContent = text;
+    // MathJax needs the node reachable from the document; hide it offscreen.
+    span.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden';
+    document.body.appendChild(span);
+    try {
+      await mj.typesetPromise([span]);
+      return span.innerHTML;
+    } finally {
+      span.remove();
+    }
+  } catch {
+    return null;
+  }
+}

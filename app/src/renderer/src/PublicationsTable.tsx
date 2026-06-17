@@ -31,6 +31,7 @@ import { faSquare } from '@fortawesome/free-regular-svg-icons';
 import type { PublicationRow } from '@bibdesk/shared';
 import { formatCiteCommand } from '@bibdesk/shared';
 import { useStore, visibleRows } from './store.js';
+import { MathText } from './MathText.js';
 
 const ROW_HEIGHT = 28;
 /** Smallest a column may be drag-resized to (keeps icon headers legible). */
@@ -81,6 +82,7 @@ const BUILTIN_DEFS: Record<string, Col> = {
     id: 'title',
     header: 'Title',
     meta: { width: 360, grow: true } satisfies ColMeta,
+    cell: ({ getValue }) => <MathText text={String(getValue() ?? '')} />,
   }),
   year: col.accessor('year', {
     id: 'year',

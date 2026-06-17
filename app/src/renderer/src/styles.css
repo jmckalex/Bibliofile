@@ -456,6 +456,20 @@ body {
   color: var(--bd-text-muted);
 }
 
+/* Inline MathJax inside table cells: keep it on the row's line, never grow it. */
+.bd-td mjx-container,
+.bd-math mjx-container {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 !important;
+}
+
+.bd-td mjx-container svg,
+.bd-math mjx-container svg {
+  max-height: 1.5em;
+  vertical-align: middle;
+}
+
 /* ---- Find & Replace modal ---------------------------------------------- */
 
 .bd-fr__row {
