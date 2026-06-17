@@ -147,8 +147,11 @@ function windowForPath(path: string): BrowserWindow | undefined {
   return undefined;
 }
 
-/** Windows that already have their focus/closed listeners wired (attach once). */
+/** Windows that already have their focus/close/closed listeners wired (attach once). */
 const wiredWindows = new WeakSet<BrowserWindow>();
+
+/** Windows whose unsaved-changes close prompt has been answered "close anyway". */
+const closeConfirmed = new WeakSet<BrowserWindow>();
 
 /**
  * Bind `win` to `documentId` (the library it now shows). Idempotent per window:
@@ -173,6 +176,37 @@ function bindWindowToDoc(win: BrowserWindow, documentId: string): void {
   win.on('focus', () => {
     const id = docIdForWindow(win);
     if (id) lastFocusedDocId = id;
+  });
+  // Prompt to save unsaved changes before a library window closes.
+  win.on('close', (e) => {
+    if (closeConfirmed.has(win)) return; // already answered
+    const id = docIdForWindow(win);
+    if (!id || !store.isDirty(id)) return; // nothing unsaved → let it close
+    e.preventDefault();
+    const { displayName, path } = store.summarize(id);
+    const choice = dialog.showMessageBoxSync(win, {
+      type: 'warning',
+      buttons: ['Save', "Don't Save", 'Cancel'],
+      defaultId: 0,
+      cancelId: 2,
+      message: `Save changes to “${displayName}” before closing?`,
+      detail: 'Your changes will be lost if you don’t save them.',
+    });
+    if (choice === 2) return; // Cancel → keep the window open
+    if (choice === 0) {
+      try {
+        store.saveDocument(id, path);
+      } catch (err) {
+        void dialog.showMessageBox(win, {
+          type: 'error',
+          message: 'Could not save the document',
+          detail: err instanceof Error ? err.message : String(err),
+        });
+        return; // save failed → keep the window open
+      }
+    }
+    closeConfirmed.add(win);
+    win.close();
   });
   win.on('closed', () => {
     const id = docIdForWindow(win);
@@ -1278,7 +1312,34 @@ function buildMenu(): void {
     ],
   });
 
-  template.push({ role: 'window', label: 'Window', submenu: [{ role: 'minimize' }, { role: 'zoom' }, ...(isMac ? [{ type: 'separator' as const }, { role: 'front' as const }] : [{ role: 'close' as const }])] });
+  // List every open library so the user can switch between windows.
+  const focusedId = focusedDocId();
+  const openLibraries: MenuItemConstructorOptions[] = [...docWindows.entries()]
+    .filter(([, w]) => !w.isDestroyed())
+    .map(([id, w]) => ({ id, w, name: store.summarize(id).displayName }))
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map(({ id, w, name }) => ({
+      label: name,
+      type: 'checkbox' as const,
+      checked: id === focusedId,
+      click: () => {
+        if (w.isMinimized()) w.restore();
+        w.focus();
+      },
+    }));
+
+  template.push({
+    role: 'window',
+    label: 'Window',
+    submenu: [
+      { role: 'minimize' },
+      { role: 'zoom' },
+      ...(isMac
+        ? [{ type: 'separator' as const }, { role: 'front' as const }]
+        : [{ role: 'close' as const }]),
+      ...(openLibraries.length ? [{ type: 'separator' as const }, ...openLibraries] : []),
+    ],
+  });
 
   template.push({
     role: 'help',
