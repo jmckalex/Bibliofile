@@ -1,8 +1,9 @@
 /**
  * Markdown rendering for abstracts and notes. Runs in MAIN (where the preview
- * HTML is composed). Math-aware: `$…$` / `$$…$$` spans are protected before
- * Markdown parsing (so `_`/`*` inside math aren't treated as emphasis) and
- * restored afterwards as literal text for the renderer's MathJax pass. Output is
+ * HTML is composed). Math-aware: `$…$` / `$$…$$` and LaTeX `\(…\)` / `\[…\]` spans
+ * are protected before Markdown parsing (so `_`/`*` inside math aren't treated as
+ * emphasis, and `\[` isn't eaten as an escaped bracket) and restored afterwards as
+ * literal text for the renderer's MathJax pass. Output is
  * sanitised; markdown links become `data-open-url` spans the preview opens
  * externally.
  *
@@ -13,7 +14,10 @@
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
 
-const MATH_RE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$/g;
+// Math spans protected from Markdown before parsing: `$$…$$` / `$…$`, plus the
+// LaTeX `\[…\]` (display) and `\(…\)` (inline) delimiters — otherwise `marked`
+// treats `\[` as an escaped bracket and the math never reaches MathJax.
+const MATH_RE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)/g;
 
 const BASE_TAGS = [
   'p', 'br', 'em', 'strong', 'b', 'i', 'code', 'pre', 'ul', 'ol', 'li',

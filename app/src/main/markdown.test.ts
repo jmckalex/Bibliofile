@@ -22,6 +22,14 @@ describe('renderMarkdown', () => {
     expect(h).not.toContain('<em>');
   });
 
+  it('protects LaTeX \\[…\\] / \\(…\\) delimiters (not eaten as escaped brackets)', () => {
+    const display = renderMarkdown('Einstein: \\[ E = mc^2 \\] is famous.');
+    expect(display).toContain('\\[ E = mc^2 \\]'); // delimiters reach the HTML for MathJax
+    const inline = renderMarkdown('the value \\(x_1 * y_2\\) here');
+    expect(inline).toContain('\\(x_1 * y_2\\)'); // `*` inside isn't emphasised
+    expect(inline).not.toContain('<em>');
+  });
+
   it('strips scripts and dangerous tags', () => {
     const h = renderMarkdown('hi <script>alert(1)</script> <img src=x onerror=y>');
     expect(h).not.toContain('<script');

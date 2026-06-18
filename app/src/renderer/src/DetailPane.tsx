@@ -12,7 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { useStore } from './store.js';
-import { typesetMath } from './mathjax.js';
+import { typesetMath, hasMath } from './mathjax.js';
 
 /** Fallback BibTeX entry types if the dynamic list hasn't loaded yet. */
 const ENTRY_TYPES = [
@@ -36,7 +36,7 @@ export function PreviewCard({ html, files = [] }: { html: string; files?: readon
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
-    if (ref.current && html.includes('$')) void typesetMath(ref.current);
+    if (ref.current && hasMath(html)) void typesetMath(ref.current);
   }, [html]);
 
   // Dismiss the file menu on any outside click or Escape.
@@ -311,7 +311,7 @@ export function CitationBlock({ detail }: { detail: ItemDetail }) {
   }, [documentId, detail, styleId]);
 
   useEffect(() => {
-    if (bodyRef.current && html.includes('$')) void typesetMath(bodyRef.current);
+    if (bodyRef.current && hasMath(html)) void typesetMath(bodyRef.current);
   }, [html]);
 
   return (
@@ -337,7 +337,7 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!editing && ref.current && detail.notesHtml.includes('$')) void typesetMath(ref.current);
+    if (!editing && ref.current && hasMath(detail.notesHtml)) void typesetMath(ref.current);
   }, [editing, detail.notesHtml]);
 
   const onClick = useCallback(
