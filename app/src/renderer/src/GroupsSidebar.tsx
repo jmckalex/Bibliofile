@@ -12,6 +12,7 @@
 import { useEffect, useMemo, useState, type DragEvent, type JSX } from 'react';
 import type { GroupKind, GroupNode } from '@bibdesk/shared';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 import { SmartGroupDialog } from './SmartGroupDialog.js';
 
 /** Simple glyph per group kind (no icon dependency). */
@@ -79,6 +80,7 @@ function GroupRow({
   onExportFolder: (id: string) => void;
   onContextMenu: (node: GroupNode, x: number, y: number) => void;
 }) {
+  const t = useT();
   const [dropping, setDropping] = useState(false);
   const acceptsRefs = node.kind === 'folder' || node.kind === 'library';
   const acceptsKeys = node.kind === 'static';
@@ -137,7 +139,7 @@ function GroupRow({
         <button
           type="button"
           className="bd-group__twisty"
-          aria-label={open ? 'Collapse' : 'Expand'}
+          aria-label={open ? t('sidebar.collapse') : t('sidebar.expand')}
           aria-expanded={open}
           onClick={(e) => {
             e.stopPropagation();
@@ -172,7 +174,7 @@ function GroupRow({
         <button
           type="button"
           className="bd-group__edit"
-          title={`Edit conditions for “${node.name}”`}
+          title={t('sidebar.editConditions', { name: node.name })}
           onClick={(e) => {
             e.stopPropagation();
             onEditSmart(node.id);
@@ -185,7 +187,7 @@ function GroupRow({
         <button
           type="button"
           className="bd-group__edit"
-          title={`Export “${node.name}” to a PDF folder tree`}
+          title={t('sidebar.exportFolder', { name: node.name })}
           onClick={(e) => {
             e.stopPropagation();
             onExportFolder(node.id);
@@ -198,7 +200,7 @@ function GroupRow({
         <button
           type="button"
           className="bd-group__del"
-          title={`Delete “${node.name}”`}
+          title={t('sidebar.deleteGroup', { name: node.name })}
           onClick={(e) => {
             e.stopPropagation();
             onDelete(node);
@@ -266,6 +268,7 @@ function ContextMenu({
 }
 
 export function GroupsSidebar() {
+  const t = useT();
   const groups = useStore((s) => s.groups);
   const selectedGroupId = useStore((s) => s.selectedGroupId);
   const selectedFolderId = useStore((s) => s.selectedFolderId);
@@ -312,7 +315,7 @@ export function GroupsSidebar() {
   const newStatic = async (): Promise<void> => {
     // Capture the target folder first — createStatic clears the folder selection.
     const parent = selectedFolderId;
-    const id = await groupEdit({ kind: 'createStatic', name: 'New Group' });
+    const id = await groupEdit({ kind: 'createStatic', name: t('sidebar.newGroupName') });
     if (!id) return;
     if (parent) {
       await groupEdit({ kind: 'setGroupFolder', groupId: id, folderId: parent });
@@ -324,7 +327,7 @@ export function GroupsSidebar() {
     const parent = selectedFolderId;
     const id = await groupEdit({
       kind: 'createFolder',
-      name: 'New Folder',
+      name: t('sidebar.newFolderName'),
       ...(parent ? { parentId: parent } : {}),
     });
     if (!id) return;
@@ -385,17 +388,17 @@ export function GroupsSidebar() {
   };
 
   return (
-    <nav className="bd-sidebar" aria-label="Groups">
+    <nav className="bd-sidebar" aria-label={t('sidebar.groups')}>
       {hasDoc && (
         <div className="bd-sidebar__actions">
-          <button type="button" className="bd-btn bd-btn--small" onClick={() => void newStatic()} title="New static group">
-            ＋ Group
+          <button type="button" className="bd-btn bd-btn--small" onClick={() => void newStatic()} title={t('sidebar.newStaticGroup')}>
+            {t('sidebar.group')}
           </button>
-          <button type="button" className="bd-btn bd-btn--small" onClick={() => setSmartOpen(true)} title="New smart group">
-            ⚙ Smart
+          <button type="button" className="bd-btn bd-btn--small" onClick={() => setSmartOpen(true)} title={t('sidebar.newSmartGroup')}>
+            {t('sidebar.smart')}
           </button>
-          <button type="button" className="bd-btn bd-btn--small" onClick={() => void newFolder()} title="New folder">
-            🗂 Folder
+          <button type="button" className="bd-btn bd-btn--small" onClick={() => void newFolder()} title={t('sidebar.newFolder')}>
+            {t('sidebar.folder')}
           </button>
         </div>
       )}
@@ -411,10 +414,10 @@ export function GroupsSidebar() {
           onClose={() => setMenu(undefined)}
           items={[
             ...(RENAMABLE(menu.node.kind)
-              ? [{ label: 'Rename', onClick: () => setEditingId(menu.node.id) }]
+              ? [{ label: t('sidebar.rename'), onClick: () => setEditingId(menu.node.id) }]
               : []),
             ...(DELETABLE(menu.node.kind)
-              ? [{ label: 'Delete', danger: true, onClick: () => onDelete(menu.node) }]
+              ? [{ label: t('sidebar.delete'), danger: true, onClick: () => onDelete(menu.node) }]
               : []),
           ]}
         />

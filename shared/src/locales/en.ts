@@ -192,6 +192,24 @@ export const en: Catalog = {
   'macro.valuePlaceholder': 'value',
   'macro.add': 'Add macro',
 
+  // --- Groups sidebar ---
+  'sidebar.groups': 'Groups',
+  'sidebar.collapse': 'Collapse',
+  'sidebar.expand': 'Expand',
+  'sidebar.group': '＋ Group',
+  'sidebar.smart': '⚙ Smart',
+  'sidebar.folder': '🗂 Folder',
+  'sidebar.newStaticGroup': 'New static group',
+  'sidebar.newSmartGroup': 'New smart group',
+  'sidebar.newFolder': 'New folder',
+  'sidebar.rename': 'Rename',
+  'sidebar.delete': 'Delete',
+  'sidebar.newGroupName': 'New Group',
+  'sidebar.newFolderName': 'New Folder',
+  'sidebar.editConditions': 'Edit conditions for “{name}”',
+  'sidebar.exportFolder': 'Export “{name}” to a PDF folder tree',
+  'sidebar.deleteGroup': 'Delete “{name}”',
+
   // --- Empty / welcome states (renderer) ---
   'detail.empty.select': 'Select a publication to see its details.',
   'detail.loading': 'Loading…',
