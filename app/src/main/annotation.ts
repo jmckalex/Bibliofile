@@ -8,8 +8,9 @@
  * only safe storage is to encode the value. Two modes:
  *
  * - **compressed** (default): `lz-string.compressToBase64` → base64 (alphabet
- *   `A–Za-z0-9+/=`, so brace-safe by construction) → wrapped to fixed-width lines,
- *   stored in a private `Bdsk-Annotation` field (kept out of the standard `Annote`
+ *   `A–Za-z0-9+/=`, so brace-safe by construction) on a single line (like the
+ *   `Bdsk-File-N` blobs), stored in a private `Bdsk-Annotation` field (kept out of
+ *   the standard `Annote`
  *   so that field stays clean/portable). Markdown compresses well, so this is
  *   usually *smaller* than the raw text rather than base64's ~33% bloat.
  * - **readable** (opt-in): a restricted percent-escape of only the three unsafe
@@ -30,18 +31,15 @@ export const COMPRESSED_FIELD = 'Bdsk-Annotation';
 
 export type AnnotationStorage = 'compressed' | 'readable';
 
-/** Wrap width for the compressed base64 blob (keeps lines short in the `.bib`). */
-const LINE_WIDTH = 76;
-
-/** lz-string compress → base64 → fixed-width line wrap. */
+/** lz-string compress → base64, on a single line (the serializer emits it inline). */
 export function encodeCompressed(markdown: string): string {
-  const b64 = LZString.compressToBase64(markdown);
-  const lines: string[] = [];
-  for (let i = 0; i < b64.length; i += LINE_WIDTH) lines.push(b64.slice(i, i + LINE_WIDTH));
-  return lines.join('\n');
+  return LZString.compressToBase64(markdown);
 }
 
-/** Strip the line wrapping and decompress. Returns '' if the blob is unreadable. */
+/**
+ * Decompress the base64 blob. Strips any whitespace first, so it tolerates a
+ * parser that reflows the value across lines. Returns '' if it can't be read.
+ */
 export function decodeCompressed(stored: string): string {
   const b64 = stored.replace(/\s+/g, '');
   if (!b64) return '';

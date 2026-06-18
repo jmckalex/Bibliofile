@@ -31,11 +31,11 @@ describe('annotation codec — compressed (lz-string → base64)', () => {
       expect(decodeCompressed(enc)).toBe(md);
     });
   }
-  it('wraps to short lines and tolerates re-wrapped whitespace', () => {
+  it('emits a single line (like Bdsk-File-N) and still decodes if reflowed', () => {
     const enc = encodeCompressed('y'.repeat(4000));
-    for (const line of enc.split('\n')) expect(line.length).toBeLessThanOrEqual(76);
-    // simulate the parser reflowing internal whitespace: still decodes
-    expect(decodeCompressed(`  ${enc.replace(/\n/g, ' \n  ')}\n`)).toBe('y'.repeat(4000));
+    expect(enc).not.toContain('\n'); // one line, no awkward unindented wrapping
+    // even if a parser inserts whitespace/newlines, decode strips it
+    expect(decodeCompressed(`  ${enc.replace(/(.{40})/g, '$1\n  ')}\n`)).toBe('y'.repeat(4000));
   });
   it('decodes empty / garbage safely', () => {
     expect(decodeCompressed('')).toBe('');
