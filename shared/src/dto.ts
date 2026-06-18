@@ -912,6 +912,8 @@ export interface ExportTemplate {
 
 /** Application preferences (persisted; the BibDesk-equivalent options this app has). */
 export interface Settings {
+  /** UI locale: `'system'` (follow the OS) or a code from `LOCALES` (e.g. `'fr'`). */
+  readonly locale: string;
   /** UI theme. `system` follows the OS appearance. */
   readonly theme: 'light' | 'dark' | 'system';
   /** Default CSL style id for the citation preview (from {@link CITATION_STYLES}). */
@@ -998,6 +1000,7 @@ export const BUILTIN_COLUMNS = [
 
 /** Factory-default preferences (mirror the bundled BibDesk defaults). */
 export const DEFAULT_SETTINGS: Settings = {
+  locale: 'system',
   theme: 'system',
   defaultCiteStyle: 'apa',
   // Author-count-aware: Surname:Year (1 person), Surname1/Surname2:Year (2),

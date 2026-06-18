@@ -61,6 +61,7 @@ import { PdfPool } from './pdf-pool.js';
 import { PdfTextCache } from './pdf-cache.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
 import { getSettings, loadSettings, updateSettings } from './settings.js';
+import { t, setMainLocale } from './i18n.js';
 
 // A stable product name so userData (settings, agent key, automation
 // `bridge.json`) lives at a predictable `…/Application Support/BibDesk/` path the
@@ -1096,41 +1097,41 @@ function buildMenu(): void {
 
   // --- File ---
   template.push({
-    label: 'File',
+    label: t('menu.file'),
     submenu: [
       {
-        label: 'New Publication',
+        label: t('menu.file.newPublication'),
         accelerator: 'CmdOrCtrl+N',
         enabled: docEnabled,
         click: () => sendMenuCommand('newPublication'),
       },
       { type: 'separator' },
       {
-        label: 'Open…',
+        label: t('menu.file.open'),
         accelerator: 'CmdOrCtrl+O',
         click: () => void showOpenDialog(),
       },
       { role: 'recentDocuments', submenu: [{ role: 'clearRecentDocuments' }] },
       { type: 'separator' },
       {
-        label: 'Save',
+        label: t('menu.file.save'),
         accelerator: 'CmdOrCtrl+S',
         enabled: docEnabled,
         click: () => sendMenuCommand('save'),
       },
       {
-        label: 'Save As…',
+        label: t('menu.file.saveAs'),
         accelerator: 'Shift+CmdOrCtrl+S',
         enabled: docEnabled,
         click: () => void saveDocumentAs(),
       },
       {
-        label: 'Revert to Saved',
+        label: t('menu.file.revert'),
         enabled: docEnabled,
         click: () => void revertToSaved(),
       },
       {
-        label: isMac ? 'Show in Finder' : 'Show in File Manager',
+        label: isMac ? t('menu.file.showInFinder') : t('menu.file.showInFileManager'),
         enabled: docEnabled,
         click: () => {
           const id = focusedDocId();
@@ -1139,16 +1140,16 @@ function buildMenu(): void {
       },
       { type: 'separator' },
       {
-        label: 'Import',
+        label: t('menu.file.import'),
         submenu: [
           {
-            label: 'From File (BibTeX / RIS / EndNote)…',
+            label: t('menu.file.importFile'),
             accelerator: 'Shift+CmdOrCtrl+I',
             enabled: docEnabled,
             click: () => sendMenuCommand('importFile'),
           },
           {
-            label: 'Search Online (CrossRef / arXiv)…',
+            label: t('menu.file.searchOnline'),
             accelerator: 'Shift+CmdOrCtrl+O',
             enabled: docEnabled,
             click: () => sendMenuCommand('online'),
@@ -1156,26 +1157,26 @@ function buildMenu(): void {
         ],
       },
       {
-        label: 'Export',
+        label: t('menu.file.export'),
         submenu: [
-          { label: 'BibTeX…', enabled: docEnabled, click: () => void exportDocumentAs('bibtex') },
-          { label: 'RIS…', enabled: docEnabled, click: () => void exportDocumentAs('ris') },
-          { label: 'CSV…', enabled: docEnabled, click: () => void exportDocumentAs('csv') },
-          { label: 'HTML…', enabled: docEnabled, click: () => void exportDocumentAs('html') },
-          { label: 'RTF (formatted bibliography)…', enabled: docEnabled, click: () => void exportDocumentAs('rtf') },
+          { label: t('menu.file.exportBibtex'), enabled: docEnabled, click: () => void exportDocumentAs('bibtex') },
+          { label: t('menu.file.exportRis'), enabled: docEnabled, click: () => void exportDocumentAs('ris') },
+          { label: t('menu.file.exportCsv'), enabled: docEnabled, click: () => void exportDocumentAs('csv') },
+          { label: t('menu.file.exportHtml'), enabled: docEnabled, click: () => void exportDocumentAs('html') },
+          { label: t('menu.file.exportRtf'), enabled: docEnabled, click: () => void exportDocumentAs('rtf') },
           { type: 'separator' },
-          { label: 'Selected Entries (BibTeX)…', enabled: docEnabled, click: () => sendMenuCommand('exportSelected') },
+          { label: t('menu.file.exportSelected'), enabled: docEnabled, click: () => sendMenuCommand('exportSelected') },
           ...templateMenuItems(),
         ],
       },
       {
-        label: 'Select Publications from .aux File…',
+        label: t('menu.file.selectFromAux'),
         enabled: docEnabled,
         click: () => sendMenuCommand('selectFromAux'),
       },
       { type: 'separator' },
       {
-        label: 'Print…',
+        label: t('menu.file.print'),
         accelerator: 'CmdOrCtrl+P',
         enabled: docEnabled,
         click: () => sendMenuCommand('print'),
@@ -1189,7 +1190,7 @@ function buildMenu(): void {
 
   // --- Edit ---
   template.push({
-    label: 'Edit',
+    label: t('menu.edit'),
     submenu: [
       {
         label: undo.undoLabel ? `Undo ${undo.undoLabel}` : 'Undo',
@@ -1278,7 +1279,7 @@ function buildMenu(): void {
 
   // --- Publication ---
   template.push({
-    label: 'Publication',
+    label: t('menu.publication'),
     submenu: [
       {
         label: 'New Publication',
@@ -1374,7 +1375,7 @@ function buildMenu(): void {
 
   // --- Tools ---
   template.push({
-    label: 'Tools',
+    label: t('menu.tools'),
     submenu: [
       {
         label: 'Claude Assistant…',
@@ -1387,7 +1388,7 @@ function buildMenu(): void {
 
   // --- View ---
   template.push({
-    label: 'View',
+    label: t('menu.view'),
     submenu: [
       {
         label: 'Toggle Side Panel',
@@ -1436,7 +1437,7 @@ function buildMenu(): void {
 
   template.push({
     role: 'window',
-    label: 'Window',
+    label: t('menu.window'),
     submenu: [
       { role: 'minimize' },
       { role: 'zoom' },
@@ -1776,8 +1777,12 @@ function registerIpc(): void {
         detailsTemplate: s.detailsTemplate,
         bottomPanelTemplate: s.bottomPanelTemplate,
       });
-      // refresh View→Columns checkmarks and the File→Export template list
-      if (req.patch.columns || req.patch.exportTemplates) buildMenu();
+      // Re-localize the menu when the UI language changes.
+      if (req.patch.locale !== undefined) setMainLocale(s.locale);
+      // refresh View→Columns checkmarks, the File→Export template list, or labels
+      if (req.patch.columns || req.patch.exportTemplates || req.patch.locale !== undefined) {
+        buildMenu();
+      }
       return s;
     },
     [IpcChannels.listEntryTypes]: () => {
@@ -2276,6 +2281,7 @@ if (!gotLock) {
     app.setAsDefaultProtocolClient('x-bibdesk');
 
     const settings = loadSettings();
+    setMainLocale(settings.locale); // bind the menu translator before buildMenu()
     store.setEditConfig({
       citeKeyFormat: settings.citeKeyFormat,
       defaultEntryType: settings.defaultEntryType,

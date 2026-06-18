@@ -185,3 +185,14 @@ export { isPublicationRow, isGroupNode } from './guards.js';
 
 // --- Cite-command formatting ------------------------------------------------
 export { formatCiteCommand } from './cite.js';
+
+// --- Localization (i18n) ----------------------------------------------------
+/** Dependency-free i18n: locale list, resolver, and a `makeT` translate factory. */
+export {
+  LOCALES,
+  resolveLocale,
+  makeT,
+  type Catalog,
+  type TFunction,
+  type LocaleCode,
+} from './i18n.js';

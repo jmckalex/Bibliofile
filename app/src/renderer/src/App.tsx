@@ -13,6 +13,7 @@ import { faFilePdf } from '@fortawesome/free-solid-svg-icons';
 import type { MenuCommand } from '@bibdesk/shared';
 import { formatCiteCommand } from '@bibdesk/shared';
 import { getStore, useStore, visibleRows } from './store.js';
+import { useT } from './i18n.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { Splitter, RightPane, BottomPanel } from './Panels.js';
@@ -147,6 +148,7 @@ function Footer() {
 }
 
 function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onOpenOnline: () => void }) {
+  const t = useT();
   const edit = useStore((s) => s.edit);
   const selectedItemId = useStore((s) => s.selectedItemId);
   const defaultType = useStore((s) => s.settings.defaultEntryType);
@@ -155,7 +157,7 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
   return (
     <div className="bd-toolbar">
       <button type="button" className="bd-btn" onClick={() => void edit({ kind: 'addEntry', entryType: defaultType })}>
-        ＋ New
+        {t('toolbar.new')}
       </button>
       <button
         type="button"
@@ -163,7 +165,7 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
         disabled={!selectedItemId}
         onClick={() => selectedItemId && void edit({ kind: 'duplicateEntry', itemId: selectedItemId })}
       >
-        ⧉ Duplicate
+        {t('toolbar.duplicate')}
       </button>
       <button
         type="button"
@@ -171,14 +173,14 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
         disabled={!selectedItemId}
         onClick={() => selectedItemId && void edit({ kind: 'deleteEntry', itemId: selectedItemId })}
       >
-        🗑 Delete
+        {t('toolbar.delete')}
       </button>
       <span className="bd-toolbar__spacer" />
       <button type="button" className="bd-btn" onClick={onOpenOnline}>
-        🌐 Online…
+        {t('toolbar.online')}
       </button>
       <button type="button" className="bd-btn" onClick={onOpenMacros}>
-        @string…
+        {t('toolbar.macros')}
       </button>
     </div>
   );
@@ -393,6 +395,7 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
 const BIBTEX_RE = /@\w+\s*\{/;
 
 export function App() {
+  const t = useT();
   const onDocumentOpened = useStore((s) => s.onDocumentOpened);
   const loadSettings = useStore((s) => s.loadSettings);
   const loadEntryTypes = useStore((s) => s.loadEntryTypes);
@@ -539,7 +542,7 @@ export function App() {
         <Welcome />
         {dragging && (
           <div className="bd-drop-overlay" aria-hidden="true">
-            <div className="bd-drop-overlay__msg">Drop a .bib file to open</div>
+            <div className="bd-drop-overlay__msg">{t('welcome.dropHint')}</div>
           </div>
         )}
       </div>

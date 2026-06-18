@@ -6,7 +6,8 @@
  */
 
 import { useState } from 'react';
-import { CITATION_STYLES, BUILTIN_COLUMNS, type Settings, type EntryTypeInfo, type ExportTemplate } from '@bibdesk/shared';
+import { CITATION_STYLES, BUILTIN_COLUMNS, LOCALES, type Settings, type EntryTypeInfo, type ExportTemplate } from '@bibdesk/shared';
+import { useT } from './i18n.js';
 import { useStore } from './store.js';
 import { PANEL_PRESETS } from './panel-presets.js';
 
@@ -600,6 +601,7 @@ function PanelsSection({
 }
 
 export function Preferences({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const settings = useStore((s) => s.settings);
   const documentId = useStore((s) => s.documentId);
   const entryTypes = useStore((s) => s.entryTypes);
@@ -617,6 +619,22 @@ export function Preferences({ onClose }: { onClose: () => void }) {
         <div className="bd-modal__body bd-prefs">
           <section className="bd-prefs__section">
             <h3>Appearance</h3>
+            <label className="bd-prefs__row">
+              <span>{t('prefs.language')}</span>
+              <select
+                className="bd-input bd-select"
+                value={settings.locale}
+                onChange={(e) => void save({ locale: e.target.value })}
+              >
+                <option value="system">{t('prefs.language.system')}</option>
+                {LOCALES.map((l) => (
+                  <option key={l.code} value={l.code}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="bd-prefs__hint">{t('prefs.language.hint')}</p>
             <label className="bd-prefs__row">
               <span>Theme</span>
               <select
