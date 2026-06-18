@@ -29,8 +29,12 @@ function addonCandidates(): string[] {
   ];
 }
 
-/** Load the native scripting addon + bind it to the live store. Safe to call once. */
-export function initScripting(store: DocumentStore): void {
+/**
+ * Load the native scripting addon + bind it to the live store. Safe to call once.
+ * `onMutate(documentId)` is invoked after an AppleScript write so the host can
+ * refresh open windows (the AppleScript path bypasses the IPC broadcast).
+ */
+export function initScripting(store: DocumentStore, onMutate?: (documentId: string) => void): void {
   if (process.platform !== 'darwin') return;
   try {
     const addonPath = addonCandidates().find((p) => existsSync(p));
@@ -40,7 +44,7 @@ export function initScripting(store: DocumentStore): void {
     }
     const require = createRequire(import.meta.url);
     const addon = require(addonPath) as ScriptingAddon;
-    const service = new ScriptingService(store, app.getName(), app.getVersion());
+    const service = new ScriptingService(store, app.getName(), app.getVersion(), onMutate);
     addon.setDispatch((json) => service.dispatch(json));
     console.log(`[scripting] AppleScript bridge ready (${addonPath})`);
   } catch (e) {

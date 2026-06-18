@@ -2290,7 +2290,12 @@ if (!gotLock) {
     registerIpc();
     buildMenu();
     startBridge();
-    initScripting(store); // macOS AppleScript dictionary (no-op elsewhere / if unbuilt)
+    // macOS AppleScript dictionary (no-op elsewhere / if unbuilt). A scripted
+    // write refreshes open windows + menus, like an IPC edit would.
+    initScripting(store, (documentId) => {
+      broadcastDocumentChanged(documentId);
+      buildMenu();
+    });
     const first = createWindow();
 
     // Auto-open from BIBDESK_OPEN / CLI, or honor a path buffered by open-file —

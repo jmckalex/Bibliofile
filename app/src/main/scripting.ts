@@ -38,11 +38,25 @@ export type ScriptRequest =
 
 export type ScriptResponse = { ok: true; value: ScriptValue } | { ok: false; error: string };
 
+/** Writable publication properties → the BibTeX field they map to. */
+const PUBLICATION_WRITABLE_FIELDS: Record<string, string> = {
+  title: FieldNames.Title,
+  abstract: 'Abstract',
+  keywords: 'Keywords',
+  'publication year': FieldNames.Year,
+  'publication month': 'Month',
+  rating: 'Rating',
+  note: ANNOTATION_FIELD,
+};
+
 export class ScriptingService {
   constructor(
     private readonly store: DocumentStore,
     private readonly appName = 'Bibliophile',
     private readonly appVersion = '0.0.0',
+    /** Called with the documentId after a successful mutation, so the host can
+     *  notify open windows (the AppleScript path bypasses the IPC broadcast). */
+    private readonly onMutate?: (documentId: string) => void,
   ) {}
 
   /** Single JSON entry point for the native bridge. Never throws — errors are
@@ -147,42 +161,33 @@ export class ScriptingService {
   setProperty(ref: ElementRef, name: string, value: ScriptValue): void {
     const prop = name.toLowerCase();
     const text = value == null ? '' : String(value);
+    let documentId: string;
+
     if (ref.kind === 'publication') {
-      const { documentId, itemId } = ref;
-      const setField = (field: string): void => {
+      documentId = ref.documentId;
+      const { itemId } = ref;
+      if (prop === 'cite key') {
+        this.store.applyEdit({ documentId, command: { kind: 'setCiteKey', itemId, citeKey: text } });
+      } else if (prop === 'type') {
+        this.store.applyEdit({ documentId, command: { kind: 'setType', itemId, entryType: text } });
+      } else {
+        const field = PUBLICATION_WRITABLE_FIELDS[prop];
+        if (!field) throw new ScriptingError(`Can't set ${name} of publication`);
         this.store.applyEdit({ documentId, command: { kind: 'setField', itemId, field, value: text } });
-      };
-      switch (prop) {
-        case 'cite key':
-          this.store.applyEdit({ documentId, command: { kind: 'setCiteKey', itemId, citeKey: text } });
-          return;
-        case 'type':
-          this.store.applyEdit({ documentId, command: { kind: 'setType', itemId, entryType: text } });
-          return;
-        case 'title':
-          return setField(FieldNames.Title);
-        case 'abstract':
-          return setField('Abstract');
-        case 'keywords':
-          return setField('Keywords');
-        case 'publication year':
-          return setField(FieldNames.Year);
-        case 'publication month':
-          return setField('Month');
-        case 'rating':
-          return setField('Rating');
-        case 'note':
-          return setField(ANNOTATION_FIELD);
       }
-    }
-    if (ref.kind === 'field') {
+    } else if (ref.kind === 'field') {
+      documentId = ref.documentId;
       this.store.applyEdit({
-        documentId: ref.documentId,
+        documentId,
         command: { kind: 'setField', itemId: ref.itemId, field: ref.name, value: text },
       });
-      return;
+    } else {
+      throw new ScriptingError(`Can't set ${name} of ${ref.kind}`);
     }
-    throw new ScriptingError(`Can't set ${name} of ${ref.kind}`);
+
+    // The AppleScript path mutates the main-process model directly, so tell the
+    // host to refresh open windows (the IPC edit path does this automatically).
+    this.onMutate?.(documentId);
   }
 
   // --- publication property map ----------------------------------------------

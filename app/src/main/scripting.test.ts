@@ -91,6 +91,17 @@ describe('ScriptingService — writes (undoable)', () => {
     store.undo(documentId); // undo the cite-key rename
     expect(svc.getProperty(pub('smith2020'), 'cite key')).toBe('smith2020');
   });
+
+  it('fires onMutate(documentId) after a write (so the host can refresh windows)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title={A}}', '/tmp/m.bib');
+    const calls: string[] = [];
+    const svc = new ScriptingService(store, 'B', '1', (id) => calls.push(id));
+    const p = svc.elements({ kind: 'document', documentId }, 'publications')[0]!;
+    svc.setProperty(p, 'cite key', 'Renamed');
+    svc.setProperty(p, 'title', 'New');
+    expect(calls).toEqual([documentId, documentId]);
+  });
 });
 
 describe('ScriptingService — JSON dispatch (native transport)', () => {
