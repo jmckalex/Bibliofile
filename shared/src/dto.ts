@@ -948,6 +948,10 @@ export interface Settings {
   readonly exportTemplates: readonly ExportTemplate[];
   /** Resizable/hidable panel layout (persisted across sessions). */
   readonly layout: LayoutSettings;
+  /** Override Handlebars template for the detail pane (absent/empty = built-in default). */
+  readonly detailsTemplate?: string;
+  /** Override Handlebars template for the bottom panel (absent/empty = built-in default). */
+  readonly bottomPanelTemplate?: string;
 }
 
 /** Persisted window-layout state: the resizable/hidable side and bottom panels. */
@@ -1088,6 +1092,23 @@ export interface PreviewTemplateRequest {
 /** Result of a template preview render: the output text, or a compile/render error. */
 export interface PreviewTemplateResponse {
   readonly text?: string;
+  readonly error?: string;
+}
+
+/** Live render of a panel (detail/bottom) template body against a sample item. */
+export interface PreviewPanelRequest {
+  readonly documentId: DocumentId;
+  /** Item to render against; omitted ⇒ the first item in the library. */
+  readonly itemId?: ItemId;
+  /** Which panel — picks the built-in default to preview when `body` is empty. */
+  readonly which: 'details' | 'bottom';
+  /** The template body to preview; empty ⇒ preview the built-in default. */
+  readonly body: string;
+}
+
+/** Result of a panel preview render: the output HTML, or a compile/render error. */
+export interface PreviewPanelResponse {
+  readonly html?: string;
   readonly error?: string;
 }
 

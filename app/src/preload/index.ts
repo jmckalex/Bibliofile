@@ -58,6 +58,8 @@ import {
   type SelectIncompleteResponse,
   type PreviewTemplateRequest,
   type PreviewTemplateResponse,
+  type PreviewPanelRequest,
+  type PreviewPanelResponse,
   type ExportTemplateRequest,
   type ExportTemplateResponse,
   type ExportTemplateMenuRequest,
@@ -177,6 +179,9 @@ const api: BibDeskApi = {
   },
   previewTemplate(request: PreviewTemplateRequest): Promise<PreviewTemplateResponse> {
     return ipcRenderer.invoke(IpcChannels.previewTemplate, request);
+  },
+  previewPanel(request: PreviewPanelRequest): Promise<PreviewPanelResponse> {
+    return ipcRenderer.invoke(IpcChannels.previewPanel, request);
   },
   exportTemplate(request: ExportTemplateRequest): Promise<ExportTemplateResponse> {
     return ipcRenderer.invoke(IpcChannels.exportTemplate, request);

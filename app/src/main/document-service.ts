@@ -65,7 +65,13 @@ import {
   COMPRESSED_FIELD,
   type AnnotationStorage,
 } from './annotation.js';
-import { renderDetailsPanel, renderBottomPanel } from './panel.js';
+import {
+  renderDetailsPanel,
+  renderBottomPanel,
+  renderPanelPreview,
+  DEFAULT_DETAILS_TEMPLATE,
+  DEFAULT_BOTTOM_TEMPLATE,
+} from './panel.js';
 import { exportRis, exportCsv, exportHtml, renderTemplate } from './export.js';
 import { parseRis, type RisRecord } from './ris-import.js';
 import { parseEndnote } from './endnote.js';
@@ -94,6 +100,8 @@ import type {
   GroupNode,
   GroupKind,
   GetItemDetailRequest,
+  PreviewPanelRequest,
+  PreviewPanelResponse,
   ItemDetail,
   ItemField,
   FieldKind,
@@ -965,6 +973,8 @@ export class DocumentStore {
     autoFileFormat: '%a1/%Y%u0',
     annotationStorage: 'compressed' as AnnotationStorage,
     defaultCiteStyle: 'apa',
+    detailsTemplate: undefined as string | undefined,
+    bottomPanelTemplate: undefined as string | undefined,
   };
 
   /** Apply preference-driven editing defaults. */
@@ -975,6 +985,8 @@ export class DocumentStore {
     autoFileFormat?: string;
     annotationStorage?: AnnotationStorage;
     defaultCiteStyle?: string;
+    detailsTemplate?: string;
+    bottomPanelTemplate?: string;
   }): void {
     if (c.citeKeyFormat) this.editConfig.citeKeyFormat = c.citeKeyFormat;
     if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
@@ -982,6 +994,9 @@ export class DocumentStore {
     if (c.autoFileFormat) this.editConfig.autoFileFormat = c.autoFileFormat;
     if (c.annotationStorage) this.editConfig.annotationStorage = c.annotationStorage;
     if (c.defaultCiteStyle) this.editConfig.defaultCiteStyle = c.defaultCiteStyle;
+    // Panel templates: '' or absent ⇒ use the built-in default (clear the override).
+    if ('detailsTemplate' in c) this.editConfig.detailsTemplate = c.detailsTemplate || undefined;
+    if ('bottomPanelTemplate' in c) this.editConfig.bottomPanelTemplate = c.bottomPanelTemplate || undefined;
   }
 
   // --- Undo / redo (snapshot-based) ------------------------------------------
@@ -1581,6 +1596,17 @@ export class DocumentStore {
     const item = doc.itemsById.get(req.itemId);
     if (!item) throw new Error(`Unknown itemId: ${req.itemId}`);
     return this.detailFor(doc, item);
+  }
+
+  /** Live-render a panel template body against a sample item (Preferences preview). */
+  previewPanel(req: PreviewPanelRequest): PreviewPanelResponse {
+    const doc = this.requireDoc(req.documentId);
+    const item = req.itemId ? doc.itemsById.get(req.itemId) : doc.library.items[0];
+    if (!item) return { error: 'No publications to preview against — open a library with entries.' };
+    // Empty body ⇒ preview the built-in default for that panel.
+    const body =
+      req.body || (req.which === 'bottom' ? DEFAULT_BOTTOM_TEMPLATE : DEFAULT_DETAILS_TEMPLATE);
+    return renderPanelPreview(this.detailFor(doc, item), doc.documentId, this.editConfig.defaultCiteStyle, body);
   }
 
   /**
@@ -2641,8 +2667,8 @@ export class DocumentStore {
     const citeStyle = this.editConfig.defaultCiteStyle;
     return {
       ...detail,
-      detailsPanelHtml: renderDetailsPanel(detail, doc.documentId, citeStyle),
-      bottomPanelHtml: renderBottomPanel(detail, doc.documentId, citeStyle),
+      detailsPanelHtml: renderDetailsPanel(detail, doc.documentId, citeStyle, this.editConfig.detailsTemplate),
+      bottomPanelHtml: renderBottomPanel(detail, doc.documentId, citeStyle, this.editConfig.bottomPanelTemplate),
     };
   }
 

@@ -74,6 +74,8 @@ export const IpcChannels = {
   previewTemplate: 'bibdesk:previewTemplate',
   /** Export a named template to a file (save dialog in main); optional itemIds scope it. */
   exportTemplate: 'bibdesk:exportTemplate',
+  /** Live-render a panel (detail/bottom) template body against a sample item. */
+  previewPanel: 'bibdesk:previewPanel',
   /** Read an attachment's bytes (for in-app PDF preview). */
   readAttachment: 'bibdesk:readAttachment',
   /** Serialize a document (or a subset of items) to text in a given format. */

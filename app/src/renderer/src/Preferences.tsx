@@ -434,6 +434,148 @@ function TemplatesSection({
   );
 }
 
+/** One panel-template editor (detail or bottom) with a live preview. */
+function PanelTemplateEditor({
+  which,
+  label,
+  field,
+  value,
+  documentId,
+  save,
+}: {
+  which: 'details' | 'bottom';
+  label: string;
+  field: 'detailsTemplate' | 'bottomPanelTemplate';
+  value: string;
+  documentId: string | undefined;
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const [body, setBody] = useState(value);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<'text' | 'html'>('html');
+
+  const runPreview = async (): Promise<void> => {
+    if (!documentId) {
+      setError('Open a library to preview.');
+      setPreview(null);
+      return;
+    }
+    const res = await window.bibdesk?.previewPanel({ documentId, which, body });
+    if (!res) return;
+    if (res.error) {
+      setError(res.error);
+      setPreview(null);
+    } else {
+      setPreview(res.html ?? '');
+      setError(null);
+    }
+  };
+
+  return (
+    <div className="bd-ctype">
+      <div className="bd-ctype__head">
+        <strong>{label}</strong>
+        <span className="bd-toolbar__spacer" />
+        <button
+          type="button"
+          className="bd-btn bd-btn--small"
+          title="Reset to the built-in default"
+          onClick={() => {
+            setBody('');
+            void save({ [field]: undefined } as Partial<Settings>);
+          }}
+        >
+          Reset
+        </button>
+      </div>
+      <textarea
+        className="bd-input bd-input--area bd-tmpl__body"
+        value={body}
+        rows={6}
+        spellCheck={false}
+        placeholder="Leave empty to use the built-in default."
+        onChange={(e) => setBody(e.target.value)}
+        onBlur={() => {
+          if (body !== value) void save({ [field]: body } as Partial<Settings>);
+        }}
+      />
+      <div className="bd-tmpl__actions">
+        <button type="button" className="bd-btn bd-btn--small" onClick={() => void runPreview()}>
+          Preview
+        </button>
+        {preview !== null && !error && (
+          <div className="bd-tmpl__view" role="group" aria-label="Preview mode">
+            <button
+              type="button"
+              className={'bd-seg' + (mode === 'text' ? ' bd-seg--on' : '')}
+              onClick={() => setMode('text')}
+            >
+              Text
+            </button>
+            <button
+              type="button"
+              className={'bd-seg' + (mode === 'html' ? ' bd-seg--on' : '')}
+              onClick={() => setMode('html')}
+            >
+              HTML
+            </button>
+          </div>
+        )}
+      </div>
+      {error && <pre className="bd-tmpl__preview bd-tmpl__preview--err">{error}</pre>}
+      {preview !== null &&
+        !error &&
+        (mode === 'text' ? (
+          <pre className="bd-tmpl__preview">{preview || '(empty)'}</pre>
+        ) : (
+          <iframe className="bd-tmpl__preview bd-tmpl__preview--html" title="Panel preview" sandbox="" srcDoc={preview} />
+        ))}
+    </div>
+  );
+}
+
+/** Edit the (optional) detail-pane and bottom-panel Handlebars templates. */
+function PanelsSection({
+  settings,
+  documentId,
+  save,
+}: {
+  settings: Settings;
+  documentId: string | undefined;
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  return (
+    <section className="bd-prefs__section">
+      <h3>Panels</h3>
+      <p className="bd-prefs__hint">
+        Customize the right detail pane and the bottom panel with Handlebars. Per-item context:{' '}
+        <code>citeKey</code>, <code>type</code>, <code>fields</code> (<code>name</code>/<code>value</code>/
+        <code>isInherited</code>), <code>{'{{{notesHtml}}}'}</code>, <code>attachments</code> /{' '}
+        <code>links</code> (<code>displayName</code>/<code>url</code>), <code>{'{{{previewHtml}}}'}</code>.
+        Live widgets: <code>{'<bd-journal-cover>'}</code>, <code>{'<bd-citation>'}</code> (these don’t
+        render in the sandboxed HTML preview, but do in the live panel). Leave empty for the default.
+      </p>
+      <PanelTemplateEditor
+        which="details"
+        label="Detail pane"
+        field="detailsTemplate"
+        value={settings.detailsTemplate ?? ''}
+        documentId={documentId}
+        save={save}
+      />
+      <PanelTemplateEditor
+        which="bottom"
+        label="Bottom panel"
+        field="bottomPanelTemplate"
+        value={settings.bottomPanelTemplate ?? ''}
+        documentId={documentId}
+        save={save}
+      />
+    </section>
+  );
+}
+
 export function Preferences({ onClose }: { onClose: () => void }) {
   const settings = useStore((s) => s.settings);
   const documentId = useStore((s) => s.documentId);
@@ -647,6 +789,8 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           <EntryTypesSection customTypes={settings.customTypes} entryTypes={entryTypes} save={save} />
 
           <TemplatesSection templates={settings.exportTemplates} documentId={documentId} save={save} />
+
+          <PanelsSection settings={settings} documentId={documentId} save={save} />
 
           <section className="bd-prefs__section">
             <h3>Field types</h3>

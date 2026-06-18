@@ -40,6 +40,8 @@ import type {
   SelectIncompleteResponse,
   PreviewTemplateRequest,
   PreviewTemplateResponse,
+  PreviewPanelRequest,
+  PreviewPanelResponse,
   ExportTemplateRequest,
   ExportTemplateResponse,
   ExportTemplateMenuRequest,
@@ -136,6 +138,7 @@ export interface IpcContract {
   [IpcChannels.exportFolderTree]: IpcEntry<ExportFolderTreeRequest, ExportFolderTreeResponse>;
   [IpcChannels.selectIncomplete]: IpcEntry<SelectIncompleteRequest, SelectIncompleteResponse>;
   [IpcChannels.previewTemplate]: IpcEntry<PreviewTemplateRequest, PreviewTemplateResponse>;
+  [IpcChannels.previewPanel]: IpcEntry<PreviewPanelRequest, PreviewPanelResponse>;
   [IpcChannels.exportTemplate]: IpcEntry<ExportTemplateRequest, ExportTemplateResponse>;
   [IpcChannels.readAttachment]: IpcEntry<ReadAttachmentRequest, ReadAttachmentResponse>;
   [IpcChannels.exportText]: IpcEntry<ExportTextRequest, ExportTextResponse>;

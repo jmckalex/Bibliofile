@@ -122,6 +122,20 @@ export function renderBottomPanel(
   return renderPanel(detail, documentId, citeStyle, templateBody || DEFAULT_BOTTOM_TEMPLATE);
 }
 
+/** Render a panel body for the Preferences live preview — returns the error text. */
+export function renderPanelPreview(
+  detail: ItemDetail,
+  documentId: string,
+  citeStyle: string,
+  body: string,
+): { html?: string; error?: string } {
+  try {
+    return { html: compile(body)(buildDetailContext(detail, documentId, citeStyle)) };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
+}
+
 /** Compile + render a panel body against the item context; undefined on error. */
 function renderPanel(
   detail: ItemDetail,

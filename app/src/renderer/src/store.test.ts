@@ -120,6 +120,7 @@ function makeFakeApi() {
     exportFolderTree: async () => ({ canceled: true, copied: 0, errors: [] }),
     selectIncomplete: async () => ({ itemIds: [] }),
     previewTemplate: async () => ({ text: '' }),
+    previewPanel: async () => ({ html: '' }),
     exportTemplate: async (r) => {
       calls.exportTemplate.push({ templateName: r.templateName, itemIds: r.itemIds });
       return { ok: true };

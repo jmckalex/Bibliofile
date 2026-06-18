@@ -1724,6 +1724,8 @@ function registerIpc(): void {
         autoFileFormat: s.autoFileFormat,
         annotationStorage: s.annotationStorage,
         defaultCiteStyle: s.defaultCiteStyle,
+        detailsTemplate: s.detailsTemplate,
+        bottomPanelTemplate: s.bottomPanelTemplate,
       });
       // refresh View→Columns checkmarks and the File→Export template list
       if (req.patch.columns || req.patch.exportTemplates) buildMenu();
@@ -1857,6 +1859,7 @@ function registerIpc(): void {
         return { error: e instanceof Error ? e.message : String(e) };
       }
     },
+    [IpcChannels.previewPanel]: (req) => store.previewPanel(req),
     [IpcChannels.exportTemplate]: async (req) => {
       const tmpl = getSettings().exportTemplates.find((t) => t.name === req.templateName);
       if (!tmpl) return { error: `No export template named “${req.templateName}”.` };
@@ -2095,6 +2098,9 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.previewTemplate, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.previewTemplate](req),
   );
+  ipcMain.handle(IpcChannels.previewPanel, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.previewPanel](req),
+  );
   ipcMain.handle(IpcChannels.exportTemplate, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.exportTemplate](req),
   );
@@ -2226,6 +2232,8 @@ if (!gotLock) {
       autoFileFormat: settings.autoFileFormat,
       annotationStorage: settings.annotationStorage,
       defaultCiteStyle: settings.defaultCiteStyle,
+      detailsTemplate: settings.detailsTemplate,
+      bottomPanelTemplate: settings.bottomPanelTemplate,
     });
     registerIpc();
     buildMenu();

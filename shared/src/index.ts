@@ -111,6 +111,8 @@ export {
   type ExportTemplate,
   type PreviewTemplateRequest,
   type PreviewTemplateResponse,
+  type PreviewPanelRequest,
+  type PreviewPanelResponse,
   type TemplateExportScope,
   type ExportTemplateRequest,
   type ExportTemplateResponse,

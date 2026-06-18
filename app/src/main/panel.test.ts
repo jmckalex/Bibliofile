@@ -6,7 +6,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import type { ItemDetail } from '@bibdesk/shared';
-import { renderDetailsPanel, renderBottomPanel } from './panel.js';
+import { renderDetailsPanel, renderBottomPanel, renderPanelPreview } from './panel.js';
 
 function detail(over: Partial<ItemDetail> = {}): ItemDetail {
   return {
@@ -96,5 +96,19 @@ describe('renderBottomPanel — annotation reader', () => {
 
   it('shows an empty state when the entry has no annotation', () => {
     expect(renderBottomPanel(detail(), 'd', 'apa')!).toContain('No annotation for this entry.');
+  });
+});
+
+describe('custom template overrides + preview', () => {
+  it('renderDetailsPanel / renderBottomPanel honor a custom body', () => {
+    expect(renderDetailsPanel(detail(), 'd', 'apa', 'Custom: {{type}}')).toBe('Custom: article');
+    expect(renderBottomPanel(detail(), 'd', 'apa', 'B: {{citeKey}}')).toBe('B: smith2020');
+  });
+
+  it('renderPanelPreview returns html for a valid body, an error for a malformed one', () => {
+    expect(renderPanelPreview(detail(), 'd', 'apa', 'Key: {{citeKey}}')).toEqual({ html: 'Key: smith2020' });
+    const bad = renderPanelPreview(detail(), 'd', 'apa', '{{#if}}oops');
+    expect(bad.error).toBeTruthy();
+    expect(bad.html).toBeUndefined();
   });
 });

@@ -41,6 +41,8 @@ import type {
   SelectIncompleteResponse,
   PreviewTemplateRequest,
   PreviewTemplateResponse,
+  PreviewPanelRequest,
+  PreviewPanelResponse,
   ExportTemplateRequest,
   ExportTemplateResponse,
   ExportTemplateMenuRequest,
@@ -181,6 +183,9 @@ export interface BibDeskApi {
 
   /** Live-render a Handlebars export-template body for the Preferences preview. */
   previewTemplate(request: PreviewTemplateRequest): Promise<PreviewTemplateResponse>;
+
+  /** Live-render a panel (detail/bottom) template body against a sample item. */
+  previewPanel(request: PreviewPanelRequest): Promise<PreviewPanelResponse>;
 
   /** Export a named template to a file (save dialog in main); `itemIds` scopes it. */
   exportTemplate(request: ExportTemplateRequest): Promise<ExportTemplateResponse>;
