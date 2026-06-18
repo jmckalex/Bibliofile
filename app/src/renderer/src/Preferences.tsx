@@ -33,7 +33,11 @@ function ColumnsSection({
   columns: readonly string[];
   save: (patch: Partial<Settings>) => Promise<void>;
 }) {
+  const t = useT();
   const [field, setField] = useState('');
+  // Builtin columns get a translated label (column.*); a raw BibTeX field name
+  // (e.g. "Journal") is shown verbatim.
+  const colLabel = (k: string): string => (k in COLUMN_LABELS ? t(`column.${k}`) : k);
 
   const set = (next: string[]): void => void save({ columns: next });
   const remove = (key: string): void => set(columns.filter((c) => c !== key));
@@ -46,13 +50,13 @@ function ColumnsSection({
 
   return (
     <section className="bd-prefs__section">
-      <h3>Columns</h3>
+      <h3>{t('prefs.columns')}</h3>
       <ul className="bd-cols">
         {columns.map((key) => (
           <li className="bd-cols__row" key={key}>
-            <span className="bd-cols__name">{COLUMN_LABELS[key] ?? key}</span>
+            <span className="bd-cols__name">{colLabel(key)}</span>
             <span className="bd-cols__btns">
-              <button type="button" className="bd-field__del" onClick={() => remove(key)} title="Remove column">
+              <button type="button" className="bd-field__del" onClick={() => remove(key)} title={t('prefs.removeColumn')}>
                 ×
               </button>
             </span>
@@ -68,17 +72,17 @@ function ColumnsSection({
               if (e.target.value) add(e.target.value);
             }}
           >
-            <option value="">Add column…</option>
+            <option value="">{t('prefs.addColumn')}</option>
             {availableBuiltins.map((c) => (
               <option key={c} value={c}>
-                {COLUMN_LABELS[c] ?? c}
+                {colLabel(c)}
               </option>
             ))}
           </select>
         )}
         <input
           className="bd-input"
-          placeholder="Add a field (e.g. Journal)"
+          placeholder={t('prefs.addFieldColumn')}
           value={field}
           onChange={(e) => setField(e.target.value)}
           onKeyDown={(e) => {
@@ -104,14 +108,14 @@ const ENTRY_TYPES = [
   'unpublished', 'booklet',
 ];
 
-const FIELD_CATEGORIES: { key: keyof Settings['fieldTypes']; label: string }[] = [
-  { key: 'person', label: 'Person fields' },
-  { key: 'remoteURL', label: 'Remote URL fields' },
-  { key: 'localFile', label: 'Local file fields' },
-  { key: 'rating', label: 'Rating fields' },
-  { key: 'boolean', label: 'Boolean fields' },
-  { key: 'triState', label: 'Tri-state fields' },
-  { key: 'citation', label: 'Citation fields' },
+const FIELD_CATEGORIES: { key: keyof Settings['fieldTypes']; labelKey: string }[] = [
+  { key: 'person', labelKey: 'prefs.fieldType.person' },
+  { key: 'remoteURL', labelKey: 'prefs.fieldType.remoteURL' },
+  { key: 'localFile', labelKey: 'prefs.fieldType.localFile' },
+  { key: 'rating', labelKey: 'prefs.fieldType.rating' },
+  { key: 'boolean', labelKey: 'prefs.fieldType.boolean' },
+  { key: 'triState', labelKey: 'prefs.fieldType.triState' },
+  { key: 'citation', labelKey: 'prefs.fieldType.citation' },
 ];
 
 /**
@@ -128,8 +132,9 @@ function EntryTypesSection({
   entryTypes: readonly EntryTypeInfo[];
   save: (patch: Partial<Settings>) => Promise<void>;
 }) {
+  const t = useT();
   const [newType, setNewType] = useState('');
-  const standardNames = new Set(entryTypes.filter((t) => t.standard).map((t) => t.name.toLowerCase()));
+  const standardNames = new Set(entryTypes.filter((et) => et.standard).map((et) => et.name.toLowerCase()));
   const customNames = Object.keys(customTypes);
   const taken = (lower: string): boolean =>
     standardNames.has(lower) || customNames.some((n) => n.toLowerCase() === lower);
@@ -169,19 +174,19 @@ function EntryTypesSection({
     setMap(next);
   };
 
-  const standardTypes = entryTypes.filter((t) => t.standard);
+  const standardTypes = entryTypes.filter((et) => et.standard);
 
   return (
     <section className="bd-prefs__section">
-      <h3>Entry types</h3>
+      <h3>{t('prefs.entryTypes')}</h3>
       <p className="bd-prefs__hint">
         Define your own BibTeX entry types and the fields the editor offers for them. Required and
         optional fields are comma-separated; the <strong>order you type them</strong> is the order
         shown. The 15 standard types are built in (listed below for reference).
       </p>
-      {customNames.length === 0 && <p className="bd-prefs__hint">No custom types yet.</p>}
+      {customNames.length === 0 && <p className="bd-prefs__hint">{t('prefs.noCustomTypes')}</p>}
       {customNames.map((name) => {
-        const t = customTypes[name]!;
+        const ct = customTypes[name]!;
         return (
           <div className="bd-ctype" key={name}>
             <div className="bd-ctype__head">
@@ -189,28 +194,28 @@ function EntryTypesSection({
                 className="bd-input bd-input--mono"
                 key={`name:${name}`}
                 defaultValue={name}
-                aria-label="Type name"
+                aria-label={t('prefs.typeName')}
                 onBlur={(e) => renameType(name, e.target.value)}
               />
-              <button type="button" className="bd-field__del" title="Delete type" onClick={() => removeType(name)}>
+              <button type="button" className="bd-field__del" title={t('prefs.deleteType')} onClick={() => removeType(name)}>
                 ×
               </button>
             </div>
             <label className="bd-prefs__row">
-              <span>Required</span>
+              <span>{t('prefs.required')}</span>
               <input
                 className="bd-input"
-                key={`req:${name}:${t.required.join(',')}`}
-                defaultValue={t.required.join(', ')}
+                key={`req:${name}:${ct.required.join(',')}`}
+                defaultValue={ct.required.join(', ')}
                 onBlur={(e) => setFields(name, 'required', e.target.value)}
               />
             </label>
             <label className="bd-prefs__row">
-              <span>Optional</span>
+              <span>{t('prefs.optional')}</span>
               <input
                 className="bd-input"
-                key={`opt:${name}:${t.optional.join(',')}`}
-                defaultValue={t.optional.join(', ')}
+                key={`opt:${name}:${ct.optional.join(',')}`}
+                defaultValue={ct.optional.join(', ')}
                 onBlur={(e) => setFields(name, 'optional', e.target.value)}
               />
             </label>
@@ -220,7 +225,7 @@ function EntryTypesSection({
       <div className="bd-cols__add">
         <input
           className="bd-input"
-          placeholder="New type name (e.g. dataset)"
+          placeholder={t('prefs.newTypePlaceholder')}
           value={newType}
           onChange={(e) => setNewType(e.target.value)}
           onKeyDown={(e) => {
@@ -233,8 +238,8 @@ function EntryTypesSection({
         <button
           type="button"
           className="bd-circbtn bd-circbtn--add"
-          title="Add entry type"
-          aria-label="Add entry type"
+          title={t('prefs.addEntryType')}
+          aria-label={t('prefs.addEntryType')}
           onClick={() => {
             addType(newType);
             setNewType('');
@@ -244,16 +249,16 @@ function EntryTypesSection({
         </button>
       </div>
       <details className="bd-ctype__std">
-        <summary>Standard types (read-only)</summary>
+        <summary>{t('prefs.standardTypes')}</summary>
         <ul className="bd-ctype__stdlist">
-          {standardTypes.map((t) => (
-            <li key={t.name}>
-              <strong>{t.name}</strong>
+          {standardTypes.map((et) => (
+            <li key={et.name}>
+              <strong>{et.name}</strong>
               <div>
-                <em>required:</em> {t.required.join(', ') || '—'}
+                <em>{t('prefs.requiredLabel')}</em> {et.required.join(', ') || '—'}
               </div>
               <div>
-                <em>optional:</em> {t.optional.join(', ') || '—'}
+                <em>{t('prefs.optionalLabel')}</em> {et.optional.join(', ') || '—'}
               </div>
             </li>
           ))}
@@ -280,6 +285,7 @@ function TemplateRow({
   onChange: (patch: Partial<ExportTemplate>) => void;
   onRemove: () => void;
 }) {
+  const t = useT();
   const [body, setBody] = useState(template.body);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -289,7 +295,7 @@ function TemplateRow({
 
   const runPreview = async (): Promise<void> => {
     if (!documentId) {
-      setError('Open a library to preview.');
+      setError(t('prefs.openLibraryToPreview'));
       setPreview(null);
       return;
     }
@@ -310,17 +316,17 @@ function TemplateRow({
         <input
           className="bd-input"
           defaultValue={template.name}
-          aria-label="Template name"
+          aria-label={t('prefs.templateName')}
           onBlur={(e) => onChange({ name: e.target.value.trim() || template.name })}
         />
         <input
           className="bd-input bd-tmpl__ext"
           defaultValue={template.extension}
-          aria-label="File extension"
-          title="Output file extension"
+          aria-label={t('prefs.fileExtension')}
+          title={t('prefs.outputExtTitle')}
           onBlur={(e) => onChange({ extension: e.target.value.replace(/^\./, '').trim() || 'txt' })}
         />
-        <button type="button" className="bd-field__del" title="Delete template" onClick={onRemove}>
+        <button type="button" className="bd-field__del" title={t('prefs.deleteTemplate')} onClick={onRemove}>
           ×
         </button>
       </div>
@@ -336,17 +342,17 @@ function TemplateRow({
       />
       <div className="bd-tmpl__actions">
         <button type="button" className="bd-btn bd-btn--small" onClick={() => void runPreview()}>
-          Preview
+          {t('prefs.preview')}
         </button>
         {preview !== null && !error && (
-          <div className="bd-tmpl__view" role="group" aria-label="Preview mode">
+          <div className="bd-tmpl__view" role="group" aria-label={t('prefs.previewMode')}>
             <button
               type="button"
               className={'bd-seg' + (mode === 'text' ? ' bd-seg--on' : '')}
               aria-pressed={mode === 'text'}
               onClick={() => setMode('text')}
             >
-              Text
+              {t('prefs.text')}
             </button>
             <button
               type="button"
@@ -354,7 +360,7 @@ function TemplateRow({
               aria-pressed={mode === 'html'}
               onClick={() => setMode('html')}
             >
-              HTML
+              {t('prefs.html')}
             </button>
           </div>
         )}
@@ -363,11 +369,11 @@ function TemplateRow({
       {preview !== null && !error && (
         <>
           {mode === 'text' ? (
-            <pre className="bd-tmpl__preview">{preview || '(empty)'}</pre>
+            <pre className="bd-tmpl__preview">{preview || t('prefs.empty')}</pre>
           ) : (
             <iframe
               className="bd-tmpl__preview bd-tmpl__preview--html"
-              title="HTML preview"
+              title={t('prefs.htmlPreview')}
               sandbox=""
               srcDoc={preview}
             />
@@ -388,14 +394,15 @@ function TemplatesSection({
   documentId: string | undefined;
   save: (patch: Partial<Settings>) => Promise<void>;
 }) {
+  const t = useT();
   const setAll = (next: ExportTemplate[]): void => void save({ exportTemplates: next });
   const update = (i: number, patch: Partial<ExportTemplate>): void => {
-    if (patch.name !== undefined && templates.some((t, j) => j !== i && t.name === patch.name)) return;
-    setAll(templates.map((t, j) => (j === i ? { ...t, ...patch } : t)));
+    if (patch.name !== undefined && templates.some((tpl, j) => j !== i && tpl.name === patch.name)) return;
+    setAll(templates.map((tpl, j) => (j === i ? { ...tpl, ...patch } : tpl)));
   };
   const remove = (i: number): void => setAll(templates.filter((_, j) => j !== i));
   const add = (): void => {
-    const taken = new Set(templates.map((t) => t.name));
+    const taken = new Set(templates.map((tpl) => tpl.name));
     let name = 'Template';
     for (let n = 2; taken.has(name); n++) name = `Template ${n}`;
     setAll([...templates, { name, extension: 'html', body: STARTER_TEMPLATE }]);
@@ -403,7 +410,7 @@ function TemplatesSection({
 
   return (
     <section className="bd-prefs__section">
-      <h3>Export templates</h3>
+      <h3>{t('prefs.exportTemplates')}</h3>
       <p className="bd-prefs__hint">
         Author your own export formats with Handlebars; each appears under{' '}
         <strong>File → Export</strong>. Per-entry context: <code>citeKey</code>, <code>type</code>,{' '}
@@ -411,11 +418,11 @@ function TemplatesSection({
         <code>title year venue volume pages doi</code>; <code>{'{{field "name"}}'}</code> looks up a
         field case-insensitively. Loop with <code>{'{{#each entries}}'}</code>.
       </p>
-      {templates.length === 0 && <p className="bd-prefs__hint">No templates yet.</p>}
-      {templates.map((t, i) => (
+      {templates.length === 0 && <p className="bd-prefs__hint">{t('prefs.noTemplates')}</p>}
+      {templates.map((tpl, i) => (
         <TemplateRow
-          key={t.name}
-          template={t}
+          key={tpl.name}
+          template={tpl}
           documentId={documentId}
           onChange={(patch) => update(i, patch)}
           onRemove={() => remove(i)}
@@ -425,8 +432,8 @@ function TemplatesSection({
         <button
           type="button"
           className="bd-circbtn bd-circbtn--add"
-          title="Add export template"
-          aria-label="Add export template"
+          title={t('prefs.addExportTemplate')}
+          aria-label={t('prefs.addExportTemplate')}
           onClick={add}
         >
           +
@@ -452,6 +459,7 @@ function PanelTemplateEditor({
   documentId: string | undefined;
   save: (patch: Partial<Settings>) => Promise<void>;
 }) {
+  const t = useT();
   const [body, setBody] = useState(value);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -460,7 +468,7 @@ function PanelTemplateEditor({
 
   const runPreview = async (): Promise<void> => {
     if (!documentId) {
-      setError('Open a library to preview.');
+      setError(t('prefs.openLibraryToPreview'));
       setPreview(null);
       return;
     }
@@ -483,8 +491,8 @@ function PanelTemplateEditor({
         <select
           className="bd-input bd-select"
           defaultValue=""
-          aria-label="Load a preset template"
-          title="Load a ready-made template"
+          aria-label={t('prefs.loadPresetAria')}
+          title={t('prefs.loadPresetTitle')}
           onChange={(e) => {
             const p = presets.find((x) => x.name === e.target.value);
             if (p) {
@@ -494,7 +502,7 @@ function PanelTemplateEditor({
             e.currentTarget.value = '';
           }}
         >
-          <option value="">Load preset…</option>
+          <option value="">{t('prefs.loadPreset')}</option>
           {presets.map((p) => (
             <option key={p.name} value={p.name}>
               {p.name}
@@ -504,13 +512,13 @@ function PanelTemplateEditor({
         <button
           type="button"
           className="bd-btn bd-btn--small"
-          title="Reset to the built-in default"
+          title={t('prefs.resetTitle')}
           onClick={() => {
             setBody('');
             void save({ [field]: undefined } as Partial<Settings>);
           }}
         >
-          Reset
+          {t('prefs.reset')}
         </button>
       </div>
       <textarea
@@ -518,7 +526,7 @@ function PanelTemplateEditor({
         value={body}
         rows={6}
         spellCheck={false}
-        placeholder="Leave empty to use the built-in default."
+        placeholder={t('prefs.leaveEmptyDefault')}
         onChange={(e) => setBody(e.target.value)}
         onBlur={() => {
           if (body !== value) void save({ [field]: body } as Partial<Settings>);
@@ -526,23 +534,23 @@ function PanelTemplateEditor({
       />
       <div className="bd-tmpl__actions">
         <button type="button" className="bd-btn bd-btn--small" onClick={() => void runPreview()}>
-          Preview
+          {t('prefs.preview')}
         </button>
         {preview !== null && !error && (
-          <div className="bd-tmpl__view" role="group" aria-label="Preview mode">
+          <div className="bd-tmpl__view" role="group" aria-label={t('prefs.previewMode')}>
             <button
               type="button"
               className={'bd-seg' + (mode === 'text' ? ' bd-seg--on' : '')}
               onClick={() => setMode('text')}
             >
-              Text
+              {t('prefs.text')}
             </button>
             <button
               type="button"
               className={'bd-seg' + (mode === 'html' ? ' bd-seg--on' : '')}
               onClick={() => setMode('html')}
             >
-              HTML
+              {t('prefs.html')}
             </button>
           </div>
         )}
@@ -551,9 +559,9 @@ function PanelTemplateEditor({
       {preview !== null &&
         !error &&
         (mode === 'text' ? (
-          <pre className="bd-tmpl__preview">{preview || '(empty)'}</pre>
+          <pre className="bd-tmpl__preview">{preview || t('prefs.empty')}</pre>
         ) : (
-          <iframe className="bd-tmpl__preview bd-tmpl__preview--html" title="Panel preview" sandbox="" srcDoc={preview} />
+          <iframe className="bd-tmpl__preview bd-tmpl__preview--html" title={t('prefs.panelPreview')} sandbox="" srcDoc={preview} />
         ))}
     </div>
   );
@@ -569,9 +577,10 @@ function PanelsSection({
   documentId: string | undefined;
   save: (patch: Partial<Settings>) => Promise<void>;
 }) {
+  const t = useT();
   return (
     <section className="bd-prefs__section">
-      <h3>Panels</h3>
+      <h3>{t('prefs.panels')}</h3>
       <p className="bd-prefs__hint">
         Customize the right detail pane and the bottom panel with Handlebars. Per-item context:{' '}
         <code>citeKey</code>, <code>type</code>, <code>fields</code> (<code>name</code>/<code>value</code>/
@@ -582,7 +591,7 @@ function PanelsSection({
       </p>
       <PanelTemplateEditor
         which="details"
-        label="Detail pane"
+        label={t('prefs.detailPane')}
         field="detailsTemplate"
         value={settings.detailsTemplate ?? ''}
         documentId={documentId}
@@ -590,7 +599,7 @@ function PanelsSection({
       />
       <PanelTemplateEditor
         which="bottom"
-        label="Bottom panel"
+        label={t('prefs.bottomPanel')}
         field="bottomPanelTemplate"
         value={settings.bottomPanelTemplate ?? ''}
         documentId={documentId}
@@ -609,16 +618,16 @@ export function Preferences({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="bd-modal-backdrop" onClick={onClose}>
-      <div className="bd-modal bd-modal--wide" role="dialog" aria-label="Preferences" onClick={(e) => e.stopPropagation()}>
+      <div className="bd-modal bd-modal--wide" role="dialog" aria-label={t('prefs.title')} onClick={(e) => e.stopPropagation()}>
         <div className="bd-modal__header">
-          <span>Preferences</span>
-          <button type="button" className="bd-field__del" title="Close" onClick={onClose}>
+          <span>{t('prefs.title')}</span>
+          <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
             ×
           </button>
         </div>
         <div className="bd-modal__body bd-prefs">
           <section className="bd-prefs__section">
-            <h3>Appearance</h3>
+            <h3>{t('prefs.appearance')}</h3>
             <label className="bd-prefs__row">
               <span>{t('prefs.language')}</span>
               <select
@@ -636,23 +645,23 @@ export function Preferences({ onClose }: { onClose: () => void }) {
             </label>
             <p className="bd-prefs__hint">{t('prefs.language.hint')}</p>
             <label className="bd-prefs__row">
-              <span>Theme</span>
+              <span>{t('prefs.theme')}</span>
               <select
                 className="bd-input bd-select"
                 value={settings.theme}
                 onChange={(e) => void save({ theme: e.target.value as Settings['theme'] })}
               >
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="system">{t('prefs.theme.system')}</option>
+                <option value="light">{t('prefs.theme.light')}</option>
+                <option value="dark">{t('prefs.theme.dark')}</option>
               </select>
             </label>
           </section>
 
           <section className="bd-prefs__section">
-            <h3>Citations</h3>
+            <h3>{t('prefs.citations')}</h3>
             <label className="bd-prefs__row">
-              <span>Default style</span>
+              <span>{t('prefs.defaultStyle')}</span>
               <select
                 className="bd-input bd-select"
                 value={settings.defaultCiteStyle}
@@ -668,9 +677,9 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
-            <h3>Cite keys</h3>
+            <h3>{t('prefs.citeKeys')}</h3>
             <label className="bd-prefs__row">
-              <span>Format</span>
+              <span>{t('prefs.format')}</span>
               <input
                 key={settings.citeKeyFormat}
                 className="bd-input bd-input--mono"
@@ -697,16 +706,16 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
-            <h3>Annotation storage</h3>
+            <h3>{t('prefs.annotationStorage')}</h3>
             <label className="bd-prefs__row">
-              <span>Write notes as</span>
+              <span>{t('prefs.writeNotesAs')}</span>
               <select
                 className="bd-input bd-select"
                 value={settings.annotationStorage}
                 onChange={(e) => void save({ annotationStorage: e.target.value as Settings['annotationStorage'] })}
               >
-                <option value="compressed">Compressed (safe, compact)</option>
-                <option value="readable">Readable (portable)</option>
+                <option value="compressed">{t('prefs.annotation.compressed')}</option>
+                <option value="readable">{t('prefs.annotation.readable')}</option>
               </select>
             </label>
             <p className="bd-prefs__hint">
@@ -719,9 +728,9 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
-            <h3>Cite command (TeX)</h3>
+            <h3>{t('prefs.citeCommand')}</h3>
             <label className="bd-prefs__row">
-              <span>Drag / Copy cite</span>
+              <span>{t('prefs.dragCopyCite')}</span>
               <input
                 key={settings.citeCommandTemplate}
                 className="bd-input bd-input--mono"
@@ -743,11 +752,11 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           <ColumnsSection columns={settings.columns} save={save} />
 
           <section className="bd-prefs__section">
-            <h3>AutoFile</h3>
+            <h3>{t('prefs.autofile')}</h3>
             <label className="bd-prefs__row">
-              <span>Papers folder</span>
+              <span>{t('prefs.papersFolder')}</span>
               <span className="bd-prefs__folder">
-                <input className="bd-input" readOnly placeholder="(none)" value={settings.papersFolder} />
+                <input className="bd-input" readOnly placeholder={t('prefs.folderNone')} value={settings.papersFolder} />
                 <button
                   type="button"
                   className="bd-btn bd-btn--small"
@@ -756,17 +765,17 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                     if (res?.path) void save({ papersFolder: res.path });
                   }}
                 >
-                  Choose…
+                  {t('prefs.choose')}
                 </button>
                 {settings.papersFolder && (
-                  <button type="button" className="bd-field__del" title="Clear" onClick={() => void save({ papersFolder: '' })}>
+                  <button type="button" className="bd-field__del" title={t('prefs.clear')} onClick={() => void save({ papersFolder: '' })}>
                     ×
                   </button>
                 )}
               </span>
             </label>
             <label className="bd-prefs__row">
-              <span>File name</span>
+              <span>{t('prefs.fileName')}</span>
               <input
                 key={settings.autoFileFormat}
                 className="bd-input bd-input--mono"
@@ -784,9 +793,9 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
-            <h3>Claude Assistant</h3>
+            <h3>{t('prefs.assistant')}</h3>
             <label className="bd-prefs__row">
-              <span>Model</span>
+              <span>{t('prefs.model')}</span>
               <input
                 key={settings.agentModel}
                 className="bd-input bd-input--mono"
@@ -803,9 +812,9 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
-            <h3>Saving</h3>
+            <h3>{t('prefs.saving')}</h3>
             <label className="bd-prefs__row">
-              <span>Autosave</span>
+              <span>{t('prefs.autosave')}</span>
               <input
                 type="checkbox"
                 checked={settings.autosave}
@@ -818,17 +827,17 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
-            <h3>New entries</h3>
+            <h3>{t('prefs.newEntries')}</h3>
             <label className="bd-prefs__row">
-              <span>Default type</span>
+              <span>{t('prefs.defaultType')}</span>
               <select
                 className="bd-input bd-select"
                 value={settings.defaultEntryType}
                 onChange={(e) => void save({ defaultEntryType: e.target.value })}
               >
-                {(entryTypes.length ? entryTypes.map((t) => t.name) : ENTRY_TYPES).map((t) => (
-                  <option key={t} value={t}>
-                    {t}
+                {(entryTypes.length ? entryTypes.map((et) => et.name) : ENTRY_TYPES).map((ty) => (
+                  <option key={ty} value={ty}>
+                    {ty}
                   </option>
                 ))}
               </select>
@@ -842,14 +851,14 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           <PanelsSection settings={settings} documentId={documentId} save={save} />
 
           <section className="bd-prefs__section">
-            <h3>Field types</h3>
+            <h3>{t('prefs.fieldTypes')}</h3>
             <p className="bd-prefs__hint">
               Comma-separated field names. These control how the app treats each field — which
               are parsed as people, shown as links, rated, etc.
             </p>
-            {FIELD_CATEGORIES.map(({ key, label }) => (
+            {FIELD_CATEGORIES.map(({ key, labelKey }) => (
               <label className="bd-prefs__row" key={key}>
-                <span>{label}</span>
+                <span>{t(labelKey)}</span>
                 <input
                   key={`${key}:${settings.fieldTypes[key].join(',')}`}
                   className="bd-input"
