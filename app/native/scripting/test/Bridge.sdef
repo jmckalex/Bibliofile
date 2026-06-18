@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+
+<!-- Throwaway dictionary for the native-bridge spike: one custom command,
+     `bibliophile query`, handled by the NSApplication category in the addon. -->
+<dictionary title="Bibliophile Bridge Test">
+
+	<suite name="Standard Suite" code="????" description="Common classes and commands.">
+		<class name="application" code="capp" description="The application.">
+			<cocoa class="NSApplication"/>
+			<property name="name" code="pnam" type="text" access="r" description="The name of the application."/>
+			<property name="version" code="vers" type="text" access="r" description="The version of the application."/>
+			<responds-to command="bibliophile query">
+				<cocoa method="handleBibliophileQueryCommand:"/>
+			</responds-to>
+		</class>
+	</suite>
+
+	<suite name="Bibliophile Suite" code="Bibl" description="Bibliophile-specific terminology.">
+		<command name="bibliophile query" code="BiblQery" description="Run a query, returning text.">
+			<direct-parameter type="text" description="The query string."/>
+			<result type="text" description="The query result."/>
+		</command>
+	</suite>
+
+</dictionary>

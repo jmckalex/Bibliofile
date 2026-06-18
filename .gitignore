@@ -12,3 +12,7 @@ coverage/
 # branch, so tracking it guarantees cross-branch merge conflicts. Kept on disk
 # (untracked) as the canonical resume doc; never commit it.
 HANDOVER.md
+
+# Native addon build output (ABI-specific; rebuilt via node-gyp)
+app/native/**/build/
+*.node
