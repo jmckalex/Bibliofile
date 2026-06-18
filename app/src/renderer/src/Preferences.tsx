@@ -668,6 +668,13 @@ export function Preferences({ onClose }: { onClose: () => void }) {
               BibDesk format language — e.g. <code>%a1:%Y%u2</code> = first author, year, then a
               unique suffix. Used by the <strong>Generate</strong> button.
             </p>
+            <p className="bd-prefs__hint">
+              <strong>Author-count recipe</strong> (the default):{' '}
+              <code>%a[/][/etal1]2:%Y%u0</code> → <code>Surname:Year</code> for one author,{' '}
+              <code>Surname1/Surname2:Year</code> for two, <code>Surname1/etal:Year</code> for
+              three or more; <code>%u0</code> adds a disambiguating letter (<code>a</code>,{' '}
+              <code>b</code>, …) only on a clash.
+            </p>
           </section>
 
           <section className="bd-prefs__section">

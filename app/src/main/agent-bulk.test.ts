@@ -15,7 +15,7 @@ const keysOf = (store: DocumentStore, documentId: string): string[] =>
 describe('agentRegenerateCiteKeys', () => {
   it('renames every entry from the format (unique across the batch), one undo step', () => {
     const store = new DocumentStore();
-    store.setEditConfig({ citeKeyFormat: '%a1:%Y%u0' }); // the app's default format
+    store.setEditConfig({ citeKeyFormat: '%a1:%Y%u0' }); // simple Surname:Year for predictable assertions
     const { documentId } = store.openText(
       '@article{a, Author = {John Smith}, Year = {2020}, Title = {A}}\n' +
         '@article{b, Author = {John Smith}, Year = {2020}, Title = {B}}',
