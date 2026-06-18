@@ -13,7 +13,7 @@
 
 import { basename, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
 
@@ -436,12 +436,24 @@ function createEditorWindow(documentId: string, itemId: string): void {
  * can refresh (e.g. the main window's table + read-only view after an edit made
  * in a separate editor window, or an editor after a main-window edit).
  */
+/** TEMP scripting diagnostic — remove after the refresh bug is resolved. */
+const slog = (m: string): void => {
+  try {
+    appendFileSync('/tmp/biblio-scripting.log', `${Date.now()} ${m}\n`);
+  } catch {
+    /* best effort */
+  }
+};
+
 function broadcastDocumentChanged(documentId: string, except?: Electron.WebContents): void {
+  let sent = 0;
   for (const w of BrowserWindow.getAllWindows()) {
     if (!w.isDestroyed() && w.webContents !== except && w !== helpWindow) {
       w.webContents.send(IpcEvents.documentChanged, { documentId });
+      sent++;
     }
   }
+  slog(`[broadcast] doc=${documentId} sent=${sent}`);
 }
 
 // ---------------------------------------------------------------------------
@@ -1668,7 +1680,10 @@ function registerIpc(): void {
   const handlers: IpcHandlers = {
     [IpcChannels.openDocument]: (req) => openPath(req.path),
     [IpcChannels.closeDocument]: (req) => store.closeDocument(req),
-    [IpcChannels.listPublications]: (req) => store.listPublications(req),
+    [IpcChannels.listPublications]: (req) => {
+      slog(`[listPublications] doc=${req.documentId}`); // TEMP probe
+      return store.listPublications(req);
+    },
     [IpcChannels.listGroups]: (req) => store.listGroups(req),
     [IpcChannels.getItemDetail]: (req) => store.getItemDetail(req),
     [IpcChannels.openExternal]: (req) => openExternalTarget(req),
@@ -2296,6 +2311,7 @@ if (!gotLock) {
     // re-entered V8 returns — calling menu/IPC APIs from inside that nested call
     // is fragile.
     initScripting(store, (documentId) => {
+      slog(`[onMutate] doc=${documentId} ids=${JSON.stringify(store.documentIds())} wins=${BrowserWindow.getAllWindows().filter((w) => !w.isDestroyed()).length}`);
       setImmediate(() => {
         broadcastDocumentChanged(documentId);
         buildMenu();

@@ -35,6 +35,7 @@ PB=/usr/libexec/PlistBuddy
 echo "Patching $(basename "$(dirname "$(dirname "$ELECTRON_APP")")")/Electron.app -> Bibliophile (scriptable) ..."
 $PB -c "Set :CFBundleName Bibliophile" "$PLIST"
 $PB -c "Add :CFBundleDisplayName string Bibliophile" "$PLIST" 2>/dev/null || $PB -c "Set :CFBundleDisplayName Bibliophile" "$PLIST"
+$PB -c "Set :CFBundleIdentifier org.bibdesk.bibliophile" "$PLIST" 2>/dev/null || $PB -c "Add :CFBundleIdentifier string org.bibdesk.bibliophile" "$PLIST"
 $PB -c "Add :NSAppleScriptEnabled bool true" "$PLIST" 2>/dev/null || $PB -c "Set :NSAppleScriptEnabled true" "$PLIST"
 $PB -c "Add :OSAScriptingDefinition string Bibliophile.sdef" "$PLIST" 2>/dev/null || $PB -c "Set :OSAScriptingDefinition Bibliophile.sdef" "$PLIST"
 cp app/scripting/Bibliophile.sdef "$ELECTRON_APP/Contents/Resources/Bibliophile.sdef"
