@@ -10,7 +10,12 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.js';
 import { EditorWindow } from './EditorWindow.js';
+import { registerBdElements } from './bd-elements.js';
 import './styles.css';
+
+// Register the bd-* custom elements (journal cover, citation) used by the
+// template-driven detail/panel HTML.
+registerBdElements();
 
 const container = document.getElementById('root');
 if (!container) {
