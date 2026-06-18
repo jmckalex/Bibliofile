@@ -107,6 +107,61 @@ export const en: Catalog = {
   // --- Common (with interpolation) ---
   'common.itemsSelected': '{count} selected',
 
+  // --- Header / footer / search / theme ---
+  'header.saving': 'Saving…',
+  'header.unsaved': 'Unsaved changes — press ⌘S to save',
+  'header.savingInline': ' (saving…)',
+  'header.publication': '{count} publication',
+  'header.publications': '{count} publications',
+  'header.parseWarning': '⚠ {count} parse warning',
+  'header.parseWarnings': '⚠ {count} parse warnings',
+  'footer.row': '{count} row',
+  'footer.rows': '{count} rows',
+  'footer.rowsOf': '{filtered} of {total} rows',
+  'footer.error': 'Error: {error}',
+  'common.loading': 'Loading…',
+  'theme.switchLight': 'Switch to light theme',
+  'theme.switchDark': 'Switch to dark theme',
+  'theme.toggle': 'Toggle colour theme',
+  'search.pdfToggle': 'Search PDF contents (full-text)',
+  'search.pdfOn': 'Full-text search ON — also matching PDF contents. Click to search fields only.',
+  'search.pdfOff': 'Full-text search OFF — matching fields only. Click to also search PDF contents.',
+  'search.placeholder': 'Filter publications…',
+  'search.placeholderFull': 'Search (incl. PDF text)…',
+  'search.filter': 'Filter publications',
+
+  // --- Welcome ---
+  'welcome.tagline': 'A bibliography manager for BibTeX libraries.',
+  'welcome.open': 'Open a Bibliography…',
+  'welcome.new': 'New Bibliography',
+  'welcome.hint': 'or drag a .bib file onto the window (⌘O also opens one).',
+
+  // --- Batch bar ---
+  'batch.actions': 'Batch actions',
+  'batch.field': 'Field',
+  'batch.value': 'value',
+  'batch.keyword': 'Keyword',
+  'batch.set': 'Set',
+  'batch.addKeyword': '+ Keyword',
+  'batch.removeKeyword': '− Keyword',
+  'batch.delete': '🗑 Delete {count}',
+
+  // --- Find Duplicates ---
+  'dup.ariaLabel': 'Find duplicates',
+  'dup.title': 'Find Duplicates',
+  'dup.summary': '— {groups} groups, {total} entries',
+  'dup.scanning': 'Scanning…',
+  'dup.none': 'No duplicates found. 🎉',
+  'dup.identicalKey': 'Identical cite key',
+  'dup.equivalent': 'Equivalent content',
+  'dup.entriesCount': '{count} entries',
+  'dup.merge': 'Merge',
+  'dup.mergeTitle': 'Merge into the first entry (fills missing fields, unions keywords + attachments, deletes the rest)',
+
+  // --- Common (shared) ---
+  'common.close': 'Close',
+  'common.untitled': '(untitled)',
+
   // --- Empty / welcome states (renderer) ---
   'detail.empty.select': 'Select a publication to see its details.',
   'detail.loading': 'Loading…',

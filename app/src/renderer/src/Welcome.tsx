@@ -4,8 +4,10 @@
  * offering the two ways in — Open an existing `.bib` or create a new one — plus a
  * drag-and-drop hint. The buttons drive main via `window.bibdesk` (native dialogs).
  */
+import { useT } from './i18n.js';
 
 export function Welcome() {
+  const t = useT();
   const open = (): void => void window.bibdesk?.openDialog();
   const create = (): void => void window.bibdesk?.newDocument();
 
@@ -16,18 +18,16 @@ export function Welcome() {
           📚
         </div>
         <h1 className="bd-welcome__title">BibDesk</h1>
-        <p className="bd-welcome__tagline">A bibliography manager for BibTeX libraries.</p>
+        <p className="bd-welcome__tagline">{t('welcome.tagline')}</p>
         <div className="bd-welcome__actions">
           <button type="button" className="bd-btn bd-btn--primary" onClick={open}>
-            Open a Bibliography…
+            {t('welcome.open')}
           </button>
           <button type="button" className="bd-btn" onClick={create}>
-            New Bibliography
+            {t('welcome.new')}
           </button>
         </div>
-        <p className="bd-welcome__hint">
-          or drag a <code>.bib</code> file onto the window (<kbd>⌘O</kbd> also opens one).
-        </p>
+        <p className="bd-welcome__hint">{t('welcome.hint')}</p>
       </div>
     </div>
   );

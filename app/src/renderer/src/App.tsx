@@ -27,6 +27,7 @@ import { BrokenLinks } from './BrokenLinks.js';
 import { BatchBar } from './BatchBar.js';
 
 function ThemeToggle() {
+  const t = useT();
   const theme = useStore((s) => s.settings.theme);
   const save = useStore((s) => s.saveSettings);
   const isDark =
@@ -36,8 +37,8 @@ function ThemeToggle() {
     <button
       type="button"
       className="bd-theme-toggle"
-      title={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-      aria-label="Toggle colour theme"
+      title={isDark ? t('theme.switchLight') : t('theme.switchDark')}
+      aria-label={t('theme.toggle')}
       onClick={() => void save({ theme: isDark ? 'light' : 'dark' })}
     >
       {isDark ? '☀' : '☾'}
@@ -46,6 +47,7 @@ function ThemeToggle() {
 }
 
 function SearchBox() {
+  const t = useT();
   const query = useStore((s) => s.query);
   const setQuery = useStore((s) => s.setQuery);
   const fullText = useStore((s) => s.settings.fullTextSearch);
@@ -58,12 +60,8 @@ function SearchBox() {
         type="button"
         className={'bd-search__pdf' + (fullText ? ' bd-search__pdf--on' : '')}
         aria-pressed={fullText}
-        aria-label="Search PDF contents (full-text)"
-        title={
-          fullText
-            ? 'Full-text search ON — also matching PDF contents. Click to search fields only.'
-            : 'Full-text search OFF — matching fields only. Click to also search PDF contents.'
-        }
+        aria-label={t('search.pdfToggle')}
+        title={fullText ? t('search.pdfOn') : t('search.pdfOff')}
         onClick={() => void setFullTextSearch(!fullText)}
       >
         <FontAwesomeIcon icon={faFilePdf} />
@@ -71,10 +69,10 @@ function SearchBox() {
       <input
         className="bd-search__input"
         type="search"
-        placeholder={fullText ? 'Search (incl. PDF text)…' : 'Filter publications…'}
+        placeholder={fullText ? t('search.placeholderFull') : t('search.placeholder')}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        aria-label="Filter publications"
+        aria-label={t('search.filter')}
         spellCheck={false}
       />
     </div>
@@ -82,6 +80,7 @@ function SearchBox() {
 }
 
 function Header() {
+  const t = useT();
   const displayName = useStore((s) => s.displayName);
   const itemCount = useStore((s) => s.itemCount);
   const warnings = useStore((s) => s.warnings);
@@ -93,23 +92,20 @@ function Header() {
       <span className="bd-header__title">
         {displayName ?? 'BibDesk'}
         {displayName && (saving || dirty) && (
-          <span
-            className="bd-header__dirty"
-            title={saving ? 'Saving…' : 'Unsaved changes — press ⌘S to save'}
-          >
-            {saving ? ' (saving…)' : ' •'}
+          <span className="bd-header__dirty" title={saving ? t('header.saving') : t('header.unsaved')}>
+            {saving ? t('header.savingInline') : ' •'}
           </span>
         )}
       </span>
       {displayName && (
         <span className="bd-header__count">
-          {itemCount} {itemCount === 1 ? 'publication' : 'publications'}
+          {t(itemCount === 1 ? 'header.publication' : 'header.publications', { count: itemCount })}
         </span>
       )}
       <span className="bd-header__spacer" />
       {warnings > 0 && (
         <span className="bd-header__warn">
-          ⚠ {warnings} parse {warnings === 1 ? 'warning' : 'warnings'}
+          {t(warnings === 1 ? 'header.parseWarning' : 'header.parseWarnings', { count: warnings })}
         </span>
       )}
       <SearchBox />
@@ -119,6 +115,7 @@ function Header() {
 }
 
 function Footer() {
+  const t = useT();
   const total = useStore((s) => s.total);
   const rows = useStore((s) => s.rows);
   const query = useStore((s) => s.query);
@@ -132,8 +129,8 @@ function Footer() {
   const filtered = query.trim() ? visibleRows(rows, query, ftsIds).length : total;
   const countLabel =
     filtered === total
-      ? `${total} ${total === 1 ? 'row' : 'rows'}`
-      : `${filtered} of ${total} rows`;
+      ? t(total === 1 ? 'footer.row' : 'footer.rows', { count: total })
+      : t('footer.rowsOf', { filtered, total });
 
   return (
     <footer className="bd-footer">
@@ -141,8 +138,8 @@ function Footer() {
         {groupName ? `${groupName}: ` : ''}
         {countLabel}
       </span>
-      {loading && <span>Loading…</span>}
-      {error && <span className="bd-footer__error">Error: {error}</span>}
+      {loading && <span>{t('common.loading')}</span>}
+      {error && <span className="bd-footer__error">{t('footer.error', { error })}</span>}
     </footer>
   );
 }

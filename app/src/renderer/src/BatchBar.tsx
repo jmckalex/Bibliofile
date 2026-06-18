@@ -7,8 +7,10 @@
 
 import { useState } from 'react';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 
 export function BatchBar() {
+  const t = useT();
   const selectedIds = useStore((s) => s.selectedIds);
   const batchEdit = useStore((s) => s.batchEdit);
   const [field, setField] = useState('');
@@ -31,19 +33,19 @@ export function BatchBar() {
   };
 
   return (
-    <div className="bd-batch" role="toolbar" aria-label="Batch actions">
-      <span className="bd-batch__count">{n} selected</span>
+    <div className="bd-batch" role="toolbar" aria-label={t('batch.actions')}>
+      <span className="bd-batch__count">{t('common.itemsSelected', { count: n })}</span>
 
       <span className="bd-batch__group">
         <input
           className="bd-input bd-input--small"
-          placeholder="Field"
+          placeholder={t('batch.field')}
           value={field}
           onChange={(e) => setField(e.target.value)}
         />
         <input
           className="bd-input bd-input--small"
-          placeholder="value"
+          placeholder={t('batch.value')}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
@@ -51,14 +53,14 @@ export function BatchBar() {
           }}
         />
         <button type="button" className="bd-btn bd-btn--small" disabled={!field.trim()} onClick={applySet}>
-          Set
+          {t('batch.set')}
         </button>
       </span>
 
       <span className="bd-batch__group">
         <input
           className="bd-input bd-input--small"
-          placeholder="Keyword"
+          placeholder={t('batch.keyword')}
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           onKeyDown={(e) => {
@@ -66,10 +68,10 @@ export function BatchBar() {
           }}
         />
         <button type="button" className="bd-btn bd-btn--small" disabled={!keyword.trim()} onClick={() => applyKeyword('addKeyword')}>
-          + Keyword
+          {t('batch.addKeyword')}
         </button>
         <button type="button" className="bd-btn bd-btn--small" disabled={!keyword.trim()} onClick={() => applyKeyword('removeKeyword')}>
-          − Keyword
+          {t('batch.removeKeyword')}
         </button>
       </span>
 
@@ -78,7 +80,7 @@ export function BatchBar() {
         className="bd-btn bd-btn--small bd-btn--danger"
         onClick={() => void batchEdit({ kind: 'delete' })}
       >
-        🗑 Delete {n}
+        {t('batch.delete', { count: n })}
       </button>
     </div>
   );

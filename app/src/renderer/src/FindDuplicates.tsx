@@ -8,8 +8,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FindDuplicatesResult } from '@bibdesk/shared';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 
 export function FindDuplicates({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const findDuplicates = useStore((s) => s.findDuplicates);
   const selectByCiteKey = useStore((s) => s.selectByCiteKey);
   const edit = useStore((s) => s.edit);
@@ -48,44 +50,43 @@ export function FindDuplicates({ onClose }: { onClose: () => void }) {
       <div
         className="bd-modal bd-modal--wide"
         role="dialog"
-        aria-label="Find duplicates"
+        aria-label={t('dup.ariaLabel')}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bd-modal__header">
           <span>
-            Find Duplicates
+            {t('dup.title')}
             {result && result.groups.length > 0 && (
               <span className="bd-dup__summary">
                 {' '}
-                — {result.groups.length} group{result.groups.length === 1 ? '' : 's'}, {result.total}{' '}
-                entries
+                {t('dup.summary', { groups: result.groups.length, total: result.total })}
               </span>
             )}
           </span>
-          <button type="button" className="bd-field__del" title="Close" onClick={onClose}>
+          <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
             ×
           </button>
         </div>
         <div className="bd-modal__body">
           {!result ? (
-            <p className="bd-modal__empty">Scanning…</p>
+            <p className="bd-modal__empty">{t('dup.scanning')}</p>
           ) : result.groups.length === 0 ? (
-            <p className="bd-modal__empty">No duplicates found. 🎉</p>
+            <p className="bd-modal__empty">{t('dup.none')}</p>
           ) : (
             result.groups.map((g, gi) => (
               <div className="bd-dup__group" key={gi}>
                 <div className="bd-dup__kind">
                   <span>
-                    {g.kind === 'citeKey' ? 'Identical cite key' : 'Equivalent content'} ·{' '}
-                    {g.entries.length} entries
+                    {g.kind === 'citeKey' ? t('dup.identicalKey') : t('dup.equivalent')} ·{' '}
+                    {t('dup.entriesCount', { count: g.entries.length })}
                   </span>
                   <button
                     type="button"
                     className="bd-btn bd-btn--small"
-                    title="Merge into the first entry (fills missing fields, unions keywords + attachments, deletes the rest)"
+                    title={t('dup.mergeTitle')}
                     onClick={() => void merge(g.entries.map((e) => e.id))}
                   >
-                    Merge
+                    {t('dup.merge')}
                   </button>
                 </div>
                 <ul className="bd-dup__entries">
@@ -93,7 +94,7 @@ export function FindDuplicates({ onClose }: { onClose: () => void }) {
                     <li key={e.id}>
                       <button type="button" className="bd-dup__entry" onClick={() => pick(e.citeKey)}>
                         <code>{e.citeKey}</code>
-                        <span className="bd-dup__title">{e.title || '(untitled)'}</span>
+                        <span className="bd-dup__title">{e.title || t('common.untitled')}</span>
                       </button>
                     </li>
                   ))}
