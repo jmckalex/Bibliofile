@@ -40,7 +40,7 @@
 
 	<suite name="Bibliophile Suite" code="Bibl" description="Classes and commands for Bibliophile.">
 
-		<class name="document" code="docu" description="An open bibliography (.bib file).">
+		<class name="document" plural="documents" code="docu" description="An open bibliography (.bib file).">
 			<cocoa class="BPDocument"/>
 			<property name="name" code="pnam" type="text" access="r" description="Its name.">
 				<cocoa key="scriptingName"/>
