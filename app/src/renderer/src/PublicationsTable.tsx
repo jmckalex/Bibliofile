@@ -415,9 +415,17 @@ export function PublicationsTable() {
                   onDragStart={(e) => {
                     // Drag a row into a TeX editor to insert the cite command,
                     // or onto a static group to add it (custom cite-key flavor).
-                    const cite = formatCiteCommand(citeTemplate, [row.original.citeKey]);
+                    // When the dragged row is part of the multi-selection, drag the
+                    // whole selection (in visible order); otherwise just this row.
+                    const sel = new Set<string>(selectedIds);
+                    if (selectedItemId) sel.add(selectedItemId);
+                    const dragged = sel.has(row.original.id)
+                      ? data.filter((r) => sel.has(r.id))
+                      : [row.original];
+                    const keys = dragged.map((r) => r.citeKey);
+                    const cite = formatCiteCommand(citeTemplate, keys);
                     e.dataTransfer.setData('text/plain', cite);
-                    e.dataTransfer.setData('application/x-bibdesk-citekeys', row.original.citeKey);
+                    e.dataTransfer.setData('application/x-bibdesk-citekeys', keys.join(','));
                     e.dataTransfer.effectAllowed = 'copy';
                   }}
                 >
