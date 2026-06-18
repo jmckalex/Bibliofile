@@ -92,6 +92,15 @@ export const en: Catalog = {
   'column.read': 'Read',
   'column.rating': 'Rating',
 
+  // --- Publications table (tooltips / empty state) ---
+  'table.hasKeywords': 'Has keywords',
+  'table.attachmentTooltip': '{count} attachment',
+  'table.attachmentTooltipPlural': '{count} attachments',
+  'table.unread': 'Unread',
+  'table.sortHint': 'Click to sort · Shift-click to add a secondary sort · drag to reorder',
+  'table.resizeColumn': 'Resize column',
+  'table.empty': 'No publications',
+
   // --- Preferences: language ---
   'prefs.language': 'Language',
   'prefs.language.system': 'System default',

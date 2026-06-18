@@ -30,9 +30,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faKey, faPaperclip, faSquareCheck } from '@fortawesome/free-solid-svg-icons';
 import { faSquare } from '@fortawesome/free-regular-svg-icons';
-import type { PublicationRow } from '@bibdesk/shared';
+import type { PublicationRow, TFunction } from '@bibdesk/shared';
 import { formatCiteCommand } from '@bibdesk/shared';
 import { useStore, visibleRows } from './store.js';
+import { useT } from './i18n.js';
 import { MathText } from './MathText.js';
 import { ColorContextMenu } from './ColorContextMenu.js';
 
@@ -64,83 +65,92 @@ function HeaderIcon({ icon, title }: { icon: IconDefinition; title: string }) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Col = ColumnDef<PublicationRow, any>;
 
-/** The builtin (non-field) columns, keyed by their settings column id. */
-const BUILTIN_DEFS: Record<string, Col> = {
-  citeKey: col.accessor('citeKey', {
-    id: 'citeKey',
-    header: 'Cite Key',
-    meta: { width: 160, cellClass: 'bd-td--mono' } satisfies ColMeta,
-  }),
-  type: col.accessor('type', {
-    id: 'type',
-    header: 'Type',
-    meta: { width: 96, cellClass: 'bd-td--type' } satisfies ColMeta,
-  }),
-  authors: col.accessor('authorsDisplay', {
-    id: 'authors',
-    header: 'Authors',
-    meta: { width: 240, grow: true } satisfies ColMeta,
-  }),
-  title: col.accessor('title', {
-    id: 'title',
-    header: 'Title',
-    meta: { width: 360, grow: true } satisfies ColMeta,
-    cell: ({ getValue }) => <MathText text={String(getValue() ?? '')} />,
-  }),
-  year: col.accessor('year', {
-    id: 'year',
-    header: 'Year',
-    meta: { width: 72, cellClass: 'bd-td--year' } satisfies ColMeta,
-  }),
-  keywords: col.display({
-    id: 'keywords',
-    header: () => <HeaderIcon icon={faKey} title="Keywords" />,
-    meta: { width: 34, cellClass: 'bd-td--icon' } satisfies ColMeta,
-    cell: ({ row }) =>
-      row.original.hasKeywords ? (
-        <FontAwesomeIcon className="bd-icon bd-icon--key" icon={faKey} title="Has keywords" />
-      ) : null,
-  }),
-  attachments: col.display({
-    id: 'attachments',
-    header: () => <HeaderIcon icon={faPaperclip} title="Attachments" />,
-    meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
-    cell: ({ row }) => {
-      const n = row.original.attachmentCount;
-      if (n <= 0) return null;
-      return (
-        <span className="bd-icon bd-icon--clip" title={`${n} attachment${n === 1 ? '' : 's'}`}>
-          <FontAwesomeIcon icon={faPaperclip} />
-          {n > 1 && <span className="bd-icon__count">{n}</span>}
-        </span>
-      );
-    },
-  }),
-  read: col.display({
-    id: 'read',
-    header: () => <HeaderIcon icon={faSquareCheck} title="Read" />,
-    meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
-    // 1 = read (checked), -1 = explicitly unread (empty box), 0 = unset (blank).
-    cell: ({ row }) => {
-      const r = row.original.read;
-      if (r === 0) return null;
-      return r === 1 ? (
-        <FontAwesomeIcon className="bd-icon bd-icon--checked" icon={faSquareCheck} title="Read" />
-      ) : (
-        <FontAwesomeIcon className="bd-icon bd-icon--unchecked" icon={faSquare} title="Unread" />
-      );
-    },
-  }),
-  rating: col.display({
-    id: 'rating',
-    header: 'Rating',
-    meta: { width: 80, cellClass: 'bd-td--rating' } satisfies ColMeta,
-    cell: ({ row }) => {
-      const n = row.original.rating;
-      return n > 0 ? <span title={`${n}/5`}>{'★'.repeat(n)}</span> : null;
-    },
-  }),
-};
+/**
+ * The builtin (non-field) columns, keyed by their settings column id. Built per
+ * locale (header labels + cell tooltips come from `t`) so the table relabels
+ * live when the language changes.
+ */
+function builtinDefs(t: TFunction): Record<string, Col> {
+  return {
+    citeKey: col.accessor('citeKey', {
+      id: 'citeKey',
+      header: t('column.citeKey'),
+      meta: { width: 160, cellClass: 'bd-td--mono' } satisfies ColMeta,
+    }),
+    type: col.accessor('type', {
+      id: 'type',
+      header: t('column.type'),
+      meta: { width: 96, cellClass: 'bd-td--type' } satisfies ColMeta,
+    }),
+    authors: col.accessor('authorsDisplay', {
+      id: 'authors',
+      header: t('column.authors'),
+      meta: { width: 240, grow: true } satisfies ColMeta,
+    }),
+    title: col.accessor('title', {
+      id: 'title',
+      header: t('column.title'),
+      meta: { width: 360, grow: true } satisfies ColMeta,
+      cell: ({ getValue }) => <MathText text={String(getValue() ?? '')} />,
+    }),
+    year: col.accessor('year', {
+      id: 'year',
+      header: t('column.year'),
+      meta: { width: 72, cellClass: 'bd-td--year' } satisfies ColMeta,
+    }),
+    keywords: col.display({
+      id: 'keywords',
+      header: () => <HeaderIcon icon={faKey} title={t('column.keywords')} />,
+      meta: { width: 34, cellClass: 'bd-td--icon' } satisfies ColMeta,
+      cell: ({ row }) =>
+        row.original.hasKeywords ? (
+          <FontAwesomeIcon className="bd-icon bd-icon--key" icon={faKey} title={t('table.hasKeywords')} />
+        ) : null,
+    }),
+    attachments: col.display({
+      id: 'attachments',
+      header: () => <HeaderIcon icon={faPaperclip} title={t('column.attachments')} />,
+      meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
+      cell: ({ row }) => {
+        const n = row.original.attachmentCount;
+        if (n <= 0) return null;
+        return (
+          <span
+            className="bd-icon bd-icon--clip"
+            title={t(n === 1 ? 'table.attachmentTooltip' : 'table.attachmentTooltipPlural', { count: n })}
+          >
+            <FontAwesomeIcon icon={faPaperclip} />
+            {n > 1 && <span className="bd-icon__count">{n}</span>}
+          </span>
+        );
+      },
+    }),
+    read: col.display({
+      id: 'read',
+      header: () => <HeaderIcon icon={faSquareCheck} title={t('column.read')} />,
+      meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
+      // 1 = read (checked), -1 = explicitly unread (empty box), 0 = unset (blank).
+      cell: ({ row }) => {
+        const r = row.original.read;
+        if (r === 0) return null;
+        return r === 1 ? (
+          <FontAwesomeIcon className="bd-icon bd-icon--checked" icon={faSquareCheck} title={t('column.read')} />
+        ) : (
+          <FontAwesomeIcon className="bd-icon bd-icon--unchecked" icon={faSquare} title={t('table.unread')} />
+        );
+      },
+    }),
+    rating: col.display({
+      id: 'rating',
+      header: t('column.rating'),
+      meta: { width: 80, cellClass: 'bd-td--rating' } satisfies ColMeta,
+      cell: ({ row }) => {
+        const n = row.original.rating;
+        return n > 0 ? <span title={`${n}/5`}>{'★'.repeat(n)}</span> : null;
+      },
+    }),
+  };
+}
 
 /**
  * Move `draggedId` to sit immediately before `targetId` in the column order
@@ -173,10 +183,11 @@ function rowColorStyle(hex: string | undefined, selected: boolean): CSSPropertie
 }
 
 /** Build the ordered TanStack column list from the configured column keys. */
-function buildColumns(keys: readonly string[]): Col[] {
+function buildColumns(keys: readonly string[], t: TFunction): Col[] {
+  const defs = builtinDefs(t);
   return keys.map(
     (key) =>
-      BUILTIN_DEFS[key] ??
+      defs[key] ??
       // A non-builtin key is a BibTeX field name → text column over row.extra.
       col.display({
         id: key,
@@ -188,6 +199,7 @@ function buildColumns(keys: readonly string[]): Col[] {
 }
 
 export function PublicationsTable() {
+  const t = useT();
   const rows = useStore((s) => s.rows);
   const query = useStore((s) => s.query);
   const ftsIds = useStore((s) => s.ftsIds);
@@ -221,7 +233,7 @@ export function PublicationsTable() {
   const headRef = useRef<HTMLDivElement>(null);
 
   const data = useMemo(() => visibleRows(rows, query, ftsIds), [rows, query, ftsIds]);
-  const columns = useMemo(() => buildColumns(columnKeys), [columnKeys]);
+  const columns = useMemo(() => buildColumns(columnKeys, t), [columnKeys, t]);
 
   // Track the scroll viewport width so the layout can distribute slack to grow columns.
   useLayoutEffect(() => {
@@ -380,7 +392,7 @@ export function PublicationsTable() {
                 <div
                   className="bd-th__label"
                   draggable
-                  title="Click to sort · Shift-click to add a secondary sort · drag to reorder"
+                  title={t('table.sortHint')}
                   onClick={(e) => onHeaderClick(id, e.shiftKey)}
                   onDragStart={(e) => {
                     e.dataTransfer.setData(COL_DND, id);
@@ -404,7 +416,7 @@ export function PublicationsTable() {
                   className="bd-th__resize"
                   role="separator"
                   aria-orientation="vertical"
-                  aria-label="Resize column"
+                  aria-label={t('table.resizeColumn')}
                   onMouseDown={(e) => startResize(e, id)}
                   onClick={(e) => e.stopPropagation()}
                 />
@@ -416,7 +428,7 @@ export function PublicationsTable() {
 
       <div className="bd-table__body" ref={scrollRef} onScroll={syncHeaderScroll}>
         {tableRows.length === 0 ? (
-          <div className="bd-empty-state">{loading ? 'Loading…' : 'No publications'}</div>
+          <div className="bd-empty-state">{loading ? t('common.loading') : t('table.empty')}</div>
         ) : (
           <div style={{ height: virtualizer.getTotalSize(), width: layout.total, position: 'relative' }}>
             {virtualItems.map((vItem) => {
