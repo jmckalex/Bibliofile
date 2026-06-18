@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 import { typesetMath, hasMath } from './mathjax.js';
 
 /** Fallback BibTeX entry types if the dynamic list hasn't loaded yet. */
@@ -119,15 +120,16 @@ function triStateUi(raw: string): string {
 
 /** A 0–5 clickable star rating. Clicking the current value clears it. */
 function RatingStars({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useT();
   const n = Math.max(0, Math.min(5, parseInt(value, 10) || 0));
   return (
-    <span className="bd-rating" role="radiogroup" aria-label="Rating">
+    <span className="bd-rating" role="radiogroup" aria-label={t('column.rating')}>
       {[1, 2, 3, 4, 5].map((i) => (
         <button
           type="button"
           key={i}
           className={'bd-rating__star' + (i <= n ? ' bd-rating__star--on' : '')}
-          aria-label={`${i} star${i === 1 ? '' : 's'}`}
+          aria-label={t(i === 1 ? 'detail.starCount' : 'detail.starCountPlural', { count: i })}
           aria-checked={i === n}
           onClick={() => onChange(i === n ? '' : String(i))}
         >
@@ -141,6 +143,7 @@ function RatingStars({ value, onChange }: { value: string; onChange: (v: string)
 /** One editable field row (uncontrolled; commits on blur / Enter). `template`
  * marks a not-yet-saved row offered for the entry type (no remove button). */
 function FieldRow({ itemId, field, template = false }: { itemId: string; field: ItemField; template?: boolean }) {
+  const t = useT();
   const edit = useStore((s) => s.edit);
   const fieldSuggestions = useStore((s) => s.fieldSuggestions);
   const long = field.name.toLowerCase() === 'abstract' || field.rawValue.length > 60;
@@ -162,7 +165,7 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
     <div className={'bd-field' + (field.isInherited ? ' bd-field--inherited' : '')} style={{ display: 'contents' }}>
       <div className="bd-field__name">
         {field.name}
-        {field.isInherited && <span className="bd-field__badge">(inherited)</span>}
+        {field.isInherited && <span className="bd-field__badge">{t('view.inherited')}</span>}
       </div>
       <div className="bd-field__edit">
         {field.kind === 'rating' ? (
@@ -216,16 +219,16 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
           <button
             type="button"
             className="bd-circbtn bd-circbtn--del"
-            title={`Remove ${field.name}`}
-            aria-label={`Remove ${field.name}`}
+            title={t('detail.removeField', { name: field.name })}
+            aria-label={t('detail.removeField', { name: field.name })}
             onClick={() => void edit({ kind: 'removeField', itemId, field: field.name })}
           >
             −
           </button>
         )}
         {field.required && (
-          <span className="bd-field__req" title="Required for this entry type">
-            req
+          <span className="bd-field__req" title={t('detail.requiredTitle')}>
+            {t('detail.req')}
           </span>
         )}
       </div>
@@ -238,6 +241,7 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
  * value and press Enter to add the field; the red − (or Escape) discards the row.
  */
 function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void }) {
+  const t = useT();
   const edit = useStore((s) => s.edit);
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
@@ -255,7 +259,7 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
       <div className="bd-field__name">
         <input
           className="bd-input bd-input--newname"
-          placeholder="Field name"
+          placeholder={t('detail.fieldNamePlaceholder')}
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -265,7 +269,7 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
       <div className="bd-field__edit">
         <input
           className="bd-input"
-          placeholder="value"
+          placeholder={t('detail.valuePlaceholder')}
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={onKey}
@@ -273,8 +277,8 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
         <button
           type="button"
           className="bd-circbtn bd-circbtn--del"
-          title="Discard this field"
-          aria-label="Discard this field"
+          title={t('detail.discardField')}
+          aria-label={t('detail.discardField')}
           onClick={onDone}
         >
           −
@@ -291,6 +295,7 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
  * preferred style changes.
  */
 export function CitationBlock({ detail }: { detail: ItemDetail }) {
+  const t = useT();
   const documentId = useStore((s) => s.documentId);
   const styleId = useStore((s) => s.settings.defaultCiteStyle);
   const [html, setHtml] = useState('');
@@ -317,8 +322,8 @@ export function CitationBlock({ detail }: { detail: ItemDetail }) {
   return (
     <div className="bd-cite">
       <div className="bd-cite__head">
-        <span className="bd-detail__section bd-detail__section--inline">Citation</span>
-        <span className="bd-cite__stylename" title="Set the citation style in Preferences">
+        <span className="bd-detail__section bd-detail__section--inline">{t('detail.citation')}</span>
+        <span className="bd-cite__stylename" title={t('detail.citationStyleTitle')}>
           {styleLabel}
         </span>
       </div>
@@ -331,6 +336,7 @@ export function CitationBlock({ detail }: { detail: ItemDetail }) {
 
 /** Notes: rendered markdown (with [[citeKey]] cross-refs + iframes) + an editor. */
 export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail; readOnly?: boolean }) {
+  const t = useT();
   const edit = useStore((s) => s.edit);
   const selectByCiteKey = useStore((s) => s.selectByCiteKey);
   const [editing, setEditing] = useState(false);
@@ -360,14 +366,14 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
   return (
     <>
       <div className="bd-detail__section bd-detail__section--withaction">
-        <span>Annotation</span>
+        <span>{t('panel.annotation')}</span>
         {!readOnly && (
           <button
             type="button"
             className="bd-btn bd-btn--small"
             onClick={() => setEditing((v) => !v)}
           >
-            {editing ? 'Done' : 'Edit'}
+            {editing ? t('detail.done') : t('detail.edit')}
           </button>
         )}
       </div>
@@ -377,7 +383,7 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
           className="bd-input bd-input--area bd-notes__editor"
           defaultValue={detail.notesRaw}
           rows={6}
-          placeholder="Markdown notes. Link entries with [[citeKey]]. Inline <iframe> embeds allowed."
+          placeholder={t('detail.notesPlaceholder')}
           onBlur={(e) => {
             if (e.target.value !== detail.notesRaw) {
               void edit({ kind: 'setField', itemId: detail.id, field: 'Annote', value: e.target.value });
@@ -393,7 +399,7 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
         />
       ) : (
         <div className="bd-notes__empty">
-          {readOnly ? 'No annotation.' : 'No annotation. Click Edit to add markdown notes.'}
+          {readOnly ? t('detail.noAnnotation') : t('detail.noAnnotationHint')}
         </div>
       )}
     </>
@@ -401,15 +407,16 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
 }
 
 function Identity({ detail }: { detail: ItemDetail }) {
+  const t = useT();
   const edit = useStore((s) => s.edit);
   const entryTypes = useStore((s) => s.entryTypes);
   // Dynamic types (standard + custom); fall back to the static list pre-load.
-  const names = entryTypes.length ? entryTypes.map((t) => t.name) : ENTRY_TYPES;
+  const names = entryTypes.length ? entryTypes.map((et) => et.name) : ENTRY_TYPES;
   const types = names.includes(detail.type) ? names : [detail.type, ...names];
   return (
     <div className="bd-identity">
       <div className="bd-identity__row">
-        <label className="bd-identity__label">Cite Key</label>
+        <label className="bd-identity__label">{t('column.citeKey')}</label>
         <input
           // Key includes the cite key so the uncontrolled input re-mounts (and
           // shows the new value) when it changes externally — e.g. via Generate.
@@ -428,22 +435,22 @@ function Identity({ detail }: { detail: ItemDetail }) {
         <button
           type="button"
           className="bd-btn bd-btn--small"
-          title="Generate cite key from author + year"
+          title={t('detail.generateTitle')}
           onClick={() => void edit({ kind: 'generateCiteKey', itemId: detail.id })}
         >
-          Generate
+          {t('detail.generate')}
         </button>
       </div>
       <div className="bd-identity__row">
-        <label className="bd-identity__label">Type</label>
+        <label className="bd-identity__label">{t('column.type')}</label>
         <select
           className="bd-input bd-select"
           value={detail.type}
           onChange={(e) => void edit({ kind: 'setType', itemId: detail.id, entryType: e.target.value })}
         >
-          {types.map((t) => (
-            <option key={t} value={t}>
-              {t}
+          {types.map((ty) => (
+            <option key={ty} value={ty}>
+              {ty}
             </option>
           ))}
         </select>
@@ -453,6 +460,7 @@ function Identity({ detail }: { detail: ItemDetail }) {
 }
 
 function Fields({ detail }: { detail: ItemDetail }) {
+  const t = useT();
   // Blank rows added on demand by the ＋ button (keyed by a monotonic id).
   const [pending, setPending] = useState<number[]>([]);
   const nextId = useRef(0);
@@ -466,7 +474,7 @@ function Fields({ detail }: { detail: ItemDetail }) {
   // empty rows, so a new (or incomplete) entry exposes the fields to fill in.
   // They persist only once given a value (FieldRow ignores empty no-ops).
   const present = new Set(detail.fields.map((f) => f.name.toLowerCase()));
-  const info = entryTypes.find((t) => t.name.toLowerCase() === detail.type.toLowerCase());
+  const info = entryTypes.find((et) => et.name.toLowerCase() === detail.type.toLowerCase());
   const templateRows: ItemField[] = [];
   if (info) {
     const seen = new Set(present);
@@ -482,7 +490,7 @@ function Fields({ detail }: { detail: ItemDetail }) {
 
   return (
     <>
-      <div className="bd-detail__section">Fields</div>
+      <div className="bd-detail__section">{t('view.fields')}</div>
       <div className="bd-fields">
         {detail.fields.map((f, i) => (
           <FieldRow key={`${f.name}-${i}`} itemId={detail.id} field={f} />
@@ -502,8 +510,8 @@ function Fields({ detail }: { detail: ItemDetail }) {
         <button
           type="button"
           className="bd-circbtn bd-circbtn--add"
-          title="Add a field"
-          aria-label="Add a field"
+          title={t('detail.addField')}
+          aria-label={t('detail.addField')}
           onClick={() => setPending((p) => [...p, nextId.current++])}
         >
           +
@@ -520,6 +528,7 @@ export function Attachments({
   detail: ItemDetail;
   readOnly?: boolean;
 }) {
+  const t = useT();
   const addAttachment = useStore((s) => s.addAttachment);
   const removeAttachment = useStore((s) => s.removeAttachment);
   // Real file attachments vs. remote Url/Doi links — shown separately so links
@@ -532,7 +541,7 @@ export function Attachments({
       <button
         type="button"
         className="bd-file__btn"
-        title={`Open ${file.displayName}`}
+        title={t('detail.openFile', { name: file.displayName })}
         onClick={() => openExternal(file.url, file.kind === 'url' ? 'url' : 'file')}
       >
         <span className="bd-file__icon" aria-hidden="true">
@@ -544,7 +553,7 @@ export function Attachments({
         <button
           type="button"
           className="bd-field__del"
-          title="Remove attachment"
+          title={t('detail.removeAttachment')}
           onClick={() => void removeAttachment(detail.id, file.field!)}
         >
           ×
@@ -556,26 +565,26 @@ export function Attachments({
   return (
     <>
       <div className="bd-detail__section bd-detail__section--withaction">
-        <span>Attachments</span>
+        <span>{t('column.attachments')}</span>
         {!readOnly && (
           <button
             type="button"
             className="bd-btn bd-btn--small"
-            title="Attach file(s)"
+            title={t('detail.attachTitle')}
             onClick={() => void addAttachment(detail.id)}
           >
-            ＋ Add
+            {t('detail.add')}
           </button>
         )}
       </div>
       {files.length === 0 ? (
-        <div className="bd-files__empty">No attachments.</div>
+        <div className="bd-files__empty">{t('detail.noAttachments')}</div>
       ) : (
         <ul className="bd-files">{files.map(renderItem)}</ul>
       )}
       {links.length > 0 && (
         <>
-          <div className="bd-detail__section">Links</div>
+          <div className="bd-detail__section">{t('detail.links')}</div>
           <ul className="bd-files">{links.map(renderItem)}</ul>
         </>
       )}
@@ -603,6 +612,7 @@ function GeneratedCover({ journal }: { journal: string }) {
 
 /** The entry's journal cover thumbnail (downloaded), or a generated fallback. */
 export function JournalCover({ documentId, itemId }: { documentId: string; itemId: string }) {
+  const t = useT();
   const [state, setState] = useState<{ url?: string; journal?: string }>({});
   useEffect(() => {
     let cancelled = false;
@@ -625,7 +635,10 @@ export function JournalCover({ documentId, itemId }: { documentId: string; itemI
   if (state.url) {
     return (
       <div className="bd-jcover" title={state.journal}>
-        <img src={state.url} alt={state.journal ? `${state.journal} cover` : 'journal cover'} />
+        <img
+          src={state.url}
+          alt={state.journal ? t('detail.journalCover', { name: state.journal }) : t('detail.journalCoverGeneric')}
+        />
       </div>
     );
   }
@@ -634,16 +647,17 @@ export function JournalCover({ documentId, itemId }: { documentId: string; itemI
 }
 
 export function DetailPane() {
+  const t = useT();
   const detail = useStore((s) => s.detail);
   const documentId = useStore((s) => s.documentId);
   const selectedItemId = useStore((s) => s.selectedItemId);
   const detailLoading = useStore((s) => s.detailLoading);
 
   if (!selectedItemId) {
-    return <div className="bd-detail__empty">Select a publication to see and edit its details.</div>;
+    return <div className="bd-detail__empty">{t('detail.emptyEdit')}</div>;
   }
   if (!detail || detail.id !== selectedItemId) {
-    return <div className="bd-detail__empty">{detailLoading ? 'Loading…' : ''}</div>;
+    return <div className="bd-detail__empty">{detailLoading ? t('common.loading') : ''}</div>;
   }
 
   return (
