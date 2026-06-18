@@ -104,11 +104,40 @@ export const AGENT_TOOLS: readonly AgentTool[] = [
   },
   {
     name: 'generate_cite_key',
-    description: "Regenerate an entry's cite key from the configured format. MUTATES.",
+    description: "Regenerate one entry's cite key from the configured format. MUTATES.",
     input_schema: {
       type: 'object',
       properties: { citeKey: { type: 'string' } },
       required: ['citeKey'],
+    },
+    mutating: true,
+  },
+  {
+    name: 'regenerate_cite_keys',
+    description:
+      'Bulk-regenerate cite keys from the configured format for MANY entries in ONE call ' +
+      '(omit `citeKeys` to do the WHOLE library). One approval, one undo step. ' +
+      'Always prefer this over calling generate_cite_key once per entry. MUTATES.',
+    input_schema: {
+      type: 'object',
+      properties: { citeKeys: { type: 'array', items: { type: 'string' } } },
+    },
+    mutating: true,
+  },
+  {
+    name: 'batch_set_field',
+    description:
+      'Set (or clear, with an empty value) a field on MANY entries in ONE call ' +
+      '(omit `citeKeys` to do the WHOLE library). One approval, one undo step. ' +
+      'Always prefer this over calling set_field once per entry. MUTATES.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        field: { type: 'string' },
+        value: { type: 'string' },
+        citeKeys: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['field'],
     },
     mutating: true,
   },
@@ -121,8 +150,12 @@ export const AGENT_SYSTEM_PROMPT = [
   'You are the BibDesk Assistant, embedded in a BibTeX reference manager.',
   'You help the user inspect and tidy their bibliography and write small scripts.',
   'Use the provided tools to read the open library; prefer reading before acting.',
-  'Mutating tools (set_field, add_entry, delete_entry, generate_cite_key) require the',
-  "user's approval, which the app will ask for — explain what you intend before calling them.",
+  'For any change that affects MANY entries, ALWAYS use the bulk tools',
+  '(regenerate_cite_keys, batch_set_field) in a single call — do NOT loop the',
+  'per-entry tools (set_field, generate_cite_key) across the whole library; that is',
+  'slow and wastes tokens. Omit the citeKeys argument to act on every entry.',
+  'Mutating tools require the user\'s approval, which the app will ask for — explain',
+  'what you intend (and roughly how many entries it affects) before calling them.',
   'Be concise. When you change the library, summarize exactly what changed.',
 ].join(' ');
 

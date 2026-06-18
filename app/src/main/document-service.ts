@@ -1609,6 +1609,72 @@ export class DocumentStore {
     return renderPanelPreview(this.detailFor(doc, item), doc.documentId, this.editConfig.defaultCiteStyle, body);
   }
 
+  /** Resolve cite keys to items (case-insensitive), or all items when omitted. */
+  private targetItems(doc: OpenDoc, citeKeys?: readonly string[]): BibItem[] {
+    if (!citeKeys) return [...doc.library.items];
+    const byKey = new Map(doc.library.items.map((i) => [i.citeKey.toLowerCase(), i]));
+    return citeKeys
+      .map((k) => byKey.get(k.trim().toLowerCase()))
+      .filter((x): x is BibItem => x !== undefined);
+  }
+
+  /**
+   * Bulk-regenerate cite keys from the configured format in ONE undo step
+   * (the assistant's `regenerate_cite_keys` tool — far cheaper than per-entry
+   * calls). `citeKeys` omitted ⇒ all entries. Uniqueness is maintained across the
+   * batch. Returns the from→to changes.
+   */
+  agentRegenerateCiteKeys(
+    documentId: string,
+    citeKeys?: readonly string[],
+  ): { count: number; changes: { from: string; to: string }[] } {
+    this.snapshot(documentId, 'Regenerate Cite Keys');
+    const doc = this.requireDoc(documentId);
+    const taken = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
+    const changes: { from: string; to: string }[] = [];
+    for (const item of this.targetItems(doc, citeKeys)) {
+      const from = item.citeKey;
+      taken.delete(from.toLowerCase()); // allow reusing the base; avoid the others
+      const to = generateCiteKey(this.editConfig.citeKeyFormat, item, taken) || from;
+      if (to !== from) {
+        item.setCiteKey(to);
+        changes.push({ from, to });
+        this.reindex(doc, item);
+      }
+      taken.add(to.toLowerCase());
+    }
+    if (changes.length) doc.dirty = true;
+    return { count: changes.length, changes };
+  }
+
+  /**
+   * Bulk set (or clear, with an empty value) a field across many entries in ONE
+   * undo step (the assistant's `batch_set_field` tool). `citeKeys` omitted ⇒ all
+   * entries. The `Annote` field is stored safely via the annotation codec.
+   */
+  agentBatchSetField(
+    documentId: string,
+    field: string,
+    value: string,
+    citeKeys?: readonly string[],
+  ): { count: number } {
+    this.snapshot(documentId, 'Set Field');
+    const doc = this.requireDoc(documentId);
+    const targets = this.targetItems(doc, citeKeys);
+    for (const item of targets) {
+      if (field.toLowerCase() === ANNOTATION_FIELD.toLowerCase()) {
+        writeAnnotation(item, value, this.editConfig.annotationStorage);
+      } else if (value === '') {
+        item.removeField(field);
+      } else {
+        item.setField(field, value);
+      }
+      this.reindex(doc, item);
+    }
+    if (targets.length) doc.dirty = true;
+    return { count: targets.length };
+  }
+
   /**
    * Attach one or more local files to an item as managed `Bdsk-File-N` blobs
    * (BibDesk-compatible; stored as a `{ relativePath }` binary-plist relative to

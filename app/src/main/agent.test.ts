@@ -91,6 +91,13 @@ describe('runAgentTurn', () => {
 
   it('every mutating tool is declared in the catalogue', () => {
     const mutating = AGENT_TOOLS.filter((t) => t.mutating).map((t) => t.name);
-    expect(mutating).toEqual(['set_field', 'add_entry', 'delete_entry', 'generate_cite_key']);
+    expect(mutating).toEqual([
+      'set_field',
+      'add_entry',
+      'delete_entry',
+      'generate_cite_key',
+      'regenerate_cite_keys',
+      'batch_set_field',
+    ]);
   });
 });

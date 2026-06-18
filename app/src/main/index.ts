@@ -1607,6 +1607,20 @@ function executeAgentTool(documentId: string, name: string, input: any): string 
         : input.citeKey;
       return `Cite key is now ${key}.`;
     }
+    case 'regenerate_cite_keys': {
+      const keys = Array.isArray(input.citeKeys) ? (input.citeKeys as string[]) : undefined;
+      const res = store.agentRegenerateCiteKeys(documentId, keys);
+      if (res.count === 0) return 'No cite keys changed (they already match the configured format).';
+      const sample = res.changes.slice(0, 25).map((c) => `${c.from} → ${c.to}`).join('\n');
+      return `Regenerated ${res.count} cite key(s):\n${sample}${res.changes.length > 25 ? '\n…' : ''}`;
+    }
+    case 'batch_set_field': {
+      const keys = Array.isArray(input.citeKeys) ? (input.citeKeys as string[]) : undefined;
+      const value = String(input.value ?? '');
+      const res = store.agentBatchSetField(documentId, String(input.field), value, keys);
+      const verb = value ? `Set ${input.field}` : `Cleared ${input.field}`;
+      return `${verb} on ${res.count} entr${res.count === 1 ? 'y' : 'ies'}.`;
+    }
     default:
       return `Unknown tool: ${name}`;
   }
