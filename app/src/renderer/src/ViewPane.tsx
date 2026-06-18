@@ -6,10 +6,12 @@
  * ({@link EditorWindow}); changes there refresh this pane via documentChanged.
  */
 
+import { useEffect, useRef } from 'react';
 import type { ItemDetail } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { PreviewCard, CitationBlock, JournalCover, NotesSection, Attachments } from './DetailPane.js';
 import { MathText } from './MathText.js';
+import { hydratePanel } from './panel-hydrate.js';
 
 /** Read-only field list: cite key, type, then each field's de-TeXified value. */
 function ReadOnlyFields({ detail }: { detail: ItemDetail }) {
@@ -43,6 +45,18 @@ export function ViewPane() {
   const selectedItemId = useStore((s) => s.selectedItemId);
   const detailLoading = useStore((s) => s.detailLoading);
   const openEditor = useStore((s) => s.openEditor);
+  const hostRef = useRef<HTMLDivElement>(null);
+
+  // The pane is rendered (in main) from a Handlebars template; the default
+  // reproduces the legacy layout below. Hydrate the inserted HTML: the bd-*
+  // custom elements upgrade themselves, and hydratePanel wires the data-* clicks
+  // + MathJax. Re-runs when the rendered HTML changes (item switch / edit).
+  const html = detail && detail.id === selectedItemId ? detail.detailsPanelHtml : undefined;
+  useEffect(() => {
+    const el = hostRef.current;
+    if (!el || !html) return;
+    return hydratePanel(el);
+  }, [html]);
 
   if (!selectedItemId) {
     return <div className="bd-detail__empty">Select a publication to see its details.</div>;
@@ -51,6 +65,14 @@ export function ViewPane() {
     return <div className="bd-detail__empty">{detailLoading ? 'Loading…' : ''}</div>;
   }
 
+  if (html) {
+    return (
+      <div className="bd-detail bd-view" ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
+    );
+  }
+
+  // Fallback: the legacy React composition, used only if the template render
+  // failed in main (detailsPanelHtml absent) — so the pane is never broken.
   return (
     <div className="bd-detail bd-view">
       <div className="bd-view__actions">

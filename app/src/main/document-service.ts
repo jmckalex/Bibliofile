@@ -65,6 +65,7 @@ import {
   COMPRESSED_FIELD,
   type AnnotationStorage,
 } from './annotation.js';
+import { renderDetailsPanel } from './panel.js';
 import { exportRis, exportCsv, exportHtml, renderTemplate } from './export.js';
 import { parseRis, type RisRecord } from './ris-import.js';
 import { parseEndnote } from './endnote.js';
@@ -963,6 +964,7 @@ export class DocumentStore {
     papersFolder: '',
     autoFileFormat: '%a1/%Y%u0',
     annotationStorage: 'compressed' as AnnotationStorage,
+    defaultCiteStyle: 'apa',
   };
 
   /** Apply preference-driven editing defaults. */
@@ -972,12 +974,14 @@ export class DocumentStore {
     papersFolder?: string;
     autoFileFormat?: string;
     annotationStorage?: AnnotationStorage;
+    defaultCiteStyle?: string;
   }): void {
     if (c.citeKeyFormat) this.editConfig.citeKeyFormat = c.citeKeyFormat;
     if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
     if (c.papersFolder !== undefined) this.editConfig.papersFolder = c.papersFolder;
     if (c.autoFileFormat) this.editConfig.autoFileFormat = c.autoFileFormat;
     if (c.annotationStorage) this.editConfig.annotationStorage = c.annotationStorage;
+    if (c.defaultCiteStyle) this.editConfig.defaultCiteStyle = c.defaultCiteStyle;
   }
 
   // --- Undo / redo (snapshot-based) ------------------------------------------
@@ -2628,9 +2632,15 @@ export class DocumentStore {
   /** Document-aware item detail (resolves managed attachments + notes cross-refs). */
   private detailFor(doc: OpenDoc, item: BibItem): ItemDetail {
     const keys = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
-    return toItemDetail(item, itemFiles(item, doc.library, doc.path), (k) =>
+    const detail = toItemDetail(item, itemFiles(item, doc.library, doc.path), (k) =>
       keys.has(k.toLowerCase()),
     );
+    // Render the configurable detail pane (default template reproduces ViewPane);
+    // the renderer hydrates it, falling back to its React pane if this is absent.
+    return {
+      ...detail,
+      detailsPanelHtml: renderDetailsPanel(detail, doc.documentId, this.editConfig.defaultCiteStyle),
+    };
   }
 
   /** Mark dirty, re-index for search, and return the affected item's detail. */

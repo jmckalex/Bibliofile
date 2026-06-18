@@ -1723,6 +1723,7 @@ function registerIpc(): void {
         papersFolder: s.papersFolder,
         autoFileFormat: s.autoFileFormat,
         annotationStorage: s.annotationStorage,
+        defaultCiteStyle: s.defaultCiteStyle,
       });
       // refresh View→Columns checkmarks and the File→Export template list
       if (req.patch.columns || req.patch.exportTemplates) buildMenu();
@@ -2224,6 +2225,7 @@ if (!gotLock) {
       papersFolder: settings.papersFolder,
       autoFileFormat: settings.autoFileFormat,
       annotationStorage: settings.annotationStorage,
+      defaultCiteStyle: settings.defaultCiteStyle,
     });
     registerIpc();
     buildMenu();

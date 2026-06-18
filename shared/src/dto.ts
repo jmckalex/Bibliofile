@@ -1142,6 +1142,12 @@ export interface ItemDetail {
   readonly notesRaw: string;
   /** Rendered notes HTML (markdown + `[[citeKey]]` cross-references). */
   readonly notesHtml: string;
+  /**
+   * The detail pane rendered as HTML from the (default or user) Handlebars
+   * template + `bd-*` web components. The renderer drops this into the pane and
+   * hydrates it; absent ⇒ the renderer falls back to its legacy React composition.
+   */
+  readonly detailsPanelHtml?: string;
 }
 
 // --- Menu commands ----------------------------------------------------------
