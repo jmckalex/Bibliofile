@@ -6,7 +6,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import type { ItemDetail } from '@bibdesk/shared';
-import { renderDetailsPanel } from './panel.js';
+import { renderDetailsPanel, renderBottomPanel } from './panel.js';
 
 function detail(over: Partial<ItemDetail> = {}): ItemDetail {
   return {
@@ -84,5 +84,17 @@ describe('renderDetailsPanel — default template', () => {
     )!;
     expect(html).toContain('&lt;b&gt;x&lt;/b&gt;');
     expect(html).not.toContain('<b>x</b>');
+  });
+});
+
+describe('renderBottomPanel — annotation reader', () => {
+  it('shows the cite key heading + the annotation when present (wide)', () => {
+    const html = renderBottomPanel(detail({ notesHtml: '<p>note body</p>' }), 'd', 'apa')!;
+    expect(html).toContain('Annotation — <span class="bd-viewfields__mono">smith2020</span>');
+    expect(html).toContain('<div class="bd-notes bd-notes--wide"><p>note body</p></div>');
+  });
+
+  it('shows an empty state when the entry has no annotation', () => {
+    expect(renderBottomPanel(detail(), 'd', 'apa')!).toContain('No annotation for this entry.');
   });
 });

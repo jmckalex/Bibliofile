@@ -1148,6 +1148,8 @@ export interface ItemDetail {
    * hydrates it; absent ⇒ the renderer falls back to its legacy React composition.
    */
   readonly detailsPanelHtml?: string;
+  /** The bottom panel rendered as HTML (default = the annotation reader). */
+  readonly bottomPanelHtml?: string;
 }
 
 // --- Menu commands ----------------------------------------------------------

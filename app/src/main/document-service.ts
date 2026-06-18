@@ -65,7 +65,7 @@ import {
   COMPRESSED_FIELD,
   type AnnotationStorage,
 } from './annotation.js';
-import { renderDetailsPanel } from './panel.js';
+import { renderDetailsPanel, renderBottomPanel } from './panel.js';
 import { exportRis, exportCsv, exportHtml, renderTemplate } from './export.js';
 import { parseRis, type RisRecord } from './ris-import.js';
 import { parseEndnote } from './endnote.js';
@@ -2635,11 +2635,14 @@ export class DocumentStore {
     const detail = toItemDetail(item, itemFiles(item, doc.library, doc.path), (k) =>
       keys.has(k.toLowerCase()),
     );
-    // Render the configurable detail pane (default template reproduces ViewPane);
-    // the renderer hydrates it, falling back to its React pane if this is absent.
+    // Render the configurable detail + bottom panels (default templates reproduce
+    // ViewPane / the annotation reader); the renderer hydrates them, falling back
+    // to its React pane if detailsPanelHtml is absent.
+    const citeStyle = this.editConfig.defaultCiteStyle;
     return {
       ...detail,
-      detailsPanelHtml: renderDetailsPanel(detail, doc.documentId, this.editConfig.defaultCiteStyle),
+      detailsPanelHtml: renderDetailsPanel(detail, doc.documentId, citeStyle),
+      bottomPanelHtml: renderBottomPanel(detail, doc.documentId, citeStyle),
     };
   }
 

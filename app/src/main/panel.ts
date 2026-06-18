@@ -44,6 +44,14 @@ export const DEFAULT_DETAILS_TEMPLATE = `<div class="bd-view__actions">
 {{#if attachments}}<ul class="bd-files">{{#each attachments}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-file="{{url}}"><span class="bd-file__icon" aria-hidden="true">📄</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{else}}<div class="bd-files__empty">No attachments.</div>{{/if}}
 {{#if links}}<div class="bd-detail__section">Links</div><ul class="bd-files">{{#each links}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-url="{{url}}"><span class="bd-file__icon" aria-hidden="true">🔗</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{/if}}`;
 
+/**
+ * The built-in BOTTOM panel template: a full-width annotation reader for the
+ * current selection (the wider format is easier to read than the narrow side
+ * pane). Shares the same per-item context as the details template.
+ */
+export const DEFAULT_BOTTOM_TEMPLATE = `<div class="bd-detail__section">Annotation — <span class="bd-viewfields__mono">{{citeKey}}</span></div>
+{{#if notesHtml}}<div class="bd-notes bd-notes--wide">{{{notesHtml}}}</div>{{else}}<div class="bd-notes__empty">No annotation for this entry.</div>{{/if}}`;
+
 /** Per-item context exposed to the details/panel template. */
 export interface DetailPanelContext {
   readonly documentId: string;
@@ -101,10 +109,28 @@ export function renderDetailsPanel(
   citeStyle: string,
   templateBody?: string,
 ): string | undefined {
+  return renderPanel(detail, documentId, citeStyle, templateBody || DEFAULT_DETAILS_TEMPLATE);
+}
+
+/** Render the bottom panel HTML (default = the annotation reader). See above. */
+export function renderBottomPanel(
+  detail: ItemDetail,
+  documentId: string,
+  citeStyle: string,
+  templateBody?: string,
+): string | undefined {
+  return renderPanel(detail, documentId, citeStyle, templateBody || DEFAULT_BOTTOM_TEMPLATE);
+}
+
+/** Compile + render a panel body against the item context; undefined on error. */
+function renderPanel(
+  detail: ItemDetail,
+  documentId: string,
+  citeStyle: string,
+  body: string,
+): string | undefined {
   try {
-    return compile(templateBody || DEFAULT_DETAILS_TEMPLATE)(
-      buildDetailContext(detail, documentId, citeStyle),
-    );
+    return compile(body)(buildDetailContext(detail, documentId, citeStyle));
   } catch {
     return undefined;
   }

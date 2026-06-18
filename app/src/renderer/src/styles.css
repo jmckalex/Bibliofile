@@ -501,6 +501,11 @@ body.bd-resizing {
   font-size: var(--bd-fs-sm);
 }
 
+/* Annotation rendered in the wide bottom panel: cap the measure for readability. */
+.bd-notes--wide {
+  max-width: 80ch;
+}
+
 /* Toggle-button active state (toolbar layout toggles). */
 .bd-btn--on {
   background: var(--bd-accent);

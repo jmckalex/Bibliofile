@@ -3,10 +3,11 @@
  * a drag splitter, the swappable right pane (Details ↔ Claude), and the
  * bottom-panel shell (made a template-driven annotation reader in a later phase).
  */
-import { useRef, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react';
 import { useStore } from './store.js';
 import { ViewPane } from './ViewPane.js';
 import { Assistant } from './Assistant.js';
+import { hydratePanel } from './panel-hydrate.js';
 
 /** A drag handle between two panels. `onDrag` receives the incremental px delta. */
 export function Splitter({
@@ -96,13 +97,28 @@ export function RightPane() {
   );
 }
 
-/** Bottom panel — a shell for Phase 1; becomes a configurable annotation reader later. */
+/**
+ * Bottom panel — a configurable, selection-driven reader (default = the current
+ * entry's annotation, full-width). Renders main-built HTML (a Handlebars template)
+ * and hydrates it like the detail pane.
+ */
 export function BottomPanel() {
   const setLayout = useStore((s) => s.setLayout);
+  const detail = useStore((s) => s.detail);
+  const selectedItemId = useStore((s) => s.selectedItemId);
+  const hostRef = useRef<HTMLDivElement>(null);
+  const html = detail && detail.id === selectedItemId ? detail.bottomPanelHtml : undefined;
+
+  useEffect(() => {
+    const el = hostRef.current;
+    if (!el || !html) return;
+    return hydratePanel(el);
+  }, [html]);
+
   return (
     <div className="bd-bottompanel">
       <div className="bd-bottompanel__bar">
-        <span className="bd-bottompanel__title">Bottom panel</span>
+        <span className="bd-bottompanel__title">Annotation</span>
         <span className="bd-toolbar__spacer" />
         <button
           type="button"
@@ -114,11 +130,15 @@ export function BottomPanel() {
           ×
         </button>
       </div>
-      <div className="bd-bottompanel__body">
-        <p className="bd-bottompanel__hint">
-          This panel becomes a configurable annotation reader (Handlebars) in a later phase.
-        </p>
-      </div>
+      {html ? (
+        <div className="bd-bottompanel__body" ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
+      ) : (
+        <div className="bd-bottompanel__body">
+          <p className="bd-bottompanel__hint">
+            {selectedItemId ? '' : 'Select a publication to read its annotation.'}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
