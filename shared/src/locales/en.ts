@@ -210,6 +210,89 @@ export const en: Catalog = {
   'sidebar.exportFolder': 'Export “{name}” to a PDF folder tree',
   'sidebar.deleteGroup': 'Delete “{name}”',
 
+  // --- Common buttons / labels (shared across dialogs) ---
+  'common.cancel': 'Cancel',
+  'common.save': 'Save',
+  'common.create': 'Create',
+  'common.remove': 'Remove',
+  'common.name': 'Name',
+  'common.scanning': 'Scanning…',
+
+  // --- Color context menu ---
+  'color.none': 'No color',
+
+  // --- Editor window ---
+  'editor.docTitle': 'Edit · {key} — BibDesk',
+  'editor.docTitleEmpty': 'Edit Publication — BibDesk',
+  'editor.editing': 'Editing',
+
+  // --- Broken links ---
+  'broken.ariaLabel': 'Find broken links',
+  'broken.title': 'Broken Links',
+  'broken.summary': '— {count} missing file',
+  'broken.summaryPlural': '— {count} missing files',
+  'broken.none': 'No broken links — every attachment resolves. 🎉',
+  'broken.selectEntry': 'Select this entry in the list',
+  'broken.locateTitle': 'Pick a replacement file for this attachment',
+  'broken.locate': 'Locate…',
+  'broken.removeTitle': 'Remove this attachment from the entry',
+  'broken.fieldLinkTitle': 'Edit the field on the entry to fix this link',
+  'broken.fieldLink': 'field link',
+
+  // --- Claude Assistant ---
+  'assistant.aria': 'Claude Assistant',
+  'assistant.titleBar': '🤖 Claude Assistant',
+  'assistant.newChatTitle': 'New conversation',
+  'assistant.newChat': 'New chat',
+  'assistant.connectKey':
+    'Connect your Anthropic API key to use the assistant. It is stored encrypted on this device{suffix}.',
+  'assistant.encryptionUnavailable':
+    ' — but OS encryption is unavailable, so it cannot be saved here',
+  'assistant.saveKey': 'Save key',
+  'assistant.hint':
+    'Ask me to find duplicates, tidy fields, generate cite keys, summarize the library, or export a subset. I’ll ask before changing anything.',
+  'assistant.thinking': 'Thinking…',
+  'assistant.composePlaceholder': 'Message the assistant…',
+  'assistant.send': 'Send',
+  'assistant.noReply': '(no reply)',
+
+  // --- Smart group dialog ---
+  'smart.editTitle': 'Edit Smart Group',
+  'smart.newTitle': 'New Smart Group',
+  'smart.defaultName': 'Smart Group',
+  'smart.match': 'Match',
+  'smart.matchAll': 'all of the following (AND)',
+  'smart.matchAny': 'any of the following (OR)',
+  'smart.valuePlaceholder': 'value',
+  'smart.removeCondition': 'Remove condition',
+  'smart.addCondition': '＋ Condition',
+  'smart.cmp.contains': 'contains',
+  'smart.cmp.notContains': 'does not contain',
+  'smart.cmp.is': 'is',
+  'smart.cmp.isNot': 'is not',
+  'smart.cmp.startsWith': 'starts with',
+  'smart.cmp.endsWith': 'ends with',
+
+  // --- Find & Replace ---
+  'fr.aria': 'Find and replace',
+  'fr.title': 'Find & Replace',
+  'fr.inGroup': ' — in {name}',
+  'fr.field': 'Field',
+  'fr.allFields': 'All fields',
+  'fr.find': 'Find',
+  'fr.replace': 'Replace',
+  'fr.regex': 'Regular expression',
+  'fr.caseSensitive': 'Case sensitive',
+  'fr.invalidPattern': 'Invalid pattern: {error}',
+  'fr.replaced': 'Replaced',
+  'fr.occurrence': 'occurrence',
+  'fr.occurrences': 'occurrences',
+  'fr.inWord': 'in',
+  'fr.fieldWord': 'field',
+  'fr.fieldsWord': 'fields',
+  'fr.andMore': '… and {count} more',
+  'fr.replaceAll': 'Replace All',
+
   // --- Empty / welcome states (renderer) ---
   'detail.empty.select': 'Select a publication to see its details.',
   'detail.loading': 'Loading…',

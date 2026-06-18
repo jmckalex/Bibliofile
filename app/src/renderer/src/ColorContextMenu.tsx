@@ -6,6 +6,7 @@
  */
 import { useEffect } from 'react';
 import { LABEL_COLORS } from '@bibdesk/model';
+import { useT } from './i18n.js';
 
 export function ColorContextMenu({
   x,
@@ -22,6 +23,7 @@ export function ColorContextMenu({
   onPick: (colorIndex: number | null) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onClose();
@@ -61,8 +63,8 @@ export function ColorContextMenu({
       <button
         type="button"
         className="bd-colordot bd-colordot--none"
-        title="No color"
-        aria-label="No color"
+        title={t('color.none')}
+        aria-label={t('color.none')}
         onClick={() => {
           onPick(null);
           onClose();

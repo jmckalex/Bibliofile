@@ -9,8 +9,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { BrokenLink } from '@bibdesk/shared';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 
 export function BrokenLinks({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const findBrokenLinks = useStore((s) => s.findBrokenLinks);
   const relocateAttachment = useStore((s) => s.relocateAttachment);
   const removeAttachment = useStore((s) => s.removeAttachment);
@@ -52,28 +54,30 @@ export function BrokenLinks({ onClose }: { onClose: () => void }) {
       <div
         className="bd-modal bd-modal--wide"
         role="dialog"
-        aria-label="Find broken links"
+        aria-label={t('broken.ariaLabel')}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bd-modal__header">
           <span>
-            Broken Links
+            {t('broken.title')}
             {links && links.length > 0 && (
               <span className="bd-dup__summary">
                 {' '}
-                — {links.length} missing file{links.length === 1 ? '' : 's'}
+                {t(links.length === 1 ? 'broken.summary' : 'broken.summaryPlural', {
+                  count: links.length,
+                })}
               </span>
             )}
           </span>
-          <button type="button" className="bd-field__del" title="Close" onClick={onClose}>
+          <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
             ×
           </button>
         </div>
         <div className="bd-modal__body">
           {!links ? (
-            <p className="bd-modal__empty">Scanning…</p>
+            <p className="bd-modal__empty">{t('common.scanning')}</p>
           ) : links.length === 0 ? (
-            <p className="bd-modal__empty">No broken links — every attachment resolves. 🎉</p>
+            <p className="bd-modal__empty">{t('broken.none')}</p>
           ) : (
             <ul className="bd-broken__list">
               {links.map((link, i) => (
@@ -82,7 +86,7 @@ export function BrokenLinks({ onClose }: { onClose: () => void }) {
                     <button
                       type="button"
                       className="bd-broken__key"
-                      title="Select this entry in the list"
+                      title={t('broken.selectEntry')}
                       onClick={() => reveal(link.itemId)}
                     >
                       <code>{link.citeKey}</code>
@@ -98,23 +102,23 @@ export function BrokenLinks({ onClose }: { onClose: () => void }) {
                         <button
                           type="button"
                           className="bd-btn bd-btn--small"
-                          title="Pick a replacement file for this attachment"
+                          title={t('broken.locateTitle')}
                           onClick={() => void locate(link)}
                         >
-                          Locate…
+                          {t('broken.locate')}
                         </button>
                         <button
                           type="button"
                           className="bd-btn bd-btn--small"
-                          title="Remove this attachment from the entry"
+                          title={t('broken.removeTitle')}
                           onClick={() => void remove(link)}
                         >
-                          Remove
+                          {t('common.remove')}
                         </button>
                       </>
                     ) : (
-                      <span className="bd-broken__hint" title="Edit the field on the entry to fix this link">
-                        field link
+                      <span className="bd-broken__hint" title={t('broken.fieldLinkTitle')}>
+                        {t('broken.fieldLink')}
                       </span>
                     )}
                   </div>

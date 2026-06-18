@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import type { FindReplaceResult } from '@bibdesk/shared';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 
 // Common fields offered explicitly; "All fields" searches every field.
 const FIELD_OPTIONS = [
@@ -28,6 +29,7 @@ const FIELD_OPTIONS = [
 ];
 
 export function FindReplace({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const findReplace = useStore((s) => s.findReplace);
   const groups = useStore((s) => s.groups);
   const selectedGroupId = useStore((s) => s.selectedGroupId);
@@ -64,20 +66,23 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
       <div
         className="bd-modal bd-modal--wide"
         role="dialog"
-        aria-label="Find and replace"
+        aria-label={t('fr.aria')}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bd-modal__header">
-          <span>Find &amp; Replace{groupName ? ` — in ${groupName}` : ''}</span>
-          <button type="button" className="bd-field__del" title="Close" onClick={onClose}>
+          <span>
+            {t('fr.title')}
+            {groupName ? t('fr.inGroup', { name: groupName }) : ''}
+          </span>
+          <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
             ×
           </button>
         </div>
         <div className="bd-modal__body">
           <div className="bd-fr__row">
-            <span className="bd-fr__label">Field</span>
+            <span className="bd-fr__label">{t('fr.field')}</span>
             <select className="bd-input bd-select" value={field} onChange={(e) => setField(e.target.value)}>
-              <option value="">All fields</option>
+              <option value="">{t('fr.allFields')}</option>
               {FIELD_OPTIONS.map((f) => (
                 <option key={f} value={f}>
                   {f}
@@ -86,7 +91,7 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
             </select>
           </div>
           <div className="bd-fr__row">
-            <span className="bd-fr__label">Find</span>
+            <span className="bd-fr__label">{t('fr.find')}</span>
             <input
               className="bd-input"
               value={find}
@@ -98,13 +103,13 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
             />
           </div>
           <div className="bd-fr__row">
-            <span className="bd-fr__label">Replace</span>
+            <span className="bd-fr__label">{t('fr.replace')}</span>
             <input className="bd-input" value={replace} onChange={(e) => setReplace(e.target.value)} />
           </div>
           <div className="bd-fr__opts">
             <label>
-              <input type="checkbox" checked={regex} onChange={(e) => setRegex(e.target.checked)} /> Regular
-              expression
+              <input type="checkbox" checked={regex} onChange={(e) => setRegex(e.target.checked)} />{' '}
+              {t('fr.regex')}
             </label>
             <label>
               <input
@@ -112,23 +117,27 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
                 checked={caseSensitive}
                 onChange={(e) => setCaseSensitive(e.target.checked)}
               />{' '}
-              Case sensitive
+              {t('fr.caseSensitive')}
             </label>
           </div>
 
           {result && (
             <div className="bd-fr__result">
               {result.error ? (
-                <span className="bd-fr__error">Invalid pattern: {result.error}</span>
+                <span className="bd-fr__error">{t('fr.invalidPattern', { error: result.error })}</span>
               ) : result.applied ? (
                 <span>
-                  Replaced <strong>{result.total}</strong> occurrence{result.total === 1 ? '' : 's'} in{' '}
-                  {result.matches.length} field{result.matches.length === 1 ? '' : 's'}.
+                  {t('fr.replaced')} <strong>{result.total}</strong>{' '}
+                  {t(result.total === 1 ? 'fr.occurrence' : 'fr.occurrences')} {t('fr.inWord')}{' '}
+                  <strong>{result.matches.length}</strong>{' '}
+                  {t(result.matches.length === 1 ? 'fr.fieldWord' : 'fr.fieldsWord')}.
                 </span>
               ) : (
                 <span>
-                  <strong>{result.total}</strong> occurrence{result.total === 1 ? '' : 's'} in{' '}
-                  {result.matches.length} field{result.matches.length === 1 ? '' : 's'}.
+                  <strong>{result.total}</strong>{' '}
+                  {t(result.total === 1 ? 'fr.occurrence' : 'fr.occurrences')} {t('fr.inWord')}{' '}
+                  <strong>{result.matches.length}</strong>{' '}
+                  {t(result.matches.length === 1 ? 'fr.fieldWord' : 'fr.fieldsWord')}.
                 </span>
               )}
               {!result.applied && result.matches.length > 0 && (
@@ -140,7 +149,9 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
                       <span className="bd-fr__after">{truncate(m.after)}</span>
                     </li>
                   ))}
-                  {result.matches.length > 40 && <li>… and {result.matches.length - 40} more</li>}
+                  {result.matches.length > 40 && (
+                    <li>{t('fr.andMore', { count: result.matches.length - 40 })}</li>
+                  )}
                 </ul>
               )}
             </div>
@@ -148,7 +159,7 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
         </div>
         <div className="bd-modal__footer">
           <button type="button" className="bd-btn" disabled={busy || !find} onClick={() => void run(false)}>
-            Find
+            {t('fr.find')}
           </button>
           <button
             type="button"
@@ -156,7 +167,7 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
             disabled={busy || !find}
             onClick={() => void run(true)}
           >
-            Replace All
+            {t('fr.replaceAll')}
           </button>
         </div>
       </div>

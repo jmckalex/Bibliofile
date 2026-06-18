@@ -8,6 +8,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -17,6 +18,7 @@ interface ChatMessage {
 }
 
 export function Assistant({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const agentSend = useStore((s) => s.agentSend);
   const documentId = useStore((s) => s.documentId);
   const [hasKey, setHasKey] = useState<boolean | null>(null);
@@ -56,7 +58,7 @@ export function Assistant({ onClose }: { onClose: () => void }) {
         ...m,
         {
           role: 'assistant',
-          text: res.error ? res.error : res.reply || '(no reply)',
+          text: res.error ? res.error : res.reply || t('assistant.noReply'),
           toolLog: res.toolLog,
           error: !!res.error,
         },
@@ -72,16 +74,16 @@ export function Assistant({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="bd-assistant" role="complementary" aria-label="Claude Assistant">
+    <div className="bd-assistant" role="complementary" aria-label={t('assistant.aria')}>
       <div className="bd-assistant__bar">
-        <span className="bd-assistant__title">🤖 Claude Assistant</span>
+        <span className="bd-assistant__title">{t('assistant.titleBar')}</span>
         <span className="bd-toolbar__spacer" />
         {hasKey && (
-          <button type="button" className="bd-btn bd-btn--small" onClick={resetChat} title="New conversation">
-            New chat
+          <button type="button" className="bd-btn bd-btn--small" onClick={resetChat} title={t('assistant.newChatTitle')}>
+            {t('assistant.newChat')}
           </button>
         )}
-        <button type="button" className="bd-field__del" title="Close" onClick={onClose}>
+        <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
           ×
         </button>
       </div>
@@ -89,8 +91,9 @@ export function Assistant({ onClose }: { onClose: () => void }) {
       {hasKey === false ? (
         <div className="bd-assistant__setup">
           <p>
-            Connect your Anthropic API key to use the assistant. It is stored encrypted on this
-            device{encryptionOk ? '' : ' — but OS encryption is unavailable, so it cannot be saved here'}.
+            {t('assistant.connectKey', {
+              suffix: encryptionOk ? '' : t('assistant.encryptionUnavailable'),
+            })}
           </p>
           <input
             className="bd-input"
@@ -103,17 +106,14 @@ export function Assistant({ onClose }: { onClose: () => void }) {
             }}
           />
           <button type="button" className="bd-btn bd-btn--primary" disabled={!keyInput.trim() || !encryptionOk} onClick={() => void saveKey()}>
-            Save key
+            {t('assistant.saveKey')}
           </button>
         </div>
       ) : (
         <>
           <div className="bd-assistant__log" ref={scrollRef}>
             {messages.length === 0 && (
-              <p className="bd-assistant__hint">
-                Ask me to find duplicates, tidy fields, generate cite keys, summarize the library, or
-                export a subset. I’ll ask before changing anything.
-              </p>
+              <p className="bd-assistant__hint">{t('assistant.hint')}</p>
             )}
             {messages.map((m, i) => (
               <div key={i} className={`bd-msg bd-msg--${m.role}${m.error ? ' bd-msg--error' : ''}`}>
@@ -123,13 +123,13 @@ export function Assistant({ onClose }: { onClose: () => void }) {
                 <div className="bd-msg__text">{m.text}</div>
               </div>
             ))}
-            {busy && <div className="bd-msg bd-msg--assistant bd-msg--pending">Thinking…</div>}
+            {busy && <div className="bd-msg bd-msg--assistant bd-msg--pending">{t('assistant.thinking')}</div>}
           </div>
           <div className="bd-assistant__compose">
             <textarea
               className="bd-input bd-input--area"
               rows={2}
-              placeholder="Message the assistant…"
+              placeholder={t('assistant.composePlaceholder')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -140,7 +140,7 @@ export function Assistant({ onClose }: { onClose: () => void }) {
               }}
             />
             <button type="button" className="bd-btn bd-btn--primary" disabled={busy || !input.trim()} onClick={() => void send()}>
-              Send
+              {t('assistant.send')}
             </button>
           </div>
         </>

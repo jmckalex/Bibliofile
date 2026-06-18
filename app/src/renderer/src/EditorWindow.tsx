@@ -11,8 +11,10 @@ import { useEffect } from 'react';
 
 import { useStore } from './store.js';
 import { DetailPane } from './DetailPane.js';
+import { useT } from './i18n.js';
 
 export function EditorWindow({ documentId, itemId }: { documentId: string; itemId: string }) {
+  const t = useT();
   const initEditor = useStore((s) => s.initEditor);
   const reloadAfterExternalChange = useStore((s) => s.reloadAfterExternalChange);
   const loadEntryTypes = useStore((s) => s.loadEntryTypes);
@@ -37,18 +39,21 @@ export function EditorWindow({ documentId, itemId }: { documentId: string; itemI
 
   // Keep the OS window title on the entry being edited.
   useEffect(() => {
-    document.title = detail ? `Edit · ${detail.citeKey} — BibDesk` : 'Edit Publication — BibDesk';
-  }, [detail]);
+    document.title = detail
+      ? t('editor.docTitle', { key: detail.citeKey })
+      : t('editor.docTitleEmpty');
+  }, [detail, t]);
 
   return (
     <div className="bd-editorwin bd-app">
       <header className="bd-editorwin__bar">
         <span className="bd-editorwin__title">
-          Editing{detail ? ` · ${detail.citeKey}` : '…'}
+          {t('editor.editing')}
+          {detail ? ` · ${detail.citeKey}` : '…'}
         </span>
         <span className="bd-editorwin__spacer" />
         <button type="button" className="bd-btn bd-btn--small" onClick={() => window.close()}>
-          Close
+          {t('common.close')}
         </button>
       </header>
       {error && <div className="bd-editorwin__error">{error}</div>}
