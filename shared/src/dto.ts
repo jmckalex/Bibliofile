@@ -985,12 +985,13 @@ export const BUILTIN_COLUMNS = [
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   defaultCiteStyle: 'apa',
-  // Author-count-aware: Surname:Year (1 author), Surname1/Surname2:Year (2),
-  // Surname1/etal:Year (3+). The `[/etal1]` trailing "1" caps shown authors at 1
-  // once there are more than the requested 2. `%u0` appends a disambiguating
-  // letter only on collision (…Yeara), unlike BibDesk's %u2 which always appends
-  // two. See core/formats/src/author-count-format.test.ts.
-  citeKeyFormat: '%a[/][/etal1]2:%Y%u0',
+  // Author-count-aware: Surname:Year (1 person), Surname1/Surname2:Year (2),
+  // Surname1/etal:Year (3+). `%p` = authors, falling back to editors for entries
+  // with no author (e.g. edited books). The `[/etal1]` trailing "1" caps shown
+  // names at 1 once there are more than the requested 2. `%u0` appends a
+  // disambiguating letter only on collision (…Yeara), unlike BibDesk's %u2 which
+  // always appends two. See core/formats/src/author-count-format.test.ts.
+  citeKeyFormat: '%p[/][/etal1]2:%Y%u0',
   annotationStorage: 'compressed',
   defaultEntryType: 'article',
   citeCommandTemplate: '\\cite{%K}',

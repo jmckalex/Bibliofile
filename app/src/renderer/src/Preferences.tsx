@@ -670,10 +670,11 @@ export function Preferences({ onClose }: { onClose: () => void }) {
             </p>
             <p className="bd-prefs__hint">
               <strong>Author-count recipe</strong> (the default):{' '}
-              <code>%a[/][/etal1]2:%Y%u0</code> → <code>Surname:Year</code> for one author,{' '}
+              <code>%p[/][/etal1]2:%Y%u0</code> → <code>Surname:Year</code> for one author,{' '}
               <code>Surname1/Surname2:Year</code> for two, <code>Surname1/etal:Year</code> for
               three or more; <code>%u0</code> adds a disambiguating letter (<code>a</code>,{' '}
-              <code>b</code>, …) only on a clash.
+              <code>b</code>, …) only on a clash. <code>%p</code> uses editors when an entry has
+              no author (e.g. edited books); use <code>%a</code> instead for authors only.
             </p>
           </section>
 
