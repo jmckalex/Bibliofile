@@ -6,8 +6,10 @@
 
 import { useState } from 'react';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 
 export function MacroEditor({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const macros = useStore((s) => s.macros);
   const edit = useStore((s) => s.edit);
   const [newName, setNewName] = useState('');
@@ -23,15 +25,15 @@ export function MacroEditor({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="bd-modal-backdrop" onClick={onClose}>
-      <div className="bd-modal" role="dialog" aria-label="String macros" onClick={(e) => e.stopPropagation()}>
+      <div className="bd-modal" role="dialog" aria-label={t('macro.ariaLabel')} onClick={(e) => e.stopPropagation()}>
         <div className="bd-modal__header">
-          <span>@string macros</span>
-          <button type="button" className="bd-field__del" title="Close" onClick={onClose}>
+          <span>{t('macro.title')}</span>
+          <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
             ×
           </button>
         </div>
         <div className="bd-modal__body">
-          {macros.length === 0 && <p className="bd-modal__empty">No macros defined yet.</p>}
+          {macros.length === 0 && <p className="bd-modal__empty">{t('macro.none')}</p>}
           {macros.map((m) => (
             <div className="bd-macro" key={m.name}>
               <span className="bd-macro__name" title={m.name}>
@@ -50,7 +52,7 @@ export function MacroEditor({ onClose }: { onClose: () => void }) {
               <button
                 type="button"
                 className="bd-field__del"
-                title={`Remove ${m.name}`}
+                title={t('macro.remove', { name: m.name })}
                 onClick={() => void edit({ kind: 'removeMacro', name: m.name })}
               >
                 ×
@@ -60,20 +62,20 @@ export function MacroEditor({ onClose }: { onClose: () => void }) {
           <div className="bd-macro bd-macro--add">
             <input
               className="bd-input"
-              placeholder="name"
+              placeholder={t('macro.namePlaceholder')}
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
             />
             <input
               className="bd-input"
-              placeholder="value"
+              placeholder={t('macro.valuePlaceholder')}
               value={newValue}
               onChange={(e) => setNewValue(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') add();
               }}
             />
-            <button type="button" className="bd-field__add" title="Add macro" onClick={add}>
+            <button type="button" className="bd-field__add" title={t('macro.add')} onClick={add}>
               +
             </button>
           </div>

@@ -173,6 +173,25 @@ export const en: Catalog = {
   'view.inherited': '(inherited)',
   'view.editTitle': 'Edit this publication in a separate window',
 
+  // --- Online search ---
+  'online.ariaLabel': 'Online search',
+  'online.title': 'Online search',
+  'online.placeholder': 'Search title, author, DOI…',
+  'online.searching': 'Searching…',
+  'online.search': 'Search',
+  'online.prompt': 'Enter a query and press Search.',
+  'online.imported': 'Imported',
+  'online.import': 'Import',
+
+  // --- @string macros ---
+  'macro.ariaLabel': 'String macros',
+  'macro.title': '@string macros',
+  'macro.none': 'No macros defined yet.',
+  'macro.remove': 'Remove {name}',
+  'macro.namePlaceholder': 'name',
+  'macro.valuePlaceholder': 'value',
+  'macro.add': 'Add macro',
+
   // --- Empty / welcome states (renderer) ---
   'detail.empty.select': 'Select a publication to see its details.',
   'detail.loading': 'Loading…',

@@ -7,8 +7,10 @@
 import { useState } from 'react';
 import { ONLINE_SOURCES, type OnlineResult, type OnlineSource } from '@bibdesk/shared';
 import { useStore } from './store.js';
+import { useT } from './i18n.js';
 
 export function OnlineSearch({ onClose }: { onClose: () => void }) {
+  const t = useT();
   const importOnline = useStore((s) => s.importOnline);
   const [source, setSource] = useState<OnlineSource>('crossref');
   const [query, setQuery] = useState('');
@@ -36,10 +38,10 @@ export function OnlineSearch({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="bd-modal-backdrop" onClick={onClose}>
-      <div className="bd-modal bd-modal--wide" role="dialog" aria-label="Online search" onClick={(e) => e.stopPropagation()}>
+      <div className="bd-modal bd-modal--wide" role="dialog" aria-label={t('online.ariaLabel')} onClick={(e) => e.stopPropagation()}>
         <div className="bd-modal__header">
-          <span>Online search</span>
-          <button type="button" className="bd-field__del" title="Close" onClick={onClose}>
+          <span>{t('online.title')}</span>
+          <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
             ×
           </button>
         </div>
@@ -57,7 +59,7 @@ export function OnlineSearch({ onClose }: { onClose: () => void }) {
           </select>
           <input
             className="bd-input"
-            placeholder="Search title, author, DOI…"
+            placeholder={t('online.placeholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -65,18 +67,18 @@ export function OnlineSearch({ onClose }: { onClose: () => void }) {
             }}
           />
           <button type="button" className="bd-btn bd-btn--primary" disabled={searching} onClick={() => void run()}>
-            {searching ? 'Searching…' : 'Search'}
+            {searching ? t('online.searching') : t('online.search')}
           </button>
         </div>
         <div className="bd-modal__body">
           {error && <p className="bd-footer__error">{error}</p>}
           {!searching && results.length === 0 && !error && (
-            <p className="bd-modal__empty">Enter a query and press Search.</p>
+            <p className="bd-modal__empty">{t('online.prompt')}</p>
           )}
           {results.map((r, i) => (
             <div className="bd-online__result" key={i}>
               <div className="bd-online__meta">
-                <div className="bd-online__title">{r.title || '(untitled)'}</div>
+                <div className="bd-online__title">{r.title || t('common.untitled')}</div>
                 <div className="bd-online__sub">
                   {[r.authorsDisplay, r.year, r.venue].filter(Boolean).join(' · ')}
                   {r.doi ? ` · ${r.doi}` : ''}
@@ -91,7 +93,7 @@ export function OnlineSearch({ onClose }: { onClose: () => void }) {
                   setImported((s) => new Set(s).add(i));
                 }}
               >
-                {imported.has(i) ? 'Imported' : 'Import'}
+                {imported.has(i) ? t('online.imported') : t('online.import')}
               </button>
             </div>
           ))}
