@@ -2291,10 +2291,15 @@ if (!gotLock) {
     buildMenu();
     startBridge();
     // macOS AppleScript dictionary (no-op elsewhere / if unbuilt). A scripted
-    // write refreshes open windows + menus, like an IPC edit would.
+    // write refreshes open windows + menus, like an IPC edit would. Defer to the
+    // next loop turn so this runs AFTER the synchronous Apple Event handler that
+    // re-entered V8 returns — calling menu/IPC APIs from inside that nested call
+    // is fragile.
     initScripting(store, (documentId) => {
-      broadcastDocumentChanged(documentId);
-      buildMenu();
+      setImmediate(() => {
+        broadcastDocumentChanged(documentId);
+        buildMenu();
+      });
     });
     const first = createWindow();
 
