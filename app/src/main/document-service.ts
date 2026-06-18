@@ -1182,6 +1182,21 @@ export class DocumentStore {
     return this.docs.has(documentId);
   }
 
+  /** Ids of all open documents, in insertion order (for AppleScript `documents`). */
+  documentIds(): string[] {
+    return [...this.docs.keys()];
+  }
+
+  /** All BibItems of an open document, in stored order (or [] if unknown). */
+  itemsOf(documentId: string): readonly BibItem[] {
+    return this.docs.get(documentId)?.library.items ?? [];
+  }
+
+  /** One BibItem by id within a document, or undefined. */
+  itemById(documentId: string, itemId: string): BibItem | undefined {
+    return this.docs.get(documentId)?.itemsById.get(itemId);
+  }
+
   /** Close a document and release it. Throws if the id is unknown. */
   closeDocument(request: CloseDocumentRequest): ClosedDocument {
     if (!this.docs.delete(request.documentId)) {
