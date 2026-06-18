@@ -4,16 +4,25 @@
 <!--
   Bibliophile scripting dictionary.
 
-  PHASE 0 (de-risk spike): the Standard Suite `application` class only, mapped to
-  the default NSApplication scripting support (no native code). Proving that a
-  packaged/rebranded Electron app answers `tell application "Bibliophile" to get
-  name / version` validates the whole AppleScript pipeline. The full BibDesk-style
-  vocabulary (documents, publications, authors, fields, groups, verbs) is layered
-  on in later phases via a native Cocoa-Scripting bridge.
+  Core read/write model: application -> documents -> publications. Cocoa keys
+  here match the proxy-object methods in app/native/scripting/src/scripting.mm,
+  which forward each request to the JS scripting service
+  (app/src/main/scripting.ts) over `dispatch`. Vocabulary mirrors
+  bibdesk/Scripting/BibDesk.sdef; fields/authors/groups + verbs (make/delete/
+  search/export) are layered on next.
 -->
 <dictionary title="Bibliophile Terminology">
 
 	<suite name="Standard Suite" code="????" description="Common classes and commands for all applications.">
+
+		<command name="count" code="corecnte" description="Return the number of elements of a particular class within an object.">
+			<cocoa class="NSCountCommand"/>
+			<direct-parameter type="specifier" description="the object whose elements are to be counted"/>
+			<parameter name="each" code="kocl" type="type" optional="yes" description="The class of objects to be counted." hidden="yes">
+				<cocoa key="ObjectClass"/>
+			</parameter>
+			<result type="integer" description="the number of elements"/>
+		</command>
 
 		<class name="application" code="capp" description="The application's top-level scripting object.">
 			<cocoa class="NSApplication"/>
@@ -21,7 +30,46 @@
 			<property name="frontmost" code="pisf" type="boolean" access="r" description="Is this the active application?">
 				<cocoa key="isActive"/>
 			</property>
-			<property name="version" code="vers" type="text" access="r" description="The version number of the application."/>
+			<property name="version" code="vers" type="text" access="r" description="The version of the application."/>
+			<element type="document">
+				<cocoa key="bibliophileDocuments"/>
+			</element>
+		</class>
+
+	</suite>
+
+	<suite name="Bibliophile Suite" code="Bibl" description="Classes and commands for Bibliophile.">
+
+		<class name="document" code="docu" description="An open bibliography (.bib file).">
+			<cocoa class="BPDocument"/>
+			<property name="name" code="pnam" type="text" access="r" description="Its name.">
+				<cocoa key="scriptingName"/>
+			</property>
+			<element type="publication">
+				<cocoa key="publications"/>
+			</element>
+		</class>
+
+		<class name="publication" plural="publications" code="bibi" description="A bibliography entry.">
+			<cocoa class="BPPublication"/>
+			<property name="id" code="ID  " type="text" access="r" description="Its unique identifier.">
+				<cocoa key="uniqueID"/>
+			</property>
+			<property name="cite key" code="ckey" type="text" description="The BibTeX cite key.">
+				<cocoa key="citeKey"/>
+			</property>
+			<property name="title" code="titl" type="text" description="The title.">
+				<cocoa key="scriptingTitle"/>
+			</property>
+			<property name="type" code="type" type="text" description="The BibTeX entry type (e.g. article, book).">
+				<cocoa key="scriptingType"/>
+			</property>
+			<property name="publication year" code="pyer" type="text" description="The publication year.">
+				<cocoa key="pubYear"/>
+			</property>
+			<property name="keywords" code="keyw" type="text" access="r" description="The keywords string.">
+				<cocoa key="pubKeywords"/>
+			</property>
 		</class>
 
 	</suite>
