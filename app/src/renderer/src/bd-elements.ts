@@ -40,6 +40,9 @@ function generatedCover(journal: string): string {
 class BdJournalCover extends HTMLElement {
   static readonly observedAttributes = ['doc-id', 'item-id'];
   private objectUrl?: string;
+  // Bumped on every render(); a stale async result whose token no longer matches
+  // is discarded, so overlapping renders can't fight or leak object URLs.
+  private token = 0;
 
   connectedCallback(): void {
     void this.render();
@@ -61,12 +64,14 @@ class BdJournalCover extends HTMLElement {
   private async render(): Promise<void> {
     const documentId = this.getAttribute('doc-id');
     const itemId = this.getAttribute('item-id');
+    const token = ++this.token;
     this.revoke();
     if (!documentId || !itemId) {
       this.innerHTML = '';
       return;
     }
     const res = await window.bibdesk?.journalCover({ documentId, itemId });
+    if (token !== this.token) return; // a newer render superseded this one
     if (!res) return;
     if (res.data) {
       this.objectUrl = URL.createObjectURL(new Blob([res.data as BlobPart]));
@@ -86,6 +91,13 @@ class BdJournalCover extends HTMLElement {
  *  Uses `cite-style` (not `style`, which is the reserved HTML attribute). */
 class BdCitation extends HTMLElement {
   static readonly observedAttributes = ['doc-id', 'item-id', 'cite-style'];
+  // Bumped on every render(); only the latest render's async result is applied,
+  // so overlapping formatCitation calls can't each append a body (the duplicate-
+  // citation bug). `lastKey` skips redundant work when nothing relevant changed —
+  // React + StrictMode can connect/re-render this element several times per
+  // selection, and without this each one fires a fresh (identical) IPC call.
+  private token = 0;
+  private lastKey: string | null = null;
 
   connectedCallback(): void {
     void this.render();
@@ -98,6 +110,10 @@ class BdCitation extends HTMLElement {
     const documentId = this.getAttribute('doc-id');
     const itemId = this.getAttribute('item-id');
     const styleId = this.getAttribute('cite-style') || 'apa';
+    const key = `${documentId} ${itemId} ${styleId}`;
+    if (key === this.lastKey) return; // same entry/style already rendered — nothing to do
+    this.lastKey = key;
+    const token = ++this.token;
     const styleLabel = CITATION_STYLES.find((s) => s.id === styleId)?.label ?? styleId;
     // Header renders immediately; the body fills in after the async format.
     this.innerHTML = `<div class="bd-cite"><div class="bd-cite__head"><span class="bd-detail__section bd-detail__section--inline">Citation</span><span class="bd-cite__stylename" title="Set the citation style in Preferences">${escapeHtml(
@@ -105,9 +121,11 @@ class BdCitation extends HTMLElement {
     )}</span></div></div>`;
     if (!documentId || !itemId) return;
     const res = await window.bibdesk?.formatCitation({ documentId, itemId, styleId });
+    if (token !== this.token) return; // a newer render superseded this one
     if (!res?.html) return;
     const cite = this.querySelector('.bd-cite');
     if (!cite) return;
+    cite.querySelector('.bd-cite__body')?.remove(); // replace, never stack
     const body = document.createElement('div');
     body.className = 'bd-cite__body';
     body.innerHTML = res.html;
