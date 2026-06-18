@@ -46,6 +46,35 @@ describe('agentRegenerateCiteKeys', () => {
     expect(keys).toContain('keep'); // untouched
     expect(keys).toContain('Lee:2021');
   });
+
+  it('repoints a child crossref when its parent is renamed (and undo restores it)', () => {
+    const store = new DocumentStore();
+    store.setEditConfig({ citeKeyFormat: '%p1:%Y%u0' }); // %p: editor fallback for the @proceedings parent
+    const { documentId } = store.openText(
+      '@proceedings{proc, Editor = {Jane Doe}, Year = {2019}, Title = {Proceedings}}\n' +
+        '@inproceedings{paper, Author = {John Smith}, Year = {2019}, Title = {Paper}, Crossref = {proc}}',
+      '/tmp/cref.bib',
+    );
+
+    const crossrefOf = (citeKey: string): string | undefined => {
+      const row = store
+        .listPublications({ documentId, offset: 0, limit: -1 })
+        .rows.find((r) => r.citeKey === citeKey)!;
+      return store
+        .getItemDetail({ documentId, itemId: row.id })
+        .fields.find((f) => f.name.toLowerCase() === 'crossref')?.rawValue;
+    };
+
+    const res = store.agentRegenerateCiteKeys(documentId);
+    expect(keysOf(store, documentId)).toEqual(['Doe:2019', 'Smith:2019']); // proc→Doe:2019, paper→Smith:2019
+    expect(res.crossrefUpdated).toBe(1);
+    expect(crossrefOf('Smith:2019')).toBe('Doe:2019'); // child now points at the parent's new key
+
+    // One undo restores BOTH the keys and the crossref pointer (single snapshot).
+    store.undo(documentId);
+    expect(keysOf(store, documentId)).toEqual(['paper', 'proc']);
+    expect(crossrefOf('paper')).toBe('proc');
+  });
 });
 
 describe('agentBatchSetField', () => {

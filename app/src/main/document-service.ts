@@ -1619,19 +1619,44 @@ export class DocumentStore {
   }
 
   /**
+   * Repoint `Crossref` fields after cite-key renames so a child crossref'ing a
+   * renamed parent doesn't dangle. `renames` maps each lowercased OLD key to its
+   * new key; any item whose Crossref names a renamed key (case-insensitively) is
+   * updated to the new key. Caller owns the snapshot / dirty flag. Returns the
+   * number of Crossref fields updated (those items are reindexed here).
+   */
+  private cascadeCrossrefRenames(doc: OpenDoc, renames: ReadonlyMap<string, string>): number {
+    if (renames.size === 0) return 0;
+    let updated = 0;
+    for (const item of doc.library.items) {
+      const cref = item.crossrefKey();
+      if (!cref) continue;
+      const to = renames.get(cref.toLowerCase());
+      if (to !== undefined && to !== cref) {
+        item.setField(FieldNames.Crossref, to);
+        this.reindex(doc, item);
+        updated++;
+      }
+    }
+    return updated;
+  }
+
+  /**
    * Bulk-regenerate cite keys from the configured format in ONE undo step
    * (the assistant's `regenerate_cite_keys` tool — far cheaper than per-entry
    * calls). `citeKeys` omitted ⇒ all entries. Uniqueness is maintained across the
-   * batch. Returns the from→to changes.
+   * batch, and `Crossref` references to any renamed entry are repointed so they
+   * don't dangle. Returns the from→to changes and the crossref-fix count.
    */
   agentRegenerateCiteKeys(
     documentId: string,
     citeKeys?: readonly string[],
-  ): { count: number; changes: { from: string; to: string }[] } {
+  ): { count: number; changes: { from: string; to: string }[]; crossrefUpdated: number } {
     this.snapshot(documentId, 'Regenerate Cite Keys');
     const doc = this.requireDoc(documentId);
     const taken = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
     const changes: { from: string; to: string }[] = [];
+    const renames = new Map<string, string>(); // lowercased old key -> new key
     for (const item of this.targetItems(doc, citeKeys)) {
       const from = item.citeKey;
       taken.delete(from.toLowerCase()); // allow reusing the base; avoid the others
@@ -1639,12 +1664,14 @@ export class DocumentStore {
       if (to !== from) {
         item.setCiteKey(to);
         changes.push({ from, to });
+        renames.set(from.toLowerCase(), to);
         this.reindex(doc, item);
       }
       taken.add(to.toLowerCase());
     }
+    const crossrefUpdated = this.cascadeCrossrefRenames(doc, renames);
     if (changes.length) doc.dirty = true;
-    return { count: changes.length, changes };
+    return { count: changes.length, changes, crossrefUpdated };
   }
 
   /**
@@ -2487,7 +2514,11 @@ export class DocumentStore {
       }
       case 'setCiteKey': {
         const item = this.itemOf(doc, cmd.itemId);
+        const from = item.citeKey;
         item.setCiteKey(cmd.citeKey);
+        if (item.citeKey !== from) {
+          this.cascadeCrossrefRenames(doc, new Map([[from.toLowerCase(), item.citeKey]]));
+        }
         return this.dirtyDetail(doc, item);
       }
       case 'setType': {
@@ -2497,8 +2528,12 @@ export class DocumentStore {
       }
       case 'generateCiteKey': {
         const item = this.itemOf(doc, cmd.itemId);
+        const from = item.citeKey;
         const existing = doc.library.items.filter((i) => i !== item).map((i) => i.citeKey);
         item.setCiteKey(generateCiteKey(this.editConfig.citeKeyFormat, item, existing));
+        if (item.citeKey !== from) {
+          this.cascadeCrossrefRenames(doc, new Map([[from.toLowerCase(), item.citeKey]]));
+        }
         return this.dirtyDetail(doc, item);
       }
       case 'addEntry': {

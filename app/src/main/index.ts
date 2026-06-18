@@ -1612,7 +1612,11 @@ function executeAgentTool(documentId: string, name: string, input: any): string 
       const res = store.agentRegenerateCiteKeys(documentId, keys);
       if (res.count === 0) return 'No cite keys changed (they already match the configured format).';
       const sample = res.changes.slice(0, 25).map((c) => `${c.from} → ${c.to}`).join('\n');
-      return `Regenerated ${res.count} cite key(s):\n${sample}${res.changes.length > 25 ? '\n…' : ''}`;
+      const crossref =
+        res.crossrefUpdated > 0
+          ? `\nRepointed ${res.crossrefUpdated} crossref reference(s) to the renamed entries.`
+          : '';
+      return `Regenerated ${res.count} cite key(s):\n${sample}${res.changes.length > 25 ? '\n…' : ''}${crossref}`;
     }
     case 'batch_set_field': {
       const keys = Array.isArray(input.citeKeys) ? (input.citeKeys as string[]) : undefined;
