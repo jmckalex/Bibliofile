@@ -66,20 +66,32 @@ as a toggled overlay. Template engine: `export.ts renderTemplate(body, items, {t
   toggles; the `assistant` menu command now opens the assistant *in the right pane*
   (the fixed overlay is retired). The bottom panel is still a placeholder shell —
   Phase 4 makes it the template-driven annotation reader.
-- **Phase 2 — `bd-*` web components.** Extract cover/citation/notes/attachments/
-  math (+ preview-card) into custom elements (`main.tsx` `customElements.define`);
-  rewire `ViewPane` to them *still React-composed*. Pure refactor → verify identical.
-- **Phase 3 — Template-driven details pane.** Rich conditional context
-  (`attachments[]`, `links[]`, `doi`, `keywords[]`, `{{{notesHtml}}}`, …) + the
-  default template that reproduces `ViewPane` exactly (same CSS classes) + main
-  render folded into `getItemDetail` + renderer hydration host (one delegated
-  click handler for `data-open-url`/`data-open-files`/`data-cite`/`data-action`).
-  Swap `ViewPane` to template-driven. **The "exactly the same" milestone.**
-- **Phase 4 — Bottom annotation reader + editing.** Bottom panel renders a template
-  (reuses Phase 3); default = the selection's annotation full-width. Preferences
-  "Panel templates" editor (details + bottom) via the existing editor + Text/HTML
-  toggle.
-- **Phase 5 — Polish.** Reset-to-default, help doc, multi-window refresh, perf.
+- **Phase 2 — `bd-* web components. ✅ DONE.`** `bd-elements.ts`: `<bd-journal-cover>`
+  + `<bd-citation>` (the genuinely-async primitives), registered in `main.tsx`. The
+  rest (preview card / fields / notes / attachments) are plain template HTML +
+  data-* hooks (a simpler choice than a component per primitive — see commit).
+- **Phase 3 — Template-driven details pane. ✅ DONE.** `panel.ts`
+  `DEFAULT_DETAILS_TEMPLATE` + `renderDetailsPanel`; `detailFor` adds
+  `ItemDetail.detailsPanelHtml`; `ViewPane` drops it in + `panel-hydrate.hydratePanel`
+  (delegated clicks + MathJax). **`ViewPane` keeps the React composition as a
+  FALLBACK** (used only on template error) — insurance for the untested build;
+  remove once verified. Golden tests in `panel.test.ts`.
+- **Phase 4 — Bottom annotation reader + editor. ✅ DONE.** `DEFAULT_BOTTOM_TEMPLATE`
+  (the selection's annotation, full-width) → `ItemDetail.bottomPanelHtml`; `BottomPanel`
+  renders + hydrates it. `Settings.detailsTemplate` / `bottomPanelTemplate` overrides +
+  Preferences → Panels editor (textarea + Reset + live Preview via new `previewPanel`
+  IPC, Text/HTML toggle).
+- **Phase 5 — Polish. ✅ DONE.** Help chapter `docs/help/10-panels.md`; this plan +
+  HANDOVER updated. Reset-to-default shipped in Phase 4b.
+
+### Known follow-ups (not blockers)
+- **Remove the legacy `ViewPane` React fallback** once the template pane is visually
+  verified (it's only used on a template-compile error today).
+- **Multi-window settings staleness:** changing a panel template refreshes the
+  window that changed it (saveSettings re-selects the item) but *other* open windows
+  pick up the change only on their next selection — no settings-changed broadcast yet.
+- **Editor window (editable `DetailPane`) is still React** — templatizing it would
+  need editable web components (rating/date/person inputs).
 
 ## "Exactly the same" — verification strategy (Phase 3)
 

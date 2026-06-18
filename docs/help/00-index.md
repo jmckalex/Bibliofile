@@ -52,6 +52,9 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
    on-save normalisations, where each kind of data is stored, a special-field
    reference, citations, current limitations, a glossary, and general
    troubleshooting.
+10. **[Configurable Panels](10-panels.md)** — Resizing, hiding, and swapping the
+    detail pane (Details ↔ Claude), the bottom annotation reader, and designing
+    your own panels with Handlebars templates.
 
 ## Conventions used in this manual
 
