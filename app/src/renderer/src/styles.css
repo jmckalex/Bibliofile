@@ -2098,3 +2098,43 @@ button.bd-chip {
   padding: 24px;
   color: #b91c1c;
 }
+
+/* ---- Sidebar right-click context menu ---------------------------------- */
+
+.bd-ctx-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200; /* above modals (100) so a menu can open over a dialog */
+}
+
+.bd-ctx-menu {
+  position: fixed;
+  min-width: 140px;
+  padding: 4px;
+  background: var(--bd-bg);
+  border: 1px solid var(--bd-border-strong);
+  border-radius: 8px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+}
+
+.bd-ctx-item {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bd-text);
+  text-align: left;
+  padding: 6px 10px;
+  border-radius: 5px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.bd-ctx-item:hover {
+  background: var(--bd-accent-soft);
+}
+
+.bd-ctx-item--danger {
+  color: var(--bd-danger, #c0392b);
+}

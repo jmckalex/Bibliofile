@@ -39,6 +39,7 @@ export function SmartGroupDialog({
 }) {
   const groupEdit = useStore((s) => s.groupEdit);
   const groupConditions = useStore((s) => s.groupConditions);
+  const selectedFolderId = useStore((s) => s.selectedFolderId);
   const editing = editGroupId !== undefined;
   const [name, setName] = useState('Smart Group');
   const [conjunction, setConjunction] = useState<0 | 1>(0);
@@ -78,7 +79,11 @@ export function SmartGroupDialog({
     if (editGroupId) {
       await groupEdit({ kind: 'editSmart', groupId: editGroupId, name: groupName, conditions, conjunction });
     } else {
-      await groupEdit({ kind: 'createSmart', name: groupName, conditions, conjunction });
+      // File the new smart group into the selected folder, if any (captured
+      // before createSmart, which clears the folder selection).
+      const parent = selectedFolderId;
+      const id = await groupEdit({ kind: 'createSmart', name: groupName, conditions, conjunction });
+      if (id && parent) await groupEdit({ kind: 'setGroupFolder', groupId: id, folderId: parent });
     }
     onClose();
   };

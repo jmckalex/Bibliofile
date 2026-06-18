@@ -177,6 +177,50 @@ describe('viewer store', () => {
     expect(store.getState().selectedGroupId).toBe('lib');
   });
 
+  it('selectFolder selects the folder, clears the group filter, and shows the library', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    expect(store.getState().selectedGroupId).toBe('lib');
+
+    await store.getState().selectFolder('f1');
+    const s = store.getState();
+    expect(s.selectedFolderId).toBe('f1');
+    expect(s.selectedGroupId).toBeUndefined(); // mutually exclusive with group selection
+    // a folder filters nothing: the reload carries no groupId (full library)
+    const last = calls.listPublications.at(-1)!;
+    expect(last.groupId).toBeUndefined();
+    expect(s.rows.map((r) => r.citeKey)).toEqual(['alpha2019', 'beta2020', 'gamma2021']);
+  });
+
+  it('selectGroup clears any selected folder (selection is mutually exclusive)', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    await store.getState().selectFolder('f1');
+    expect(store.getState().selectedFolderId).toBe('f1');
+
+    await store.getState().selectGroup('g1');
+    expect(store.getState().selectedFolderId).toBeUndefined();
+    expect(store.getState().selectedGroupId).toBe('g1');
+  });
+
+  it('createFolder selects the new folder; createStatic selects the new group', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    // fake groupEdit returns groupId 'g#0#0' for every command
+    await store.getState().groupEdit({ kind: 'createFolder', name: 'New Folder' });
+    expect(store.getState().selectedFolderId).toBe('g#0#0');
+    expect(store.getState().selectedGroupId).toBeUndefined();
+
+    await store.getState().groupEdit({ kind: 'createStatic', name: 'New Group' });
+    expect(store.getState().selectedGroupId).toBe('g#0#0');
+    expect(store.getState().selectedFolderId).toBeUndefined();
+  });
+
   it('selectItem populates detail', async () => {
     const { api } = makeFakeApi();
     const store = createStore(api);

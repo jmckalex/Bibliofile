@@ -9,7 +9,7 @@
  * dropped publication rows (add members).
  */
 
-import { useMemo, useState, type DragEvent, type JSX } from 'react';
+import { useEffect, useMemo, useState, type DragEvent, type JSX } from 'react';
 import type { GroupKind, GroupNode } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { SmartGroupDialog } from './SmartGroupDialog.js';
@@ -60,6 +60,7 @@ function GroupRow({
   onDropRef,
   onEditSmart,
   onExportFolder,
+  onContextMenu,
 }: {
   node: GroupNode;
   depth: number;
@@ -76,6 +77,7 @@ function GroupRow({
   onDropRef: (target: GroupNode, ref: Ref) => void;
   onEditSmart: (id: string) => void;
   onExportFolder: (id: string) => void;
+  onContextMenu: (node: GroupNode, x: number, y: number) => void;
 }) {
   const [dropping, setDropping] = useState(false);
   const acceptsRefs = node.kind === 'folder' || node.kind === 'library';
@@ -118,11 +120,14 @@ function GroupRow({
       }}
       onClick={() => {
         if (editing) return;
-        if (node.kind === 'folder') {
-          if (collapsible) onToggle(node);
-        } else onSelect(node);
+        onSelect(node);
       }}
       onDoubleClick={() => RENAMABLE(node.kind) && onStartRename(node.id)}
+      onContextMenu={(e) => {
+        if (!RENAMABLE(node.kind) && !DELETABLE(node.kind)) return;
+        e.preventDefault();
+        onContextMenu(node, e.clientX, e.clientY);
+      }}
       title={node.name}
       onDragOver={handleDragOver}
       onDragLeave={() => setDropping(false)}
@@ -206,10 +211,66 @@ function GroupRow({
   );
 }
 
+interface MenuItem {
+  label: string;
+  danger?: boolean;
+  onClick: () => void;
+}
+
+/** A lightweight right-click menu; dismissed by Escape or any outside click. */
+function ContextMenu({
+  x,
+  y,
+  items,
+  onClose,
+}: {
+  x: number;
+  y: number;
+  items: MenuItem[];
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div
+      className="bd-ctx-backdrop"
+      onClick={onClose}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
+    >
+      <div className="bd-ctx-menu" style={{ left: x, top: y }} role="menu" onClick={(e) => e.stopPropagation()}>
+        {items.map((it) => (
+          <button
+            key={it.label}
+            type="button"
+            role="menuitem"
+            className={'bd-ctx-item' + (it.danger ? ' bd-ctx-item--danger' : '')}
+            onClick={() => {
+              it.onClick();
+              onClose();
+            }}
+          >
+            {it.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function GroupsSidebar() {
   const groups = useStore((s) => s.groups);
   const selectedGroupId = useStore((s) => s.selectedGroupId);
+  const selectedFolderId = useStore((s) => s.selectedFolderId);
   const selectGroup = useStore((s) => s.selectGroup);
+  const selectFolder = useStore((s) => s.selectFolder);
   const groupEdit = useStore((s) => s.groupEdit);
   const exportFolderTree = useStore((s) => s.exportFolderTree);
   const renameAuthor = useStore((s) => s.renameAuthor);
@@ -217,6 +278,8 @@ export function GroupsSidebar() {
   const [editingId, setEditingId] = useState<string | undefined>();
   const [smartOpen, setSmartOpen] = useState(false);
   const [editSmartId, setEditSmartId] = useState<string | undefined>();
+  // Right-click context menu: the target node and screen coordinates.
+  const [menu, setMenu] = useState<{ x: number; y: number; node: GroupNode } | undefined>();
   // Per-node open override (id → open). Category sections default collapsed (their
   // 1000s of children would bury everything); folders and others default open.
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
@@ -236,13 +299,37 @@ export function GroupsSidebar() {
   const isOpen = (node: GroupNode): boolean => openSections[node.id] ?? node.kind !== 'category';
   const toggle = (node: GroupNode): void => setOpenSections((s) => ({ ...s, [node.id]: !isOpen(node) }));
 
+  // Clicking a folder selects it (its open/closed state is toggled only via the
+  // disclosure triangle); clicking any other node selects/filters as before.
+  const handleSelect = (node: GroupNode): void => {
+    if (node.kind === 'folder') void selectFolder(node.id);
+    else void selectGroup(node.id);
+  };
+  // When a folder is the create target, reveal it so the new child is visible.
+  const revealFolder = (folderId: string): void =>
+    setOpenSections((s) => ({ ...s, [folderId]: true }));
+
   const newStatic = async (): Promise<void> => {
+    // Capture the target folder first — createStatic clears the folder selection.
+    const parent = selectedFolderId;
     const id = await groupEdit({ kind: 'createStatic', name: 'New Group' });
-    if (id) setEditingId(id);
+    if (!id) return;
+    if (parent) {
+      await groupEdit({ kind: 'setGroupFolder', groupId: id, folderId: parent });
+      revealFolder(parent);
+    }
+    setEditingId(id);
   };
   const newFolder = async (): Promise<void> => {
-    const id = await groupEdit({ kind: 'createFolder', name: 'New Folder' });
-    if (id) setEditingId(id);
+    const parent = selectedFolderId;
+    const id = await groupEdit({
+      kind: 'createFolder',
+      name: 'New Folder',
+      ...(parent ? { parentId: parent } : {}),
+    });
+    if (!id) return;
+    if (parent) revealFolder(parent);
+    setEditingId(id);
   };
   const commitRename = (id: string, name: string): void => {
     setEditingId(undefined);
@@ -277,11 +364,11 @@ export function GroupsSidebar() {
         <GroupRow
           node={node}
           depth={depth}
-          selected={node.id === selectedGroupId}
+          selected={node.kind === 'folder' ? node.id === selectedFolderId : node.id === selectedGroupId}
           editing={editingId === node.id}
           collapsible={collapsible}
           open={open}
-          onSelect={(n) => selectGroup(n.id)}
+          onSelect={handleSelect}
           onToggle={toggle}
           onStartRename={setEditingId}
           onCommitRename={commitRename}
@@ -290,6 +377,7 @@ export function GroupsSidebar() {
           onDropRef={onDropRef}
           onEditSmart={setEditSmartId}
           onExportFolder={(id) => void exportFolderTree(id)}
+          onContextMenu={(n, x, y) => setMenu({ node: n, x, y })}
         />
         {collapsible && open && children.map((c) => renderNode(c, depth + 1))}
       </div>
@@ -315,6 +403,21 @@ export function GroupsSidebar() {
       {smartOpen && <SmartGroupDialog onClose={() => setSmartOpen(false)} />}
       {editSmartId && (
         <SmartGroupDialog editGroupId={editSmartId} onClose={() => setEditSmartId(undefined)} />
+      )}
+      {menu && (
+        <ContextMenu
+          x={menu.x}
+          y={menu.y}
+          onClose={() => setMenu(undefined)}
+          items={[
+            ...(RENAMABLE(menu.node.kind)
+              ? [{ label: 'Rename', onClick: () => setEditingId(menu.node.id) }]
+              : []),
+            ...(DELETABLE(menu.node.kind)
+              ? [{ label: 'Delete', danger: true, onClick: () => onDelete(menu.node) }]
+              : []),
+          ]}
+        />
       )}
     </nav>
   );

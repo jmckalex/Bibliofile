@@ -99,6 +99,12 @@ export interface ViewerState {
   /** Groups sidebar data (flat; tree built in the component). */
   groups: GroupNode[];
   selectedGroupId?: string;
+  /**
+   * Selected folder, if any. Mutually exclusive with `selectedGroupId`: a folder
+   * is a container (it filters nothing), but selecting one makes it the target
+   * that new groups/folders are created inside.
+   */
+  selectedFolderId?: string;
 
   /** Detail pane: the primary (last-clicked) item. */
   selectedItemId?: string;
@@ -144,6 +150,8 @@ export interface ViewerState {
   loadPublications: () => Promise<void>;
   /** Select a group and reload the filtered publications. */
   selectGroup: (groupId: string) => Promise<void>;
+  /** Select a folder (a container): highlight it and make it the create target. */
+  selectFolder: (folderId: string) => Promise<void>;
   /** Select a row and load its full detail (replaces any multi-selection). */
   selectItem: (itemId: string) => Promise<void>;
   /** Load one item's detail into the pane WITHOUT touching the multi-selection. */
@@ -262,6 +270,7 @@ export function createStore(api: BibDeskApi) {
         warnings: doc.warnings.length,
         // reset per-document view state
         selectedGroupId: undefined,
+        selectedFolderId: undefined,
         selectedItemId: undefined,
         selectedIds: [],
         detail: undefined,
@@ -347,7 +356,14 @@ export function createStore(api: BibDeskApi) {
     },
 
     selectGroup: async (groupId) => {
-      set({ selectedGroupId: groupId });
+      set({ selectedGroupId: groupId, selectedFolderId: undefined });
+      await get().loadPublications();
+    },
+
+    selectFolder: async (folderId) => {
+      // A folder filters no publications; selecting one clears the group filter
+      // (showing the full library) and marks the folder as the create target.
+      set({ selectedFolderId: folderId, selectedGroupId: undefined });
       await get().loadPublications();
     },
 
@@ -782,11 +798,16 @@ export function createStore(api: BibDeskApi) {
         const res = await api.groupEdit({ documentId, command });
         set({ dirty: res.dirty });
         if (command.kind === 'delete') set({ selectedGroupId: undefined });
+        if (command.kind === 'deleteFolder') set({ selectedFolderId: undefined });
         await get().loadGroups();
-        // Jump to a newly created group, but never to setMembers (drag-drop add)
-        // or folder ops — folders aren't filterable and shouldn't grab selection.
+        // A create selects the new node (group or folder); selection is mutually
+        // exclusive, so each branch clears the other. setMembers (drag-drop add)
+        // and re-parenting ops never grab selection.
         if (res.groupId && (command.kind === 'createStatic' || command.kind === 'createSmart')) {
-          set({ selectedGroupId: res.groupId });
+          set({ selectedGroupId: res.groupId, selectedFolderId: undefined });
+        }
+        if (res.groupId && command.kind === 'createFolder') {
+          set({ selectedFolderId: res.groupId, selectedGroupId: undefined });
         }
         await get().loadPublications();
         return res.groupId;
