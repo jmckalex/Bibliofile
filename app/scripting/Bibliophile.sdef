@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+
+<!--
+  Bibliophile scripting dictionary.
+
+  PHASE 0 (de-risk spike): the Standard Suite `application` class only, mapped to
+  the default NSApplication scripting support (no native code). Proving that a
+  packaged/rebranded Electron app answers `tell application "Bibliophile" to get
+  name / version` validates the whole AppleScript pipeline. The full BibDesk-style
+  vocabulary (documents, publications, authors, fields, groups, verbs) is layered
+  on in later phases via a native Cocoa-Scripting bridge.
+-->
+<dictionary title="Bibliophile Terminology">
+
+	<suite name="Standard Suite" code="????" description="Common classes and commands for all applications.">
+
+		<class name="application" code="capp" description="The application's top-level scripting object.">
+			<cocoa class="NSApplication"/>
+			<property name="name" code="pnam" type="text" access="r" description="The name of the application."/>
+			<property name="frontmost" code="pisf" type="boolean" access="r" description="Is this the active application?">
+				<cocoa key="isActive"/>
+			</property>
+			<property name="version" code="vers" type="text" access="r" description="The version number of the application."/>
+		</class>
+
+	</suite>
+
+</dictionary>
