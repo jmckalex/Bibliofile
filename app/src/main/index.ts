@@ -51,6 +51,7 @@ import { DocumentStore } from './document-service.js';
 import { runAgentTurn } from './agent.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
+import { initScripting } from './scripting-bridge.js';
 import { htmlToRtf, wrapRtf } from './rtf.js';
 import { buildPrintHtml } from './print.js';
 import { loadCoverIndex, resolveCover, coverFilePath } from './journal-covers.js';
@@ -2289,6 +2290,7 @@ if (!gotLock) {
     registerIpc();
     buildMenu();
     startBridge();
+    initScripting(store); // macOS AppleScript dictionary (no-op elsewhere / if unbuilt)
     const first = createWindow();
 
     // Auto-open from BIBDESK_OPEN / CLI, or honor a path buffered by open-file —
