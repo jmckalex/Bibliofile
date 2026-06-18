@@ -12,22 +12,24 @@ import { useStore } from './store.js';
 import { PreviewCard, CitationBlock, JournalCover, NotesSection, Attachments } from './DetailPane.js';
 import { MathText } from './MathText.js';
 import { hydratePanel } from './panel-hydrate.js';
+import { useT } from './i18n.js';
 
 /** Read-only field list: cite key, type, then each field's de-TeXified value. */
 function ReadOnlyFields({ detail }: { detail: ItemDetail }) {
+  const t = useT();
   return (
     <>
-      <div className="bd-detail__section">Fields</div>
+      <div className="bd-detail__section">{t('view.fields')}</div>
       <dl className="bd-viewfields">
-        <dt>Cite Key</dt>
+        <dt>{t('column.citeKey')}</dt>
         <dd className="bd-viewfields__mono">{detail.citeKey}</dd>
-        <dt>Type</dt>
+        <dt>{t('column.type')}</dt>
         <dd>{detail.type}</dd>
         {detail.fields.map((f, i) => (
           <div key={`${f.name}-${i}`} style={{ display: 'contents' }}>
             <dt className={f.isInherited ? 'bd-viewfields__inherited' : undefined}>
               {f.name}
-              {f.isInherited && <span className="bd-field__badge">(inherited)</span>}
+              {f.isInherited && <span className="bd-field__badge">{t('view.inherited')}</span>}
             </dt>
             <dd>
               <MathText text={f.value} />
@@ -40,6 +42,7 @@ function ReadOnlyFields({ detail }: { detail: ItemDetail }) {
 }
 
 export function ViewPane() {
+  const t = useT();
   const detail = useStore((s) => s.detail);
   const documentId = useStore((s) => s.documentId);
   const selectedItemId = useStore((s) => s.selectedItemId);
@@ -59,10 +62,10 @@ export function ViewPane() {
   }, [html]);
 
   if (!selectedItemId) {
-    return <div className="bd-detail__empty">Select a publication to see its details.</div>;
+    return <div className="bd-detail__empty">{t('detail.empty.select')}</div>;
   }
   if (!detail || detail.id !== selectedItemId) {
-    return <div className="bd-detail__empty">{detailLoading ? 'Loading…' : ''}</div>;
+    return <div className="bd-detail__empty">{detailLoading ? t('common.loading') : ''}</div>;
   }
 
   if (html) {
@@ -79,7 +82,7 @@ export function ViewPane() {
         <button
           type="button"
           className="bd-btn bd-btn--small bd-btn--primary"
-          title="Edit this publication in a separate window"
+          title={t('view.editTitle')}
           onClick={() => openEditor(detail.id)}
         >
           ✎ Edit…

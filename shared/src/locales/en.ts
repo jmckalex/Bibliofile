@@ -162,6 +162,17 @@ export const en: Catalog = {
   'common.close': 'Close',
   'common.untitled': '(untitled)',
 
+  // --- Panels / detail view ---
+  'panel.details': 'Details',
+  'panel.claude': '🤖 Claude',
+  'panel.hide': 'Hide panel',
+  'panel.annotation': 'Annotation',
+  'panel.hideBottom': 'Hide bottom panel',
+  'panel.selectAnnotation': 'Select a publication to read its annotation.',
+  'view.fields': 'Fields',
+  'view.inherited': '(inherited)',
+  'view.editTitle': 'Edit this publication in a separate window',
+
   // --- Empty / welcome states (renderer) ---
   'detail.empty.select': 'Select a publication to see its details.',
   'detail.loading': 'Loading…',
