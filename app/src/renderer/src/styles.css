@@ -358,15 +358,7 @@ body {
   box-shadow: 0 0 0 3px var(--bd-accent-soft);
 }
 
-/* Main content area: the three panes, optionally with a bottom panel below. */
-.bd-main {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
 .bd-panes {
-  flex: 1 1 auto;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr); /* third column set inline when the right pane is shown */
   min-height: 0;
@@ -381,6 +373,18 @@ body {
 
 .bd-pane--detail {
   border-right: none;
+}
+
+/* Middle column: the table, with the bottom panel scoped below it (not full-width). */
+.bd-center {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* the table and bottom panel manage their own scrolling */
+}
+
+.bd-center__table {
+  flex: 1;
+  min-height: 0;
 }
 
 /* ---- Resizable panels (splitters, right pane, bottom panel) ------------- */

@@ -559,50 +559,51 @@ export function App() {
     <div className="bd-app">
       <Header />
       <Toolbar onOpenMacros={() => setMacrosOpen(true)} onOpenOnline={() => setOnlineOpen(true)} />
-      <div className="bd-main">
-        <div
-          className="bd-panes"
-          style={{
-            gridTemplateColumns: layout.rightPaneVisible
-              ? `220px minmax(0, 1fr) 6px ${layout.rightPaneWidth}px`
-              : '220px minmax(0, 1fr)',
-          }}
-        >
-          <aside className="bd-pane">
-            <GroupsSidebar />
-          </aside>
-          <section className="bd-pane">
+      <div
+        className="bd-panes"
+        style={{
+          gridTemplateColumns: layout.rightPaneVisible
+            ? `220px minmax(0, 1fr) 6px ${layout.rightPaneWidth}px`
+            : '220px minmax(0, 1fr)',
+        }}
+      >
+        <aside className="bd-pane">
+          <GroupsSidebar />
+        </aside>
+        {/* Middle column: the table, with the bottom panel scoped under it. */}
+        <section className="bd-pane bd-center">
+          <div className="bd-center__table">
             <PublicationsTable />
-          </section>
-          {layout.rightPaneVisible && (
+          </div>
+          {layout.bottomPanelVisible && (
             <>
               <Splitter
-                orientation="vertical"
-                label="Resize side panel"
-                onDrag={(dx) => {
-                  const cur = getStore().getState().settings.layout.rightPaneWidth;
-                  setLayout({ rightPaneWidth: Math.max(240, Math.min(800, cur - dx)) }, false);
+                orientation="horizontal"
+                label="Resize bottom panel"
+                onDrag={(dy) => {
+                  const cur = getStore().getState().settings.layout.bottomPanelHeight;
+                  setLayout({ bottomPanelHeight: Math.max(80, Math.min(600, cur - dy)) }, false);
                 }}
                 onCommit={() => setLayout({}, true)}
               />
-              <RightPane />
+              <div className="bd-bottom" style={{ height: layout.bottomPanelHeight }}>
+                <BottomPanel />
+              </div>
             </>
           )}
-        </div>
-        {layout.bottomPanelVisible && (
+        </section>
+        {layout.rightPaneVisible && (
           <>
             <Splitter
-              orientation="horizontal"
-              label="Resize bottom panel"
-              onDrag={(dy) => {
-                const cur = getStore().getState().settings.layout.bottomPanelHeight;
-                setLayout({ bottomPanelHeight: Math.max(80, Math.min(600, cur - dy)) }, false);
+              orientation="vertical"
+              label="Resize side panel"
+              onDrag={(dx) => {
+                const cur = getStore().getState().settings.layout.rightPaneWidth;
+                setLayout({ rightPaneWidth: Math.max(240, Math.min(800, cur - dx)) }, false);
               }}
               onCommit={() => setLayout({}, true)}
             />
-            <div className="bd-bottom" style={{ height: layout.bottomPanelHeight }}>
-              <BottomPanel />
-            </div>
+            <RightPane />
           </>
         )}
       </div>
