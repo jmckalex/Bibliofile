@@ -503,6 +503,9 @@ export function App() {
       });
     });
     const unsubCols = api.onMenuToggleColumn((key) => void getStore().getState().toggleColumn(key));
+    const unsubExportTmpl = api.onMenuExportTemplate((req) =>
+      void getStore().getState().exportTemplate(req.templateName, req.scope),
+    );
     // Another window mutated a document → refresh, but only if it was OURS
     // (with several libraries open, each window ignores the others' edits).
     const unsubChanged = api.onDocumentChanged((e) => {
@@ -515,6 +518,7 @@ export function App() {
       unsubPrefs();
       unsubMenu();
       unsubCols();
+      unsubExportTmpl();
       unsubChanged();
     };
   }, [onDocumentOpened]);

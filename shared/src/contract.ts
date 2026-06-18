@@ -38,6 +38,11 @@ import type {
   ExportFolderTreeResponse,
   SelectIncompleteRequest,
   SelectIncompleteResponse,
+  PreviewTemplateRequest,
+  PreviewTemplateResponse,
+  ExportTemplateRequest,
+  ExportTemplateResponse,
+  ExportTemplateMenuRequest,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -130,6 +135,8 @@ export interface IpcContract {
   [IpcChannels.selectFromAux]: IpcEntry<SelectFromAuxRequest, AuxSelectionResult>;
   [IpcChannels.exportFolderTree]: IpcEntry<ExportFolderTreeRequest, ExportFolderTreeResponse>;
   [IpcChannels.selectIncomplete]: IpcEntry<SelectIncompleteRequest, SelectIncompleteResponse>;
+  [IpcChannels.previewTemplate]: IpcEntry<PreviewTemplateRequest, PreviewTemplateResponse>;
+  [IpcChannels.exportTemplate]: IpcEntry<ExportTemplateRequest, ExportTemplateResponse>;
   [IpcChannels.readAttachment]: IpcEntry<ReadAttachmentRequest, ReadAttachmentResponse>;
   [IpcChannels.exportText]: IpcEntry<ExportTextRequest, ExportTextResponse>;
   [IpcChannels.print]: IpcEntry<PrintRequest, PrintResponse>;
@@ -167,6 +174,7 @@ export interface IpcEventMap {
   [IpcEvents.showPreferences]: null;
   [IpcEvents.menuCommand]: MenuCommand;
   [IpcEvents.menuToggleColumn]: string;
+  [IpcEvents.menuExportTemplate]: ExportTemplateMenuRequest;
   [IpcEvents.documentChanged]: DocumentChangedEvent;
 }
 

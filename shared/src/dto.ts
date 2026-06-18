@@ -888,6 +888,13 @@ export interface CustomEntryType {
  */
 export type CustomEntryTypes = Readonly<Record<string, CustomEntryType>>;
 
+/** A user-authored export template: a Handlebars body + the output file extension. */
+export interface ExportTemplate {
+  readonly name: string;
+  readonly extension: string;
+  readonly body: string;
+}
+
 /** Application preferences (persisted; the BibDesk-equivalent options this app has). */
 export interface Settings {
   /** UI theme. `system` follows the OS appearance. */
@@ -929,6 +936,8 @@ export interface Settings {
   readonly fieldTypes: FieldTypeSettings;
   /** User-defined entry types (name → required/optional fields); standard types are protected. */
   readonly customTypes: CustomEntryTypes;
+  /** User-authored export templates (named; listed under File → Export). */
+  readonly exportTemplates: readonly ExportTemplate[];
 }
 
 /** Builtin (non-field) table column keys. */
@@ -970,6 +979,7 @@ export const DEFAULT_SETTINGS: Settings = {
     citation: ['Cited-By', 'Cites'],
   },
   customTypes: {},
+  exportTemplates: [],
 };
 
 /** Request to read the current settings (no payload). */
@@ -1035,6 +1045,50 @@ export interface SelectIncompleteRequest {
 /** Result: item ids of publications missing at least one required field. */
 export interface SelectIncompleteResponse {
   readonly itemIds: readonly string[];
+}
+
+/** Request a live render of a Handlebars template body (for the editor preview). */
+export interface PreviewTemplateRequest {
+  readonly documentId: DocumentId;
+  readonly body: string;
+}
+
+/** Result of a template preview render: the output text, or a compile/render error. */
+export interface PreviewTemplateResponse {
+  readonly text?: string;
+  readonly error?: string;
+}
+
+/**
+ * Which entries a template export covers: the whole library (file order), the
+ * entries currently shown (current group + search filter, in display order), or
+ * the current multi-selection (in display order).
+ */
+export type TemplateExportScope = 'library' | 'shown' | 'selected';
+
+/**
+ * Menu → renderer request to export a named template at a given scope. The
+ * renderer resolves `scope` to the concrete `itemIds` (it owns the selection and
+ * the filtered/sorted view) and then calls {@link IpcChannels.exportTemplate}.
+ */
+export interface ExportTemplateMenuRequest {
+  readonly templateName: string;
+  readonly scope: TemplateExportScope;
+}
+
+/** Request to export a named template; `itemIds` (in order) scopes + orders it. */
+export interface ExportTemplateRequest {
+  readonly documentId: DocumentId;
+  readonly templateName: string;
+  /** Items to render, in order. Omitted ⇒ the whole library in file order. */
+  readonly itemIds?: readonly ItemId[];
+}
+
+/** Result of a template export: written, cancelled at the save dialog, or errored. */
+export interface ExportTemplateResponse {
+  readonly ok?: boolean;
+  readonly canceled?: boolean;
+  readonly error?: string;
 }
 
 /**

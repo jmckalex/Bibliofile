@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { parse } from '@bibdesk/bibtex';
-import { exportRis, exportCsv, exportHtml } from './export.js';
+import { exportRis, exportCsv, exportHtml, renderTemplate } from './export.js';
 
 const BIB = [
   '@article{euler1748,',
@@ -69,5 +69,26 @@ describe('exportHtml', () => {
     const html = exportHtml(tricky);
     expect(html).toContain('A &amp; B &lt;tag&gt;');
     expect(html).not.toContain('<tag>');
+  });
+});
+
+describe('renderTemplate', () => {
+  it('exposes citeKey/type/fields/authors + the join & field helpers', () => {
+    const out = renderTemplate(
+      '{{count}}|{{#each entries}}{{citeKey}}:{{type}}:{{fields.Journal}}:{{field "doi"}}:{{join authors " / "}};{{/each}}',
+      items,
+    );
+    expect(out).toContain('2|');
+    expect(out).toContain('euler1748:article:Comm. Acad. Sci.:10.1000/euler:Leonhard Euler / Daniel Bernoulli;');
+    expect(out).toContain('gauss1801:book:::C. F. Gauss;'); // no journal/doi
+  });
+
+  it('auto-escapes interpolated values', () => {
+    const tricky = parse('@misc{x, Title = {A & B <i>}, Year = {2020}}').items;
+    expect(renderTemplate('{{#each entries}}{{title}}{{/each}}', tricky)).toContain('A &amp; B &lt;i&gt;');
+  });
+
+  it('throws a readable error on a malformed template', () => {
+    expect(() => renderTemplate('{{#each entries}}{{citeKey}}', items)).toThrow(/Template error/);
   });
 });

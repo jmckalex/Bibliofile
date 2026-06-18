@@ -58,7 +58,7 @@ import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT, parseFormat, LOCAL_FILE_FIELD
 import { makeAuthor, splitNameList, OTHERS, type Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
-import { exportRis, exportCsv, exportHtml } from './export.js';
+import { exportRis, exportCsv, exportHtml, renderTemplate } from './export.js';
 import { parseRis, type RisRecord } from './ris-import.js';
 import { parseEndnote } from './endnote.js';
 import { parseAuxCiteKeys } from './aux.js';
@@ -2549,6 +2549,27 @@ export class DocumentStore {
       default:
         throw new Error(`Export format "${format}" is not supported yet.`);
     }
+  }
+
+  /**
+   * Render the library (or a subset, or a small preview slice) through a user
+   * Handlebars export template. `opts.limit` caps the entry count (used by the
+   * live preview); the doc's display name (sans `.bib`) is the template `title`.
+   * Throws `Template error: …` on a bad template.
+   */
+  renderExportTemplate(
+    documentId: string,
+    body: string,
+    opts: { itemIds?: readonly string[]; limit?: number } = {},
+  ): string {
+    const doc = this.requireDoc(documentId);
+    let items: readonly BibItem[] =
+      opts.itemIds && opts.itemIds.length
+        ? opts.itemIds.map((id) => doc.itemsById.get(id)).filter((it): it is BibItem => it !== undefined)
+        : doc.library.items;
+    if (opts.limit !== undefined) items = items.slice(0, opts.limit);
+    const title = (doc.path ? basename(doc.path).replace(/\.bib$/i, '') : '') || 'Bibliography';
+    return renderTemplate(body, items, { title });
   }
 
   /**

@@ -55,10 +55,11 @@ const DETAIL: ItemDetail = {
 
 /** Records the requests it receives so tests can assert on them. */
 function makeFakeApi() {
-  const calls: { listPublications: ListPublicationsRequest[]; openEditor: string[] } = {
-    listPublications: [],
-    openEditor: [],
-  };
+  const calls: {
+    listPublications: ListPublicationsRequest[];
+    openEditor: string[];
+    exportTemplate: { templateName: string; itemIds?: readonly string[] }[];
+  } = { listPublications: [], openEditor: [], exportTemplate: [] };
   const api: BibDeskApi = {
     openDocument: async () => DOC,
     closeDocument: async (r) => ({ documentId: r.documentId }),
@@ -113,6 +114,11 @@ function makeFakeApi() {
     selectFromAux: async () => ({ canceled: true, matchedIds: [], matchedKeys: [], missingKeys: [] }),
     exportFolderTree: async () => ({ canceled: true, copied: 0, errors: [] }),
     selectIncomplete: async () => ({ itemIds: [] }),
+    previewTemplate: async () => ({ text: '' }),
+    exportTemplate: async (r) => {
+      calls.exportTemplate.push({ templateName: r.templateName, itemIds: r.itemIds });
+      return { ok: true };
+    },
     readAttachment: async () => ({ data: null }),
     exportText: async () => ({ text: '' }),
     pasteEntries: async () => ({ dirty: true, addedIds: [], warnings: [] }),
@@ -135,6 +141,7 @@ function makeFakeApi() {
     pathForFile: () => '',
     onMenuCommand: (): Unsubscribe => () => {},
     onMenuToggleColumn: (): Unsubscribe => () => {},
+    onMenuExportTemplate: (): Unsubscribe => () => {},
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
     onDocumentChanged: (): Unsubscribe => () => {},
@@ -344,6 +351,26 @@ describe('viewer store', () => {
     expect(store.getState().query).toBe('gamma');
     // filtering is client-side: no extra listPublications round-trip
     expect(calls.listPublications.length).toBe(before);
+  });
+
+  it('exportTemplate resolves the scope to ordered itemIds', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC); // display order (citeKey asc): i2, i1, i3
+
+    // Whole library → no itemIds (main renders the whole library).
+    await store.getState().exportTemplate('T', 'library');
+    expect(calls.exportTemplate.at(-1)!.itemIds).toBeUndefined();
+
+    // Shown → the visible rows in display order.
+    await store.getState().exportTemplate('T', 'shown');
+    expect(calls.exportTemplate.at(-1)!.itemIds).toEqual(['i2', 'i1', 'i3']);
+
+    // Selected → only the selection, still in display order (not click order).
+    store.getState().toggleSelect('i3');
+    store.getState().toggleSelect('i1');
+    await store.getState().exportTemplate('T', 'selected');
+    expect(calls.exportTemplate.at(-1)!.itemIds).toEqual(['i1', 'i3']);
   });
 });
 

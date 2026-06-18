@@ -70,6 +70,10 @@ export const IpcChannels = {
   exportFolderTree: 'bibdesk:exportFolderTree',
   /** Find publications missing a required field for their type. */
   selectIncomplete: 'bibdesk:selectIncomplete',
+  /** Live-render a Handlebars export-template body (for the Preferences preview). */
+  previewTemplate: 'bibdesk:previewTemplate',
+  /** Export a named template to a file (save dialog in main); optional itemIds scope it. */
+  exportTemplate: 'bibdesk:exportTemplate',
   /** Read an attachment's bytes (for in-app PDF preview). */
   readAttachment: 'bibdesk:readAttachment',
   /** Serialize a document (or a subset of items) to text in a given format. */
@@ -137,6 +141,8 @@ export const IpcEvents = {
   menuCommand: 'bibdesk:event:menuCommand',
   /** View→Columns toggle: payload is the column key to show/hide. */
   menuToggleColumn: 'bibdesk:event:menuToggleColumn',
+  /** File→Export template at a scope: payload is {templateName, scope}. */
+  menuExportTemplate: 'bibdesk:event:menuExportTemplate',
   /** The open document's content changed (e.g. an edit from the editor window). */
   documentChanged: 'bibdesk:event:documentChanged',
 } as const;

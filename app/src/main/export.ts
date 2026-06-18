@@ -116,12 +116,85 @@ export function exportCsv(items: readonly BibItem[]): string {
   return rows.join('\n') + '\n';
 }
 
-// --- HTML (Handlebars) --------------------------------------------------------
+// --- Templates (Handlebars) ---------------------------------------------------
+
+/** Per-entry context exposed to user-authored export templates. */
+export interface TemplateEntry {
+  readonly citeKey: string;
+  readonly type: string;
+  /** Locally-set BibTeX fields, display-formatted; keys use canonical casing. */
+  readonly fields: Record<string, string>;
+  /** Author display strings (split on ` and `). */
+  readonly authors: string[];
+  /** Authors joined with ", ". */
+  readonly authorsText: string;
+  readonly title: string;
+  readonly year: string;
+  /** Journal, or Booktitle when there is no Journal. */
+  readonly venue: string;
+  readonly volume: string;
+  readonly pages: string;
+  readonly doi: string;
+}
+
+const BDSK_FILE_FIELD = /^bdsk-file-\d+$/i;
+
+/** Build the Handlebars context for one entry. */
+function templateEntry(item: BibItem): TemplateEntry {
+  const fields: Record<string, string> = {};
+  for (const name of item.fieldNames()) {
+    if (BDSK_FILE_FIELD.test(name)) continue; // managed attachment blobs
+    const v = disp(item, name);
+    if (v) fields[name] = v;
+  }
+  const authors = authorList(item);
+  return {
+    citeKey: item.citeKey,
+    type: item.type,
+    fields,
+    authors,
+    authorsText: authors.join(', '),
+    title: disp(item, 'Title'),
+    year: disp(item, 'Year'),
+    venue: disp(item, 'Journal') || disp(item, 'Booktitle'),
+    volume: disp(item, 'Volume'),
+    pages: disp(item, 'Pages'),
+    doi: disp(item, 'Doi'),
+  };
+}
+
+// Helpers available in every template.
+Handlebars.registerHelper('join', (arr: unknown, sep: unknown) =>
+  Array.isArray(arr) ? arr.join(typeof sep === 'string' ? sep : ', ') : '',
+);
+// Case-insensitive field lookup on the current entry: {{field "journal"}}.
+Handlebars.registerHelper('field', function (this: TemplateEntry, name: unknown): string {
+  if (typeof name !== 'string' || !this || !this.fields) return '';
+  const lower = name.toLowerCase();
+  for (const [k, v] of Object.entries(this.fields)) if (k.toLowerCase() === lower) return v;
+  return '';
+});
 
 /**
- * Default HTML export template. A self-contained document listing each entry as
- * a typographic reference. Handlebars escapes all interpolated values.
+ * Render `items` through a user (Handlebars) template. Context is
+ * `{ title, count, entries: TemplateEntry[] }`; values are auto-escaped. Throws
+ * a readable `Template error: …` if the body fails to compile or render.
  */
+export function renderTemplate(
+  body: string,
+  items: readonly BibItem[],
+  data: { title?: string } = {},
+): string {
+  const entries = items.map(templateEntry);
+  try {
+    const tmpl = Handlebars.compile(body, { noEscape: false });
+    return tmpl({ title: data.title ?? 'Bibliography', count: entries.length, entries });
+  } catch (e) {
+    throw new Error(`Template error: ${e instanceof Error ? e.message : String(e)}`);
+  }
+}
+
+/** Built-in default HTML bibliography template (also a worked example). */
 const HTML_TEMPLATE = `<!doctype html>
 <html lang="en">
 <head>
@@ -132,19 +205,18 @@ const HTML_TEMPLATE = `<!doctype html>
   h1 { font-size: 1.4rem; }
   .ref { margin: 0 0 1rem; padding-left: 2rem; text-indent: -2rem; }
   .ref .authors { font-weight: 600; }
-  .ref .title { }
   .ref .venue { font-style: italic; }
   .ref .key { color: #888; font: 12px ui-monospace, monospace; }
   .count { color: #888; }
 </style>
 </head>
 <body>
-<h1>{{title}} <span class="count">({{entries.length}})</span></h1>
+<h1>{{title}} <span class="count">({{count}})</span></h1>
 {{#each entries}}
 <p class="ref">
-  {{#if authors}}<span class="authors">{{authors}}</span> {{/if}}
+  {{#if authorsText}}<span class="authors">{{authorsText}}</span> {{/if}}
   {{#if year}}({{year}}). {{/if}}
-  {{#if titleText}}<span class="title">{{titleText}}</span>. {{/if}}
+  {{#if title}}<span class="title">{{title}}</span>. {{/if}}
   {{#if venue}}<span class="venue">{{venue}}</span>{{#if volume}}, {{volume}}{{/if}}{{#if pages}}, {{pages}}{{/if}}. {{/if}}
   {{#if doi}}<a href="https://doi.org/{{doi}}">https://doi.org/{{doi}}</a> {{/if}}
   <span class="key">[{{citeKey}}]</span>
@@ -154,19 +226,7 @@ const HTML_TEMPLATE = `<!doctype html>
 </html>
 `;
 
-const renderHtml = Handlebars.compile(HTML_TEMPLATE, { noEscape: false });
-
-/** Render items to a styled, self-contained HTML bibliography via Handlebars. */
+/** Render items to a styled, self-contained HTML bibliography (built-in template). */
 export function exportHtml(items: readonly BibItem[], title = 'Bibliography'): string {
-  const entries = items.map((item) => ({
-    citeKey: item.citeKey,
-    authors: authorList(item).join(', '),
-    year: disp(item, 'Year'),
-    titleText: disp(item, 'Title'),
-    venue: disp(item, 'Journal') || disp(item, 'Booktitle'),
-    volume: disp(item, 'Volume'),
-    pages: disp(item, 'Pages'),
-    doi: disp(item, 'Doi'),
-  }));
-  return renderHtml({ title, entries });
+  return renderTemplate(HTML_TEMPLATE, items, { title });
 }

@@ -634,7 +634,15 @@ user-facing Help (`docs/help/`) was updated alongside:
   the default cite-key format is now `%a1:%Y%u0` (disambiguate only on collision, with a settings
   migration).
 
-`pnpm -r test` = **1455 passing** (+3 skipped under the Node test ABI — expected);
+- **User-editable export templates** — Preferences → Export Templates authors named Handlebars
+  templates (per-entry context: `citeKey`/`type`/`fields.<Name>`/`authors`/`title`…, `{{field}}`
+  helper) with a live preview; each appears under File → Export. `renderTemplate` engine +
+  `renderExportTemplate` + `previewTemplate` IPC. Review enhancements: a **Text/HTML** preview
+  toggle (HTML renders in a sandboxed iframe), and **scoped export** — each template is a submenu
+  (Whole Library / Shown / Selected) exporting the chosen entries in display order via a new
+  `exportTemplate` IPC + `menuExportTemplate` event.
+
+`pnpm -r test` = **1459 passing** (+3 skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.
 
 ### Still pending (deeper BibDesk features; not yet built) — do NOT claim these are done

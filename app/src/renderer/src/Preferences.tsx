@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { CITATION_STYLES, BUILTIN_COLUMNS, type Settings, type EntryTypeInfo } from '@bibdesk/shared';
+import { CITATION_STYLES, BUILTIN_COLUMNS, type Settings, type EntryTypeInfo, type ExportTemplate } from '@bibdesk/shared';
 import { useStore } from './store.js';
 
 const COLUMN_LABELS: Record<string, string> = {
@@ -261,8 +261,182 @@ function EntryTypesSection({
   );
 }
 
+const STARTER_TEMPLATE = `{{#each entries}}
+{{authorsText}} ({{year}}). {{title}}. {{venue}}. [{{citeKey}}]
+{{/each}}
+`;
+
+/** One editable export template + a live preview against the open library. */
+function TemplateRow({
+  template,
+  documentId,
+  onChange,
+  onRemove,
+}: {
+  template: ExportTemplate;
+  documentId: string | undefined;
+  onChange: (patch: Partial<ExportTemplate>) => void;
+  onRemove: () => void;
+}) {
+  const [body, setBody] = useState(template.body);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  // How to show the preview: raw text, or interpreted as HTML (sandboxed iframe).
+  // Default to HTML for html-extension templates.
+  const [mode, setMode] = useState<'text' | 'html'>(template.extension === 'html' ? 'html' : 'text');
+
+  const runPreview = async (): Promise<void> => {
+    if (!documentId) {
+      setError('Open a library to preview.');
+      setPreview(null);
+      return;
+    }
+    const res = await window.bibdesk?.previewTemplate({ documentId, body });
+    if (!res) return;
+    if (res.error) {
+      setError(res.error);
+      setPreview(null);
+    } else {
+      setPreview(res.text ?? '');
+      setError(null);
+    }
+  };
+
+  return (
+    <div className="bd-ctype">
+      <div className="bd-ctype__head">
+        <input
+          className="bd-input"
+          defaultValue={template.name}
+          aria-label="Template name"
+          onBlur={(e) => onChange({ name: e.target.value.trim() || template.name })}
+        />
+        <input
+          className="bd-input bd-tmpl__ext"
+          defaultValue={template.extension}
+          aria-label="File extension"
+          title="Output file extension"
+          onBlur={(e) => onChange({ extension: e.target.value.replace(/^\./, '').trim() || 'txt' })}
+        />
+        <button type="button" className="bd-field__del" title="Delete template" onClick={onRemove}>
+          ×
+        </button>
+      </div>
+      <textarea
+        className="bd-input bd-input--area bd-tmpl__body"
+        value={body}
+        rows={6}
+        spellCheck={false}
+        onChange={(e) => setBody(e.target.value)}
+        onBlur={() => {
+          if (body !== template.body) onChange({ body });
+        }}
+      />
+      <div className="bd-tmpl__actions">
+        <button type="button" className="bd-btn bd-btn--small" onClick={() => void runPreview()}>
+          Preview
+        </button>
+        {preview !== null && !error && (
+          <div className="bd-tmpl__view" role="group" aria-label="Preview mode">
+            <button
+              type="button"
+              className={'bd-seg' + (mode === 'text' ? ' bd-seg--on' : '')}
+              aria-pressed={mode === 'text'}
+              onClick={() => setMode('text')}
+            >
+              Text
+            </button>
+            <button
+              type="button"
+              className={'bd-seg' + (mode === 'html' ? ' bd-seg--on' : '')}
+              aria-pressed={mode === 'html'}
+              onClick={() => setMode('html')}
+            >
+              HTML
+            </button>
+          </div>
+        )}
+      </div>
+      {error && <pre className="bd-tmpl__preview bd-tmpl__preview--err">{error}</pre>}
+      {preview !== null && !error && (
+        <>
+          {mode === 'text' ? (
+            <pre className="bd-tmpl__preview">{preview || '(empty)'}</pre>
+          ) : (
+            <iframe
+              className="bd-tmpl__preview bd-tmpl__preview--html"
+              title="HTML preview"
+              sandbox=""
+              srcDoc={preview}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Author named Handlebars export templates; each appears under File → Export. */
+function TemplatesSection({
+  templates,
+  documentId,
+  save,
+}: {
+  templates: readonly ExportTemplate[];
+  documentId: string | undefined;
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const setAll = (next: ExportTemplate[]): void => void save({ exportTemplates: next });
+  const update = (i: number, patch: Partial<ExportTemplate>): void => {
+    if (patch.name !== undefined && templates.some((t, j) => j !== i && t.name === patch.name)) return;
+    setAll(templates.map((t, j) => (j === i ? { ...t, ...patch } : t)));
+  };
+  const remove = (i: number): void => setAll(templates.filter((_, j) => j !== i));
+  const add = (): void => {
+    const taken = new Set(templates.map((t) => t.name));
+    let name = 'Template';
+    for (let n = 2; taken.has(name); n++) name = `Template ${n}`;
+    setAll([...templates, { name, extension: 'html', body: STARTER_TEMPLATE }]);
+  };
+
+  return (
+    <section className="bd-prefs__section">
+      <h3>Export templates</h3>
+      <p className="bd-prefs__hint">
+        Author your own export formats with Handlebars; each appears under{' '}
+        <strong>File → Export</strong>. Per-entry context: <code>citeKey</code>, <code>type</code>,{' '}
+        <code>fields.&lt;Name&gt;</code>, <code>authors</code>/<code>authorsText</code>, and{' '}
+        <code>title year venue volume pages doi</code>; <code>{'{{field "name"}}'}</code> looks up a
+        field case-insensitively. Loop with <code>{'{{#each entries}}'}</code>.
+      </p>
+      {templates.length === 0 && <p className="bd-prefs__hint">No templates yet.</p>}
+      {templates.map((t, i) => (
+        <TemplateRow
+          key={t.name}
+          template={t}
+          documentId={documentId}
+          onChange={(patch) => update(i, patch)}
+          onRemove={() => remove(i)}
+        />
+      ))}
+      <div className="bd-cols__add">
+        <button
+          type="button"
+          className="bd-circbtn bd-circbtn--add"
+          title="Add export template"
+          aria-label="Add export template"
+          onClick={add}
+        >
+          +
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export function Preferences({ onClose }: { onClose: () => void }) {
   const settings = useStore((s) => s.settings);
+  const documentId = useStore((s) => s.documentId);
   const entryTypes = useStore((s) => s.entryTypes);
   const save = useStore((s) => s.saveSettings);
 
@@ -449,6 +623,8 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <EntryTypesSection customTypes={settings.customTypes} entryTypes={entryTypes} save={save} />
+
+          <TemplatesSection templates={settings.exportTemplates} documentId={documentId} save={save} />
 
           <section className="bd-prefs__section">
             <h3>Field types</h3>

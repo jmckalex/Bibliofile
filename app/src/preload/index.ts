@@ -56,6 +56,11 @@ import {
   type ExportFolderTreeResponse,
   type SelectIncompleteRequest,
   type SelectIncompleteResponse,
+  type PreviewTemplateRequest,
+  type PreviewTemplateResponse,
+  type ExportTemplateRequest,
+  type ExportTemplateResponse,
+  type ExportTemplateMenuRequest,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
   type ExportTextRequest,
@@ -170,6 +175,12 @@ const api: BibDeskApi = {
   selectIncomplete(request: SelectIncompleteRequest): Promise<SelectIncompleteResponse> {
     return ipcRenderer.invoke(IpcChannels.selectIncomplete, request);
   },
+  previewTemplate(request: PreviewTemplateRequest): Promise<PreviewTemplateResponse> {
+    return ipcRenderer.invoke(IpcChannels.previewTemplate, request);
+  },
+  exportTemplate(request: ExportTemplateRequest): Promise<ExportTemplateResponse> {
+    return ipcRenderer.invoke(IpcChannels.exportTemplate, request);
+  },
   onShowPreferences(listener: () => void): Unsubscribe {
     const handler = (): void => listener();
     ipcRenderer.on(IpcEvents.showPreferences, handler);
@@ -262,6 +273,11 @@ const api: BibDeskApi = {
     const handler = (_e: IpcRendererEvent, key: string): void => listener(key);
     ipcRenderer.on(IpcEvents.menuToggleColumn, handler);
     return () => ipcRenderer.removeListener(IpcEvents.menuToggleColumn, handler);
+  },
+  onMenuExportTemplate(listener: (req: ExportTemplateMenuRequest) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, req: ExportTemplateMenuRequest): void => listener(req);
+    ipcRenderer.on(IpcEvents.menuExportTemplate, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.menuExportTemplate, handler);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

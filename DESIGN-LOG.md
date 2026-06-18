@@ -522,6 +522,29 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   `undoState` wiring in `index.ts`; the Copy-As / select / crossref cases in
   `App.tsx`. Tests for each. Developed on branch `polish`.
 
+- **User-editable export templates.** Generalised HTML export into a reusable
+  `renderTemplate(body, items, {title})` (`export.ts`) over a documented per-entry
+  Handlebars context — `citeKey`, `type`, `fields` (every display-formatted field),
+  `authors[]`/`authorsText`, and `title`/`year`/`venue`/`volume`/`pages`/`doi`
+  conveniences — with `join` + case-insensitive `field` helpers; values auto-escaped,
+  errors surfaced as `Template error: …`. The built-in HTML export is now just this
+  engine over a default template (a worked example). Users author named templates in
+  `Settings.exportTemplates` (`{name, extension, body}`); `DocumentStore
+  .renderExportTemplate(documentId, body, {itemIds?, limit?})` renders the library
+  (or a slice). Each template appears under File → Export (dynamic items, rebuilt on
+  change); "Export with template" renders the focused library and saves with the
+  template's extension. Preferences → Export Templates adds/edits/deletes templates
+  with a live **Preview** (the `previewTemplate` IPC renders the first 8 entries;
+  output shown as escaped text). **Scope:** the live preview *card*
+  (`buildPreviewHtml`) stays built-in — it emits interactive chips (open-url /
+  open-files buttons the renderer wires up), a poor fit for free-form user HTML; a
+  customizable preview *style* would be a separate, narrower follow-up. *Revisit:*
+  `renderTemplate` / `TemplateEntry` in `export.ts`, `renderExportTemplate` in
+  `document-service.ts`, `exportWithTemplate` / `templateMenuItems` /
+  `previewTemplate` in `index.ts`, `TemplatesSection` in `Preferences.tsx`. Tests:
+  engine context + helpers + escaping + malformed-template error. Developed on branch
+  `export-templates`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

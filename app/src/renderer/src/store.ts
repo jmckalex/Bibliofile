@@ -30,6 +30,7 @@ import type {
   Settings,
   SortSpec,
   EntryTypeInfo,
+  TemplateExportScope,
 } from '@bibdesk/shared';
 import { DEFAULT_SETTINGS, BUILTIN_COLUMNS } from '@bibdesk/shared';
 
@@ -234,6 +235,8 @@ export interface ViewerState {
   print: () => Promise<void>;
   /** Export the current selection (multi, else the single selected entry) to a BibTeX file. */
   exportSelection: () => Promise<void>;
+  /** Export a named template at a scope (whole library, the shown rows, or the selection). */
+  exportTemplate: (templateName: string, scope: TemplateExportScope) => Promise<void>;
   /** Send one message to the Claude assistant; reloads the table if it mutated. */
   agentSend: (message: string) => Promise<AgentRunResponse>;
 }
@@ -902,6 +905,34 @@ export function createStore(api: BibDeskApi) {
       try {
         const res = await api.exportSelection({ documentId, itemIds });
         if (!res.ok && res.error) set({ error: res.error });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    exportTemplate: async (templateName, scope) => {
+      const { documentId, rows, query, ftsIds, selectedIds } = get();
+      if (!documentId) return;
+      // Resolve the scope to ordered itemIds. 'library' passes none (main renders
+      // the whole library). 'shown'/'selected' are taken in the table's display
+      // order so the output order is predictable.
+      let itemIds: string[] | undefined;
+      if (scope !== 'library') {
+        const shown = visibleRows(rows, query, ftsIds);
+        if (scope === 'selected') {
+          const sel = new Set(selectedIds);
+          itemIds = shown.filter((r) => sel.has(r.id)).map((r) => r.id);
+        } else {
+          itemIds = shown.map((r) => r.id);
+        }
+        if (itemIds.length === 0) {
+          set({ error: scope === 'selected' ? 'Select one or more entries to export.' : 'No entries to export.' });
+          return;
+        }
+      }
+      try {
+        const res = await api.exportTemplate({ documentId, templateName, ...(itemIds ? { itemIds } : {}) });
+        if (res.error) set({ error: res.error });
       } catch (err) {
         set({ error: errorMessage(err) });
       }

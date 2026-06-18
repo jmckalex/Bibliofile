@@ -43,6 +43,7 @@ import {
   type ExportSelectionRequest,
   type ExportSelectionResponse,
   type EntryTypeInfo,
+  type TemplateExportScope,
 } from '@bibdesk/shared';
 import { sharedTypeManager } from '@bibdesk/model';
 
@@ -991,6 +992,36 @@ async function exportSelectionAs(req: ExportSelectionRequest): Promise<ExportSel
   }
 }
 
+/**
+ * Ask the focused window to export `templateName` at `scope`. The renderer owns
+ * the selection and the filtered/sorted view, so it resolves the scope to ordered
+ * itemIds and invokes the `exportTemplate` IPC (which shows the save dialog).
+ */
+function requestExportTemplate(templateName: string, scope: TemplateExportScope): void {
+  focusedWindow()?.webContents.send(IpcEvents.menuExportTemplate, { templateName, scope });
+}
+
+/**
+ * File → Export entries for the user's custom templates (empty when none defined).
+ * Each template is a submenu with the three export scopes.
+ */
+function templateMenuItems(): MenuItemConstructorOptions[] {
+  const tmpls = getSettings().exportTemplates;
+  if (tmpls.length === 0) return [];
+  const enabled = hasOpenDocument();
+  return [
+    { type: 'separator' },
+    ...tmpls.map((t): MenuItemConstructorOptions => ({
+      label: t.name,
+      submenu: [
+        { label: 'Whole Library…', enabled, click: () => requestExportTemplate(t.name, 'library') },
+        { label: 'Shown Entries…', enabled, click: () => requestExportTemplate(t.name, 'shown') },
+        { label: 'Selected Entries…', enabled, click: () => requestExportTemplate(t.name, 'selected') },
+      ],
+    })),
+  ];
+}
+
 /** Columns offered in the View→Columns menu (label per builtin/common key). */
 const COLUMN_MENU: { key: string; label: string }[] = [
   { key: 'citeKey', label: 'Cite Key' },
@@ -1131,6 +1162,7 @@ function buildMenu(): void {
           { label: 'RTF (formatted bibliography)…', enabled: docEnabled, click: () => void exportDocumentAs('rtf') },
           { type: 'separator' },
           { label: 'Selected Entries (BibTeX)…', enabled: docEnabled, click: () => sendMenuCommand('exportSelected') },
+          ...templateMenuItems(),
         ],
       },
       {
@@ -1691,7 +1723,8 @@ function registerIpc(): void {
         papersFolder: s.papersFolder,
         autoFileFormat: s.autoFileFormat,
       });
-      if (req.patch.columns) buildMenu(); // refresh View→Columns checkmarks
+      // refresh View→Columns checkmarks and the File→Export template list
+      if (req.patch.columns || req.patch.exportTemplates) buildMenu();
       return s;
     },
     [IpcChannels.listEntryTypes]: () => {
@@ -1814,6 +1847,34 @@ function registerIpc(): void {
         else void dialog.showMessageBox(opts);
       }
       return { itemIds };
+    },
+    [IpcChannels.previewTemplate]: (req) => {
+      try {
+        return { text: store.renderExportTemplate(req.documentId, req.body, { limit: 8 }) };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : String(e) };
+      }
+    },
+    [IpcChannels.exportTemplate]: async (req) => {
+      const tmpl = getSettings().exportTemplates.find((t) => t.name === req.templateName);
+      if (!tmpl) return { error: `No export template named “${req.templateName}”.` };
+      const ext = (tmpl.extension || 'txt').replace(/^\./, '');
+      const base = store.summarize(req.documentId).displayName.replace(/\.bib$/i, '');
+      const win = windowForDoc(req.documentId) ?? focusedWindow();
+      const opts: Electron.SaveDialogOptions = {
+        title: `Export — ${tmpl.name}`,
+        defaultPath: `${base}.${ext}`,
+        filters: [{ name: tmpl.name, extensions: [ext] }],
+      };
+      const result = win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts);
+      if (result.canceled || !result.filePath) return { canceled: true };
+      try {
+        const scope = req.itemIds && req.itemIds.length ? { itemIds: req.itemIds } : {};
+        writeFileSync(result.filePath, store.renderExportTemplate(req.documentId, tmpl.body, scope), 'utf8');
+        return { ok: true };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : String(e) };
+      }
     },
     [IpcChannels.readAttachment]: (req) => {
       const p = store.attachmentPath(req.documentId, req.itemId, req.url);
@@ -2028,6 +2089,12 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.selectIncomplete, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.selectIncomplete](req),
+  );
+  ipcMain.handle(IpcChannels.previewTemplate, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.previewTemplate](req),
+  );
+  ipcMain.handle(IpcChannels.exportTemplate, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.exportTemplate](req),
   );
   ipcMain.handle(IpcChannels.readAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.readAttachment](req),

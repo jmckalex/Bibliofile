@@ -39,6 +39,11 @@ import type {
   ExportFolderTreeResponse,
   SelectIncompleteRequest,
   SelectIncompleteResponse,
+  PreviewTemplateRequest,
+  PreviewTemplateResponse,
+  ExportTemplateRequest,
+  ExportTemplateResponse,
+  ExportTemplateMenuRequest,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -174,6 +179,12 @@ export interface BibDeskApi {
   /** Find publications missing a required field for their type (to select them). */
   selectIncomplete(request: SelectIncompleteRequest): Promise<SelectIncompleteResponse>;
 
+  /** Live-render a Handlebars export-template body for the Preferences preview. */
+  previewTemplate(request: PreviewTemplateRequest): Promise<PreviewTemplateResponse>;
+
+  /** Export a named template to a file (save dialog in main); `itemIds` scopes it. */
+  exportTemplate(request: ExportTemplateRequest): Promise<ExportTemplateResponse>;
+
   /** Subscribe to "open Preferences" requests from the menu. Returns unsubscribe. */
   onShowPreferences(listener: () => void): Unsubscribe;
 
@@ -263,6 +274,9 @@ export interface BibDeskApi {
 
   /** Subscribe to View→Columns toggles (payload = column key). Returns unsubscribe. */
   onMenuToggleColumn(listener: (key: string) => void): Unsubscribe;
+
+  /** Subscribe to File→Export template-at-scope requests from the menu. Returns unsubscribe. */
+  onMenuExportTemplate(listener: (req: ExportTemplateMenuRequest) => void): Unsubscribe;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,
