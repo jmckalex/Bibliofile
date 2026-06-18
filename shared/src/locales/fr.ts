@@ -1,11 +1,10 @@
 /**
- * French catalog (seed). A partial override of {@link en}; any key not present
- * here falls back to English. Demonstrates the pipeline + graceful fallback.
+ * French catalog. Overrides {@link en}; technical/proper-noun keys (BibTeX…,
+ * RIS…, @string…, etc.) are omitted and fall back to English.
  */
 import type { Catalog } from '../i18n.js';
 
 export const fr: Catalog = {
-  // Menu bar
   'menu.file': 'Fichier',
   'menu.edit': 'Édition',
   'menu.view': 'Présentation',
@@ -13,8 +12,9 @@ export const fr: Catalog = {
   'menu.tools': 'Outils',
   'menu.window': 'Fenêtre',
   'menu.help': 'Aide',
+  'menu.about': 'À propos de BibDesk',
+  'menu.preferences': 'Préférences…',
 
-  // File menu
   'menu.file.newPublication': 'Nouvelle publication',
   'menu.file.open': 'Ouvrir…',
   'menu.file.save': 'Enregistrer',
@@ -26,32 +26,69 @@ export const fr: Catalog = {
   'menu.file.importFile': 'Depuis un fichier (BibTeX / RIS / EndNote)…',
   'menu.file.searchOnline': 'Rechercher en ligne (CrossRef / arXiv)…',
   'menu.file.export': 'Exporter',
-  'menu.file.exportBibtex': 'BibTeX…',
-  'menu.file.exportRis': 'RIS…',
-  'menu.file.exportCsv': 'CSV…',
-  'menu.file.exportHtml': 'HTML…',
   'menu.file.exportRtf': 'RTF (bibliographie formatée)…',
   'menu.file.exportSelected': 'Entrées sélectionnées (BibTeX)…',
   'menu.file.selectFromAux': 'Sélectionner les publications depuis un fichier .aux…',
   'menu.file.print': 'Imprimer…',
+  'menu.export.scope.library': 'Toute la bibliothèque…',
+  'menu.export.scope.shown': 'Entrées affichées…',
+  'menu.export.scope.selected': 'Entrées sélectionnées…',
 
-  // Preferences: language
+  'menu.edit.selectIncomplete': 'Sélectionner les publications incomplètes',
+  'menu.edit.pastePublication': 'Coller une publication',
+  'menu.edit.find': 'Rechercher…',
+  'menu.edit.findReplace': 'Rechercher et remplacer…',
+  'menu.edit.copyCiteKey': 'Copier la clé de citation',
+  'menu.edit.copyCitation': 'Copier la citation',
+  'menu.edit.copyRtf': 'Copier la citation en RTF',
+  'menu.edit.copyBibtex': 'Copier au format BibTeX',
+  'menu.edit.copyCite': 'Copier \\cite{…}',
+  'menu.edit.copyAs': 'Copier sous',
+
+  'menu.publication.new': 'Nouvelle publication',
+  'menu.publication.newCrossref': 'Nouvelle publication avec renvoi (crossref)',
+  'menu.publication.edit': 'Modifier la publication…',
+  'menu.publication.duplicate': 'Dupliquer',
+  'menu.publication.delete': 'Supprimer la publication',
+  'menu.publication.generateCiteKey': 'Générer la clé de citation',
+  'menu.publication.selectParent': 'Sélectionner le parent (crossref)',
+  'menu.publication.colorLabel': 'Étiquette de couleur',
+  'menu.publication.colorNone': 'Aucune',
+  'menu.publication.findDuplicates': 'Rechercher les doublons…',
+  'menu.publication.addAttachment': 'Ajouter un fichier joint…',
+  'menu.publication.autoFile': 'Classer les fichiers liés',
+  'menu.publication.consolidate': 'Consolider les fichiers liés…',
+  'menu.publication.findBrokenLinks': 'Rechercher les liens rompus…',
+  'menu.publication.macros': 'Macros (@string)…',
+
+  'menu.tools.assistant': 'Assistant Claude…',
+  'menu.view.toggleSide': 'Afficher/masquer le panneau latéral',
+  'menu.view.toggleBottom': 'Afficher/masquer le panneau inférieur',
+  'menu.view.columns': 'Colonnes',
+  'menu.view.toggleTheme': 'Basculer le thème clair/sombre',
+  'menu.help.bibdesk': 'Aide BibDesk',
+
+  'column.citeKey': 'Clé de citation',
+  'column.type': 'Type',
+  'column.authors': 'Auteurs',
+  'column.title': 'Titre',
+  'column.year': 'Année',
+  'column.keywords': 'Mots-clés',
+  'column.attachments': 'Pièces jointes',
+  'column.read': 'Lu',
+  'column.rating': 'Note',
+
   'prefs.language': 'Langue',
   'prefs.language.system': 'Réglage du système',
   'prefs.language.hint':
     "Les changements s'appliquent immédiatement. Le texte non traduit revient à l'anglais.",
 
-  // Toolbar
   'toolbar.new': '＋ Nouveau',
   'toolbar.duplicate': '⧉ Dupliquer',
   'toolbar.delete': '🗑 Supprimer',
   'toolbar.online': '🌐 En ligne…',
-  'toolbar.macros': '@string…',
 
-  // Common (with interpolation)
   'common.itemsSelected': '{count} sélectionné(s)',
-
-  // Empty / welcome states
   'detail.empty.select': 'Sélectionnez une publication pour afficher ses détails.',
   'detail.loading': 'Chargement…',
   'welcome.dropHint': "Déposez un fichier .bib pour l'ouvrir",

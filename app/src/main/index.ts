@@ -1012,12 +1012,12 @@ function templateMenuItems(): MenuItemConstructorOptions[] {
   const enabled = hasOpenDocument();
   return [
     { type: 'separator' },
-    ...tmpls.map((t): MenuItemConstructorOptions => ({
-      label: t.name,
+    ...tmpls.map((tmpl): MenuItemConstructorOptions => ({
+      label: tmpl.name,
       submenu: [
-        { label: 'Whole Library…', enabled, click: () => requestExportTemplate(t.name, 'library') },
-        { label: 'Shown Entries…', enabled, click: () => requestExportTemplate(t.name, 'shown') },
-        { label: 'Selected Entries…', enabled, click: () => requestExportTemplate(t.name, 'selected') },
+        { label: t('menu.export.scope.library'), enabled, click: () => requestExportTemplate(tmpl.name, 'library') },
+        { label: t('menu.export.scope.shown'), enabled, click: () => requestExportTemplate(tmpl.name, 'shown') },
+        { label: t('menu.export.scope.selected'), enabled, click: () => requestExportTemplate(tmpl.name, 'selected') },
       ],
     })),
   ];
@@ -1054,12 +1054,20 @@ function columnMenuItems(): MenuItemConstructorOptions[] {
     .columns.filter((k) => !known.has(k))
     .map((k) => ({ key: k, label: k }));
   return [...COLUMN_MENU, ...extra].map((c) => ({
-    label: c.label,
+    label: columnLabel(c.key, c.label),
     type: 'checkbox' as const,
     checked: shown.has(c.key),
     enabled: hasOpenDocument(),
     click: () => focusedWindow()?.webContents.send(IpcEvents.menuToggleColumn, c.key),
   }));
+}
+
+/** Localized display name for a column, falling back to its English label (so
+ *  BibTeX field-name columns like Journal/DOI stay untranslated). */
+function columnLabel(key: string, fallback: string): string {
+  const k = `column.${key}`;
+  const tr = t(k);
+  return tr === k ? fallback : tr;
 }
 
 function buildMenu(): void {
@@ -1070,7 +1078,7 @@ function buildMenu(): void {
   const template: MenuItemConstructorOptions[] = [];
 
   const prefsItem: MenuItemConstructorOptions = {
-    label: 'Preferences…',
+    label: t('menu.preferences'),
     accelerator: 'CmdOrCtrl+,',
     click: () => openPreferences(),
   };
@@ -1080,7 +1088,7 @@ function buildMenu(): void {
     template.push({
       label: app.name,
       submenu: [
-        { role: 'about', label: 'About BibDesk' },
+        { role: 'about', label: t('menu.about') },
         { type: 'separator' },
         prefsItem,
         { type: 'separator' },
@@ -1212,66 +1220,66 @@ function buildMenu(): void {
       { role: 'delete' },
       { role: 'selectAll' },
       {
-        label: 'Select Incomplete Publications',
+        label: t('menu.edit.selectIncomplete'),
         enabled: docEnabled,
         click: () => sendMenuCommand('selectIncomplete'),
       },
       { type: 'separator' },
       {
-        label: 'Paste Publication',
+        label: t('menu.edit.pastePublication'),
         accelerator: 'Shift+CmdOrCtrl+V',
         enabled: docEnabled,
         click: () => sendMenuCommand('pastePublication'),
       },
       { type: 'separator' },
       {
-        label: 'Find…',
+        label: t('menu.edit.find'),
         accelerator: 'CmdOrCtrl+F',
         enabled: docEnabled,
         click: () => sendMenuCommand('find'),
       },
       {
-        label: 'Find & Replace…',
+        label: t('menu.edit.findReplace'),
         accelerator: 'Alt+CmdOrCtrl+F',
         enabled: docEnabled,
         click: () => sendMenuCommand('findReplace'),
       },
       { type: 'separator' },
       {
-        label: 'Copy Cite Key',
+        label: t('menu.edit.copyCiteKey'),
         accelerator: 'Alt+CmdOrCtrl+K',
         enabled: docEnabled,
         click: () => sendMenuCommand('copyCiteKey'),
       },
       {
-        label: 'Copy Citation',
+        label: t('menu.edit.copyCitation'),
         enabled: docEnabled,
         click: () => sendMenuCommand('copyCitation'),
       },
       {
-        label: 'Copy Citation as RTF',
+        label: t('menu.edit.copyRtf'),
         accelerator: 'Alt+CmdOrCtrl+R',
         enabled: docEnabled,
         click: () => sendMenuCommand('copyRtf'),
       },
       {
-        label: 'Copy as BibTeX',
+        label: t('menu.edit.copyBibtex'),
         accelerator: 'Alt+CmdOrCtrl+B',
         enabled: docEnabled,
         click: () => sendMenuCommand('copyBibtex'),
       },
       {
-        label: 'Copy \\cite{…}',
+        label: t('menu.edit.copyCite'),
         accelerator: 'Alt+CmdOrCtrl+C',
         enabled: docEnabled,
         click: () => sendMenuCommand('copyCite'),
       },
       {
-        label: 'Copy As',
+        label: t('menu.edit.copyAs'),
         submenu: [
-          { label: 'RIS', enabled: docEnabled, click: () => sendMenuCommand('copyRis') },
-          { label: 'Minimal BibTeX', enabled: docEnabled, click: () => sendMenuCommand('copyMinimalBibtex') },
-          { label: 'LaTeX \\bibitem', enabled: docEnabled, click: () => sendMenuCommand('copyBibitem') },
+          { label: t('menu.edit.copyAs.ris'), enabled: docEnabled, click: () => sendMenuCommand('copyRis') },
+          { label: t('menu.edit.copyAs.minimalBibtex'), enabled: docEnabled, click: () => sendMenuCommand('copyMinimalBibtex') },
+          { label: t('menu.edit.copyAs.bibitem'), enabled: docEnabled, click: () => sendMenuCommand('copyBibitem') },
         ],
       },
     ],
@@ -1282,47 +1290,47 @@ function buildMenu(): void {
     label: t('menu.publication'),
     submenu: [
       {
-        label: 'New Publication',
+        label: t('menu.publication.new'),
         accelerator: 'CmdOrCtrl+N',
         enabled: docEnabled,
         click: () => sendMenuCommand('newPublication'),
       },
       {
-        label: 'New Publication with Crossref',
+        label: t('menu.publication.newCrossref'),
         enabled: docEnabled,
         click: () => sendMenuCommand('newWithCrossref'),
       },
       {
-        label: 'Edit Publication…',
+        label: t('menu.publication.edit'),
         accelerator: 'CmdOrCtrl+E',
         enabled: docEnabled,
         click: () => sendMenuCommand('editEntry'),
       },
       {
-        label: 'Duplicate',
+        label: t('menu.publication.duplicate'),
         accelerator: 'Shift+CmdOrCtrl+D',
         enabled: docEnabled,
         click: () => sendMenuCommand('duplicate'),
       },
       {
-        label: 'Delete Publication',
+        label: t('menu.publication.delete'),
         enabled: docEnabled,
         click: () => sendMenuCommand('delete'),
       },
       { type: 'separator' },
       {
-        label: 'Generate Cite Key',
+        label: t('menu.publication.generateCiteKey'),
         accelerator: 'CmdOrCtrl+K',
         enabled: docEnabled,
         click: () => sendMenuCommand('generateCiteKey'),
       },
       {
-        label: 'Select Crossref Parent',
+        label: t('menu.publication.selectParent'),
         enabled: docEnabled,
         click: () => sendMenuCommand('selectParent'),
       },
       {
-        label: 'Color Label',
+        label: t('menu.publication.colorLabel'),
         enabled: docEnabled,
         submenu: [
           ...LABEL_COLORS.map((c, i) => ({
@@ -1332,41 +1340,41 @@ function buildMenu(): void {
           })),
           { type: 'separator' as const },
           {
-            label: 'None',
+            label: t('menu.publication.colorNone'),
             enabled: docEnabled,
             click: () => focusedWindow()?.webContents.send(IpcEvents.menuSetColor, 0),
           },
         ],
       },
       {
-        label: 'Find Duplicates…',
+        label: t('menu.publication.findDuplicates'),
         enabled: docEnabled,
         click: () => sendMenuCommand('findDuplicates'),
       },
       { type: 'separator' },
       {
-        label: 'Add File Attachment…',
+        label: t('menu.publication.addAttachment'),
         enabled: docEnabled,
         click: () => sendMenuCommand('addAttachment'),
       },
       {
-        label: 'AutoFile Linked Files',
+        label: t('menu.publication.autoFile'),
         enabled: docEnabled,
         click: () => sendMenuCommand('autoFile'),
       },
       {
-        label: 'Consolidate Linked Files…',
+        label: t('menu.publication.consolidate'),
         enabled: docEnabled,
         click: () => sendMenuCommand('consolidate'),
       },
       {
-        label: 'Find Broken Links…',
+        label: t('menu.publication.findBrokenLinks'),
         enabled: docEnabled,
         click: () => sendMenuCommand('findBrokenLinks'),
       },
       { type: 'separator' },
       {
-        label: 'Macros (@string)…',
+        label: t('menu.publication.macros'),
         enabled: docEnabled,
         click: () => sendMenuCommand('editMacros'),
       },
@@ -1378,7 +1386,7 @@ function buildMenu(): void {
     label: t('menu.tools'),
     submenu: [
       {
-        label: 'Claude Assistant…',
+        label: t('menu.tools.assistant'),
         accelerator: 'CmdOrCtrl+J',
         enabled: docEnabled,
         click: () => sendMenuCommand('assistant'),
@@ -1391,20 +1399,20 @@ function buildMenu(): void {
     label: t('menu.view'),
     submenu: [
       {
-        label: 'Toggle Side Panel',
+        label: t('menu.view.toggleSide'),
         accelerator: 'CmdOrCtrl+Alt+S',
         click: () => sendMenuCommand('toggleSidePanel'),
       },
       {
-        label: 'Toggle Bottom Panel',
+        label: t('menu.view.toggleBottom'),
         accelerator: 'CmdOrCtrl+Alt+B',
         click: () => sendMenuCommand('toggleBottomPanel'),
       },
       { type: 'separator' },
-      { label: 'Columns', submenu: columnMenuItems() },
+      { label: t('menu.view.columns'), submenu: columnMenuItems() },
       { type: 'separator' },
       {
-        label: 'Toggle Light / Dark Theme',
+        label: t('menu.view.toggleTheme'),
         accelerator: 'CmdOrCtrl+Shift+L',
         click: () => sendMenuCommand('toggleTheme'),
       },
@@ -1452,7 +1460,7 @@ function buildMenu(): void {
     role: 'help',
     submenu: [
       {
-        label: 'BibDesk Help',
+        label: t('menu.help.bibdesk'),
         accelerator: isMac ? undefined : 'F1',
         click: () => openHelp(),
       },
