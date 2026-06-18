@@ -184,6 +184,8 @@ export interface ViewerState {
   setFullTextSearch: (on: boolean) => Promise<void>;
   /** Apply one edit command, then refresh the affected views + dirty state. */
   edit: (command: EditCommand) => Promise<void>;
+  /** Set/clear the color label on the current selection (null/0 clears). */
+  setColor: (colorIndex: number | null) => Promise<void>;
   /** Save the document to disk (explicit save + backup). */
   save: () => Promise<void>;
   /** (Re)load the document's `@string` macros. */
@@ -581,6 +583,20 @@ export function createStore(api: BibDeskApi) {
         if (command.kind === 'setMacro' || command.kind === 'removeMacro') {
           await get().loadMacros();
         }
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    setColor: async (colorIndex) => {
+      const { documentId, selectedIds } = get();
+      if (!documentId || selectedIds.length === 0) return;
+      try {
+        const res = await api.setColor({ documentId, itemIds: selectedIds, colorIndex });
+        if (res.count > 0) set({ dirty: true, error: undefined });
+        await get().loadPublications();
+        const sel = get().selectedItemId;
+        if (sel) await get().loadDetail(sel);
       } catch (err) {
         set({ error: errorMessage(err) });
       }

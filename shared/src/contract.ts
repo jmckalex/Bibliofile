@@ -45,6 +45,8 @@ import type {
   ExportTemplateRequest,
   ExportTemplateResponse,
   ExportTemplateMenuRequest,
+  SetColorRequest,
+  SetColorResponse,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -136,6 +138,7 @@ export interface IpcContract {
   [IpcChannels.listEntryTypes]: IpcEntry<Record<string, never>, ListEntryTypesResponse>;
   [IpcChannels.selectFromAux]: IpcEntry<SelectFromAuxRequest, AuxSelectionResult>;
   [IpcChannels.exportFolderTree]: IpcEntry<ExportFolderTreeRequest, ExportFolderTreeResponse>;
+  [IpcChannels.setColor]: IpcEntry<SetColorRequest, SetColorResponse>;
   [IpcChannels.selectIncomplete]: IpcEntry<SelectIncompleteRequest, SelectIncompleteResponse>;
   [IpcChannels.previewTemplate]: IpcEntry<PreviewTemplateRequest, PreviewTemplateResponse>;
   [IpcChannels.previewPanel]: IpcEntry<PreviewPanelRequest, PreviewPanelResponse>;
@@ -178,6 +181,7 @@ export interface IpcEventMap {
   [IpcEvents.menuCommand]: MenuCommand;
   [IpcEvents.menuToggleColumn]: string;
   [IpcEvents.menuExportTemplate]: ExportTemplateMenuRequest;
+  [IpcEvents.menuSetColor]: number;
   [IpcEvents.documentChanged]: DocumentChangedEvent;
 }
 

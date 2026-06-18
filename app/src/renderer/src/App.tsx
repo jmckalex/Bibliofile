@@ -512,6 +512,9 @@ export function App() {
     const unsubExportTmpl = api.onMenuExportTemplate((req) =>
       void getStore().getState().exportTemplate(req.templateName, req.scope),
     );
+    const unsubSetColor = api.onMenuSetColor((colorIndex) =>
+      void getStore().getState().setColor(colorIndex === 0 ? null : colorIndex),
+    );
     // Another window mutated a document → refresh, but only if it was OURS
     // (with several libraries open, each window ignores the others' edits).
     const unsubChanged = api.onDocumentChanged((e) => {
@@ -525,6 +528,7 @@ export function App() {
       unsubMenu();
       unsubCols();
       unsubExportTmpl();
+      unsubSetColor();
       unsubChanged();
     };
   }, [onDocumentOpened]);

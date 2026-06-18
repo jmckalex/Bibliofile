@@ -1458,6 +1458,25 @@ bd-citation {
   overflow: visible;
 }
 
+/* Color-label swatch (table cell) + its header dot. */
+.bd-colorswatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  vertical-align: middle;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+.bd-colcolor__h {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  vertical-align: middle;
+  box-shadow: inset 0 0 0 1px var(--bd-text-faint, #999);
+  opacity: 0.6;
+}
+
 /* Header glyphs sit centered like their cells. */
 .bd-th .svg-inline--fa {
   opacity: 0.75;

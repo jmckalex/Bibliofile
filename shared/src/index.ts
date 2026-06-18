@@ -106,6 +106,8 @@ export {
   type AuxSelectionResult,
   type ExportFolderTreeRequest,
   type ExportFolderTreeResponse,
+  type SetColorRequest,
+  type SetColorResponse,
   type SelectIncompleteRequest,
   type SelectIncompleteResponse,
   type ExportTemplate,

@@ -53,6 +53,9 @@ import {
   isComplex,
   equivalenceKey,
   itemsEquivalent,
+  COLOR_FIELD,
+  colorFieldToHex,
+  labelIndexToColorField,
 } from '@bibdesk/model';
 import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT, parseFormat, LOCAL_FILE_FIELD } from '@bibdesk/formats';
 import { makeAuthor, splitNameList, OTHERS, type Author } from '@bibdesk/names';
@@ -406,6 +409,7 @@ export function toPublicationRow(item: BibItem, extraFields?: readonly string[])
     attachmentCount: attachmentCountOf(item),
     read: item.triStateValueOfField('Read'),
     rating,
+    color: colorFieldToHex(item.stringValueOfField(COLOR_FIELD, false)),
   };
   if (extraFields && extraFields.length > 0) {
     const extra: Record<string, string> = {};
@@ -683,9 +687,11 @@ export function toItemDetail(
   // Annotation section), so neither the prose nor the compressed blob shows as a
   // raw field row.
   const annotationFields = new Set([ANNOTATION_FIELD.toLowerCase(), COMPRESSED_FIELD.toLowerCase()]);
+  // The color label is set via the palette UI, not edited as a raw field row.
+  const hiddenFields = new Set([...annotationFields, COLOR_FIELD.toLowerCase()]);
   for (const name of item.fieldNames()) {
     emitted.add(name.toLowerCase());
-    if (BDSK_FILE_RE.test(name) || annotationFields.has(name.toLowerCase())) continue;
+    if (BDSK_FILE_RE.test(name) || hiddenFields.has(name.toLowerCase())) continue;
     fields.push({
       name,
       value: fieldDisplayValue(name, item.stringValueOfField(name, false)),
@@ -1700,6 +1706,31 @@ export class DocumentStore {
     }
     if (targets.length) doc.dirty = true;
     return { count: targets.length };
+  }
+
+  /**
+   * Set (or clear, when `colorIndex` is null/0) the color label on one or more
+   * entries in ONE undo step. Stored BibDesk-compatibly in the `Bdsk-Color`
+   * field as the 1-based palette index. Returns the number of entries touched.
+   */
+  setItemColor(
+    documentId: string,
+    itemIds: readonly string[],
+    colorIndex: number | null,
+  ): { count: number } {
+    this.snapshot(documentId, 'Color Label');
+    const doc = this.requireDoc(documentId);
+    let count = 0;
+    for (const id of itemIds) {
+      const item = doc.itemsById.get(id);
+      if (!item) continue;
+      if (colorIndex == null || colorIndex <= 0) item.removeField(COLOR_FIELD);
+      else item.setField(COLOR_FIELD, labelIndexToColorField(colorIndex));
+      this.reindex(doc, item);
+      count++;
+    }
+    if (count) doc.dirty = true;
+    return { count };
   }
 
   /**

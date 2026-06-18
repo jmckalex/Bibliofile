@@ -54,6 +54,8 @@ import {
   type AuxSelectionResult,
   type ExportFolderTreeRequest,
   type ExportFolderTreeResponse,
+  type SetColorRequest,
+  type SetColorResponse,
   type SelectIncompleteRequest,
   type SelectIncompleteResponse,
   type PreviewTemplateRequest,
@@ -174,6 +176,9 @@ const api: BibDeskApi = {
   exportFolderTree(request: ExportFolderTreeRequest): Promise<ExportFolderTreeResponse> {
     return ipcRenderer.invoke(IpcChannels.exportFolderTree, request);
   },
+  setColor(request: SetColorRequest): Promise<SetColorResponse> {
+    return ipcRenderer.invoke(IpcChannels.setColor, request);
+  },
   selectIncomplete(request: SelectIncompleteRequest): Promise<SelectIncompleteResponse> {
     return ipcRenderer.invoke(IpcChannels.selectIncomplete, request);
   },
@@ -283,6 +288,11 @@ const api: BibDeskApi = {
     const handler = (_e: IpcRendererEvent, req: ExportTemplateMenuRequest): void => listener(req);
     ipcRenderer.on(IpcEvents.menuExportTemplate, handler);
     return () => ipcRenderer.removeListener(IpcEvents.menuExportTemplate, handler);
+  },
+  onMenuSetColor(listener: (colorIndex: number) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, colorIndex: number): void => listener(colorIndex);
+    ipcRenderer.on(IpcEvents.menuSetColor, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.menuSetColor, handler);
   },
   onDocumentOpened(listener: (doc: OpenedDocument) => void): Unsubscribe {
     const handler = (_e: IpcRendererEvent, doc: OpenedDocument): void => listener(doc);

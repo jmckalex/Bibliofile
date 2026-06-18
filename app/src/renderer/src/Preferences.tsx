@@ -16,6 +16,7 @@ const COLUMN_LABELS: Record<string, string> = {
   authors: 'Authors',
   title: 'Title',
   year: 'Year',
+  color: 'Color',
   keywords: 'Keywords',
   attachments: 'Attachments',
   read: 'Read',

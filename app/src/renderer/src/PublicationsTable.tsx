@@ -90,6 +90,17 @@ const BUILTIN_DEFS: Record<string, Col> = {
     header: 'Year',
     meta: { width: 72, cellClass: 'bd-td--year' } satisfies ColMeta,
   }),
+  color: col.display({
+    id: 'color',
+    header: () => <span className="bd-colcolor__h" title="Color label" aria-label="Color label" />,
+    meta: { width: 28, cellClass: 'bd-td--icon' } satisfies ColMeta,
+    cell: ({ row }) => {
+      const c = row.original.color;
+      return c ? (
+        <span className="bd-colorswatch" style={{ background: c }} title="Color label" />
+      ) : null;
+    },
+  }),
   keywords: col.display({
     id: 'keywords',
     header: () => <HeaderIcon icon={faKey} title="Keywords" />,

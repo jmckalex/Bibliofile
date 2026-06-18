@@ -287,8 +287,23 @@ export interface PublicationRow {
   readonly read: -1 | 0 | 1;
   /** Rating field value 0–5, or 0 when absent (star column). */
   readonly rating: number;
+  /** Color-label swatch as a CSS `#rrggbb`, or undefined when no `Bdsk-Color`. */
+  readonly color?: string;
   /** Display values for any user-configured extra-field columns (de-TeXified). */
   readonly extra?: Readonly<Record<string, string>>;
+}
+
+/** Set or clear the color label on a set of entries (`colorIndex` null/0 clears). */
+export interface SetColorRequest {
+  readonly documentId: DocumentId;
+  readonly itemIds: readonly ItemId[];
+  /** 1-based palette index (1..7), or null/0 to clear the color. */
+  readonly colorIndex: number | null;
+}
+
+/** Result of {@link SetColorRequest}: how many entries were updated. */
+export interface SetColorResponse {
+  readonly count: number;
 }
 
 /** Response payload for a publications listing. */
@@ -975,6 +990,7 @@ export const BUILTIN_COLUMNS = [
   'authors',
   'title',
   'year',
+  'color',
   'keywords',
   'attachments',
   'read',
@@ -995,7 +1011,7 @@ export const DEFAULT_SETTINGS: Settings = {
   annotationStorage: 'compressed',
   defaultEntryType: 'article',
   citeCommandTemplate: '\\cite{%K}',
-  columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],
+  columns: ['citeKey', 'type', 'authors', 'title', 'year', 'color', 'keywords', 'attachments', 'read'],
   columnWidths: {},
   papersFolder: '',
   autoFileFormat: '%a1/%Y%u0',

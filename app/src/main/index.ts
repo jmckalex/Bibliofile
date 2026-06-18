@@ -45,7 +45,7 @@ import {
   type EntryTypeInfo,
   type TemplateExportScope,
 } from '@bibdesk/shared';
-import { sharedTypeManager } from '@bibdesk/model';
+import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 
 import { DocumentStore } from './document-service.js';
 import { runAgentTurn } from './agent.js';
@@ -1023,12 +1023,16 @@ function templateMenuItems(): MenuItemConstructorOptions[] {
 }
 
 /** Columns offered in the View→Columns menu (label per builtin/common key). */
+/** Colored-circle glyphs for the Color Label menu, parallel to LABEL_COLORS. */
+const COLOR_MENU_DOTS = ['🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚪'];
+
 const COLUMN_MENU: { key: string; label: string }[] = [
   { key: 'citeKey', label: 'Cite Key' },
   { key: 'type', label: 'Type' },
   { key: 'authors', label: 'Authors' },
   { key: 'title', label: 'Title' },
   { key: 'year', label: 'Year' },
+  { key: 'color', label: 'Color' },
   { key: 'keywords', label: 'Keywords' },
   { key: 'attachments', label: 'Attachments' },
   { key: 'read', label: 'Read' },
@@ -1316,6 +1320,23 @@ function buildMenu(): void {
         label: 'Select Crossref Parent',
         enabled: docEnabled,
         click: () => sendMenuCommand('selectParent'),
+      },
+      {
+        label: 'Color Label',
+        enabled: docEnabled,
+        submenu: [
+          ...LABEL_COLORS.map((c, i) => ({
+            label: `${COLOR_MENU_DOTS[i] ?? '●'}  ${c.name}`,
+            enabled: docEnabled,
+            click: () => focusedWindow()?.webContents.send(IpcEvents.menuSetColor, i + 1),
+          })),
+          { type: 'separator' as const },
+          {
+            label: 'None',
+            enabled: docEnabled,
+            click: () => focusedWindow()?.webContents.send(IpcEvents.menuSetColor, 0),
+          },
+        ],
       },
       {
         label: 'Find Duplicates…',
@@ -1866,6 +1887,7 @@ function registerIpc(): void {
       else void dialog.showMessageBox(summary);
       return { canceled: false, copied, errors };
     },
+    [IpcChannels.setColor]: (req) => store.setItemColor(req.documentId, req.itemIds, req.colorIndex),
     [IpcChannels.selectIncomplete]: (req) => {
       const itemIds = store.incompleteItemIds(req.documentId);
       if (itemIds.length === 0) {
@@ -2082,6 +2104,7 @@ function registerIpc(): void {
   );
   mutating(IpcChannels.applyEdit);
   mutating(IpcChannels.batchEdit);
+  mutating(IpcChannels.setColor);
   ipcMain.handle(IpcChannels.listMacros, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.listMacros](req),
   );

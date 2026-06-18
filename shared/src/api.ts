@@ -46,6 +46,8 @@ import type {
   ExportTemplateRequest,
   ExportTemplateResponse,
   ExportTemplateMenuRequest,
+  SetColorRequest,
+  SetColorResponse,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -178,6 +180,9 @@ export interface BibDeskApi {
   /** Export a folder's group→PDF directory tree to a chosen destination. */
   exportFolderTree(request: ExportFolderTreeRequest): Promise<ExportFolderTreeResponse>;
 
+  /** Set or clear the color label on a set of entries (one undo step). */
+  setColor(request: SetColorRequest): Promise<SetColorResponse>;
+
   /** Find publications missing a required field for their type (to select them). */
   selectIncomplete(request: SelectIncompleteRequest): Promise<SelectIncompleteResponse>;
 
@@ -282,6 +287,9 @@ export interface BibDeskApi {
 
   /** Subscribe to File→Export template-at-scope requests from the menu. Returns unsubscribe. */
   onMenuExportTemplate(listener: (req: ExportTemplateMenuRequest) => void): Unsubscribe;
+
+  /** Subscribe to Publication→Color Label (payload = 1-based index, 0 = clear). Returns unsubscribe. */
+  onMenuSetColor(listener: (colorIndex: number) => void): Unsubscribe;
 
   /**
    * Subscribe to "document opened" notifications (e.g. file→open from the menu,

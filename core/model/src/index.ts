@@ -92,3 +92,14 @@ export {
   compareAuthorsWithEmptyLast,
   compareItemsByAuthor,
 } from './sort.js';
+
+// --- Color labels -----------------------------------------------------------
+/** BibDesk-compatible `Bdsk-Color` palette + field codec. */
+export {
+  LABEL_COLORS,
+  COLOR_FIELD,
+  labelIndexToColorField,
+  colorFieldLabelIndex,
+  colorFieldToHex,
+  type LabelColor,
+} from './color.js';

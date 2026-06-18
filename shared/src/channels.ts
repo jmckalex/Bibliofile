@@ -68,6 +68,8 @@ export const IpcChannels = {
   selectFromAux: 'bibdesk:selectFromAux',
   /** Export a folder's group→PDF directory tree to disk (main picks the dest). */
   exportFolderTree: 'bibdesk:exportFolderTree',
+  /** Set/clear the color label on a set of entries (one undo step). */
+  setColor: 'bibdesk:setColor',
   /** Find publications missing a required field for their type. */
   selectIncomplete: 'bibdesk:selectIncomplete',
   /** Live-render a Handlebars export-template body (for the Preferences preview). */
@@ -145,6 +147,8 @@ export const IpcEvents = {
   menuToggleColumn: 'bibdesk:event:menuToggleColumn',
   /** File→Export template at a scope: payload is {templateName, scope}. */
   menuExportTemplate: 'bibdesk:event:menuExportTemplate',
+  /** Publication→Color Label: payload is the 1-based palette index (0 = clear). */
+  menuSetColor: 'bibdesk:event:menuSetColor',
   /** The open document's content changed (e.g. an edit from the editor window). */
   documentChanged: 'bibdesk:event:documentChanged',
 } as const;
