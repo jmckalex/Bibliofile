@@ -29,9 +29,14 @@ side pane). Drag its top edge to resize, and **×** to hide.
 
 Both the detail pane and the bottom panel are rendered from **Handlebars
 templates**, and you can replace either with your own. Open **Preferences →
-Panels**. Each panel has an editor with a **Preview** (toggle **Text / HTML**) and
-a **Reset** that returns it to the built-in default. Leave an editor empty to keep
-the default.
+Panels**. Each panel has an editor with a **Load preset…** dropdown (ready-made
+designs — a wide **Horizontal card** that pairs nicely with keeping Claude in the
+side pane, a **Compact summary**, and a **Reading view**), a **Preview** (toggle
+**Text / HTML**), and a **Reset** that returns it to the built-in default. Leave an
+editor empty to keep the default.
+
+Handy extra context fields (besides the table below): `title`, `authors`, `year`,
+`venue`, `doi`, and an `{{#if (eq type "book")}}…{{/if}}` equality helper.
 
 Each template is rendered against the **selected entry**, with this context:
 
