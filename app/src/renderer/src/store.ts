@@ -168,6 +168,8 @@ export interface ViewerState {
   selectFromAux: () => Promise<void>;
   /** Export a folder's group→PDF directory tree (main picks the destination). */
   exportFolderTree: (folderId: string) => Promise<void>;
+  /** Select every publication missing a required field for its type. */
+  selectIncomplete: () => Promise<void>;
   /**
    * Sort by a column header. Plain click sorts by that column alone (toggling
    * direction when it is already the sole key); `additive` (shift-click) cycles
@@ -469,6 +471,24 @@ export function createStore(api: BibDeskApi) {
       }
     },
 
+    selectIncomplete: async () => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        const { itemIds } = await api.selectIncomplete({ documentId });
+        if (itemIds.length === 0) return; // main shows the "none" dialog
+        const lib = get().groups.find((g) => g.kind === 'library');
+        if (lib && get().selectedGroupId !== lib.id) {
+          set({ selectedGroupId: lib.id });
+          await get().loadPublications();
+        }
+        set({ selectedIds: [...itemIds], selectedItemId: itemIds[0] });
+        await get().loadDetail(itemIds[0]!);
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
     setSort: async (key, additive = false) => {
       const { sort } = get();
       let next: SortSpec[];
@@ -537,6 +557,13 @@ export function createStore(api: BibDeskApi) {
         }
         if (res.affectedItemId) {
           set({ selectedItemId: res.affectedItemId, detail: res.detail });
+          // A new publication sorts in wherever its cite key falls, so it can be
+          // buried out of view. Make it the sole selection (clearing the prior
+          // multi-selection) and open its editor so the user lands right on it.
+          if (command.kind === 'addEntry' && !editorMode) {
+            set({ selectedIds: [res.affectedItemId] });
+            get().openEditor(res.affectedItemId);
+          }
         } else if (command.kind === 'deleteEntry') {
           set({ selectedItemId: undefined, detail: undefined });
         }

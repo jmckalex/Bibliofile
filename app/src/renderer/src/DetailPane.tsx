@@ -411,7 +411,9 @@ function Identity({ detail }: { detail: ItemDetail }) {
       <div className="bd-identity__row">
         <label className="bd-identity__label">Cite Key</label>
         <input
-          key={`${detail.id}:citekey`}
+          // Key includes the cite key so the uncontrolled input re-mounts (and
+          // shows the new value) when it changes externally — e.g. via Generate.
+          key={`${detail.id}:${detail.citeKey}`}
           className="bd-input bd-input--mono"
           defaultValue={detail.citeKey}
           onBlur={(e) => {

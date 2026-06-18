@@ -37,6 +37,8 @@ import type {
   AuxSelectionResult,
   ExportFolderTreeRequest,
   ExportFolderTreeResponse,
+  SelectIncompleteRequest,
+  SelectIncompleteResponse,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -168,6 +170,9 @@ export interface BibDeskApi {
 
   /** Export a folder's group→PDF directory tree to a chosen destination. */
   exportFolderTree(request: ExportFolderTreeRequest): Promise<ExportFolderTreeResponse>;
+
+  /** Find publications missing a required field for their type (to select them). */
+  selectIncomplete(request: SelectIncompleteRequest): Promise<SelectIncompleteResponse>;
 
   /** Subscribe to "open Preferences" requests from the menu. Returns unsubscribe. */
   onShowPreferences(listener: () => void): Unsubscribe;

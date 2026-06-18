@@ -788,6 +788,58 @@ describe('document-service: BD test.bib', () => {
     expect(plan[0]!.files[0]!.endsWith('a.pdf')).toBe(true);
   });
 
+  it('incompleteItemIds flags entries missing a required field for their type', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      [
+        '@article{full, Author = {A}, Title = {T}, Journal = {J}, Year = {2020}}',
+        '@article{notitle, Author = {A}, Journal = {J}, Year = {2020}}',
+      ].join('\n\n'),
+      '/tmp/incomplete.bib',
+    );
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    const idOf = (k: string): string => rows.find((r) => r.citeKey === k)!.id;
+    const incomplete = store.incompleteItemIds(documentId);
+    expect(incomplete).toContain(idOf('notitle')); // missing required Title
+    expect(incomplete).not.toContain(idOf('full'));
+  });
+
+  it('exportText bibtex-minimal keeps bibliographic fields, drops admin ones', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Author = {A}, Title = {T}, Year = {2020}, Date-Added = {2020}, Date-Modified = {2021}, Rating = {3}, Read = {1}}',
+      '/tmp/min.bib',
+    );
+    const id = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const text = store.exportText(documentId, 'bibtex-minimal', [id]);
+    expect(text).toContain('author = {A}');
+    expect(text).toContain('title = {T}');
+    expect(text).toContain('year = {2020}');
+    expect(text).not.toMatch(/date-added/i);
+    expect(text).not.toMatch(/date-modified/i);
+    expect(text).not.toMatch(/rating/i);
+    expect(text).not.toMatch(/read\s*=/i);
+  });
+
+  it('addEntry with a crossref sets the Crossref field on the new entry', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@book{parent, Title = {P}}', '/tmp/cr.bib');
+    const res = store.applyEdit({ documentId, command: { kind: 'addEntry', entryType: 'inbook', crossref: 'parent' } });
+    const detail = store.getItemDetail({ documentId, itemId: res.affectedItemId! });
+    expect(detail.fields.find((f) => f.name.toLowerCase() === 'crossref')?.rawValue).toBe('parent');
+  });
+
+  it('undo/redo carry an action label for the Edit menu', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {A}}', '/tmp/undo.bib');
+    const id = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    expect(store.undoState(documentId).canUndo).toBe(false);
+    store.applyEdit({ documentId, command: { kind: 'setField', itemId: id, field: 'Year', value: '2020' } });
+    expect(store.undoState(documentId)).toMatchObject({ canUndo: true, undoLabel: 'Set Field' });
+    expect(store.undo(documentId)).toBe(true);
+    expect(store.undoState(documentId)).toMatchObject({ canRedo: true, redoLabel: 'Set Field' });
+  });
+
   it('projects icon-column flags (keywords, attachments, read, rating)', () => {
     const store = new DocumentStore();
     const FLAGS = `

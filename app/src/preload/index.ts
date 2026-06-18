@@ -54,6 +54,8 @@ import {
   type AuxSelectionResult,
   type ExportFolderTreeRequest,
   type ExportFolderTreeResponse,
+  type SelectIncompleteRequest,
+  type SelectIncompleteResponse,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
   type ExportTextRequest,
@@ -164,6 +166,9 @@ const api: BibDeskApi = {
   },
   exportFolderTree(request: ExportFolderTreeRequest): Promise<ExportFolderTreeResponse> {
     return ipcRenderer.invoke(IpcChannels.exportFolderTree, request);
+  },
+  selectIncomplete(request: SelectIncompleteRequest): Promise<SelectIncompleteResponse> {
+    return ipcRenderer.invoke(IpcChannels.selectIncomplete, request);
   },
   onShowPreferences(listener: () => void): Unsubscribe {
     const handler = (): void => listener();

@@ -621,10 +621,20 @@ user-facing Help (`docs/help/`) was updated alongside:
   block (base64 JSON; real BibDesk ignores it). Sidebar: create/rename/delete folders, drag a group
   into a folder / nest folders / drop on Library to un-file (N-level tree). **📤 Export Folder to PDF
   Tree** copies each group's publications' attached PDFs into a folder→group directory structure.
-  `folders.ts` + groupEdit folder ops + `folderExportPlan` + `exportFolderTree` IPC.
-  *(On branch `folders`, not yet merged to `main`.)*
+  `folders.ts` + groupEdit folder ops + `folderExportPlan` + `exportFolderTree` IPC. Review
+  refinements: click-to-select folders (toggle only via the disclosure triangle), nest-on-create,
+  a right-click Rename/Delete context menu; plus dragging a multi-selection onto a group now adds
+  every selected row.
+- **Polish batch** — (1) **Select Incomplete Publications** (Edit menu): selects entries missing a
+  required field for their type. (2) **More Copy As** (Edit → Copy As): RIS / Minimal BibTeX (admin
+  fields dropped) / LaTeX `\bibitem`. (3) **Crossref niceties** (Publication menu): Select Crossref
+  Parent + New Publication with Crossref. (4) **Labeled undo/redo**: the Edit menu shows "Undo Set
+  Field" / "Redo Delete Entry". Review refinements: a new publication becomes the sole selection and
+  opens its editor (scrolled into view); the cite-key **Generate** button refreshes the input; and
+  the default cite-key format is now `%a1:%Y%u0` (disambiguate only on collision, with a settings
+  migration).
 
-`pnpm -r test` = **1446 passing** (+3 skipped under the Node test ABI — expected);
+`pnpm -r test` = **1455 passing** (+3 skipped under the Node test ABI — expected);
 `pnpm -r build` + `tsc` clean.
 
 ### Still pending (deeper BibDesk features; not yet built) — do NOT claim these are done

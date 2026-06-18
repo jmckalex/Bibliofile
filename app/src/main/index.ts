@@ -870,13 +870,19 @@ function hasOpenDocument(): boolean {
 /** Document-level Undo: restore the previous snapshot and re-sync that window. */
 function doUndo(): void {
   const id = focusedDocId();
-  if (id && store.undo(id)) notifyDocumentOpened(store.summarize(id), windowForDoc(id));
+  if (id && store.undo(id)) {
+    notifyDocumentOpened(store.summarize(id), windowForDoc(id));
+    buildMenu(); // refresh Undo/Redo labels + enabled state
+  }
 }
 
 /** Document-level Redo. */
 function doRedo(): void {
   const id = focusedDocId();
-  if (id && store.redo(id)) notifyDocumentOpened(store.summarize(id), windowForDoc(id));
+  if (id && store.redo(id)) {
+    notifyDocumentOpened(store.summarize(id), windowForDoc(id));
+    buildMenu();
+  }
 }
 
 /** Save As: pick a new path, write there, and re-sync the renderer (name + dirty). */
@@ -1024,6 +1030,8 @@ function columnMenuItems(): MenuItemConstructorOptions[] {
 function buildMenu(): void {
   const isMac = process.platform === 'darwin';
   const docEnabled = hasOpenDocument();
+  const fid = focusedDocId();
+  const undo = fid ? store.undoState(fid) : { canUndo: false, canRedo: false };
   const template: MenuItemConstructorOptions[] = [];
 
   const prefsItem: MenuItemConstructorOptions = {
@@ -1148,11 +1156,16 @@ function buildMenu(): void {
   template.push({
     label: 'Edit',
     submenu: [
-      { label: 'Undo', accelerator: 'CmdOrCtrl+Z', enabled: docEnabled, click: () => doUndo() },
       {
-        label: 'Redo',
+        label: undo.undoLabel ? `Undo ${undo.undoLabel}` : 'Undo',
+        accelerator: 'CmdOrCtrl+Z',
+        enabled: undo.canUndo,
+        click: () => doUndo(),
+      },
+      {
+        label: undo.redoLabel ? `Redo ${undo.redoLabel}` : 'Redo',
         accelerator: 'Shift+CmdOrCtrl+Z',
-        enabled: docEnabled,
+        enabled: undo.canRedo,
         click: () => doRedo(),
       },
       { type: 'separator' },
@@ -1162,6 +1175,11 @@ function buildMenu(): void {
       { role: 'pasteAndMatchStyle' },
       { role: 'delete' },
       { role: 'selectAll' },
+      {
+        label: 'Select Incomplete Publications',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('selectIncomplete'),
+      },
       { type: 'separator' },
       {
         label: 'Paste Publication',
@@ -1212,6 +1230,14 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('copyCite'),
       },
+      {
+        label: 'Copy As',
+        submenu: [
+          { label: 'RIS', enabled: docEnabled, click: () => sendMenuCommand('copyRis') },
+          { label: 'Minimal BibTeX', enabled: docEnabled, click: () => sendMenuCommand('copyMinimalBibtex') },
+          { label: 'LaTeX \\bibitem', enabled: docEnabled, click: () => sendMenuCommand('copyBibitem') },
+        ],
+      },
     ],
   });
 
@@ -1224,6 +1250,11 @@ function buildMenu(): void {
         accelerator: 'CmdOrCtrl+N',
         enabled: docEnabled,
         click: () => sendMenuCommand('newPublication'),
+      },
+      {
+        label: 'New Publication with Crossref',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('newWithCrossref'),
       },
       {
         label: 'Edit Publication…',
@@ -1248,6 +1279,11 @@ function buildMenu(): void {
         accelerator: 'CmdOrCtrl+K',
         enabled: docEnabled,
         click: () => sendMenuCommand('generateCiteKey'),
+      },
+      {
+        label: 'Select Crossref Parent',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('selectParent'),
       },
       {
         label: 'Find Duplicates…',
@@ -1764,6 +1800,21 @@ function registerIpc(): void {
       else void dialog.showMessageBox(summary);
       return { canceled: false, copied, errors };
     },
+    [IpcChannels.selectIncomplete]: (req) => {
+      const itemIds = store.incompleteItemIds(req.documentId);
+      if (itemIds.length === 0) {
+        const w = dialogParent();
+        const opts: Electron.MessageBoxOptions = {
+          type: 'info',
+          buttons: ['OK'],
+          message: 'No incomplete publications.',
+          detail: 'Every entry has the required fields for its type.',
+        };
+        if (w) void dialog.showMessageBox(w, opts);
+        else void dialog.showMessageBox(opts);
+      }
+      return { itemIds };
+    },
     [IpcChannels.readAttachment]: (req) => {
       const p = store.attachmentPath(req.documentId, req.itemId, req.url);
       if (!p) return { data: null, error: 'Attachment not found or not readable' };
@@ -1911,6 +1962,7 @@ function registerIpc(): void {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (handlers as any)[channel](req);
       if (typeof req?.documentId === 'string') broadcastDocumentChanged(req.documentId, e.sender);
+      buildMenu(); // refresh Undo/Redo labels after a mutating action
       return result;
     });
   };
@@ -1973,6 +2025,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.exportFolderTree, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.exportFolderTree](req),
+  );
+  ipcMain.handle(IpcChannels.selectIncomplete, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.selectIncomplete](req),
   );
   ipcMain.handle(IpcChannels.readAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.readAttachment](req),

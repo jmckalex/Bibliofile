@@ -68,6 +68,8 @@ export const IpcChannels = {
   selectFromAux: 'bibdesk:selectFromAux',
   /** Export a folder's group→PDF directory tree to disk (main picks the dest). */
   exportFolderTree: 'bibdesk:exportFolderTree',
+  /** Find publications missing a required field for their type. */
+  selectIncomplete: 'bibdesk:selectIncomplete',
   /** Read an attachment's bytes (for in-app PDF preview). */
   readAttachment: 'bibdesk:readAttachment',
   /** Serialize a document (or a subset of items) to text in a given format. */

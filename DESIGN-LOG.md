@@ -500,6 +500,28 @@ Format per decision: **what** we chose, **why**, **alternatives considered**, an
   round-trip (+ base64 safety/ids/cycles), create→file→serialize→reopen, and
   folderExportPlan. Developed on branch `folders`.
 
+- **Polish batch — Select Incomplete · more Copy-As · crossref · labeled undo.**
+  Four small BibDesk-parity items. **Select Incomplete** (`incompleteItemIds` +
+  `selectIncomplete` IPC + Edit menu): selects entries where any
+  `requiredFieldsForType(type)` field is empty (inherited counts); main shows a
+  "none" dialog when all are complete. **More Copy-As** (Edit → Copy As; renderer-
+  side except minimal): RIS via `exportText('ris')`; **Minimal BibTeX** via a new
+  `exportText('bibtex-minimal')` that serializes clean clones with admin fields
+  dropped (Bdsk-File / Date-Added/Modified / Rating / Read / Local-Url; clone has no
+  crossref store so the duplicate cite key can't clobber the original); LaTeX
+  `\bibitem` from `formatCitation` per selected id. **Crossref** (Publication menu):
+  Select Crossref Parent (`selectByCiteKey` on the entry's Crossref) + New
+  Publication with Crossref (`addEntry` gained an optional `crossref`). **Labeled
+  undo/redo**: the snapshot history carries a per-step label; `undoState` exposes
+  `undoLabel`/`redoLabel`; the Edit menu shows "Undo Set Field" / "Redo Delete
+  Entry" (bare when none); `applyEdit` labels by command kind, other mutators use a
+  generic "Edit"; the menu is rebuilt after each mutating IPC and after undo/redo
+  (multi-window caveat: labels refresh on edit/undo, not yet on a bare focus
+  switch). *Revisit:* `incompleteItemIds` / `exportText('bibtex-minimal')` / the
+  labeled undo history in `document-service.ts`; the Edit/Publication menus +
+  `undoState` wiring in `index.ts`; the Copy-As / select / crossref cases in
+  `App.tsx`. Tests for each. Developed on branch `polish`.
+
 ## Dropped (legacy / mac-only / superseded) — see FEATURE-SURVEY.md
 Separate per-entry editor windows; TeX-task PDF preview; Z39.50/SRU + MARC/MODS importers
 (kept RIS); macOS Services / Spotlight / QuickLook; color labels; web/script groups.

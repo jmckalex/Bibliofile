@@ -95,7 +95,7 @@ export type EditCommand =
   | { readonly kind: 'setCiteKey'; readonly itemId: ItemId; readonly citeKey: string }
   | { readonly kind: 'setType'; readonly itemId: ItemId; readonly entryType: string }
   | { readonly kind: 'generateCiteKey'; readonly itemId: ItemId }
-  | { readonly kind: 'addEntry'; readonly entryType: string }
+  | { readonly kind: 'addEntry'; readonly entryType: string; readonly crossref?: string }
   | { readonly kind: 'duplicateEntry'; readonly itemId: ItemId }
   | { readonly kind: 'deleteEntry'; readonly itemId: ItemId }
   | { readonly kind: 'mergeEntries'; readonly primaryId: ItemId; readonly otherIds: readonly ItemId[] }
@@ -457,7 +457,7 @@ export interface ReadAttachmentResponse {
  * (reuses the round-trip serializer); the others are reserved for the export
  * feature and may be rejected with an error until then.
  */
-export type ExportFormat = 'bibtex' | 'ris' | 'csv' | 'html' | 'rtf';
+export type ExportFormat = 'bibtex' | 'bibtex-minimal' | 'ris' | 'csv' | 'html' | 'rtf';
 
 /** Request serialized text for a whole document, or a subset of its items. */
 export interface ExportTextRequest {
@@ -894,7 +894,7 @@ export interface Settings {
   readonly theme: 'light' | 'dark' | 'system';
   /** Default CSL style id for the citation preview (from {@link CITATION_STYLES}). */
   readonly defaultCiteStyle: string;
-  /** Cite-key generation format (BDSKFormatParser mini-language, e.g. `%a1:%Y%u2`). */
+  /** Cite-key generation format (BDSKFormatParser mini-language, e.g. `%a1:%Y%u0`). */
   readonly citeKeyFormat: string;
   /** Entry type used by the toolbar **New** button. */
   readonly defaultEntryType: string;
@@ -948,7 +948,9 @@ export const BUILTIN_COLUMNS = [
 export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   defaultCiteStyle: 'apa',
-  citeKeyFormat: '%a1:%Y%u2',
+  // %u0 = append a disambiguating letter only on collision (Surname:Year, then
+  // Surname:Yeara, …), unlike BibDesk's %u2 which always appends two letters.
+  citeKeyFormat: '%a1:%Y%u0',
   defaultEntryType: 'article',
   citeCommandTemplate: '\\cite{%K}',
   columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],
@@ -1025,6 +1027,16 @@ export interface ExportFolderTreeResponse {
   readonly errors: readonly string[];
 }
 
+/** Request to find publications missing a required field for their type. */
+export interface SelectIncompleteRequest {
+  readonly documentId: DocumentId;
+}
+
+/** Result: item ids of publications missing at least one required field. */
+export interface SelectIncompleteResponse {
+  readonly itemIds: readonly string[];
+}
+
 /**
  * Full detail of one publication for the detail/preview pane. `fields` are the
  * display field rows, `files` the attachments, and `previewHtml` an optional
@@ -1066,6 +1078,8 @@ export type MenuCommand =
   | 'duplicate'
   | 'delete'
   | 'generateCiteKey'
+  | 'newWithCrossref'
+  | 'selectParent'
   | 'addAttachment'
   | 'autoFile'
   | 'consolidate'
@@ -1078,11 +1092,15 @@ export type MenuCommand =
   // Edit / clipboard (operate on the selection)
   | 'find'
   | 'findReplace'
+  | 'selectIncomplete'
   | 'copyCiteKey'
   | 'copyCitation'
   | 'copyBibtex'
   | 'copyCite'
   | 'copyRtf'
+  | 'copyRis'
+  | 'copyMinimalBibtex'
+  | 'copyBibitem'
   // View
   | 'toggleTheme'
   // App

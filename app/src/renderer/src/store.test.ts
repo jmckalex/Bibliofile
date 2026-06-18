@@ -55,7 +55,10 @@ const DETAIL: ItemDetail = {
 
 /** Records the requests it receives so tests can assert on them. */
 function makeFakeApi() {
-  const calls: { listPublications: ListPublicationsRequest[] } = { listPublications: [] };
+  const calls: { listPublications: ListPublicationsRequest[]; openEditor: string[] } = {
+    listPublications: [],
+    openEditor: [],
+  };
   const api: BibDeskApi = {
     openDocument: async () => DOC,
     closeDocument: async (r) => ({ documentId: r.documentId }),
@@ -80,7 +83,10 @@ function makeFakeApi() {
     },
     getItemDetail: async () => DETAIL,
     openExternal: async () => ({ ok: true }),
-    applyEdit: async () => ({ dirty: true }),
+    applyEdit: async (r) =>
+      r.command.kind === 'addEntry'
+        ? { dirty: true, affectedItemId: 'new-1', detail: DETAIL }
+        : { dirty: true },
     batchEdit: async (r) => ({ dirty: true, count: r.itemIds.length }),
     listMacros: async () => ({ macros: [] }),
     saveDocument: async (r) => ({ documentId: r.documentId, path: '/tmp/test.bib' }),
@@ -106,6 +112,7 @@ function makeFakeApi() {
     listEntryTypes: async () => ({ types: [] }),
     selectFromAux: async () => ({ canceled: true, matchedIds: [], matchedKeys: [], missingKeys: [] }),
     exportFolderTree: async () => ({ canceled: true, copied: 0, errors: [] }),
+    selectIncomplete: async () => ({ itemIds: [] }),
     readAttachment: async () => ({ data: null }),
     exportText: async () => ({ text: '' }),
     pasteEntries: async () => ({ dirty: true, addedIds: [], warnings: [] }),
@@ -118,7 +125,10 @@ function makeFakeApi() {
     groupEdit: async () => ({ dirty: true, groupId: 'g#0#0' }),
     groupConditions: async () => ({ name: 'Smart', conjunction: 0, conditions: [] }),
     renameAuthor: async () => ({ changed: 0, dirty: false }),
-    openEditor: async () => ({ ok: true as const }),
+    openEditor: async (r) => {
+      calls.openEditor.push(r.itemId);
+      return { ok: true as const };
+    },
     openDialog: async () => ({ ok: true as const }),
     newDocument: async () => ({ ok: true as const }),
     fieldSuggestions: async () => ({ values: [] }),
@@ -307,6 +317,21 @@ describe('viewer store', () => {
 
     await store.getState().save();
     expect(store.getState().dirty).toBe(false);
+  });
+
+  it('a new publication becomes the sole selection and opens its editor', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    // Pre-existing multi-selection that must NOT linger after the add.
+    store.getState().toggleSelect('i2');
+    expect(store.getState().selectedIds).toContain('i2');
+
+    await store.getState().edit({ kind: 'addEntry', entryType: 'article' });
+    const s = store.getState();
+    expect(s.selectedItemId).toBe('new-1'); // primary selection is the new entry
+    expect(s.selectedIds).toEqual(['new-1']); // prior selection cleared
+    expect(calls.openEditor).toContain('new-1'); // editor opened on it
   });
 
   it('setQuery stores the query (client-side filter, no reload)', async () => {

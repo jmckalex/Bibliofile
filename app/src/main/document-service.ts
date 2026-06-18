@@ -412,6 +412,30 @@ function sanitizeSegment(name: string): string {
   return name.replace(/[/\\:*?"<>|]/g, '_').trim() || 'untitled';
 }
 
+/** One undo/redo step: a serialized snapshot + a short label for the action it precedes. */
+interface UndoStep {
+  snap: string;
+  label: string;
+}
+
+/** Human labels for the Edit-menu "Undo <label>" / "Redo <label>", by EditCommand kind. */
+const EDIT_LABELS: Record<string, string> = {
+  setField: 'Set Field',
+  removeField: 'Remove Field',
+  setCiteKey: 'Set Cite Key',
+  setType: 'Set Type',
+  generateCiteKey: 'Generate Cite Key',
+  addEntry: 'Add Entry',
+  duplicateEntry: 'Duplicate Entry',
+  deleteEntry: 'Delete Entry',
+  mergeEntries: 'Merge Entries',
+  setMacro: 'Set Macro',
+  removeMacro: 'Remove Macro',
+};
+function labelForEdit(command: { kind: string }): string {
+  return EDIT_LABELS[command.kind] ?? 'Edit';
+}
+
 /**
  * Sort key extractor for a {@link PublicationRow} by sort key name. Recognises
  * the row columns; unknown keys fall back to cite key.
@@ -945,11 +969,11 @@ export class DocumentStore {
 
   // --- Undo / redo (snapshot-based) ------------------------------------------
 
-  /** Per-document undo/redo stacks of serialized-library snapshots. */
-  private history = new Map<string, { undo: string[]; redo: string[] }>();
+  /** Per-document undo/redo stacks of labeled serialized-library snapshots. */
+  private history = new Map<string, { undo: UndoStep[]; redo: UndoStep[] }>();
   private static readonly UNDO_LIMIT = 100;
 
-  private historyFor(documentId: string): { undo: string[]; redo: string[] } {
+  private historyFor(documentId: string): { undo: UndoStep[]; redo: UndoStep[] } {
     let h = this.history.get(documentId);
     if (!h) {
       h = { undo: [], redo: [] };
@@ -959,46 +983,53 @@ export class DocumentStore {
   }
 
   /**
-   * Record the current state as an undo point, BEFORE applying a mutation. Called
-   * at the start of every mutator. Deduplicates against the top of the stack so a
-   * nested/composite operation (e.g. a multi-file drop where the outer method and
-   * the per-file helpers each snapshot) only contributes one undo step per real
-   * change. Clears the redo stack (a new edit branches history).
+   * Record the current state as an undo point, BEFORE applying a mutation; `label`
+   * names the action (shown as "Undo <label>"). Deduplicates against the top of the
+   * stack so a nested/composite operation (e.g. a multi-file drop where the outer
+   * method and the per-file helpers each snapshot) only contributes one undo step
+   * per real change (the first/outer label wins). Clears the redo stack.
    */
-  private snapshot(documentId: string): void {
+  private snapshot(documentId: string, label = 'Edit'): void {
     const doc = this.docs.get(documentId);
     if (!doc) return;
     const h = this.historyFor(documentId);
     const snap = this.serializeDocument(documentId);
-    if (h.undo[h.undo.length - 1] === snap) return; // no change since last snapshot
-    h.undo.push(snap);
+    if (h.undo[h.undo.length - 1]?.snap === snap) return; // no change since last snapshot
+    h.undo.push({ snap, label });
     if (h.undo.length > DocumentStore.UNDO_LIMIT) h.undo.shift();
     h.redo.length = 0;
   }
 
-  /** Whether undo/redo are currently available for a document. */
-  undoState(documentId: string): { canUndo: boolean; canRedo: boolean } {
+  /** Whether undo/redo are available + the next action labels (for the Edit menu). */
+  undoState(documentId: string): { canUndo: boolean; canRedo: boolean; undoLabel?: string; redoLabel?: string } {
     const h = this.history.get(documentId);
-    return { canUndo: !!h && h.undo.length > 0, canRedo: !!h && h.redo.length > 0 };
+    const u = h?.undo[h.undo.length - 1];
+    const r = h?.redo[h.redo.length - 1];
+    return {
+      canUndo: u !== undefined,
+      canRedo: r !== undefined,
+      ...(u ? { undoLabel: u.label } : {}),
+      ...(r ? { redoLabel: r.label } : {}),
+    };
   }
 
   /** Undo the last mutation; returns true if a state was restored. */
   undo(documentId: string): boolean {
     const h = this.historyFor(documentId);
-    const text = h.undo.pop();
-    if (text === undefined) return false;
-    h.redo.push(this.serializeDocument(documentId));
-    this.restoreSnapshot(documentId, text);
+    const step = h.undo.pop();
+    if (step === undefined) return false;
+    h.redo.push({ snap: this.serializeDocument(documentId), label: step.label });
+    this.restoreSnapshot(documentId, step.snap);
     return true;
   }
 
   /** Redo the last undone mutation; returns true if a state was restored. */
   redo(documentId: string): boolean {
     const h = this.historyFor(documentId);
-    const text = h.redo.pop();
-    if (text === undefined) return false;
-    h.undo.push(this.serializeDocument(documentId));
-    this.restoreSnapshot(documentId, text);
+    const step = h.redo.pop();
+    if (step === undefined) return false;
+    h.undo.push({ snap: this.serializeDocument(documentId), label: step.label });
+    this.restoreSnapshot(documentId, step.snap);
     return true;
   }
 
@@ -1706,6 +1737,21 @@ export class DocumentStore {
   }
 
   /**
+   * Item ids of publications missing at least one required field for their entry
+   * type (a field counts as present if set locally or inherited via crossref).
+   * Read-only.
+   */
+  incompleteItemIds(documentId: string): string[] {
+    const doc = this.requireDoc(documentId);
+    const out: string[] = [];
+    for (const it of doc.library.items) {
+      const required = sharedTypeManager.requiredFieldsForType(it.type);
+      if (required.some((f) => it.stringValueOfField(f, true).trim() === '')) out.push(it.id);
+    }
+    return out;
+  }
+
+  /**
    * Resolve an attachment URL to a readable local path — but only if it is
    * genuinely one of the item's file attachments (so the renderer can't read
    * arbitrary files). Returns undefined otherwise.
@@ -2311,7 +2357,7 @@ export class DocumentStore {
    * no `detail`/affected item beyond what is created.
    */
   applyEdit(req: ApplyEditRequest): EditResult {
-    this.snapshot(req.documentId);
+    this.snapshot(req.documentId, labelForEdit(req.command));
     const doc = this.requireDoc(req.documentId);
     const cmd = req.command;
     switch (cmd.kind) {
@@ -2350,6 +2396,7 @@ export class DocumentStore {
           typeManager: sharedTypeManager,
           store: doc.crossrefStore,
         });
+        if (cmd.crossref) item.setField('Crossref', cmd.crossref);
         doc.library.items.push(item);
         doc.itemsById.set(item.id, item);
         return this.dirtyDetail(doc, item);
@@ -2470,6 +2517,29 @@ export class DocumentStore {
         if (!itemIds) return serialize(doc.library);
         // Subset: emit each selected entry as a standalone block (no header/macros).
         return items.map((it) => serializeEntry(it, doc.library.bdskFiles)).join('\n\n') + (items.length ? '\n' : '');
+      case 'bibtex-minimal': {
+        // Minimal BibTeX: drop BibDesk admin fields (file blobs, dates, rating/read,
+        // local-url), keeping the bibliographic content. Serialize clean clones (no
+        // crossref store, so the duplicate cite key never clobbers the original).
+        const admin = new Set(['date-added', 'date-modified', 'rating', 'read', 'local-url']);
+        const blocks = items.map((it) => {
+          const fields: Record<string, FieldValue> = {};
+          for (const name of it.fieldNames()) {
+            if (admin.has(name.toLowerCase()) || BDSK_FILE_RE.test(name)) continue;
+            const v = it.rawValueOfField(name);
+            if (v !== undefined) fields[name] = v;
+          }
+          const clone = createBibItem({
+            type: it.type,
+            citeKey: it.citeKey,
+            fields,
+            macroResolver: doc.library.macroResolver,
+            typeManager: sharedTypeManager,
+          });
+          return serializeEntry(clone, new Map());
+        });
+        return blocks.join('\n\n') + (items.length ? '\n' : '');
+      }
       case 'ris':
         return exportRis(items);
       case 'csv':

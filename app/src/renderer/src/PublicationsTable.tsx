@@ -9,6 +9,7 @@
 
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -307,6 +308,17 @@ export function PublicationsTable() {
     (key: string, additive: boolean) => void setSort(key, additive),
     [setSort],
   );
+
+  // Keep the primary selection in view when it changes programmatically — e.g. a
+  // new publication (which sorts in anywhere) or "Select Crossref Parent". Keyed
+  // on selectedItemId only, so it doesn't yank the scroll on every sort/filter;
+  // align 'auto' is a no-op when the row is already visible.
+  useEffect(() => {
+    if (!selectedItemId) return;
+    const index = tableRows.findIndex((r) => r.original.id === selectedItemId);
+    if (index >= 0) virtualizer.scrollToIndex(index, { align: 'auto' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedItemId]);
 
   const headerGroups = table.getHeaderGroups();
   const virtualItems = virtualizer.getVirtualItems();

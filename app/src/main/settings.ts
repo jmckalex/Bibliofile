@@ -25,6 +25,32 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
   };
 }
 
+/** The previous factory default for {@link Settings.citeKeyFormat}. */
+const OLD_DEFAULT_CITE_KEY_FORMAT = '%a1:%Y%u2';
+
+/**
+ * One-time upgrades of stale persisted defaults to the current ones. The default
+ * cite-key format changed from `%u2` (always two letters) to `%u0` (a letter only
+ * on collision); carry anyone still on the old default forward. A user who set a
+ * different format keeps it.
+ */
+function migrate(s: Settings): Settings {
+  if (s.citeKeyFormat === OLD_DEFAULT_CITE_KEY_FORMAT) {
+    return { ...s, citeKeyFormat: DEFAULT_SETTINGS.citeKeyFormat };
+  }
+  return s;
+}
+
+/** Write settings to disk (best-effort; non-fatal on failure). */
+function persist(s: Settings): void {
+  try {
+    mkdirSync(dirname(settingsPath()), { recursive: true });
+    writeFileSync(settingsPath(), JSON.stringify(s, null, 2));
+  } catch {
+    /* non-fatal: settings just won't persist */
+  }
+}
+
 /** Apply settings that affect the core model (the field-type classification). */
 function apply(s: Settings): void {
   const ft = s.fieldTypes;
@@ -53,7 +79,9 @@ function apply(s: Settings): void {
 export function loadSettings(): Settings {
   try {
     if (existsSync(settingsPath())) {
-      current = merge(DEFAULT_SETTINGS, JSON.parse(readFileSync(settingsPath(), 'utf8')));
+      const loaded = merge(DEFAULT_SETTINGS, JSON.parse(readFileSync(settingsPath(), 'utf8')));
+      current = migrate(loaded);
+      if (current !== loaded) persist(current); // write the upgrade back
     }
   } catch {
     current = DEFAULT_SETTINGS;
@@ -71,11 +99,6 @@ export function getSettings(): Settings {
 export function updateSettings(patch: Partial<Settings>): Settings {
   current = merge(current, patch);
   apply(current);
-  try {
-    mkdirSync(dirname(settingsPath()), { recursive: true });
-    writeFileSync(settingsPath(), JSON.stringify(current, null, 2));
-  } catch {
-    /* non-fatal: settings just won't persist */
-  }
+  persist(current);
   return current;
 }

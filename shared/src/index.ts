@@ -105,6 +105,8 @@ export {
   type AuxSelectionResult,
   type ExportFolderTreeRequest,
   type ExportFolderTreeResponse,
+  type SelectIncompleteRequest,
+  type SelectIncompleteResponse,
   type ReadAttachmentRequest,
   type ReadAttachmentResponse,
   type ExportFormat,

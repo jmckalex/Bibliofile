@@ -61,6 +61,14 @@ describe('generateCiteKey — uniquifier collision avoidance', () => {
     expect(out).toMatch(/^Smith:2020[a-z]{2}$/);
   });
 
+  it('app default %a1:%Y%u0 adds a letter only on collision', () => {
+    expect(generateCiteKey('%a1:%Y%u0', item(), [])).toBe('Smith:2020'); // unique: no suffix
+    expect(generateCiteKey('%a1:%Y%u0', item(), ['Smith:2020'])).toBe('Smith:2020a');
+    expect(generateCiteKey('%a1:%Y%u0', item(), ['Smith:2020', 'Smith:2020a'])).toBe(
+      'Smith:2020b',
+    );
+  });
+
   it('empty format falls back to a numeric uniquifier (never empty)', () => {
     const empty = makeItem({});
     const out = parseFormat('', empty, CITE_KEY_FIELD, {

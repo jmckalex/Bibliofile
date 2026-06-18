@@ -254,6 +254,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'selectFromAux':
       await store.selectFromAux();
       return;
+    case 'selectIncomplete':
+      await store.selectIncomplete();
+      return;
     case 'online':
       modals.setOnlineOpen(true);
       return;
@@ -332,6 +335,50 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
         itemId: selectedItemId,
         styleId: store.settings.defaultCiteStyle,
       });
+      return;
+    }
+    case 'copyRis': {
+      const ids = store.selectedIds;
+      if (!documentId || !ids.length || !window.bibdesk) return;
+      const res = await window.bibdesk.exportText({ documentId, format: 'ris', itemIds: ids });
+      if (res.text) await navigator.clipboard.writeText(res.text);
+      return;
+    }
+    case 'copyMinimalBibtex': {
+      const ids = store.selectedIds;
+      if (!documentId || !ids.length || !window.bibdesk) return;
+      const res = await window.bibdesk.exportText({ documentId, format: 'bibtex-minimal', itemIds: ids });
+      if (res.text) await navigator.clipboard.writeText(res.text);
+      return;
+    }
+    case 'copyBibitem': {
+      const ids = store.selectedIds;
+      if (!documentId || !ids.length || !window.bibdesk) return;
+      const keyById = new Map(store.rows.map((r) => [r.id, r.citeKey]));
+      const lines: string[] = [];
+      for (const id of ids) {
+        const res = await window.bibdesk.formatCitation({
+          documentId,
+          itemId: id,
+          styleId: store.settings.defaultCiteStyle,
+        });
+        const text = res.html ? htmlToText(res.html) : '';
+        lines.push(`\\bibitem{${keyById.get(id) ?? id}} ${text}`.trim());
+      }
+      await navigator.clipboard.writeText(lines.join('\n'));
+      return;
+    }
+    case 'newWithCrossref': {
+      const key = selectedCiteKey();
+      if (key) await store.edit({ kind: 'addEntry', entryType: store.settings.defaultEntryType, crossref: key });
+      return;
+    }
+    case 'selectParent': {
+      if (!selectedItemId || store.detail?.id !== selectedItemId) return;
+      const parentKey = store.detail.fields
+        .find((f) => f.name.toLowerCase() === 'crossref')
+        ?.rawValue.trim();
+      if (parentKey) await store.selectByCiteKey(parentKey);
       return;
     }
   }

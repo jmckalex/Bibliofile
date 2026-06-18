@@ -36,6 +36,8 @@ import type {
   AuxSelectionResult,
   ExportFolderTreeRequest,
   ExportFolderTreeResponse,
+  SelectIncompleteRequest,
+  SelectIncompleteResponse,
   ReadAttachmentRequest,
   ReadAttachmentResponse,
   ExportTextRequest,
@@ -127,6 +129,7 @@ export interface IpcContract {
   [IpcChannels.listEntryTypes]: IpcEntry<Record<string, never>, ListEntryTypesResponse>;
   [IpcChannels.selectFromAux]: IpcEntry<SelectFromAuxRequest, AuxSelectionResult>;
   [IpcChannels.exportFolderTree]: IpcEntry<ExportFolderTreeRequest, ExportFolderTreeResponse>;
+  [IpcChannels.selectIncomplete]: IpcEntry<SelectIncompleteRequest, SelectIncompleteResponse>;
   [IpcChannels.readAttachment]: IpcEntry<ReadAttachmentRequest, ReadAttachmentResponse>;
   [IpcChannels.exportText]: IpcEntry<ExportTextRequest, ExportTextResponse>;
   [IpcChannels.print]: IpcEntry<PrintRequest, PrintResponse>;
