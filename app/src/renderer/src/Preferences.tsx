@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { CITATION_STYLES, BUILTIN_COLUMNS, type Settings, type EntryTypeInfo, type ExportTemplate } from '@bibdesk/shared';
 import { useStore } from './store.js';
+import { PANEL_PRESETS } from './panel-presets.js';
 
 const COLUMN_LABELS: Record<string, string> = {
   citeKey: 'Cite Key',
@@ -454,6 +455,7 @@ function PanelTemplateEditor({
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'text' | 'html'>('html');
+  const presets = PANEL_PRESETS.filter((p) => p.for === which || p.for === 'both');
 
   const runPreview = async (): Promise<void> => {
     if (!documentId) {
@@ -477,6 +479,27 @@ function PanelTemplateEditor({
       <div className="bd-ctype__head">
         <strong>{label}</strong>
         <span className="bd-toolbar__spacer" />
+        <select
+          className="bd-input bd-select"
+          defaultValue=""
+          aria-label="Load a preset template"
+          title="Load a ready-made template"
+          onChange={(e) => {
+            const p = presets.find((x) => x.name === e.target.value);
+            if (p) {
+              setBody(p.body);
+              void save({ [field]: p.body } as Partial<Settings>);
+            }
+            e.currentTarget.value = '';
+          }}
+        >
+          <option value="">Load preset…</option>
+          {presets.map((p) => (
+            <option key={p.name} value={p.name}>
+              {p.name}
+            </option>
+          ))}
+        </select>
         <button
           type="button"
           className="bd-btn bd-btn--small"

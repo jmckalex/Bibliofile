@@ -7,6 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import type { ItemDetail } from '@bibdesk/shared';
 import { renderDetailsPanel, renderBottomPanel, renderPanelPreview } from './panel.js';
+import { PANEL_PRESETS } from '../renderer/src/panel-presets.js';
 
 function detail(over: Partial<ItemDetail> = {}): ItemDetail {
   return {
@@ -110,5 +111,40 @@ describe('custom template overrides + preview', () => {
     const bad = renderPanelPreview(detail(), 'd', 'apa', '{{#if}}oops');
     expect(bad.error).toBeTruthy();
     expect(bad.html).toBeUndefined();
+  });
+
+  it('exposes convenience context fields (title/authors/year/venue)', () => {
+    const html = renderDetailsPanel(detail(), 'd', 'apa', 'T:{{title}}|A:{{authors}}|V:{{venue}}')!;
+    expect(html).toBe('T:A Title|A:|V:Nature'); // Journal=Nature (the inherited field); Author unset
+  });
+});
+
+describe('showcase presets', () => {
+  const sample = detail({
+    fields: [
+      { name: 'Title', value: 'The Title', rawValue: '', isInherited: false },
+      { name: 'Author', value: 'A. Smith', rawValue: '', isInherited: false },
+      { name: 'Year', value: '2021', rawValue: '', isInherited: false },
+      { name: 'Journal', value: 'Nature', rawValue: '', isInherited: false },
+    ],
+    files: [{ kind: 'file', url: '/a.pdf', displayName: 'a.pdf' }],
+    notesHtml: '<p>note</p>',
+  });
+
+  for (const p of PANEL_PRESETS) {
+    it(`"${p.name}" compiles + renders without error`, () => {
+      const r = renderPanelPreview(sample, 'd1', 'apa', p.body);
+      expect(r.error).toBeUndefined();
+      expect(r.html).toBeTruthy();
+    });
+  }
+
+  it('horizontal card uses the convenience fields + live widgets', () => {
+    const body = PANEL_PRESETS.find((p) => p.name.startsWith('Horizontal'))!.body;
+    const html = renderPanelPreview(sample, 'd1', 'apa', body).html!;
+    expect(html).toContain('The Title');
+    expect(html).toContain('A. Smith');
+    expect(html).toContain('<bd-citation doc-id="d1" item-id="i1"');
+    expect(html).toContain('data-open-file="/a.pdf"');
   });
 });

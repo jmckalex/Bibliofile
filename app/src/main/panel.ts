@@ -14,6 +14,16 @@
 import Handlebars from 'handlebars';
 import type { ItemDetail } from '@bibdesk/shared';
 
+// Equality helper for panel templates, e.g. `{{#if (eq type "book")}}…{{/if}}`.
+// Registered on the shared Handlebars singleton (idempotent across imports).
+Handlebars.registerHelper('eq', (a: unknown, b: unknown) => a === b);
+
+/** Look up a display field value by (case-insensitive) name. */
+function fieldValue(fields: ItemDetail['fields'], name: string): string {
+  const lower = name.toLowerCase();
+  return fields.find((f) => f.name.toLowerCase() === lower)?.value ?? '';
+}
+
 /**
  * The built-in details template. Emits the INNER content of `.bd-detail.bd-view`
  * (the host div provides those classes), mirroring `ViewPane` section-for-section
@@ -64,6 +74,13 @@ export interface DetailPanelContext {
   readonly notesHtml: string;
   readonly attachments: ItemDetail['files'];
   readonly links: ItemDetail['files'];
+  // Convenience fields (derived from `fields`) so templates needn't loop to get
+  // the common bibliographic values.
+  readonly title: string;
+  readonly authors: string;
+  readonly year: string;
+  readonly venue: string;
+  readonly doi: string;
 }
 
 /** Build the template context from an already-built {@link ItemDetail}. */
@@ -72,6 +89,7 @@ export function buildDetailContext(
   documentId: string,
   citeStyle: string,
 ): DetailPanelContext {
+  const f = detail.fields;
   return {
     documentId,
     id: detail.id,
@@ -79,10 +97,15 @@ export function buildDetailContext(
     type: detail.type,
     citeStyle,
     previewHtml: detail.previewHtml,
-    fields: detail.fields,
+    fields: f,
     notesHtml: detail.notesHtml,
-    attachments: detail.files.filter((f) => f.kind === 'file'),
-    links: detail.files.filter((f) => f.kind === 'url'),
+    attachments: detail.files.filter((file) => file.kind === 'file'),
+    links: detail.files.filter((file) => file.kind === 'url'),
+    title: fieldValue(f, 'Title'),
+    authors: fieldValue(f, 'Author') || fieldValue(f, 'Editor'),
+    year: fieldValue(f, 'Year'),
+    venue: fieldValue(f, 'Journal') || fieldValue(f, 'Booktitle'),
+    doi: fieldValue(f, 'Doi'),
   };
 }
 
