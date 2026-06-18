@@ -13,6 +13,7 @@ import type {
   ListPublicationsRequest,
   OpenedDocument,
   PublicationRow,
+  Settings,
   Unsubscribe,
 } from '@bibdesk/shared';
 import { DEFAULT_SETTINGS } from '@bibdesk/shared';
@@ -59,7 +60,8 @@ function makeFakeApi() {
     listPublications: ListPublicationsRequest[];
     openEditor: string[];
     exportTemplate: { templateName: string; itemIds?: readonly string[] }[];
-  } = { listPublications: [], openEditor: [], exportTemplate: [] };
+    updateSettings: Partial<Settings>[];
+  } = { listPublications: [], openEditor: [], exportTemplate: [], updateSettings: [] };
   const api: BibDeskApi = {
     openDocument: async () => DOC,
     closeDocument: async (r) => ({ documentId: r.documentId }),
@@ -109,7 +111,10 @@ function makeFakeApi() {
     importOnline: async () => ({ dirty: true }),
     ftsSearch: async () => ({ available: false, ids: [] }),
     getSettings: async () => DEFAULT_SETTINGS,
-    updateSettings: async (r) => ({ ...DEFAULT_SETTINGS, ...r.patch }),
+    updateSettings: async (r) => {
+      calls.updateSettings.push(r.patch);
+      return { ...DEFAULT_SETTINGS, ...r.patch };
+    },
     listEntryTypes: async () => ({ types: [] }),
     selectFromAux: async () => ({ canceled: true, matchedIds: [], matchedKeys: [], missingKeys: [] }),
     exportFolderTree: async () => ({ canceled: true, copied: 0, errors: [] }),
@@ -351,6 +356,24 @@ describe('viewer store', () => {
     expect(store.getState().query).toBe('gamma');
     // filtering is client-side: no extra listPublications round-trip
     expect(calls.listPublications.length).toBe(before);
+  });
+
+  it('setLayout updates locally always, and persists only when asked', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    // live drag: local update, no persistence round-trip
+    store.getState().setLayout({ rightPaneWidth: 500 }, false);
+    expect(store.getState().settings.layout.rightPaneWidth).toBe(500);
+    expect(calls.updateSettings).toHaveLength(0);
+
+    // commit: persists the full merged layout (carrying the live width)
+    store.getState().setLayout({ rightPaneVisible: false });
+    expect(store.getState().settings.layout.rightPaneVisible).toBe(false);
+    const last = calls.updateSettings.at(-1)!;
+    expect(last.layout?.rightPaneWidth).toBe(500);
+    expect(last.layout?.rightPaneVisible).toBe(false);
   });
 
   it('exportTemplate resolves the scope to ordered itemIds', async () => {

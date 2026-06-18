@@ -95,6 +95,7 @@ export {
   type CustomEntryType,
   type CustomEntryTypes,
   type Settings,
+  type LayoutSettings,
   DEFAULT_SETTINGS,
   BUILTIN_COLUMNS,
   type GetSettingsRequest,

@@ -946,6 +946,22 @@ export interface Settings {
   readonly customTypes: CustomEntryTypes;
   /** User-authored export templates (named; listed under File → Export). */
   readonly exportTemplates: readonly ExportTemplate[];
+  /** Resizable/hidable panel layout (persisted across sessions). */
+  readonly layout: LayoutSettings;
+}
+
+/** Persisted window-layout state: the resizable/hidable side and bottom panels. */
+export interface LayoutSettings {
+  /** Right (detail) pane width in px. */
+  readonly rightPaneWidth: number;
+  /** Whether the right pane is shown. */
+  readonly rightPaneVisible: boolean;
+  /** What the right pane shows: the detail view, or the Claude assistant. */
+  readonly rightPaneContent: 'details' | 'assistant';
+  /** Bottom panel height in px. */
+  readonly bottomPanelHeight: number;
+  /** Whether the bottom panel is shown. */
+  readonly bottomPanelVisible: boolean;
 }
 
 /** Builtin (non-field) table column keys. */
@@ -989,6 +1005,13 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   customTypes: {},
   exportTemplates: [],
+  layout: {
+    rightPaneWidth: 340,
+    rightPaneVisible: true,
+    rightPaneContent: 'details',
+    bottomPanelHeight: 200,
+    bottomPanelVisible: false,
+  },
 };
 
 /** Request to read the current settings (no payload). */

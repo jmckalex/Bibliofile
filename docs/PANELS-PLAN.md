@@ -57,9 +57,15 @@ as a toggled overlay. Template engine: `export.ts renderTemplate(body, items, {t
   readable `Annote` opt-in), format-agnostic read, `Settings.annotationStorage`,
   Preferences toggle, "Notes"→"Annotation" relabel. `app/src/main/annotation.ts`
   + `annotation.test.ts` (21 tests incl. serialize→reopen safety in both modes).
-- **Phase 1 — Layout shell.** Splitter-resize/hide the right pane, Details↔Claude
-  swap (relocate `Assistant` into the pane), empty bottom-panel shell, persist
-  `Settings.layout`. No templating yet. *(Agreed start point.)*
+- **Phase 1 — Layout shell. ✅ DONE (branch `panels-layout`, off `annotation-hardening`).**
+  `Settings.layout` (right pane width/visible/content, bottom panel height/visible)
+  + `store.setLayout` (live local, debounced-by-release persist). `Panels.tsx`:
+  `Splitter` (pointer-drag), `RightPane` (Details↔Claude tabs + hide), `BottomPanel`
+  shell. `App.tsx` rewired: `.bd-main` wraps the grid (right-pane column sized inline,
+  vertical splitter) + an optional bottom panel (horizontal splitter); toolbar
+  toggles; the `assistant` menu command now opens the assistant *in the right pane*
+  (the fixed overlay is retired). The bottom panel is still a placeholder shell —
+  Phase 4 makes it the template-driven annotation reader.
 - **Phase 2 — `bd-*` web components.** Extract cover/citation/notes/attachments/
   math (+ preview-card) into custom elements (`main.tsx` `customElements.define`);
   rewire `ViewPane` to them *still React-composed*. Pure refactor → verify identical.

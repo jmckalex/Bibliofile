@@ -358,9 +358,17 @@ body {
   box-shadow: 0 0 0 3px var(--bd-accent-soft);
 }
 
+/* Main content area: the three panes, optionally with a bottom panel below. */
+.bd-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .bd-panes {
+  flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) 340px;
+  grid-template-columns: 220px minmax(0, 1fr); /* third column set inline when the right pane is shown */
   min-height: 0;
 }
 
@@ -373,6 +381,127 @@ body {
 
 .bd-pane--detail {
   border-right: none;
+}
+
+/* ---- Resizable panels (splitters, right pane, bottom panel) ------------- */
+
+.bd-splitter {
+  background: transparent;
+  z-index: 5;
+}
+.bd-splitter:hover,
+.bd-splitter:active {
+  background: var(--bd-accent-soft);
+}
+.bd-splitter--vertical {
+  cursor: col-resize;
+  border-left: 1px solid var(--bd-border);
+}
+.bd-splitter--horizontal {
+  height: 6px;
+  cursor: row-resize;
+  border-top: 1px solid var(--bd-border);
+}
+
+/* While dragging a splitter, lock the cursor and kill text selection. */
+body.bd-resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+.bd-rightpane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* the body scrolls, not the whole pane */
+}
+
+.bd-rightpane__tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--bd-border);
+  background: var(--bd-surface-alt);
+}
+
+.bd-rptab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bd-text-muted);
+  font: inherit;
+  font-size: var(--bd-fs-sm);
+  padding: 3px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.bd-rptab--on {
+  background: var(--bd-accent);
+  color: #fff;
+}
+
+.bd-rightpane__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* The assistant, when hosted inside the right pane (vs. its fixed overlay). */
+.bd-rightpane__body .bd-assistant {
+  position: static;
+  width: auto;
+  max-width: none;
+  height: 100%;
+  border-left: none;
+  box-shadow: none;
+}
+
+.bd-bottom {
+  flex: none;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.bd-bottompanel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--bd-border);
+}
+
+.bd-bottompanel__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--bd-border);
+  background: var(--bd-surface-alt);
+}
+
+.bd-bottompanel__title {
+  font-weight: 600;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+}
+
+.bd-bottompanel__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 12px;
+}
+
+.bd-bottompanel__hint {
+  margin: 0;
+  color: var(--bd-text-faint);
+  font-size: var(--bd-fs-sm);
+}
+
+/* Toggle-button active state (toolbar layout toggles). */
+.bd-btn--on {
+  background: var(--bd-accent);
+  border-color: var(--bd-accent);
+  color: #fff;
 }
 
 .bd-footer {

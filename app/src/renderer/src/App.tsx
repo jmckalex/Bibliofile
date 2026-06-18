@@ -15,7 +15,7 @@ import { formatCiteCommand } from '@bibdesk/shared';
 import { getStore, useStore, visibleRows } from './store.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
-import { ViewPane } from './ViewPane.js';
+import { Splitter, RightPane, BottomPanel } from './Panels.js';
 import { Welcome } from './Welcome.js';
 import { MacroEditor } from './MacroEditor.js';
 import { OnlineSearch } from './OnlineSearch.js';
@@ -23,7 +23,6 @@ import { Preferences } from './Preferences.js';
 import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
 import { BrokenLinks } from './BrokenLinks.js';
-import { Assistant } from './Assistant.js';
 import { BatchBar } from './BatchBar.js';
 
 function ThemeToggle() {
@@ -142,6 +141,8 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
   const dirty = useStore((s) => s.dirty);
   const saving = useStore((s) => s.saving);
   const defaultType = useStore((s) => s.settings.defaultEntryType);
+  const layout = useStore((s) => s.settings.layout);
+  const setLayout = useStore((s) => s.setLayout);
   const hasDoc = useStore((s) => s.documentId !== undefined);
   if (!hasDoc) return null;
   return (
@@ -166,6 +167,24 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
         🗑 Delete
       </button>
       <span className="bd-toolbar__spacer" />
+      <button
+        type="button"
+        className={'bd-btn' + (layout.rightPaneVisible ? ' bd-btn--on' : '')}
+        title="Toggle the side panel"
+        aria-pressed={layout.rightPaneVisible}
+        onClick={() => setLayout({ rightPaneVisible: !layout.rightPaneVisible })}
+      >
+        ▥ Side
+      </button>
+      <button
+        type="button"
+        className={'bd-btn' + (layout.bottomPanelVisible ? ' bd-btn--on' : '')}
+        title="Toggle the bottom panel"
+        aria-pressed={layout.bottomPanelVisible}
+        onClick={() => setLayout({ bottomPanelVisible: !layout.bottomPanelVisible })}
+      >
+        ▤ Bottom
+      </button>
       <button type="button" className="bd-btn" onClick={onOpenOnline}>
         🌐 Online…
       </button>
@@ -206,7 +225,6 @@ interface ModalSetters {
   setFindReplaceOpen: (v: boolean) => void;
   setDuplicatesOpen: (v: boolean) => void;
   setBrokenLinksOpen: (v: boolean) => void;
-  setAssistantOpen: (v: boolean) => void;
 }
 
 /**
@@ -288,7 +306,8 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       modals.setBrokenLinksOpen(true);
       return;
     case 'assistant':
-      modals.setAssistantOpen(true);
+      // Show the assistant in the (now swappable) right pane.
+      getStore().getState().setLayout({ rightPaneVisible: true, rightPaneContent: 'assistant' });
       return;
     case 'toggleTheme': {
       const isDark =
@@ -397,8 +416,9 @@ export function App() {
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [brokenLinksOpen, setBrokenLinksOpen] = useState(false);
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const layout = useStore((s) => s.settings.layout);
+  const setLayout = useStore((s) => s.setLayout);
 
   useEffect(() => {
     void loadSettings();
@@ -499,7 +519,6 @@ export function App() {
         setFindReplaceOpen,
         setDuplicatesOpen,
         setBrokenLinksOpen,
-        setAssistantOpen,
       });
     });
     const unsubCols = api.onMenuToggleColumn((key) => void getStore().getState().toggleColumn(key));
@@ -540,16 +559,52 @@ export function App() {
     <div className="bd-app">
       <Header />
       <Toolbar onOpenMacros={() => setMacrosOpen(true)} onOpenOnline={() => setOnlineOpen(true)} />
-      <div className="bd-panes">
-        <aside className="bd-pane">
-          <GroupsSidebar />
-        </aside>
-        <section className="bd-pane">
-          <PublicationsTable />
-        </section>
-        <section className="bd-pane bd-pane--detail">
-          <ViewPane />
-        </section>
+      <div className="bd-main">
+        <div
+          className="bd-panes"
+          style={{
+            gridTemplateColumns: layout.rightPaneVisible
+              ? `220px minmax(0, 1fr) 6px ${layout.rightPaneWidth}px`
+              : '220px minmax(0, 1fr)',
+          }}
+        >
+          <aside className="bd-pane">
+            <GroupsSidebar />
+          </aside>
+          <section className="bd-pane">
+            <PublicationsTable />
+          </section>
+          {layout.rightPaneVisible && (
+            <>
+              <Splitter
+                orientation="vertical"
+                label="Resize side panel"
+                onDrag={(dx) => {
+                  const cur = getStore().getState().settings.layout.rightPaneWidth;
+                  setLayout({ rightPaneWidth: Math.max(240, Math.min(800, cur - dx)) }, false);
+                }}
+                onCommit={() => setLayout({}, true)}
+              />
+              <RightPane />
+            </>
+          )}
+        </div>
+        {layout.bottomPanelVisible && (
+          <>
+            <Splitter
+              orientation="horizontal"
+              label="Resize bottom panel"
+              onDrag={(dy) => {
+                const cur = getStore().getState().settings.layout.bottomPanelHeight;
+                setLayout({ bottomPanelHeight: Math.max(80, Math.min(600, cur - dy)) }, false);
+              }}
+              onCommit={() => setLayout({}, true)}
+            />
+            <div className="bd-bottom" style={{ height: layout.bottomPanelHeight }}>
+              <BottomPanel />
+            </div>
+          </>
+        )}
       </div>
       <Footer />
       <BatchBar />
@@ -559,7 +614,6 @@ export function App() {
       {findReplaceOpen && <FindReplace onClose={() => setFindReplaceOpen(false)} />}
       {duplicatesOpen && <FindDuplicates onClose={() => setDuplicatesOpen(false)} />}
       {brokenLinksOpen && <BrokenLinks onClose={() => setBrokenLinksOpen(false)} />}
-      {assistantOpen && <Assistant onClose={() => setAssistantOpen(false)} />}
       {dragging && hasDoc && (
         <div className="bd-drop-overlay" aria-hidden="true">
           <div className="bd-drop-overlay__msg">Drop .bib or files to import</div>

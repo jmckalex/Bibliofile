@@ -28,6 +28,7 @@ import type {
   OpenedDocument,
   PublicationRow,
   Settings,
+  LayoutSettings,
   SortSpec,
   EntryTypeInfo,
   TemplateExportScope,
@@ -223,6 +224,13 @@ export interface ViewerState {
   loadEntryTypes: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
+  /**
+   * Update the panel layout. Applies locally immediately (for live splitter
+   * dragging) and, when `persist` (default true), writes it to settings — without
+   * the heavy reloads `saveSettings` does. Pass `persist: false` per drag move and
+   * `true` once on release.
+   */
+  setLayout: (patch: Partial<LayoutSettings>, persist?: boolean) => void;
   /** Show/hide one table column key (builtin or field name); persists + reloads. */
   toggleColumn: (key: string) => Promise<void>;
   /** Apply a group command (create/rename/delete/membership); reloads the sidebar. */
@@ -813,6 +821,14 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         set({ error: errorMessage(err) });
       }
+    },
+
+    setLayout: (patch, persist = true) => {
+      const layout = { ...get().settings.layout, ...patch };
+      set({ settings: { ...get().settings, layout } }); // live (re-renders the panels)
+      // Persist directly (not via saveSettings, whose reloads/re-select are
+      // pointless for a layout change). Fire-and-forget; local state is authoritative.
+      if (persist) void api.updateSettings({ patch: { layout } });
     },
 
     toggleColumn: async (key) => {
