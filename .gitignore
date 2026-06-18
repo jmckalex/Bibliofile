@@ -7,3 +7,8 @@ coverage/
 .vitest/
 *.tsbuildinfo
 .eslintcache
+
+# Per-session handover doc: rewritten every session and edited on every feature
+# branch, so tracking it guarantees cross-branch merge conflicts. Kept on disk
+# (untracked) as the canonical resume doc; never commit it.
+HANDOVER.md
