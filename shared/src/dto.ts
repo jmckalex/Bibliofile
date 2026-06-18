@@ -903,6 +903,14 @@ export interface Settings {
   readonly defaultCiteStyle: string;
   /** Cite-key generation format (BDSKFormatParser mini-language, e.g. `%a1:%Y%u0`). */
   readonly citeKeyFormat: string;
+  /**
+   * How markdown annotations (the `Annote` "Notes" field) are written to the
+   * `.bib`. `compressed` (default): lz-string→base64 in a private `Bdsk-Annotation`
+   * field — brace-safe + compact, but opaque to other tools. `readable`: a
+   * restricted `% { }` percent-escape in the standard `Annote` field — portable +
+   * human-readable, but the flakier path. Reading handles both regardless.
+   */
+  readonly annotationStorage: 'compressed' | 'readable';
   /** Entry type used by the toolbar **New** button. */
   readonly defaultEntryType: string;
   /**
@@ -960,6 +968,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // %u0 = append a disambiguating letter only on collision (Surname:Year, then
   // Surname:Yeara, …), unlike BibDesk's %u2 which always appends two letters.
   citeKeyFormat: '%a1:%Y%u0',
+  annotationStorage: 'compressed',
   defaultEntryType: 'article',
   citeCommandTemplate: '\\cite{%K}',
   columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],

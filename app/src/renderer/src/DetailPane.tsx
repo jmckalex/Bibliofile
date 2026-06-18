@@ -360,7 +360,7 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
   return (
     <>
       <div className="bd-detail__section bd-detail__section--withaction">
-        <span>Notes</span>
+        <span>Annotation</span>
         {!readOnly && (
           <button
             type="button"
@@ -393,7 +393,7 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
         />
       ) : (
         <div className="bd-notes__empty">
-          {readOnly ? 'No notes.' : 'No notes. Click Edit to add markdown notes.'}
+          {readOnly ? 'No annotation.' : 'No annotation. Click Edit to add markdown notes.'}
         </div>
       )}
     </>

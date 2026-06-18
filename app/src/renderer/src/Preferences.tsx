@@ -506,6 +506,28 @@ export function Preferences({ onClose }: { onClose: () => void }) {
           </section>
 
           <section className="bd-prefs__section">
+            <h3>Annotation storage</h3>
+            <label className="bd-prefs__row">
+              <span>Write notes as</span>
+              <select
+                className="bd-input bd-select"
+                value={settings.annotationStorage}
+                onChange={(e) => void save({ annotationStorage: e.target.value as Settings['annotationStorage'] })}
+              >
+                <option value="compressed">Compressed (safe, compact)</option>
+                <option value="readable">Readable (portable)</option>
+              </select>
+            </label>
+            <p className="bd-prefs__hint">
+              <strong>Compressed</strong> stores markdown annotations lz-string-compressed in a
+              private <code>Bdsk-Annotation</code> field — brace-safe and small, but opaque to other
+              tools. <strong>Readable</strong> keeps them in the standard <code>Annote</code> field
+              (only <code>% {'{'} {'}'}</code> escaped) — portable and human-readable, but the
+              flakier path. Existing entries convert on next edit; either form always reads back.
+            </p>
+          </section>
+
+          <section className="bd-prefs__section">
             <h3>Cite command (TeX)</h3>
             <label className="bd-prefs__row">
               <span>Drag / Copy cite</span>

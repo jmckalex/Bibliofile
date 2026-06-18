@@ -1722,6 +1722,7 @@ function registerIpc(): void {
         defaultEntryType: s.defaultEntryType,
         papersFolder: s.papersFolder,
         autoFileFormat: s.autoFileFormat,
+        annotationStorage: s.annotationStorage,
       });
       // refresh View→Columns checkmarks and the File→Export template list
       if (req.patch.columns || req.patch.exportTemplates) buildMenu();
@@ -2222,6 +2223,7 @@ if (!gotLock) {
       defaultEntryType: settings.defaultEntryType,
       papersFolder: settings.papersFolder,
       autoFileFormat: settings.autoFileFormat,
+      annotationStorage: settings.annotationStorage,
     });
     registerIpc();
     buildMenu();

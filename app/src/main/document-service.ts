@@ -58,6 +58,13 @@ import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT, parseFormat, LOCAL_FILE_FIELD
 import { makeAuthor, splitNameList, OTHERS, type Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
+import {
+  readAnnotation,
+  writeAnnotation,
+  ANNOTATION_FIELD,
+  COMPRESSED_FIELD,
+  type AnnotationStorage,
+} from './annotation.js';
 import { exportRis, exportCsv, exportHtml, renderTemplate } from './export.js';
 import { parseRis, type RisRecord } from './ris-import.js';
 import { parseEndnote } from './endnote.js';
@@ -663,10 +670,13 @@ export function toItemDetail(
   const required = new Set(sharedTypeManager.requiredFieldsForType(item.type).map((f) => f.toLowerCase()));
 
   // Local fields, in stored order — hiding the managed Bdsk-File-N blobs (shown
-  // as attachments) and Annote (shown + edited in the Notes section).
+  // as attachments), the Annote / Bdsk-Annotation pair (shown + edited in the
+  // Annotation section), so neither the prose nor the compressed blob shows as a
+  // raw field row.
+  const annotationFields = new Set([ANNOTATION_FIELD.toLowerCase(), COMPRESSED_FIELD.toLowerCase()]);
   for (const name of item.fieldNames()) {
     emitted.add(name.toLowerCase());
-    if (BDSK_FILE_RE.test(name) || name.toLowerCase() === 'annote') continue;
+    if (BDSK_FILE_RE.test(name) || annotationFields.has(name.toLowerCase())) continue;
     fields.push({
       name,
       value: fieldDisplayValue(name, item.stringValueOfField(name, false)),
@@ -697,7 +707,7 @@ export function toItemDetail(
     }
   }
 
-  const notesRaw = item.stringValueOfField('Annote', false);
+  const notesRaw = readAnnotation(item);
   return {
     id: item.id,
     citeKey: item.citeKey,
@@ -952,6 +962,7 @@ export class DocumentStore {
     defaultEntryType: 'article',
     papersFolder: '',
     autoFileFormat: '%a1/%Y%u0',
+    annotationStorage: 'compressed' as AnnotationStorage,
   };
 
   /** Apply preference-driven editing defaults. */
@@ -960,11 +971,13 @@ export class DocumentStore {
     defaultEntryType?: string;
     papersFolder?: string;
     autoFileFormat?: string;
+    annotationStorage?: AnnotationStorage;
   }): void {
     if (c.citeKeyFormat) this.editConfig.citeKeyFormat = c.citeKeyFormat;
     if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
     if (c.papersFolder !== undefined) this.editConfig.papersFolder = c.papersFolder;
     if (c.autoFileFormat) this.editConfig.autoFileFormat = c.autoFileFormat;
+    if (c.annotationStorage) this.editConfig.annotationStorage = c.annotationStorage;
   }
 
   // --- Undo / redo (snapshot-based) ------------------------------------------
@@ -2363,7 +2376,11 @@ export class DocumentStore {
     switch (cmd.kind) {
       case 'setField': {
         const item = this.itemOf(doc, cmd.itemId);
-        if (cmd.value === '') item.removeField(cmd.field);
+        // The annotation field is markdown: store it safely (compressed blob, or
+        // an escaped readable form) rather than wrapping raw braces into the .bib.
+        if (cmd.field.toLowerCase() === ANNOTATION_FIELD.toLowerCase()) {
+          writeAnnotation(item, cmd.value, this.editConfig.annotationStorage);
+        } else if (cmd.value === '') item.removeField(cmd.field);
         else item.setField(cmd.field, cmd.value);
         return this.dirtyDetail(doc, item);
       }
