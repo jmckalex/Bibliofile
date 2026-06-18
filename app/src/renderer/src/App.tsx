@@ -84,10 +84,22 @@ function Header() {
   const displayName = useStore((s) => s.displayName);
   const itemCount = useStore((s) => s.itemCount);
   const warnings = useStore((s) => s.warnings);
+  const dirty = useStore((s) => s.dirty);
+  const saving = useStore((s) => s.saving);
 
   return (
     <header className="bd-header">
-      <span className="bd-header__title">{displayName ?? 'BibDesk'}</span>
+      <span className="bd-header__title">
+        {displayName ?? 'BibDesk'}
+        {displayName && (saving || dirty) && (
+          <span
+            className="bd-header__dirty"
+            title={saving ? 'Saving…' : 'Unsaved changes — press ⌘S to save'}
+          >
+            {saving ? ' (saving…)' : ' •'}
+          </span>
+        )}
+      </span>
       {displayName && (
         <span className="bd-header__count">
           {itemCount} {itemCount === 1 ? 'publication' : 'publications'}
@@ -136,13 +148,8 @@ function Footer() {
 
 function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onOpenOnline: () => void }) {
   const edit = useStore((s) => s.edit);
-  const save = useStore((s) => s.save);
   const selectedItemId = useStore((s) => s.selectedItemId);
-  const dirty = useStore((s) => s.dirty);
-  const saving = useStore((s) => s.saving);
   const defaultType = useStore((s) => s.settings.defaultEntryType);
-  const layout = useStore((s) => s.settings.layout);
-  const setLayout = useStore((s) => s.setLayout);
   const hasDoc = useStore((s) => s.documentId !== undefined);
   if (!hasDoc) return null;
   return (
@@ -167,37 +174,11 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
         🗑 Delete
       </button>
       <span className="bd-toolbar__spacer" />
-      <button
-        type="button"
-        className={'bd-btn' + (layout.rightPaneVisible ? ' bd-btn--on' : '')}
-        title="Toggle the side panel"
-        aria-pressed={layout.rightPaneVisible}
-        onClick={() => setLayout({ rightPaneVisible: !layout.rightPaneVisible })}
-      >
-        ▥ Side
-      </button>
-      <button
-        type="button"
-        className={'bd-btn' + (layout.bottomPanelVisible ? ' bd-btn--on' : '')}
-        title="Toggle the bottom panel"
-        aria-pressed={layout.bottomPanelVisible}
-        onClick={() => setLayout({ bottomPanelVisible: !layout.bottomPanelVisible })}
-      >
-        ▤ Bottom
-      </button>
       <button type="button" className="bd-btn" onClick={onOpenOnline}>
         🌐 Online…
       </button>
       <button type="button" className="bd-btn" onClick={onOpenMacros}>
         @string…
-      </button>
-      <button
-        type="button"
-        className="bd-btn bd-btn--primary"
-        disabled={!dirty || saving}
-        onClick={() => void save()}
-      >
-        {saving ? 'Saving…' : dirty ? 'Save •' : 'Saved'}
       </button>
     </div>
   );
@@ -308,6 +289,12 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'assistant':
       // Show the assistant in the (now swappable) right pane.
       getStore().getState().setLayout({ rightPaneVisible: true, rightPaneContent: 'assistant' });
+      return;
+    case 'toggleSidePanel':
+      store.setLayout({ rightPaneVisible: !store.settings.layout.rightPaneVisible });
+      return;
+    case 'toggleBottomPanel':
+      store.setLayout({ bottomPanelVisible: !store.settings.layout.bottomPanelVisible });
       return;
     case 'toggleTheme': {
       const isDark =

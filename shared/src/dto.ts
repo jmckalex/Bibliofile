@@ -1222,6 +1222,8 @@ export type MenuCommand =
   | 'copyBibitem'
   // View
   | 'toggleTheme'
+  | 'toggleSidePanel'
+  | 'toggleBottomPanel'
   // App
   | 'save'
   | 'print'

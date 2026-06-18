@@ -150,6 +150,12 @@ body {
   font-size: 14px;
 }
 
+/* Unsaved-changes marker folded into the title (replaces the old Save button). */
+.bd-header__dirty {
+  color: var(--bd-text-muted);
+  font-weight: 400;
+}
+
 .bd-header__path {
   color: var(--bd-text-faint);
   font-size: var(--bd-fs-sm);

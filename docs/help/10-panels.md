@@ -10,8 +10,8 @@ The right-hand **detail pane** is fully adjustable:
 
 - **Resize** — drag the divider between the publications table and the detail
   pane left or right.
-- **Hide / show** — click the **×** in the pane's header, or the **▥ Side**
-  button in the toolbar.
+- **Hide / show** — **View → Toggle Side Panel** (⌘⌥S), or click the **×** in the
+  pane's header.
 - **Swap to Claude** — the pane's header has two tabs, **Details** and
   **🤖 Claude**. Click **Claude** (or Tools → Claude Assistant, ⌘J) to use the
   assistant right inside the pane; **Details** swaps back.
@@ -20,8 +20,8 @@ All of this is remembered across launches.
 
 ## The bottom panel
 
-Click **▤ Bottom** in the toolbar to open a panel beneath the table. By default
-it's an **annotation reader**: it shows the selected entry's annotation in a wide,
+Open it with **View → Toggle Bottom Panel** (⌘⌥B). By default it's an
+**annotation reader**: it shows the selected entry's annotation in a wide,
 comfortable-to-read format (handy for long notes that feel cramped in the narrow
 side pane). Drag its top edge to resize, and **×** to hide.
 

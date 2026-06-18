@@ -1369,6 +1369,17 @@ function buildMenu(): void {
   template.push({
     label: 'View',
     submenu: [
+      {
+        label: 'Toggle Side Panel',
+        accelerator: 'CmdOrCtrl+Alt+S',
+        click: () => sendMenuCommand('toggleSidePanel'),
+      },
+      {
+        label: 'Toggle Bottom Panel',
+        accelerator: 'CmdOrCtrl+Alt+B',
+        click: () => sendMenuCommand('toggleBottomPanel'),
+      },
+      { type: 'separator' },
       { label: 'Columns', submenu: columnMenuItems() },
       { type: 'separator' },
       {
