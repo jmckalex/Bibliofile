@@ -14,6 +14,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type MouseEvent,
   type UIEvent,
 } from 'react';
@@ -33,6 +34,7 @@ import type { PublicationRow } from '@bibdesk/shared';
 import { formatCiteCommand } from '@bibdesk/shared';
 import { useStore, visibleRows } from './store.js';
 import { MathText } from './MathText.js';
+import { ColorContextMenu } from './ColorContextMenu.js';
 
 const ROW_HEIGHT = 28;
 /** Smallest a column may be drag-resized to (keeps icon headers legible). */
@@ -89,17 +91,6 @@ const BUILTIN_DEFS: Record<string, Col> = {
     id: 'year',
     header: 'Year',
     meta: { width: 72, cellClass: 'bd-td--year' } satisfies ColMeta,
-  }),
-  color: col.display({
-    id: 'color',
-    header: () => <span className="bd-colcolor__h" title="Color label" aria-label="Color label" />,
-    meta: { width: 28, cellClass: 'bd-td--icon' } satisfies ColMeta,
-    cell: ({ row }) => {
-      const c = row.original.color;
-      return c ? (
-        <span className="bd-colorswatch" style={{ background: c }} title="Color label" />
-      ) : null;
-    },
   }),
   keywords: col.display({
     id: 'keywords',
@@ -169,6 +160,18 @@ export function reorderColumns(
   return next;
 }
 
+/**
+ * Row tint for a color label, mirroring BibDesk's `BDSKColorRowView`: a soft
+ * full-row fill when the row is NOT selected (so text stays legible), and a
+ * colored left stripe always (which also keeps the color visible over the
+ * selection highlight). `hex` is `#rrggbb`; `2e` ≈ 18% alpha.
+ */
+function rowColorStyle(hex: string | undefined, selected: boolean): CSSProperties {
+  if (!hex) return {};
+  const stripe = `inset 3px 0 0 0 ${hex}`;
+  return selected ? { boxShadow: stripe } : { backgroundColor: `${hex}2e`, boxShadow: stripe };
+}
+
 /** Build the ordered TanStack column list from the configured column keys. */
 function buildColumns(keys: readonly string[]): Col[] {
   return keys.map(
@@ -201,6 +204,10 @@ export function PublicationsTable() {
   const columnKeys = useStore((s) => s.settings.columns);
   const columnWidths = useStore((s) => s.settings.columnWidths);
   const saveSettings = useStore((s) => s.saveSettings);
+  const setColor = useStore((s) => s.setColor);
+
+  // Right-click color picker: cursor position + the clicked row's current color.
+  const [colorMenu, setColorMenu] = useState<{ x: number; y: number; current?: string } | undefined>();
 
   // Live width of the column being drag-resized (persisted to settings on mouseup).
   const [dragWidth, setDragWidth] = useState<{ id: string; width: number } | null>(null);
@@ -335,6 +342,7 @@ export function PublicationsTable() {
   const virtualItems = virtualizer.getVirtualItems();
 
   return (
+    <>
     <div className="bd-table">
       {/* Header clips horizontally; its inner row is scrolled in sync with the body. */}
       <div className="bd-table__head" role="row" ref={headRef}>
@@ -425,7 +433,12 @@ export function PublicationsTable() {
                     (selected ? ' bd-tr--selected' : '') +
                     (selected && !isPrimary ? ' bd-tr--multi' : '')
                   }
-                  style={{ height: ROW_HEIGHT, width: layout.total, transform: `translateY(${vItem.start}px)` }}
+                  style={{
+                    height: ROW_HEIGHT,
+                    width: layout.total,
+                    transform: `translateY(${vItem.start}px)`,
+                    ...rowColorStyle(row.original.color, selected),
+                  }}
                   aria-selected={selected}
                   draggable
                   onClick={(e) => {
@@ -433,6 +446,13 @@ export function PublicationsTable() {
                     if (e.metaKey || e.ctrlKey) toggleSelect(row.original.id);
                     else if (e.shiftKey) rangeSelectTo(row.original.id, data.map((r) => r.id));
                     else void selectItem(row.original.id);
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    // Finder-style: a right-click on a row outside the current
+                    // selection selects just it first; otherwise act on the selection.
+                    if (!selected) void selectItem(row.original.id);
+                    setColorMenu({ x: e.clientX, y: e.clientY, current: row.original.color });
                   }}
                   onDoubleClick={() => openEditor(row.original.id)}
                   onDragStart={(e) => {
@@ -473,5 +493,15 @@ export function PublicationsTable() {
         )}
       </div>
     </div>
+    {colorMenu && (
+      <ColorContextMenu
+        x={colorMenu.x}
+        y={colorMenu.y}
+        current={colorMenu.current}
+        onPick={(idx) => void setColor(idx)}
+        onClose={() => setColorMenu(undefined)}
+      />
+    )}
+    </>
   );
 }

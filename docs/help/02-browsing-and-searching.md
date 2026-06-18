@@ -35,8 +35,8 @@ The center pane lists your references, one per row.
 
 ### 2.2.1 The columns
 
-By default the table shows nine columns: five text columns, a **color** swatch,
-and three compact **icon** columns. Each text column is *derived* from your entry's BibTeX fields
+By default the table shows eight columns: five text columns and three compact
+**icon** columns. Each text column is *derived* from your entry's BibTeX fields
 and formatted for reading — the table never shows raw, brace-cluttered BibTeX.
 The set of columns is **configurable** (see [§2.2.6](#226-configuring-the-columns)),
 so you can add, remove, and reorder them; the defaults are:
@@ -48,7 +48,6 @@ so you can add, remove, and reorder them; the defaults are:
 | **Authors** | A readable author list. | Parsed from the `Author` field (falling back to `Editor` when there are no authors); names are formatted and joined, with a trailing **et al.** when the field ended in `and others`. |
 | **Title** | The title, cleaned for display. | The `Title` field, *de-TeXified* and stripped of BibTeX protective braces. |
 | **Year** | The publication year. | The `Year` field. |
-| **Color** (swatch) | A small colored dot when the entry has a color label. | The `Bdsk-Color` field (BibDesk-compatible). Set it from **Publication → Color Label** (or right of the entry); choose **None** to clear. |
 | **Keywords** (icon) | A 🔑 key icon when the entry has any keywords. | Non-empty `Keywords` field. |
 | **Attachments** (icon) | A 📎 paperclip (with a small count badge if more than one) when the entry has attached files. | The entry's `Bdsk-File-N` attachments (and a `Local-Url`, if any). |
 | **Read** (icon) | A checked box when the entry is marked read, an empty box when explicitly unread, nothing when unset. | The `Read` field (a tri-state value). |
@@ -167,6 +166,15 @@ For everything you can see and do in that pane, see
 > commands to copy the cite key, a `\cite{…}`, a formatted citation, or the
 > entry's BibTeX. See
 > [Editing entries → Copying entries](03-editing-entries.md#copying-entries-cite-keys-and-citations).
+
+#### Color labels
+
+**Right-click a row** for a Finder-style strip of color dots, and click one to
+tag the entry — the whole row is then tinted that color (the click target is the
+**×** to clear it). You can also use **Publication → Color Label**. The color
+applies to the current selection, so you can tag several rows at once, and it's a
+single undo step. The label is stored in the entry's `Bdsk-Color` field, so it
+round-trips with BibDesk.
 
 ### 2.2.6 Configuring the columns
 

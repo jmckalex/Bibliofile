@@ -1458,23 +1458,45 @@ bd-citation {
   overflow: visible;
 }
 
-/* Color-label swatch (table cell) + its header dot. */
-.bd-colorswatch {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  vertical-align: middle;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+/* Finder-style color-label picker (right-click in the publications table). */
+.bd-colormenu {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  background: var(--bd-surface, #fff);
+  border: 1px solid var(--bd-border, rgba(0, 0, 0, 0.15));
+  border-radius: 9px;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.25);
 }
-.bd-colcolor__h {
-  display: inline-block;
-  width: 9px;
-  height: 9px;
+.bd-colordot {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
   border-radius: 50%;
-  vertical-align: middle;
-  box-shadow: inset 0 0 0 1px var(--bd-text-faint, #999);
-  opacity: 0.6;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.22);
+  transition: transform 0.08s ease;
+}
+.bd-colordot:hover {
+  transform: scale(1.18);
+}
+.bd-colordot--on {
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.22),
+    0 0 0 2px var(--bd-accent, #007aff);
+}
+.bd-colordot--none {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bd-surface-2, #ececec);
+  color: var(--bd-text-muted, #666);
+  font-size: 10px;
+  line-height: 1;
 }
 
 /* Header glyphs sit centered like their cells. */

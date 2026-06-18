@@ -1032,7 +1032,6 @@ const COLUMN_MENU: { key: string; label: string }[] = [
   { key: 'authors', label: 'Authors' },
   { key: 'title', label: 'Title' },
   { key: 'year', label: 'Year' },
-  { key: 'color', label: 'Color' },
   { key: 'keywords', label: 'Keywords' },
   { key: 'attachments', label: 'Attachments' },
   { key: 'read', label: 'Read' },
