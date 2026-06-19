@@ -14,6 +14,10 @@ const LOCALES_DIR = join(ROOT, 'shared/src/locales');
 const I18N = join(ROOT, 'shared/src/i18n.ts');
 const LOC_JSON = '/tmp/loc';
 
+// English keys — the catalog never carries an orphan key not present here (a
+// translator occasionally invents one); such keys are dropped on emit.
+const EN_KEYS = new Set(Object.keys(JSON.parse(readFileSync('/tmp/en.json', 'utf8'))));
+
 // code → JS identifier (zh-Hans → zhHans)
 const ident = (code: string): string => code.replace(/-(\w)/g, (_m, c: string) => c.toUpperCase());
 
@@ -40,7 +44,8 @@ for (const f of jsonFiles) {
   const existing = existsSync(existingPath)
     ? (JSON.parse(readFileSync(existingPath, 'utf8')) as Record<string, string>)
     : {};
-  const obj = { ...fresh, ...existing };
+  const merged = { ...fresh, ...existing };
+  const obj = Object.fromEntries(Object.entries(merged).filter(([k]) => EN_KEYS.has(k)));
   const body = Object.entries(obj)
     .map(([k, v]) => `  ${JSON.stringify(k)}: ${JSON.stringify(v)},`)
     .join('\n');
