@@ -1,14 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { makeT, resolveLocale, LOCALES } from './i18n.js';
+import { makeT, resolveLocale, LOCALES, REGISTERED_LOCALES, getCatalog } from './i18n.js';
 import { en } from './locales/en.js';
-import { fr } from './locales/fr.js';
-import { es } from './locales/es.js';
-import { de } from './locales/de.js';
-import { it as itCat } from './locales/it.js';
-import { pt } from './locales/pt.js';
-import { nl } from './locales/nl.js';
 
-const TRANSLATED = { fr, es, de, it: itCat, pt, nl };
+/** Placeholder tokens ({count}, {name}, …) present in a string, sorted. */
+const placeholders = (s: string): string => (s.match(/\{\w+\}/g) ?? []).sort().join(',');
 
 describe('i18n', () => {
   it('translates from the active catalog', () => {
@@ -23,8 +18,9 @@ describe('i18n', () => {
     expect(makeT('de')('common.itemsSelected', { count: 3 })).toBe('3 ausgewählt');
   });
 
-  it('falls back to English for an offered-but-untranslated locale', () => {
-    expect(makeT('zh-Hans')('menu.file')).toBe('File'); // offered, no catalog yet
+  it('uses the seeded catalog, and falls back to English for an unknown locale', () => {
+    expect(makeT('zh-Hans')('menu.file')).toBe('文件'); // seeded catalog
+    expect(makeT('xx')('menu.file')).toBe('File'); // no catalog → English
   });
 
   it('falls back to English per-key for partial catalogs (technical keys)', () => {
@@ -52,10 +48,24 @@ describe('i18n', () => {
     }
   });
 
-  it('every translated key exists in the English source (no orphans)', () => {
-    for (const [code, cat] of Object.entries(TRANSLATED)) {
-      for (const key of Object.keys(cat)) {
+  it('all 30 offered locales are registered with a catalog', () => {
+    for (const { code } of LOCALES) {
+      expect(REGISTERED_LOCALES, `${code} not registered`).toContain(code);
+    }
+  });
+
+  it('every catalog: no orphan keys + placeholder parity with English', () => {
+    for (const code of REGISTERED_LOCALES) {
+      const cat = getCatalog(code)!;
+      for (const [key, value] of Object.entries(cat)) {
         expect(en[key], `${code} has key "${key}" not in en`).toBeDefined();
+        // A translated string must carry the same {placeholders} as its source,
+        // or interpolation silently drops data at runtime.
+        if (en[key] !== undefined) {
+          expect(placeholders(value), `${code} "${key}" placeholder drift`).toBe(
+            placeholders(en[key]),
+          );
+        }
       }
     }
   });

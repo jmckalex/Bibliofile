@@ -12,12 +12,35 @@
  * broken UI in the meantime.
  */
 import { en } from './locales/en.js';
-import { fr } from './locales/fr.js';
+import { zhHans } from './locales/zh-Hans.js';
 import { es } from './locales/es.js';
-import { de } from './locales/de.js';
-import { it } from './locales/it.js';
+import { hi } from './locales/hi.js';
+import { ar } from './locales/ar.js';
+import { fr } from './locales/fr.js';
 import { pt } from './locales/pt.js';
+import { ru } from './locales/ru.js';
+import { de } from './locales/de.js';
+import { ja } from './locales/ja.js';
+import { bn } from './locales/bn.js';
+import { id } from './locales/id.js';
+import { ur } from './locales/ur.js';
+import { it } from './locales/it.js';
+import { ko } from './locales/ko.js';
+import { tr } from './locales/tr.js';
+import { vi } from './locales/vi.js';
+import { pl } from './locales/pl.js';
+import { uk } from './locales/uk.js';
 import { nl } from './locales/nl.js';
+import { fa } from './locales/fa.js';
+import { th } from './locales/th.js';
+import { sv } from './locales/sv.js';
+import { el } from './locales/el.js';
+import { cs } from './locales/cs.js';
+import { ro } from './locales/ro.js';
+import { hu } from './locales/hu.js';
+import { da } from './locales/da.js';
+import { fi } from './locales/fi.js';
+import { he } from './locales/he.js';
 
 /** A message catalog: message key → translated string. */
 export type Catalog = Record<string, string>;
@@ -64,12 +87,21 @@ export const LOCALES = [
 
 export type LocaleCode = (typeof LOCALES)[number]['code'];
 
-/** Catalogs that actually have translations (others fall back to English).
- *  Seeded set so far; the remaining offered locales render English until their
- *  `locales/<code>.ts` is added and registered here. */
-const CATALOGS: Record<string, Catalog> = { en, fr, es, de, it, pt, nl };
+/** Catalogs with translations (others fall back to English, per key). All 30
+ *  offered locales are seeded; the non-English ones are machine-translated and
+ *  flagged for native review (see locales/*.ts headers). Technical / proper-noun
+ *  keys (BibTeX, RIS…, %-format codes, …) deliberately mirror English. */
+const CATALOGS: Record<string, Catalog> = { en, 'zh-Hans': zhHans, es, hi, ar, fr, pt, ru, de, ja, bn, id, ur, it, ko, tr, vi, pl, uk, nl, fa, th, sv, el, cs, ro, hu, da, fi, he };
 
 const OFFERED = new Set<string>(LOCALES.map((l) => l.code));
+
+/** Locale codes with a registered (non-fallback) catalog. Exposed for tests/tools. */
+export const REGISTERED_LOCALES: readonly string[] = Object.keys(CATALOGS);
+
+/** The catalog for a code, or `undefined` if that locale falls back to English. */
+export function getCatalog(code: string): Catalog | undefined {
+  return CATALOGS[code];
+}
 
 /** Resolve a `Settings.locale` value to an offered locale code (English-fallback). */
 export function resolveLocale(setting: string | undefined, systemLocale?: string): string {
