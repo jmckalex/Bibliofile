@@ -152,90 +152,167 @@ function keywordHue(s: string): number {
 }
 
 /**
- * Keyword token editor (the `Keywords` field). Each keyword is a coloured chip;
- * typing a value and pressing `,` or Enter — or blurring — turns it into a chip,
- * Backspace on an empty input removes the last, and a chip's × removes it. The
- * value is stored as a comma-joined string, split on the SAME `;:,` separators as
- * the keyword/category groups (so the chips, the sidebar groups, and search all
- * agree), and written to BibTeX as `Keywords = {a, b, c}`.
+ * Reusable token / chip editor. Each token is a coloured chip; the single text
+ * input acts as a movable caret that lives *between* chips: the tokens to its
+ * left are `before`, the ones to its right are `after`, and `draft` is the text
+ * currently under the caret. Typing `,` or Enter settles the draft into chips;
+ * Left/Right arrows at the edge of the draft step the caret across a chip,
+ * lifting that chip back into editable text (so any keyword can be corrected in
+ * place without the layout shifting); Backspace/Delete on an empty draft removes
+ * the neighbouring chip; a chip's × removes it.
+ *
+ * `onChange` fires only on *settle* events (comma/Enter/navigation/delete/blur),
+ * never per keystroke, and reports the full token sequence INCLUDING the trimmed
+ * draft — so moving the caret between chips never churns the underlying value.
+ * Tokens are split on the SAME `;:,` separators as the keyword/category groups,
+ * so chips, sidebar groups, and search all agree.
  */
-function KeywordTokens({ itemId, field }: { itemId: string; field: ItemField }) {
+function TokenInput({
+  initial,
+  placeholder,
+  onChange,
+}: {
+  initial: readonly string[];
+  placeholder?: string;
+  onChange: (tokens: readonly string[]) => void;
+}) {
   const t = useT();
-  const edit = useStore((s) => s.edit);
-  const [chips, setChips] = useState<readonly string[]>(() => splitGroupFieldValue(field.rawValue));
+  const [before, setBefore] = useState<readonly string[]>(initial);
+  const [after, setAfter] = useState<readonly string[]>([]);
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const commit = (next: readonly string[]): void => {
-    setChips(next);
-    const value = next.join(', ');
-    if (value !== field.rawValue) void edit({ kind: 'setField', itemId, field: field.name, value });
+  const caretTo = (pos: number): void => {
+    requestAnimationFrame(() => inputRef.current?.setSelectionRange(pos, pos));
   };
-  // Split typed/pasted text on the keyword separators; dedup case-insensitively.
-  const add = (raw: string): void => {
-    const fresh = splitGroupFieldValue(raw).filter(
-      (k) => !chips.some((c) => c.toLowerCase() === k.toLowerCase()),
-    );
-    if (fresh.length) commit([...chips, ...fresh]);
+
+  // Commit a new (before · draft · after) state and report the full token list,
+  // with the trimmed draft folded into its caret position. Called on settle
+  // events only, so the draft text never reaches `onChange` mid-keystroke.
+  const apply = (b: readonly string[], a: readonly string[], d: string): void => {
+    setBefore(b);
+    setAfter(a);
+    setDraft(d);
+    const trimmed = d.trim();
+    onChange([...b, ...(trimmed ? [trimmed] : []), ...a]);
   };
+
+  // Split typed/pasted text on the keyword separators; dedup case-insensitively
+  // against the chips that already exist on either side and within the batch.
+  const settled = (raw: string): readonly string[] => {
+    const out: string[] = [];
+    for (const k of splitGroupFieldValue(raw)) {
+      const dup =
+        before.some((c) => c.toLowerCase() === k.toLowerCase()) ||
+        after.some((c) => c.toLowerCase() === k.toLowerCase()) ||
+        out.some((o) => o.toLowerCase() === k.toLowerCase());
+      if (!dup) out.push(k);
+    }
+    return out;
+  };
+
   const onKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     const el = e.currentTarget;
+    const atStart = el.selectionStart === 0 && el.selectionEnd === 0;
+    const atEnd = el.selectionStart === draft.length && el.selectionEnd === draft.length;
     if (e.key === ',' || e.key === 'Enter') {
       e.preventDefault();
-      add(draft);
-      setDraft('');
-    } else if (
-      e.key === 'ArrowLeft' &&
-      el.selectionStart === 0 &&
-      el.selectionEnd === 0 &&
-      chips.length > 0
-    ) {
-      // Arrow into the previous chip → lift it back out to editable text (caret at
-      // its end), so the layout never shifts and the keyword can be corrected.
+      apply([...before, ...settled(draft)], after, '');
+    } else if (e.key === 'ArrowLeft' && atStart && (before.length > 0 || draft.trim())) {
+      // Step the caret left: settle the draft to the caret's right, then lift the
+      // chip now on the left into editable text (caret at its end).
       e.preventDefault();
-      const last = chips[chips.length - 1]!;
-      commit(chips.slice(0, -1));
-      setDraft((d) => last + d);
-      requestAnimationFrame(() => inputRef.current?.setSelectionRange(last.length, last.length));
-    } else if (e.key === 'Backspace' && draft === '' && chips.length > 0) {
-      commit(chips.slice(0, -1)); // delete the last chip
+      const right = [...settled(draft), ...after];
+      if (before.length > 0) {
+        const lifted = before[before.length - 1]!;
+        apply(before.slice(0, -1), right, lifted);
+        caretTo(lifted.length);
+      } else {
+        apply(before, right, '');
+      }
+    } else if (e.key === 'ArrowRight' && atEnd && (after.length > 0 || draft.trim())) {
+      // Symmetric: settle the draft to the caret's left, lift the next chip on the
+      // right into editable text (caret at its start).
+      e.preventDefault();
+      const left = [...before, ...settled(draft)];
+      if (after.length > 0) {
+        const lifted = after[0]!;
+        apply(left, after.slice(1), lifted);
+        caretTo(0);
+      } else {
+        apply(left, after, '');
+      }
+    } else if (e.key === 'Backspace' && draft === '' && before.length > 0) {
+      e.preventDefault();
+      apply(before.slice(0, -1), after, ''); // delete the chip before the caret
+    } else if (e.key === 'Delete' && draft === '' && after.length > 0) {
+      e.preventDefault();
+      apply(before, after.slice(1), ''); // delete the chip after the caret
     }
   };
 
+  const chip = (kw: string, key: string, onDel: () => void) => (
+    <span key={key} className="bd-kw" style={{ '--kw-h': keywordHue(kw) } as React.CSSProperties}>
+      <span className="bd-kw__label">{kw}</span>
+      <button
+        type="button"
+        className="bd-kw__del"
+        aria-label={t('detail.removeKeyword', { keyword: kw })}
+        onClick={onDel}
+      >
+        <Icon name="close" />
+      </button>
+    </span>
+  );
+
+  const empty = before.length === 0 && after.length === 0;
   return (
-    <div className="bd-kwfield">
-      {chips.map((kw, i) => (
-        <span
-          key={`${kw}-${i}`}
-          className="bd-kw"
-          style={{ '--kw-h': keywordHue(kw) } as React.CSSProperties}
-        >
-          <span className="bd-kw__label">{kw}</span>
-          <button
-            type="button"
-            className="bd-kw__del"
-            aria-label={t('detail.removeKeyword', { keyword: kw })}
-            onClick={() => commit(chips.filter((_, j) => j !== i))}
-          >
-            <Icon name="close" />
-          </button>
-        </span>
-      ))}
+    <div
+      className="bd-kwfield"
+      onMouseDown={(e) => {
+        // A click in the box's empty area (not on a chip) parks the caret at the
+        // end, after every chip, and focuses the input.
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+          if (after.length) apply([...before, ...after], [], draft);
+          inputRef.current?.focus();
+        }
+      }}
+    >
+      {before.map((kw, i) => chip(kw, `b-${kw}-${i}`, () => apply(before.filter((_, j) => j !== i), after, draft)))}
       <input
         ref={inputRef}
         className="bd-kw__input"
         value={draft}
-        placeholder={chips.length === 0 ? t('detail.addKeyword') : undefined}
+        placeholder={empty ? placeholder : undefined}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={onKey}
-        onBlur={() => {
-          if (draft.trim()) {
-            add(draft);
-            setDraft('');
-          }
-        }}
+        // On blur always re-settle: a non-empty draft becomes chip(s); an emptied
+        // draft (e.g. a lifted chip the user deleted) drops out of the value.
+        onBlur={() => apply([...before, ...settled(draft)], after, '')}
       />
+      {after.map((kw, i) => chip(kw, `a-${kw}-${i}`, () => apply(before, after.filter((_, j) => j !== i), draft)))}
     </div>
+  );
+}
+
+/**
+ * Keyword token editor (the `Keywords` field) — a {@link TokenInput} whose token
+ * list is persisted as the comma-joined `Keywords` value (`Keywords = {a, b, c}`
+ * in BibTeX). The no-op guard means navigating between chips never writes.
+ */
+function KeywordTokens({ itemId, field }: { itemId: string; field: ItemField }) {
+  const t = useT();
+  const edit = useStore((s) => s.edit);
+  return (
+    <TokenInput
+      initial={splitGroupFieldValue(field.rawValue)}
+      placeholder={t('detail.addKeyword')}
+      onChange={(tokens) => {
+        const value = tokens.join(', ');
+        if (value !== field.rawValue) void edit({ kind: 'setField', itemId, field: field.name, value });
+      }}
+    />
   );
 }
 
@@ -287,7 +364,7 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
             <option value="2">Yes</option>
           </select>
         ) : field.kind === 'keywords' ? (
-          <KeywordTokens itemId={itemId} field={field} />
+          <KeywordTokens key={`${itemId}:${field.name}`} itemId={itemId} field={field} />
         ) : long ? (
           <textarea
             key={`${itemId}:${field.name}`}
@@ -346,9 +423,16 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
   const edit = useStore((s) => s.edit);
   const [name, setName] = useState('');
   const [value, setValue] = useState('');
+  // When the field being added is `Keywords`, its value gets the full chip editor
+  // from the very first keystroke (not a plain box that only upgrades once the
+  // field exists). The chip tokens live in a ref so committing the row reads them
+  // without forcing a re-render on every settle.
+  const isKeyword = name.trim().toLowerCase() === 'keywords';
+  const keywordsRef = useRef<readonly string[]>([]);
   const commit = (): void => {
     const n = name.trim();
-    if (n) void edit({ kind: 'setField', itemId, field: n, value });
+    const v = isKeyword ? keywordsRef.current.join(', ') : value;
+    if (n) void edit({ kind: 'setField', itemId, field: n, value: v });
     onDone();
   };
   const onKey = (e: React.KeyboardEvent): void => {
@@ -375,13 +459,23 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
         />
       </div>
       <div className="bd-field__edit">
-        <input
-          className="bd-input"
-          placeholder={t('detail.valuePlaceholder')}
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={onKey}
-        />
+        {isKeyword ? (
+          <TokenInput
+            initial={[]}
+            placeholder={t('detail.addKeyword')}
+            onChange={(tokens) => {
+              keywordsRef.current = tokens;
+            }}
+          />
+        ) : (
+          <input
+            className="bd-input"
+            placeholder={t('detail.valuePlaceholder')}
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={onKey}
+          />
+        )}
         <button
           type="button"
           className="bd-circbtn bd-circbtn--del"
