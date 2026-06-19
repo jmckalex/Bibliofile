@@ -190,11 +190,11 @@ function bindWindowToDoc(win: BrowserWindow, documentId: string): void {
     const { displayName, path } = store.summarize(id);
     const choice = dialog.showMessageBoxSync(win, {
       type: 'warning',
-      buttons: ['Save', "Don't Save", 'Cancel'],
+      buttons: [t('common.save'), t('dialog.dontSave'), t('common.cancel')],
       defaultId: 0,
       cancelId: 2,
-      message: `Save changes to “${displayName}” before closing?`,
-      detail: 'Your changes will be lost if you don’t save them.',
+      message: t('dialog.saveBeforeClose', { name: displayName }),
+      detail: t('dialog.changesLost'),
     });
     if (choice === 2) return; // Cancel → keep the window open
     if (choice === 0) {
@@ -203,7 +203,7 @@ function bindWindowToDoc(win: BrowserWindow, documentId: string): void {
       } catch (err) {
         void dialog.showMessageBox(win, {
           type: 'error',
-          message: 'Could not save the document',
+          message: t('dialog.couldNotSave'),
           detail: err instanceof Error ? err.message : String(err),
         });
         return; // save failed → keep the window open
@@ -238,7 +238,7 @@ function openHelp(): void {
   }
   const dir = findHelpDir(app.getAppPath());
   if (!dir) {
-    void dialog.showMessageBox({ type: 'info', message: 'Help is not available in this build.' });
+    void dialog.showMessageBox({ type: 'info', message: t('dialog.helpUnavailable') });
     return;
   }
   const tmp = join(tmpdir(), 'bibdesk-help.html');
@@ -246,7 +246,7 @@ function openHelp(): void {
   helpWindow = new BrowserWindow({
     width: 940,
     height: 820,
-    title: 'BibDesk Help',
+    title: t('window.help'),
     webPreferences: { contextIsolation: true, nodeIntegration: false },
   });
   void helpWindow.loadFile(tmp);
@@ -411,7 +411,7 @@ function createEditorWindow(documentId: string, itemId: string): void {
     minWidth: 420,
     minHeight: 360,
     show: false,
-    title: 'Edit Publication — BibDesk',
+    title: t('editor.docTitleEmpty'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.mjs'),
       contextIsolation: true,
@@ -559,7 +559,7 @@ function openPathWhenReady(path: string): void {
     const win = focusedWindow();
     const opts = {
       type: 'error' as const,
-      message: `Could not open ${path}`,
+      message: t('dialog.couldNotOpen', { path }),
       detail: err instanceof Error ? err.message : String(err),
     };
     if (win) void dialog.showMessageBox(win, opts);
@@ -816,7 +816,7 @@ async function showOpenDialog(): Promise<void> {
   } catch (err) {
     const opts = {
       type: 'error' as const,
-      message: `Could not open ${path}`,
+      message: t('dialog.couldNotOpen', { path }),
       detail: err instanceof Error ? err.message : String(err),
     };
     if (win) void dialog.showMessageBox(win, opts);
@@ -826,7 +826,7 @@ async function showOpenDialog(): Promise<void> {
 
 function openDialogOptions(): Electron.OpenDialogOptions {
   return {
-    title: 'Open BibTeX File',
+    title: t('dialog.openTitle'),
     filters: [
       { name: 'BibTeX', extensions: ['bib'] },
       { name: 'All Files', extensions: ['*'] },
@@ -842,8 +842,8 @@ function openDialogOptions(): Electron.OpenDialogOptions {
 async function newDocument(): Promise<void> {
   const win = dialogParent();
   const result = win
-    ? await dialog.showSaveDialog(win, { title: 'New Bibliography', defaultPath: 'Untitled.bib', filters: [{ name: 'BibTeX', extensions: ['bib'] }] })
-    : await dialog.showSaveDialog({ title: 'New Bibliography', defaultPath: 'Untitled.bib', filters: [{ name: 'BibTeX', extensions: ['bib'] }] });
+    ? await dialog.showSaveDialog(win, { title: t('dialog.newBibTitle'), defaultPath: 'Untitled.bib', filters: [{ name: 'BibTeX', extensions: ['bib'] }] })
+    : await dialog.showSaveDialog({ title: t('dialog.newBibTitle'), defaultPath: 'Untitled.bib', filters: [{ name: 'BibTeX', extensions: ['bib'] }] });
   if (result.canceled || !result.filePath) return;
   try {
     writeFileSync(result.filePath, '', 'utf8');
@@ -851,7 +851,7 @@ async function newDocument(): Promise<void> {
   } catch (err) {
     const opts = {
       type: 'error' as const,
-      message: 'Could not create the bibliography',
+      message: t('dialog.couldNotCreate'),
       detail: err instanceof Error ? err.message : String(err),
     };
     if (win) void dialog.showMessageBox(win, opts);
@@ -894,7 +894,7 @@ async function saveDocumentAs(): Promise<void> {
   const win = windowForDoc(id);
   const current = store.summarize(id);
   const result = await dialog.showSaveDialog(win!, {
-    title: 'Save As',
+    title: t('dialog.saveAsTitle'),
     defaultPath: current.path,
     filters: [{ name: 'BibTeX', extensions: ['bib'] }],
   });
@@ -908,7 +908,7 @@ async function saveDocumentAs(): Promise<void> {
   } catch (err) {
     void dialog.showMessageBox(win!, {
       type: 'error',
-      message: 'Could not save the document',
+      message: t('dialog.couldNotSave'),
       detail: err instanceof Error ? err.message : String(err),
     });
   }
@@ -922,11 +922,11 @@ async function revertToSaved(): Promise<void> {
   const { path } = store.summarize(id);
   const choice = await dialog.showMessageBox(win!, {
     type: 'warning',
-    buttons: ['Revert', 'Cancel'],
+    buttons: [t('dialog.revert'), t('common.cancel')],
     defaultId: 0,
     cancelId: 1,
-    message: 'Revert to the last saved version?',
-    detail: 'Any unsaved changes will be lost.',
+    message: t('dialog.revertConfirm'),
+    detail: t('dialog.revertDetail'),
   });
   if (choice.response !== 0 || !win) return;
   loadDocumentInto(win, path); // re-read from disk into the same window
@@ -949,7 +949,7 @@ async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html' | 'rtf
   const ext = EXPORT_EXT[format];
   const base = current.displayName.replace(/\.bib$/i, '');
   const result = await dialog.showSaveDialog(focusedWindow()!, {
-    title: 'Export',
+    title: t('dialog.exportTitle'),
     defaultPath: `${base}.${ext}`,
     filters: [{ name: format.toUpperCase(), extensions: [ext] }],
   });
@@ -964,7 +964,7 @@ async function exportDocumentAs(format: 'bibtex' | 'ris' | 'csv' | 'html' | 'rtf
   } catch (err) {
     void dialog.showMessageBox(focusedWindow()!, {
       type: 'error',
-      message: 'Could not export the document',
+      message: t('dialog.couldNotExport'),
       detail: err instanceof Error ? err.message : String(err),
     });
   }
@@ -980,7 +980,7 @@ async function exportSelectionAs(req: ExportSelectionRequest): Promise<ExportSel
   if (!store.has(req.documentId)) return { ok: false, error: 'No document open.' };
   const base = store.summarize(req.documentId).displayName.replace(/\.bib$/i, '');
   const result = await dialog.showSaveDialog((windowForDoc(req.documentId) ?? focusedWindow())!, {
-    title: 'Export Selected Entries',
+    title: t('dialog.exportSelectedTitle'),
     defaultPath: `${base}-selection.bib`,
     filters: [{ name: 'BibTeX', extensions: ['bib'] }],
   });
@@ -1569,10 +1569,10 @@ async function callAnthropic(body: any, apiKey: string): Promise<any> {
 async function approveAgentTool(name: string, input: unknown): Promise<boolean> {
   const result = await dialog.showMessageBox(focusedWindow()!, {
     type: 'question',
-    buttons: ['Approve', 'Deny'],
+    buttons: [t('dialog.approve'), t('dialog.deny')],
     defaultId: 0,
     cancelId: 1,
-    message: `The assistant wants to run “${name}”.`,
+    message: t('dialog.assistantRun', { name }),
     detail: JSON.stringify(input, null, 2),
   });
   return result.response === 0;
@@ -1727,7 +1727,7 @@ function registerIpc(): void {
     },
     [IpcChannels.addAttachment]: async (req) => {
       const opts: Electron.OpenDialogOptions = {
-        title: 'Add Attachment',
+        title: t('dialog.addAttachmentTitle'),
         properties: ['openFile', 'multiSelections'],
       };
       const parent = dialogParent();
@@ -1749,8 +1749,8 @@ function registerIpc(): void {
     [IpcChannels.relocateAttachment]: async (req) => {
       const parent = dialogParent();
       const result = parent
-        ? await dialog.showOpenDialog(parent, { title: 'Locate File', properties: ['openFile'] })
-        : await dialog.showOpenDialog({ title: 'Locate File', properties: ['openFile'] });
+        ? await dialog.showOpenDialog(parent, { title: t('dialog.locateFileTitle'), properties: ['openFile'] })
+        : await dialog.showOpenDialog({ title: t('dialog.locateFileTitle'), properties: ['openFile'] });
       const picked = result.canceled ? undefined : result.filePaths[0];
       if (!picked) {
         return {
@@ -1817,7 +1817,7 @@ function registerIpc(): void {
     [IpcChannels.selectFromAux]: async (req) => {
       const parent = dialogParent();
       const opts: Electron.OpenDialogOptions = {
-        title: 'Select Publications from .aux File',
+        title: t('dialog.selectFromAuxTitle'),
         properties: ['openFile'],
         filters: [
           { name: 'LaTeX aux', extensions: ['aux'] },
@@ -1830,13 +1830,22 @@ function registerIpc(): void {
       const sel = store.selectFromAux(req.documentId, readFileSync(file, 'utf8'));
       const summary: Electron.MessageBoxOptions = {
         type: 'info',
-        buttons: ['OK'],
+        buttons: [t('dialog.ok')],
         message: sel.matchedIds.length
-          ? `Selected ${sel.matchedIds.length} publication${sel.matchedIds.length === 1 ? '' : 's'} cited in ${basename(file)}.`
-          : `No entries cited in ${basename(file)} matched this library.`,
+          ? t(sel.matchedIds.length === 1 ? 'dialog.auxSelected' : 'dialog.auxSelectedPlural', {
+              count: sel.matchedIds.length,
+              file: basename(file),
+            })
+          : t('dialog.auxNoMatch', { file: basename(file) }),
         ...(sel.missingKeys.length
           ? {
-              detail: `${sel.missingKeys.length} cited key${sel.missingKeys.length === 1 ? '' : 's'} not in this library:\n${sel.missingKeys.slice(0, 15).join(', ')}${sel.missingKeys.length > 15 ? ', …' : ''}`,
+              detail: t(
+                sel.missingKeys.length === 1 ? 'dialog.auxMissing' : 'dialog.auxMissingPlural',
+                {
+                  count: sel.missingKeys.length,
+                  list: `${sel.missingKeys.slice(0, 15).join(', ')}${sel.missingKeys.length > 15 ? ', …' : ''}`,
+                },
+              ),
             }
           : {}),
       };
@@ -1847,7 +1856,7 @@ function registerIpc(): void {
     [IpcChannels.exportFolderTree]: async (req) => {
       const parent = dialogParent();
       const opts: Electron.OpenDialogOptions = {
-        title: 'Export Folder to PDF Tree',
+        title: t('dialog.exportFolderTitle'),
         properties: ['openDirectory', 'createDirectory'],
       };
       const result = parent ? await dialog.showOpenDialog(parent, opts) : await dialog.showOpenDialog(opts);
@@ -1887,11 +1896,17 @@ function registerIpc(): void {
       }
       const summary: Electron.MessageBoxOptions = {
         type: errors.length ? 'warning' : 'info',
-        buttons: ['OK'],
-        message: `Exported ${copied} file${copied === 1 ? '' : 's'} to ${basename(dest)}.`,
+        buttons: [t('dialog.ok')],
+        message: t(copied === 1 ? 'dialog.exportedFiles' : 'dialog.exportedFilesPlural', {
+          count: copied,
+          dest: basename(dest),
+        }),
         ...(errors.length
           ? {
-              detail: `${errors.length} problem${errors.length === 1 ? '' : 's'}:\n${errors.slice(0, 12).join('\n')}${errors.length > 12 ? '\n…' : ''}`,
+              detail: t(errors.length === 1 ? 'dialog.problems' : 'dialog.problemsPlural', {
+                count: errors.length,
+                list: `${errors.slice(0, 12).join('\n')}${errors.length > 12 ? '\n…' : ''}`,
+              }),
             }
           : {}),
       };
@@ -1906,9 +1921,9 @@ function registerIpc(): void {
         const w = dialogParent();
         const opts: Electron.MessageBoxOptions = {
           type: 'info',
-          buttons: ['OK'],
-          message: 'No incomplete publications.',
-          detail: 'Every entry has the required fields for its type.',
+          buttons: [t('dialog.ok')],
+          message: t('dialog.noIncomplete'),
+          detail: t('dialog.noIncompleteDetail'),
         };
         if (w) void dialog.showMessageBox(w, opts);
         else void dialog.showMessageBox(opts);
@@ -1966,7 +1981,7 @@ function registerIpc(): void {
     [IpcChannels.importFiles]: (req) => importFilesSmart(req.documentId, req.paths),
     [IpcChannels.importDialog]: async (req) => {
       const opts: Electron.OpenDialogOptions = {
-        title: 'Import',
+        title: t('dialog.importTitle'),
         properties: ['openFile', 'multiSelections'],
         filters: [
           { name: 'Bibliographies', extensions: ['bib', 'ris', 'enw', 'enl', 'xml'] },
@@ -2007,15 +2022,20 @@ function registerIpc(): void {
     [IpcChannels.consolidateLinkedFiles]: async (req) => {
       const scope =
         req.itemIds && req.itemIds.length > 0
-          ? `the ${req.itemIds.length} selected ${req.itemIds.length === 1 ? 'entry' : 'entries'}`
-          : 'every entry in the library';
+          ? t(
+              req.itemIds.length === 1
+                ? 'dialog.consolidateScopeSelected'
+                : 'dialog.consolidateScopeSelectedPlural',
+              { count: req.itemIds.length },
+            )
+          : t('dialog.consolidateScopeAll');
       const confirmOpts: Electron.MessageBoxOptions = {
         type: 'warning',
-        buttons: ['Consolidate', 'Cancel'],
+        buttons: [t('dialog.consolidate'), t('common.cancel')],
         defaultId: 0,
         cancelId: 1,
-        message: 'Consolidate linked files?',
-        detail: `This moves the managed file attachments for ${scope} into your Papers folder, renaming them by the AutoFile format. Files are moved on disk.`,
+        message: t('dialog.consolidateConfirm'),
+        detail: t('dialog.consolidateDetail', { scope }),
       };
       const parent = dialogParent();
       const choice = parent
@@ -2027,14 +2047,22 @@ function registerIpc(): void {
       const res = store.consolidateLinkedFiles(req.documentId, req.itemIds);
       const summaryOpts: Electron.MessageBoxOptions = {
         type: res.errors.length ? 'warning' : 'info',
-        buttons: ['OK'],
+        buttons: [t('dialog.ok')],
         message:
           res.moved > 0
-            ? `Filed ${res.moved} ${res.moved === 1 ? 'file' : 'files'} across ${res.itemsAffected} ${res.itemsAffected === 1 ? 'entry' : 'entries'}.`
-            : 'No linked files needed filing.',
+            ? t('dialog.filed', {
+                count: res.moved,
+                fileNoun: t(res.moved === 1 ? 'dialog.file' : 'dialog.files'),
+                entryCount: res.itemsAffected,
+                entryNoun: t(res.itemsAffected === 1 ? 'dialog.entry' : 'dialog.entries'),
+              })
+            : t('dialog.noFilingNeeded'),
         ...(res.errors.length
           ? {
-              detail: `${res.errors.length} ${res.errors.length === 1 ? 'problem' : 'problems'}:\n${res.errors.slice(0, 12).join('\n')}${res.errors.length > 12 ? '\n…' : ''}`,
+              detail: t(res.errors.length === 1 ? 'dialog.problems' : 'dialog.problemsPlural', {
+                count: res.errors.length,
+                list: `${res.errors.slice(0, 12).join('\n')}${res.errors.length > 12 ? '\n…' : ''}`,
+              }),
             }
           : {}),
       };
@@ -2044,7 +2072,7 @@ function registerIpc(): void {
     },
     [IpcChannels.chooseFolder]: async () => {
       const opts: Electron.OpenDialogOptions = {
-        title: 'Choose Papers Folder',
+        title: t('dialog.choosePapersTitle'),
         properties: ['openDirectory', 'createDirectory'],
       };
       const parent = dialogParent();
@@ -2316,7 +2344,7 @@ if (!gotLock) {
         console.error('[open] startup failed:', err instanceof Error ? err.stack : String(err));
         void dialog.showMessageBox(first, {
           type: 'error',
-          message: `Could not open ${startup}`,
+          message: t('dialog.couldNotOpen', { path: startup }),
           detail: err instanceof Error ? err.message : String(err),
         });
       }
