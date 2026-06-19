@@ -12,11 +12,13 @@
 //      METHODS on the receiver class; each does ONE `command` dispatch into TS
 //      and surfaces TS errors back to AppleScript. Object-returning verbs return
 //      cite keys (text), so the reply Apple Event never needs an object specifier.
-//      WIRED + verified: search / export / generate cite key. The make / delete /
-//      duplicate / save handlers below are implemented but NOT wired in the sdef:
-//      the standard command codes don't route to a synchronous-proxy model (they
-//      hang). The fix is Cocoa KVC mutable-element accessors on BPDocument — a
-//      follow-up; until then those verbs error cleanly (not declared).
+//      WIRED + verified: search / export / generate cite key (responds-to), and
+//      standard make / delete via Cocoa KVC mutable-element accessors on BPDocument
+//      (newScriptingObjectOfClass: + insert/removeObjectFromPublicationsAtIndex:).
+//      Note: `make` creates the entry correctly but its RESULT is `missing value`
+//      (our model adds the row at creation, so Cocoa can't track an insertion index
+//      to build the result specifier) — re-address the new entry by cite key.
+//      duplicate / save are not wired (their TS handlers below are unused).
 //
 // Valid because Electron main-process JS and Apple Events share the main thread.
 // Cocoa `key`/`class` names match app/scripting/Bibliophile.sdef.
@@ -227,23 +229,23 @@ static id BPCommandResult(NSScriptCommand *cmd, NSDictionary *resp) {
   return BPWrapValue(resp[@"value"]);
 }
 
-// `make new publication` shared by the application + document receivers. `container`
-// is the document ref when make is routed to a document, else nil (the application
-// case reads the `at` location, else TS falls back to the frontmost document). The
-// `with properties` record arrives keyed by KVC key → translate to sdef human names.
-static id BPMake(NSScriptCommand *command, NSDictionary *container) {
-  NSDictionary *args = [command evaluatedArguments];
-  NSDictionary *containerRef = container;
-  if (containerRef == nil) {
-    id loc = args[@"Location"];
-    if ([loc isKindOfClass:[NSPositionalSpecifier class]])
-      containerRef = BPRefOf([(NSPositionalSpecifier *)loc insertionContainer]);
+// A `document N of application` index specifier (or nil). Used to build the result
+// reference for `make` (the created publication's objectSpecifier). Fully guarded:
+// any failure returns nil → AppleScript sees `missing value`, never a crash.
+static NSScriptObjectSpecifier *BPDocSpecifier(NSString *documentId) {
+  NSScriptClassDescription *appCD =
+      (NSScriptClassDescription *)[NSScriptClassDescription classDescriptionForClass:[NSApplication class]];
+  if (appCD == nil) return nil;
+  NSArray *docs = BPElements(@{ @"kind": @"application" }, @"document");
+  for (NSUInteger i = 0; i < docs.count; i++) {
+    id d = docs[i];
+    if ([d isKindOfClass:[NSDictionary class]] && [d[@"documentId"] isEqual:documentId])
+      return [[NSIndexSpecifier alloc] initWithContainerClassDescription:appCD
+                                                     containerSpecifier:nil
+                                                                    key:@"bibliophileDocuments"
+                                                                  index:i];
   }
-  NSMutableDictionary *props = [NSMutableDictionary dictionary];
-  id kd = args[@"KeyDictionary"];
-  if ([kd isKindOfClass:[NSDictionary class]])
-    for (NSString *k in (NSDictionary *)kd) props[BPHumanPropName(k)] = ((NSDictionary *)kd)[k];
-  return BPCommandResult(command, BPResponse(@"command", containerRef, @{ @"name": @"make", @"params": @{ @"withProperties": props } }));
+  return nil;
 }
 
 // --- proxy implementations ---------------------------------------------------
@@ -286,6 +288,29 @@ static id BPMake(NSScriptCommand *command, NSDictionary *container) {
 - (id)handleGenerateCiteKeyCommand:(NSScriptCommand *)command {
   return BPCommandResult(command, BPResponse(@"command", self.ref, @{ @"name": @"generate cite key", @"params": @{} }));
 }
+// A `publication N of document M` index specifier so a returned publication (the
+// result of `make`, or a bare `get` of a publication reference) can be encoded in
+// the reply Apple Event. Guarded: returns nil on any failure (→ missing value).
+- (NSScriptObjectSpecifier *)objectSpecifier {
+  NSString *documentId = self.ref[@"documentId"];
+  NSString *itemId = self.ref[@"itemId"];
+  if (![documentId isKindOfClass:[NSString class]] || ![itemId isKindOfClass:[NSString class]]) return nil;
+  NSScriptObjectSpecifier *docSpec = BPDocSpecifier(documentId);
+  if (docSpec == nil) return nil;
+  NSScriptClassDescription *docCD =
+      (NSScriptClassDescription *)[NSScriptClassDescription classDescriptionForClass:[BPDocument class]];
+  if (docCD == nil) return nil;
+  NSArray *pubs = BPElements(@{ @"kind": @"document", @"documentId": documentId }, @"publication");
+  for (NSUInteger i = 0; i < pubs.count; i++) {
+    id p = pubs[i];
+    if ([p isKindOfClass:[NSDictionary class]] && [p[@"itemId"] isEqual:itemId])
+      return [[NSIndexSpecifier alloc] initWithContainerClassDescription:docCD
+                                                     containerSpecifier:docSpec
+                                                                    key:@"publications"
+                                                                  index:i];
+  }
+  return nil;
+}
 @end
 
 @implementation BPDocument
@@ -323,8 +348,35 @@ static id BPMake(NSScriptCommand *command, NSDictionary *container) {
   if (file) params[@"in"] = file;
   return BPCommandResult(command, BPResponse(@"command", self.ref, @{ @"name": @"save", @"params": params }));
 }
-- (id)handleMakeCommand:(NSScriptCommand *)command {
-  return BPMake(command, self.ref);
+// Standard `make` / `delete` of publications via Cocoa KVC mutable-element
+// accessors. NSCreateCommand calls -newScriptingObjectOfClass:… (we create the
+// entry in TS and return the proxy), then -insertObject:inPublicationsAtIndex:
+// (the entry is already in the model → no-op). NSDeleteCommand resolves the target
+// to its container + index and calls -removeObjectFromPublicationsAtIndex:. Cocoa
+// builds the make result specifier from the insertion index itself, so no
+// -objectSpecifier is needed (and no live proxy is returned to the reply event).
+- (id)newScriptingObjectOfClass:(Class)objectClass
+                 forValueForKey:(NSString *)key
+              withContentsValue:(id)contentsValue
+                     properties:(NSDictionary *)properties {
+  if (![key isEqualToString:@"publications"]) return nil;
+  NSMutableDictionary *props = [NSMutableDictionary dictionary];
+  if ([properties isKindOfClass:[NSDictionary class]])
+    for (NSString *k in properties) props[BPHumanPropName(k)] = properties[k];
+  NSDictionary *resp = BPResponse(@"command", self.ref, @{ @"name": @"make", @"params": @{ @"withProperties": props } });
+  if (resp == nil || ![resp[@"ok"] boolValue]) return nil;
+  id refValue = resp[@"value"];
+  if (![refValue isKindOfClass:[NSDictionary class]]) return nil;
+  BPPublication *p = [BPPublication new];  // +1, correct for a `new…` method
+  p.ref = (NSDictionary *)refValue;
+  return p;
+}
+- (void)insertObject:(id)pub inPublicationsAtIndex:(NSUInteger)index {
+  // The entry was already created in the TS model by newScriptingObjectOfClass:.
+}
+- (void)removeObjectFromPublicationsAtIndex:(NSUInteger)index {
+  NSArray *pubs = [self publications];
+  if (index < pubs.count) BPResponse(@"command", BPRefOf(pubs[index]), @{ @"name": @"delete", @"params": @{} });
 }
 @end
 
@@ -360,12 +412,6 @@ static id BPMake(NSScriptCommand *command, NSDictionary *container) {
 @implementation NSApplication (BibliophileModel)
 - (NSArray *)bibliophileDocuments {
   return BPWrapRefs(BPElements(@{ @"kind": @"application" }, @"document"));
-}
-
-// `make new publication …` when routed to the application (no container document);
-// BPMake reads the `at` location, else TS uses the frontmost document.
-- (id)handleMakeCommand:(NSScriptCommand *)command {
-  return BPMake(command, nil);
 }
 
 // Phase 1 diagnostic verb, routed through setHandler.

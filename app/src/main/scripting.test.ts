@@ -155,16 +155,16 @@ describe('ScriptingService — groups', () => {
 });
 
 describe('ScriptingService — commands', () => {
-  it('make new publication with properties → new entry, returns its cite key', () => {
+  it('make new publication with properties → new entry, returns its ref', () => {
     const { svc, doc } = setup();
-    const key = svc.command('make', doc, {
+    const ref = svc.command('make', doc, {
       withProperties: { type: 'article', title: 'Fresh', 'cite key': 'fresh2021', 'publication year': '2021' },
-    }) as string;
-    expect(key).toBe('fresh2021');
+    }) as ElementRef;
+    expect(ref).toMatchObject({ kind: 'publication' });
+    expect(svc.getProperty(ref, 'cite key')).toBe('fresh2021');
+    expect(svc.getProperty(ref, 'title')).toBe('Fresh');
+    expect(svc.getProperty(ref, 'publication year')).toBe('2021');
     expect(svc.count(doc, 'publications')).toBe(3);
-    const made = svc.elements(doc, 'publications').find((r) => svc.getProperty(r, 'cite key') === 'fresh2021')!;
-    expect(svc.getProperty(made, 'title')).toBe('Fresh');
-    expect(svc.getProperty(made, 'publication year')).toBe('2021');
   });
 
   it('delete removes a publication', () => {
@@ -237,7 +237,7 @@ describe('ScriptingService — commands via dispatch', () => {
     expect(res.value).toHaveLength(1);
   });
 
-  it('make round-trips and returns the new cite key (text)', () => {
+  it('make round-trips and returns a publication ref', () => {
     const { svc, doc } = setup();
     const res = JSON.parse(
       svc.dispatch(
@@ -250,7 +250,6 @@ describe('ScriptingService — commands via dispatch', () => {
       ),
     );
     expect(res.ok).toBe(true);
-    expect(typeof res.value).toBe('string');
-    expect(res.value.length).toBeGreaterThan(0);
+    expect(res.value).toMatchObject({ kind: 'publication' });
   });
 });

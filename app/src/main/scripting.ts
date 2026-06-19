@@ -349,10 +349,10 @@ export class ScriptingService {
 
   /**
    * `make new publication [at <document>] [with properties {type:…, title:…}]`.
-   * Returns the new entry's cite key (commands return text, not live object
-   * references — see {@link cmdSearch}).
+   * Returns the new publication's {@link ElementRef} (the native KVC `make` path
+   * wraps it into the object Cocoa inserts + builds the result specifier from).
    */
-  private cmdMake(ref: ElementRef | undefined, params: Record<string, unknown>): string {
+  private cmdMake(ref: ElementRef | undefined, params: Record<string, unknown>): ElementRef {
     const documentId = this.documentIdOf(ref);
     const props = asRecord(params.withProperties ?? params.properties);
     const type = props.type != null ? String(props.type) : 'misc';
@@ -372,7 +372,7 @@ export class ScriptingService {
       });
     }
     this.onMutate?.(documentId);
-    return this.store.itemById(documentId, itemId)?.citeKey ?? '';
+    return { kind: 'publication', documentId, itemId };
   }
 
   /** `delete <publication>`. */
