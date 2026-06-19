@@ -74,7 +74,7 @@ body {
   font-size: var(--bd-fs);
   color: var(--bd-text);
   background: var(--bd-bg);
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: auto;
 }
 
 /* ---- App shell --------------------------------------------------------- */
