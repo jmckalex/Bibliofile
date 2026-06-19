@@ -383,15 +383,67 @@ const latexMathPlugin = ViewPlugin.fromClass(
 );
 
 // ---------------------------------------------------------------------------
+//  HTML-only overlay: Handlebars mustache highlighting. The HTML language mode
+//  can't parse {{…}} — and it mis-tokenises mustaches embedded inside a start
+//  tag (e.g. `<dt{{#if x}} class="…">`), which is what makes the editor look
+//  "broken" on panel/export templates. So we paint mustaches ourselves as a
+//  decoration overlay: block helpers ({{#if}}/{{/each}}/{{else}}) one colour,
+//  expressions ({{foo}}/{{{foo}}}) another. (Mirrors the pipe-table/LaTeX plugins.)
+// ---------------------------------------------------------------------------
+
+const handlebarsTheme = EditorView.theme({
+  '.cm-hbs': { color: 'var(--bd-accent, #2563eb)' },
+  '.cm-hbsBlock': { color: '#c678dd', fontWeight: '600' },
+});
+
+// {{{triple}}} or {{double}} on a single line (our templates never nest braces).
+const HBS_RE = /\{\{\{[^{}]*\}\}\}|\{\{[^{}]*\}\}/g;
+const hbsExprDeco = Decoration.mark({ class: 'cm-hbs' });
+const hbsBlockDeco = Decoration.mark({ class: 'cm-hbsBlock' });
+
+const handlebarsPlugin = ViewPlugin.fromClass(
+  class {
+    decorations: DecorationSet;
+    constructor(view: EditorView) {
+      this.decorations = this.build(view);
+    }
+    update(update: ViewUpdate) {
+      if (update.docChanged || update.viewportChanged) this.decorations = this.build(update.view);
+    }
+    build(view: EditorView): DecorationSet {
+      const builder = new RangeSetBuilder<Decoration>();
+      const { from, to } = view.viewport;
+      for (let pos = from; pos <= to; ) {
+        const line = view.state.doc.lineAt(pos);
+        let m: RegExpExecArray | null;
+        HBS_RE.lastIndex = 0;
+        while ((m = HBS_RE.exec(line.text)) !== null) {
+          const text = m[0]!;
+          const at = line.from + m.index;
+          // Block helper if the first char after the braces is #, /, ^, or it's {{else}}.
+          const inner = text.replace(/^\{+/, '');
+          const isBlock = /^[#/^]/.test(inner) || inner.startsWith('else');
+          builder.add(at, at + text.length, isBlock ? hbsBlockDeco : hbsExprDeco);
+        }
+        pos = line.to + 1;
+      }
+      return builder.finish();
+    }
+  },
+  { decorations: (v) => v.decorations },
+);
+
+// ---------------------------------------------------------------------------
 //  Language extensions
 // ---------------------------------------------------------------------------
 
 type EditorLanguage = 'markdown' | 'html';
 
-/** The language parser + language-specific extras (markdown gets the plugins +
- *  native spellcheck; HTML stays plain so tags aren't flagged as misspellings). */
+/** The language parser + language-specific extras (markdown gets the table/math
+ *  plugins + native spellcheck; HTML gets the Handlebars mustache overlay and
+ *  stays plain otherwise so tags aren't flagged as misspellings). */
 function languageExtension(language: EditorLanguage): Extension {
-  if (language === 'html') return html();
+  if (language === 'html') return [html(), handlebarsPlugin, handlebarsTheme];
   return [
     markdown({ base: markdownLanguage }),
     pipeTablePlugin,

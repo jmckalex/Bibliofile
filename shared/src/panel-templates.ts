@@ -35,10 +35,29 @@ export const DEFAULT_DETAILS_TEMPLATE = `<div class="bd-view__actions">
   {{/each}}
 </dl>
 <div class="bd-detail__section bd-detail__section--withaction"><span>Annotation</span></div>
-{{#if notesHtml}}<div class="bd-notes">{{{notesHtml}}}</div>{{else}}<div class="bd-notes__empty">No annotation.</div>{{/if}}
+{{#if notesHtml}}
+<div class="bd-notes">{{{notesHtml}}}</div>
+{{else}}
+<div class="bd-notes__empty">No annotation.</div>
+{{/if}}
 <div class="bd-detail__section bd-detail__section--withaction"><span>Attachments</span></div>
-{{#if attachments}}<ul class="bd-files">{{#each attachments}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-file="{{url}}"><span class="bd-file__icon" aria-hidden="true">{{icon "file"}}</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{else}}<div class="bd-files__empty">No attachments.</div>{{/if}}
-{{#if links}}<div class="bd-detail__section">Links</div><ul class="bd-files">{{#each links}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-url="{{url}}"><span class="bd-file__icon" aria-hidden="true">{{icon "link"}}</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{/if}}`;
+{{#if attachments}}
+<ul class="bd-files">
+  {{#each attachments}}
+  <li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-file="{{url}}"><span class="bd-file__icon" aria-hidden="true">{{icon "file"}}</span><span class="bd-file__name">{{displayName}}</span></button></li>
+  {{/each}}
+</ul>
+{{else}}
+<div class="bd-files__empty">No attachments.</div>
+{{/if}}
+{{#if links}}
+<div class="bd-detail__section">Links</div>
+<ul class="bd-files">
+  {{#each links}}
+  <li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-url="{{url}}"><span class="bd-file__icon" aria-hidden="true">{{icon "link"}}</span><span class="bd-file__name">{{displayName}}</span></button></li>
+  {{/each}}
+</ul>
+{{/if}}`;
 
 /**
  * The built-in BOTTOM panel template: a full-width annotation reader for the
