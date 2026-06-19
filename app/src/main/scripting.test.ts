@@ -173,13 +173,12 @@ describe('ScriptingService — commands', () => {
     expect(svc.count(doc, 'publications')).toBe(1);
   });
 
-  it('duplicate clones a publication (returns the new cite key)', () => {
+  it('duplicate clones a publication (returns the new ref)', () => {
     const { svc, doc, pub } = setup();
-    const key = svc.command('duplicate', pub('smith2020'), {}) as string;
-    expect(key).toBeTruthy();
+    const ref = svc.command('duplicate', pub('smith2020'), {}) as ElementRef;
+    expect(ref).toMatchObject({ kind: 'publication' });
+    expect(svc.getProperty(ref, 'title')).toBe('Hello World');
     expect(svc.count(doc, 'publications')).toBe(3);
-    const dup = svc.elements(doc, 'publications').find((r) => svc.getProperty(r, 'cite key') === key)!;
-    expect(svc.getProperty(dup, 'title')).toBe('Hello World');
   });
 
   it('search matches across fields (case-insensitive), returning cite keys', () => {

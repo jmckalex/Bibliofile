@@ -383,8 +383,11 @@ export class ScriptingService {
     return null;
   }
 
-  /** `duplicate <publication>` → the copy's cite key. */
-  private cmdDuplicate(ref: ElementRef | undefined): string {
+  /**
+   * `duplicate <publication>` → the new publication's {@link ElementRef} (the
+   * native KVC clone path wraps it into the object Cocoa inserts + returns).
+   */
+  private cmdDuplicate(ref: ElementRef | undefined): ElementRef {
     if (ref?.kind !== 'publication') throw new ScriptingError(`Can only duplicate a publication`);
     const itemId = this.store.applyEdit({
       documentId: ref.documentId,
@@ -392,7 +395,7 @@ export class ScriptingService {
     }).affectedItemId;
     if (!itemId) throw new ScriptingError(`Could not duplicate publication`);
     this.onMutate?.(ref.documentId);
-    return this.store.itemById(ref.documentId, itemId)?.citeKey ?? '';
+    return { kind: 'publication', documentId: ref.documentId, itemId };
   }
 
   /** `generate cite key <publication>` → the new cite key. */

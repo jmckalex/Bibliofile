@@ -12,13 +12,15 @@
 //      METHODS on the receiver class; each does ONE `command` dispatch into TS
 //      and surfaces TS errors back to AppleScript. Object-returning verbs return
 //      cite keys (text), so the reply Apple Event never needs an object specifier.
-//      WIRED + verified: search / export / generate cite key (responds-to), and
-//      standard make / delete via Cocoa KVC mutable-element accessors on BPDocument
-//      (newScriptingObjectOfClass: + insert/removeObjectFromPublicationsAtIndex:).
-//      Note: `make` creates the entry correctly but its RESULT is `missing value`
-//      (our model adds the row at creation, so Cocoa can't track an insertion index
-//      to build the result specifier) — re-address the new entry by cite key.
-//      duplicate / save are not wired (their TS handlers below are unused).
+//      WIRED + verified: search / export / generate cite key / save (responds-to
+//      handler methods), and standard make / delete via Cocoa KVC mutable-element
+//      accessors on BPDocument (newScriptingObjectOfClass: + insert/
+//      removeObjectFromPublicationsAtIndex:). Note: `make` creates the entry
+//      correctly but its RESULT is `missing value` (our model adds the row at
+//      creation, so Cocoa can't track an insertion index to build the result
+//      specifier) — re-address the new entry by cite key. `duplicate` is NOT wired:
+//      the clone executes but NSCloneCommand can't encode the result here (errors);
+//      its TS handler stays for a future fix.
 //
 // Valid because Electron main-process JS and Apple Events share the main thread.
 // Cocoa `key`/`class` names match app/scripting/Bibliophile.sdef.
@@ -229,25 +231,6 @@ static id BPCommandResult(NSScriptCommand *cmd, NSDictionary *resp) {
   return BPWrapValue(resp[@"value"]);
 }
 
-// A `document N of application` index specifier (or nil). Used to build the result
-// reference for `make` (the created publication's objectSpecifier). Fully guarded:
-// any failure returns nil → AppleScript sees `missing value`, never a crash.
-static NSScriptObjectSpecifier *BPDocSpecifier(NSString *documentId) {
-  NSScriptClassDescription *appCD =
-      (NSScriptClassDescription *)[NSScriptClassDescription classDescriptionForClass:[NSApplication class]];
-  if (appCD == nil) return nil;
-  NSArray *docs = BPElements(@{ @"kind": @"application" }, @"document");
-  for (NSUInteger i = 0; i < docs.count; i++) {
-    id d = docs[i];
-    if ([d isKindOfClass:[NSDictionary class]] && [d[@"documentId"] isEqual:documentId])
-      return [[NSIndexSpecifier alloc] initWithContainerClassDescription:appCD
-                                                     containerSpecifier:nil
-                                                                    key:@"bibliophileDocuments"
-                                                                  index:i];
-  }
-  return nil;
-}
-
 // --- proxy implementations ---------------------------------------------------
 
 @implementation BPPublication
@@ -287,29 +270,6 @@ static NSScriptObjectSpecifier *BPDocSpecifier(NSString *documentId) {
 }
 - (id)handleGenerateCiteKeyCommand:(NSScriptCommand *)command {
   return BPCommandResult(command, BPResponse(@"command", self.ref, @{ @"name": @"generate cite key", @"params": @{} }));
-}
-// A `publication N of document M` index specifier so a returned publication (the
-// result of `make`, or a bare `get` of a publication reference) can be encoded in
-// the reply Apple Event. Guarded: returns nil on any failure (→ missing value).
-- (NSScriptObjectSpecifier *)objectSpecifier {
-  NSString *documentId = self.ref[@"documentId"];
-  NSString *itemId = self.ref[@"itemId"];
-  if (![documentId isKindOfClass:[NSString class]] || ![itemId isKindOfClass:[NSString class]]) return nil;
-  NSScriptObjectSpecifier *docSpec = BPDocSpecifier(documentId);
-  if (docSpec == nil) return nil;
-  NSScriptClassDescription *docCD =
-      (NSScriptClassDescription *)[NSScriptClassDescription classDescriptionForClass:[BPDocument class]];
-  if (docCD == nil) return nil;
-  NSArray *pubs = BPElements(@{ @"kind": @"document", @"documentId": documentId }, @"publication");
-  for (NSUInteger i = 0; i < pubs.count; i++) {
-    id p = pubs[i];
-    if ([p isKindOfClass:[NSDictionary class]] && [p[@"itemId"] isEqual:itemId])
-      return [[NSIndexSpecifier alloc] initWithContainerClassDescription:docCD
-                                                     containerSpecifier:docSpec
-                                                                    key:@"publications"
-                                                                  index:i];
-  }
-  return nil;
 }
 @end
 

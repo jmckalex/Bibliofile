@@ -45,8 +45,19 @@
 			<direct-parameter type="specifier" description="the publication to delete"/>
 		</command>
 
-		<!-- make/delete use Cocoa KVC element accessors on the document (scripting.mm).
-		     duplicate / save are not yet wired (need further KVC work). -->
+		<command name="save" code="coresave" description="Save a document to its file (or a given file).">
+			<cocoa class="NSScriptCommand"/>
+			<direct-parameter type="specifier" description="the document to save"/>
+			<parameter name="in" code="kfil" type="file" optional="yes" description="The file to save to.">
+				<cocoa key="File"/>
+			</parameter>
+		</command>
+
+		<!-- make/delete use Cocoa KVC element accessors on the document; save routes
+		     to a <responds-to> handler (scripting.mm). `duplicate` is intentionally
+		     not declared: the clone executes, but NSCloneCommand can't encode the
+		     result in this proxy model (errors) — its TS logic remains for a future
+		     fix. -->
 
 		<class name="application" code="capp" description="The application's top-level scripting object.">
 			<cocoa class="NSApplication"/>
@@ -136,6 +147,9 @@
 			</responds-to>
 			<responds-to command="export">
 				<cocoa method="handleExportCommand:"/>
+			</responds-to>
+			<responds-to command="save">
+				<cocoa method="handleSaveCommand:"/>
 			</responds-to>
 		</class>
 
