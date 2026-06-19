@@ -2551,6 +2551,17 @@ button.bd-chip {
   margin-top: 4px;
 }
 
+/* Keep "Fork default" on one line; let the preset picker take the slack. */
+.bd-panelfork__add .bd-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.bd-panelfork__add .bd-select {
+  flex: 1;
+  min-width: 0;
+}
+
 .bd-tmpl__preview {
   max-height: 220px;
   overflow: auto;

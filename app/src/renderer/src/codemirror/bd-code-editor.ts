@@ -135,7 +135,12 @@ const lightTheme = EditorView.theme(
     '&': { backgroundColor: 'var(--bd-surface, #ffffff)', color: 'var(--bd-text, #1c2230)' },
     '.cm-content': { caretColor: 'var(--bd-accent, #2563eb)' },
     '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--bd-accent, #2563eb)' },
-    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+    // Selection = the drawn layer (drawSelection). We MUST match CM's own
+    // selectors — including its high-specificity *focused* rule — or our colour
+    // loses to CM's stock lavender (#d7d4f0) exactly while the editor is focused.
+    // (drawSelection forces the native ::selection transparent, so styling that is moot.)
+    '& .cm-selectionBackground': { backgroundColor: 'var(--bd-selected, #d9e7ff)' },
+    '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground': {
       backgroundColor: 'var(--bd-selected, #d9e7ff)',
     },
     '.cm-activeLine': { backgroundColor: 'var(--bd-hover, rgba(37,99,235,0.06))' },
@@ -153,7 +158,10 @@ const darkTheme = EditorView.theme(
     '&': { backgroundColor: 'var(--bd-surface, #1b1f27)', color: 'var(--bd-text, #e6e9ef)' },
     '.cm-content': { caretColor: 'var(--bd-accent, #6ea8fe)' },
     '.cm-cursor, .cm-dropCursor': { borderLeftColor: 'var(--bd-accent, #6ea8fe)' },
-    '&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection': {
+    // See the light theme above: match CM's focused-selection selector so our
+    // colour wins (it also overrides oneDarkTheme's lower-specificity rule).
+    '& .cm-selectionBackground': { backgroundColor: 'var(--bd-selected, #2a3a57)' },
+    '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground': {
       backgroundColor: 'var(--bd-selected, #2a3a57)',
     },
     '.cm-activeLine': { backgroundColor: 'var(--bd-hover, rgba(110,168,254,0.08))' },
