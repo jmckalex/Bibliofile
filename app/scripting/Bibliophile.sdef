@@ -1,0 +1,296 @@
+<?xml version="1.0"?>
+<!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
+
+<!--
+  Bibliophile scripting dictionary.
+
+  Object model: application -> documents -> publications -> { fields, authors,
+  editors }; documents also own groups (library / static / smart / field /
+  external file / script / folder). The Cocoa `key`/`class` names here match the
+  proxy objects + command classes in app/native/scripting/src/scripting.mm, which
+  forward every request to the pure JS scripting service (app/src/main/scripting.ts)
+  over `dispatch`. Vocabulary mirrors bibdesk/Scripting/BibDesk.sdef (pragmatic
+  subset — the rich-text suite, search/web/shared groups, script hooks, bookmarks,
+  templates-as-objects and search servers are intentionally not modelled).
+-->
+<dictionary title="Bibliophile Terminology">
+
+	<suite name="Standard Suite" code="????" description="Common classes and commands for all applications.">
+
+		<command name="count" code="corecnte" description="Return the number of elements of a particular class within an object.">
+			<cocoa class="NSCountCommand"/>
+			<direct-parameter type="specifier" description="the object whose elements are to be counted"/>
+			<parameter name="each" code="kocl" type="type" optional="yes" description="The class of objects to be counted." hidden="yes">
+				<cocoa key="ObjectClass"/>
+			</parameter>
+			<result type="integer" description="the number of elements"/>
+		</command>
+
+		<command name="make" code="corecrel" description="Create a new publication.">
+			<cocoa class="NSCreateCommand"/>
+			<parameter name="new" code="kocl" type="type" description="The class of the new object.">
+				<cocoa key="ObjectClass"/>
+			</parameter>
+			<parameter name="at" code="insh" type="location specifier" optional="yes" description="The location at which to insert the object.">
+				<cocoa key="Location"/>
+			</parameter>
+			<parameter name="with properties" code="prdt" type="record" optional="yes" description="The initial values for properties of the object.">
+				<cocoa key="KeyDictionary"/>
+			</parameter>
+			<result type="specifier" description="the new publication"/>
+		</command>
+
+		<command name="delete" code="coredelo" description="Delete a publication.">
+			<cocoa class="NSDeleteCommand"/>
+			<direct-parameter type="specifier" description="the publication to delete"/>
+		</command>
+
+		<command name="save" code="coresave" description="Save a document to its file (or a given file).">
+			<cocoa class="NSScriptCommand"/>
+			<direct-parameter type="specifier" description="the document to save"/>
+			<parameter name="in" code="kfil" type="file" optional="yes" description="The file to save to.">
+				<cocoa key="File"/>
+			</parameter>
+		</command>
+
+		<!-- make/delete use Cocoa KVC element accessors on the document; save routes
+		     to a <responds-to> handler (scripting.mm). `duplicate` is intentionally
+		     not declared: the clone executes, but NSCloneCommand can't encode the
+		     result in this proxy model (errors) — its TS logic remains for a future
+		     fix. -->
+
+		<class name="application" code="capp" description="The application's top-level scripting object.">
+			<cocoa class="NSApplication"/>
+			<property name="name" code="pnam" type="text" access="r" description="The name of the application."/>
+			<property name="frontmost" code="pisf" type="boolean" access="r" description="Is this the active application?">
+				<cocoa key="isActive"/>
+			</property>
+			<property name="version" code="vers" type="text" access="r" description="The version of the application."/>
+			<element type="document">
+				<cocoa key="bibliophileDocuments"/>
+			</element>
+		</class>
+
+	</suite>
+
+	<suite name="Bibliophile Suite" code="Bibl" description="Classes and commands for Bibliophile.">
+
+		<command name="search" code="Biblsrch" description="Search a document for publications matching a string (any field).">
+			<direct-parameter type="document" description="the document to search"/>
+			<parameter name="for" code="forP" type="text" description="The text to search for.">
+				<cocoa key="For"/>
+			</parameter>
+			<result description="the cite keys of the matching publications">
+				<type type="text" list="yes"/>
+			</result>
+		</command>
+
+		<command name="export" code="Biblexpt" description="Export a document (or a list of publications) as text in a given format.">
+			<direct-parameter type="document" description="the document to export"/>
+			<parameter name="as" code="fmt " type="text" optional="yes" description="The format: bibtex, bibtex-minimal, ris, csv, html or rtf (default bibtex).">
+				<cocoa key="As"/>
+			</parameter>
+			<parameter name="for" code="forP" type="publication" optional="yes" description="The publications to export (default: the whole document).">
+				<cocoa key="For"/>
+			</parameter>
+			<parameter name="to" code="kfil" type="file" optional="yes" description="A file to write the export to. When given, returns the file path instead of the text.">
+				<cocoa key="To"/>
+			</parameter>
+			<result type="text" description="the exported text, or the written file path"/>
+		</command>
+
+		<command name="generate cite key" code="Biblgctk" description="Generate (and assign) a cite key for a publication from the cite-key format.">
+			<direct-parameter type="publication" description="the publication"/>
+			<result type="text" description="the new cite key"/>
+		</command>
+
+		<class name="document" plural="documents" code="docu" description="An open bibliography (.bib file).">
+			<cocoa class="BPDocument"/>
+			<property name="name" code="pnam" type="text" access="r" description="Its name.">
+				<cocoa key="scriptingName"/>
+			</property>
+			<property name="path" code="ppth" type="text" access="r" description="Its POSIX path on disk (empty if never saved).">
+				<cocoa key="scriptingPath"/>
+			</property>
+			<property name="modified" code="imod" type="boolean" access="r" description="Has the document unsaved changes?">
+				<cocoa key="scriptingModified"/>
+			</property>
+			<element type="publication">
+				<cocoa key="publications"/>
+			</element>
+			<element type="group">
+				<cocoa key="groups"/>
+			</element>
+			<element type="library group">
+				<cocoa key="libraryGroups"/>
+			</element>
+			<element type="static group">
+				<cocoa key="staticGroups"/>
+			</element>
+			<element type="smart group">
+				<cocoa key="smartGroups"/>
+			</element>
+			<element type="field group">
+				<cocoa key="fieldGroups"/>
+			</element>
+			<element type="external file group">
+				<cocoa key="externalFileGroups"/>
+			</element>
+			<element type="script group">
+				<cocoa key="scriptGroups"/>
+			</element>
+			<element type="folder group">
+				<cocoa key="folderGroups"/>
+			</element>
+			<responds-to command="search">
+				<cocoa method="handleSearchCommand:"/>
+			</responds-to>
+			<responds-to command="export">
+				<cocoa method="handleExportCommand:"/>
+			</responds-to>
+			<responds-to command="save">
+				<cocoa method="handleSaveCommand:"/>
+			</responds-to>
+		</class>
+
+		<class name="publication" plural="publications" code="bibi" description="A bibliography entry.">
+			<cocoa class="BPPublication"/>
+			<property name="id" code="ID  " type="text" access="r" description="Its unique identifier.">
+				<cocoa key="uniqueID"/>
+			</property>
+			<property name="cite key" code="ckey" type="text" description="The BibTeX cite key.">
+				<cocoa key="citeKey"/>
+			</property>
+			<property name="title" code="titl" type="text" description="The title.">
+				<cocoa key="scriptingTitle"/>
+			</property>
+			<property name="type" code="type" type="text" description="The BibTeX entry type (e.g. article, book).">
+				<cocoa key="scriptingType"/>
+			</property>
+			<property name="publication year" code="pyer" type="text" description="The publication year.">
+				<cocoa key="pubYear"/>
+			</property>
+			<property name="publication month" code="pmon" type="text" description="The publication month.">
+				<cocoa key="pubMonth"/>
+			</property>
+			<property name="abstract" code="abst" type="text" description="The abstract.">
+				<cocoa key="pubAbstract"/>
+			</property>
+			<property name="keywords" code="keyw" type="text" description="The keywords string.">
+				<cocoa key="pubKeywords"/>
+			</property>
+			<property name="note" code="note" type="text" description="The annotation / note (markdown).">
+				<cocoa key="pubNote"/>
+			</property>
+			<property name="rating" code="rtng" type="integer" description="The 0–5 rating.">
+				<cocoa key="pubRating"/>
+			</property>
+			<property name="local file" code="lurl" type="text" access="r" description="The local file path (Local-Url).">
+				<cocoa key="localFile"/>
+			</property>
+			<property name="URL" code="rurl" type="text" access="r" description="The remote URL.">
+				<cocoa key="remoteURL"/>
+			</property>
+			<property name="added date" code="adat" type="text" access="r" description="The Date-Added field.">
+				<cocoa key="addedDate"/>
+			</property>
+			<property name="modified date" code="mdat" type="text" access="r" description="The Date-Modified field.">
+				<cocoa key="modifiedDate"/>
+			</property>
+			<element type="field">
+				<cocoa key="fields"/>
+			</element>
+			<element type="author">
+				<cocoa key="authors"/>
+			</element>
+			<element type="editor">
+				<cocoa key="editors"/>
+			</element>
+			<responds-to command="generate cite key">
+				<cocoa method="handleGenerateCiteKeyCommand:"/>
+			</responds-to>
+		</class>
+
+		<class name="field" plural="fields" code="bfld" description="One BibTeX field of a publication.">
+			<cocoa class="BPField"/>
+			<property name="name" code="pnam" type="text" access="r" description="The field name (e.g. Title).">
+				<cocoa key="fieldName"/>
+			</property>
+			<property name="value" code="valL" type="text" description="The field's (de-TeXified) value.">
+				<cocoa key="fieldValue"/>
+			</property>
+			<property name="inherited" code="inhe" type="boolean" access="r" description="Is the value inherited from a cross-referenced entry?">
+				<cocoa key="fieldInherited"/>
+			</property>
+		</class>
+
+		<class name="author" plural="authors" code="auth" description="An author of a publication.">
+			<cocoa class="BPAuthor"/>
+			<property name="name" code="pnam" type="text" access="r" description="The normalized name.">
+				<cocoa key="authorName"/>
+			</property>
+			<property name="full name" code="fulN" type="text" access="r" description="The full name.">
+				<cocoa key="fullName"/>
+			</property>
+			<property name="first name" code="fstN" type="text" access="r" description="The first (given) name.">
+				<cocoa key="firstName"/>
+			</property>
+			<property name="last name" code="lstN" type="text" access="r" description="The last (family) name.">
+				<cocoa key="lastName"/>
+			</property>
+			<property name="von name part" code="vonN" type="text" access="r" description="The von part of the name.">
+				<cocoa key="vonPart"/>
+			</property>
+			<property name="jr part" code="jrNN" type="text" access="r" description="The Jr part of the name.">
+				<cocoa key="jrPart"/>
+			</property>
+		</class>
+
+		<class name="editor" plural="editors" code="edtr" inherits="author" description="An editor of a publication.">
+			<cocoa class="BPAuthor"/>
+		</class>
+
+		<class name="group" plural="groups" code="Grup" description="A group of publications in a document.">
+			<cocoa class="BPGroup"/>
+			<property name="name" code="pnam" type="text" access="r" description="Its name.">
+				<cocoa key="groupName"/>
+			</property>
+			<property name="id" code="ID  " type="text" access="r" description="Its unique identifier." hidden="yes">
+				<cocoa key="groupID"/>
+			</property>
+			<element type="publication">
+				<cocoa key="publications"/>
+			</element>
+		</class>
+
+		<class name="library group" plural="library groups" code="Libr" inherits="group" description="The whole library.">
+			<cocoa class="BPGroup"/>
+		</class>
+
+		<class name="static group" plural="static groups" code="StGp" inherits="group" description="A user static group.">
+			<cocoa class="BPGroup"/>
+		</class>
+
+		<class name="smart group" plural="smart groups" code="SmGp" inherits="group" description="A user smart group.">
+			<cocoa class="BPGroup"/>
+		</class>
+
+		<class name="field group" plural="field groups" code="FdGp" inherits="group" description="An auto group of a field value (category / author).">
+			<cocoa class="BPGroup"/>
+		</class>
+
+		<class name="external file group" plural="external file groups" code="ExGp" inherits="group" description="A group backed by an external file / URL.">
+			<cocoa class="BPGroup"/>
+		</class>
+
+		<class name="script group" plural="script groups" code="ScGp" inherits="group" description="A group populated by a script.">
+			<cocoa class="BPGroup"/>
+		</class>
+
+		<class name="folder group" plural="folder groups" code="FoGp" inherits="group" description="A user folder of groups.">
+			<cocoa class="BPGroup"/>
+		</class>
+
+	</suite>
+
+</dictionary>

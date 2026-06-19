@@ -52,6 +52,7 @@ import { DocumentStore } from './document-service.js';
 import { runAgentTurn } from './agent.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
+import { initScripting } from './scripting-bridge.js';
 import { htmlToRtf, wrapRtf } from './rtf.js';
 import { buildPrintHtml } from './print.js';
 import {
@@ -2450,6 +2451,16 @@ if (!gotLock) {
     registerIpc();
     buildMenu();
     startBridge();
+    // macOS AppleScript dictionary (no-op elsewhere / if the native addon isn't
+    // built). A scripted write refreshes open windows + menus like an IPC edit
+    // would; defer to the next loop turn so it runs after the synchronous Apple
+    // Event handler (which re-entered V8) returns.
+    initScripting(store, (documentId) => {
+      setImmediate(() => {
+        broadcastDocumentChanged(documentId);
+        buildMenu();
+      });
+    });
     const first = createWindow();
 
     // Auto-open from BIBDESK_OPEN / CLI, or honor a path buffered by open-file —
