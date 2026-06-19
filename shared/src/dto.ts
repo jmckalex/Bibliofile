@@ -436,7 +436,7 @@ export interface GetItemDetailRequest {
  * the TypeManager (`rating`/`boolean`/`triState`/`person`/`citation`/`url`) with
  * everything else `plain` (a text input).
  */
-export type FieldKind = 'plain' | 'person' | 'rating' | 'boolean' | 'triState' | 'url' | 'citation';
+export type FieldKind = 'plain' | 'person' | 'rating' | 'boolean' | 'triState' | 'url' | 'citation' | 'keywords';
 
 export interface ItemField {
   /** Canonical field name (e.g. `Author`, `Title`, `Journal`). */

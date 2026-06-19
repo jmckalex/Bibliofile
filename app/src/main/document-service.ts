@@ -664,6 +664,7 @@ function displayNameForUrl(kind: 'file' | 'url', url: string): string {
 /** Classify a field for the renderer's editor widget (TypeManager-driven). */
 function fieldKindOf(name: string): FieldKind {
   const tm = sharedTypeManager;
+  if (name.toLowerCase() === 'keywords') return 'keywords';
   if (tm.isRatingField(name)) return 'rating';
   if (tm.isBooleanField(name)) return 'boolean';
   if (tm.isTriStateField(name)) return 'triState';

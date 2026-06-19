@@ -288,6 +288,8 @@ export const en: Catalog = {
   'detail.fieldNamePlaceholder': 'Field name',
   'detail.valuePlaceholder': 'value',
   'detail.discardField': 'Discard this field',
+  'detail.addKeyword': 'Add a keyword…',
+  'detail.removeKeyword': 'Remove keyword {keyword}',
   'detail.citation': 'Citation',
   'detail.citationStyleTitle': 'Set the citation style in Preferences',
   'detail.done': 'Done',

@@ -11,6 +11,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
+import { splitGroupFieldValue } from '@bibdesk/groups';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
 import { Icon, type IconName } from './icons.js';
@@ -142,6 +143,86 @@ function RatingStars({ value, onChange }: { value: string; onChange: (v: string)
   );
 }
 
+/** Stable hue (0–359) from a keyword, so the same keyword always gets the same
+ *  colour chip across entries. */
+function keywordHue(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % 360;
+}
+
+/**
+ * Keyword token editor (the `Keywords` field). Each keyword is a coloured chip;
+ * typing a value and pressing `,` or Enter — or blurring — turns it into a chip,
+ * Backspace on an empty input removes the last, and a chip's × removes it. The
+ * value is stored as a comma-joined string, split on the SAME `;:,` separators as
+ * the keyword/category groups (so the chips, the sidebar groups, and search all
+ * agree), and written to BibTeX as `Keywords = {a, b, c}`.
+ */
+function KeywordTokens({ itemId, field }: { itemId: string; field: ItemField }) {
+  const t = useT();
+  const edit = useStore((s) => s.edit);
+  const [chips, setChips] = useState<readonly string[]>(() => splitGroupFieldValue(field.rawValue));
+  const [draft, setDraft] = useState('');
+
+  const commit = (next: readonly string[]): void => {
+    setChips(next);
+    const value = next.join(', ');
+    if (value !== field.rawValue) void edit({ kind: 'setField', itemId, field: field.name, value });
+  };
+  // Split typed/pasted text on the keyword separators; dedup case-insensitively.
+  const add = (raw: string): void => {
+    const fresh = splitGroupFieldValue(raw).filter(
+      (k) => !chips.some((c) => c.toLowerCase() === k.toLowerCase()),
+    );
+    if (fresh.length) commit([...chips, ...fresh]);
+  };
+  const onKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (e.key === ',' || e.key === 'Enter') {
+      e.preventDefault();
+      add(draft);
+      setDraft('');
+    } else if (e.key === 'Backspace' && draft === '' && chips.length > 0) {
+      commit(chips.slice(0, -1));
+    }
+  };
+
+  return (
+    <div className="bd-kwfield">
+      {chips.map((kw, i) => (
+        <span
+          key={`${kw}-${i}`}
+          className="bd-kw"
+          style={{ '--kw-h': keywordHue(kw) } as React.CSSProperties}
+        >
+          <span className="bd-kw__label">{kw}</span>
+          <button
+            type="button"
+            className="bd-kw__del"
+            aria-label={t('detail.removeKeyword', { keyword: kw })}
+            onClick={() => commit(chips.filter((_, j) => j !== i))}
+          >
+            <Icon name="close" />
+          </button>
+        </span>
+      ))}
+      <input
+        className="bd-kw__input"
+        value={draft}
+        placeholder={chips.length === 0 ? t('detail.addKeyword') : undefined}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={onKey}
+        onBlur={() => {
+          if (draft.trim()) {
+            add(draft);
+            setDraft('');
+          }
+        }}
+      />
+    </div>
+  );
+}
+
 /** One editable field row (uncontrolled; commits on blur / Enter). `template`
  * marks a not-yet-saved row offered for the entry type (no remove button). */
 function FieldRow({ itemId, field, template = false }: { itemId: string; field: ItemField; template?: boolean }) {
@@ -189,6 +270,8 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
             <option value="0">No</option>
             <option value="2">Yes</option>
           </select>
+        ) : field.kind === 'keywords' ? (
+          <KeywordTokens itemId={itemId} field={field} />
         ) : long ? (
           <textarea
             key={`${itemId}:${field.name}`}

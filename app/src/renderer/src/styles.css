@@ -1316,6 +1316,61 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
   margin: 4px 0;
 }
 
+/* ---- Keyword token chips (the Keywords field editor) ------------------- */
+.bd-kwfield {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 0;
+}
+
+/* --kw-h is a per-keyword hue (set inline) so the same keyword is always the
+   same colour; the chip fill/text adapt to the theme. */
+.bd-kw {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 4px 1px 8px;
+  border-radius: 999px;
+  font-size: var(--bd-fs-sm);
+  line-height: 1.5;
+  background: hsl(var(--kw-h, 220), 70%, 90%);
+  color: hsl(var(--kw-h, 220), 45%, 28%);
+}
+
+:root[data-theme='dark'] .bd-kw {
+  background: hsl(var(--kw-h, 220), 32%, 28%);
+  color: hsl(var(--kw-h, 220), 70%, 82%);
+}
+
+.bd-kw__del {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font-size: 9px;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.bd-kw__del:hover {
+  opacity: 1;
+}
+
+.bd-kw__input {
+  flex: 1;
+  min-width: 90px;
+  border: 0;
+  padding: 2px 0;
+  background: none;
+  font: inherit;
+  color: var(--bd-text);
+  outline: none;
+}
+
 /* ---- Group editor (sidebar) -------------------------------------------- */
 
 .bd-sidebar__actions {
