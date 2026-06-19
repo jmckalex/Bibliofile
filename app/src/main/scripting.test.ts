@@ -155,15 +155,16 @@ describe('ScriptingService — groups', () => {
 });
 
 describe('ScriptingService — commands', () => {
-  it('make new publication with properties → new entry, returns its ref', () => {
+  it('make new publication with properties → new entry, returns its cite key', () => {
     const { svc, doc } = setup();
-    const ref = svc.command('make', doc, {
+    const key = svc.command('make', doc, {
       withProperties: { type: 'article', title: 'Fresh', 'cite key': 'fresh2021', 'publication year': '2021' },
-    }) as ElementRef;
-    expect(svc.getProperty(ref, 'cite key')).toBe('fresh2021');
-    expect(svc.getProperty(ref, 'title')).toBe('Fresh');
-    expect(svc.getProperty(ref, 'publication year')).toBe('2021');
+    }) as string;
+    expect(key).toBe('fresh2021');
     expect(svc.count(doc, 'publications')).toBe(3);
+    const made = svc.elements(doc, 'publications').find((r) => svc.getProperty(r, 'cite key') === 'fresh2021')!;
+    expect(svc.getProperty(made, 'title')).toBe('Fresh');
+    expect(svc.getProperty(made, 'publication year')).toBe('2021');
   });
 
   it('delete removes a publication', () => {
@@ -172,19 +173,19 @@ describe('ScriptingService — commands', () => {
     expect(svc.count(doc, 'publications')).toBe(1);
   });
 
-  it('duplicate clones a publication', () => {
+  it('duplicate clones a publication (returns the new cite key)', () => {
     const { svc, doc, pub } = setup();
-    const dup = svc.command('duplicate', pub('smith2020'), {}) as ElementRef;
-    expect(svc.getProperty(dup, 'title')).toBe('Hello World');
+    const key = svc.command('duplicate', pub('smith2020'), {}) as string;
+    expect(key).toBeTruthy();
     expect(svc.count(doc, 'publications')).toBe(3);
+    const dup = svc.elements(doc, 'publications').find((r) => svc.getProperty(r, 'cite key') === key)!;
+    expect(svc.getProperty(dup, 'title')).toBe('Hello World');
   });
 
-  it('search matches across fields (case-insensitive)', () => {
+  it('search matches across fields (case-insensitive), returning cite keys', () => {
     const { svc, doc } = setup();
-    const hits = svc.command('search', doc, { for: 'hello' }) as ElementRef[];
-    expect(hits.map((r) => svc.getProperty(r, 'cite key'))).toEqual(['smith2020']);
-    const byKey = svc.command('search', doc, { for: 'jones' }) as ElementRef[];
-    expect(byKey.map((r) => svc.getProperty(r, 'cite key'))).toEqual(['jones2019']);
+    expect(svc.command('search', doc, { for: 'hello' })).toEqual(['smith2020']);
+    expect(svc.command('search', doc, { for: 'jones' })).toEqual(['jones2019']);
   });
 
   it('export returns BibTeX text', () => {
@@ -236,7 +237,7 @@ describe('ScriptingService — commands via dispatch', () => {
     expect(res.value).toHaveLength(1);
   });
 
-  it('make round-trips and returns a publication ref', () => {
+  it('make round-trips and returns the new cite key (text)', () => {
     const { svc, doc } = setup();
     const res = JSON.parse(
       svc.dispatch(
@@ -249,6 +250,7 @@ describe('ScriptingService — commands via dispatch', () => {
       ),
     );
     expect(res.ok).toBe(true);
-    expect(res.value).toMatchObject({ kind: 'publication' });
+    expect(typeof res.value).toBe('string');
+    expect(res.value.length).toBeGreaterThan(0);
   });
 });

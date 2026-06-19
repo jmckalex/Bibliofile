@@ -347,8 +347,12 @@ export class ScriptingService {
     throw new ScriptingError(`Unknown command "${name}"`);
   }
 
-  /** `make new publication [at <document>] [with properties {type:…, title:…}]`. */
-  private cmdMake(ref: ElementRef | undefined, params: Record<string, unknown>): ElementRef {
+  /**
+   * `make new publication [at <document>] [with properties {type:…, title:…}]`.
+   * Returns the new entry's cite key (commands return text, not live object
+   * references — see {@link cmdSearch}).
+   */
+  private cmdMake(ref: ElementRef | undefined, params: Record<string, unknown>): string {
     const documentId = this.documentIdOf(ref);
     const props = asRecord(params.withProperties ?? params.properties);
     const type = props.type != null ? String(props.type) : 'misc';
@@ -368,7 +372,7 @@ export class ScriptingService {
       });
     }
     this.onMutate?.(documentId);
-    return { kind: 'publication', documentId, itemId };
+    return this.store.itemById(documentId, itemId)?.citeKey ?? '';
   }
 
   /** `delete <publication>`. */
@@ -379,8 +383,8 @@ export class ScriptingService {
     return null;
   }
 
-  /** `duplicate <publication>` → the new publication. */
-  private cmdDuplicate(ref: ElementRef | undefined): ElementRef {
+  /** `duplicate <publication>` → the copy's cite key. */
+  private cmdDuplicate(ref: ElementRef | undefined): string {
     if (ref?.kind !== 'publication') throw new ScriptingError(`Can only duplicate a publication`);
     const itemId = this.store.applyEdit({
       documentId: ref.documentId,
@@ -388,7 +392,7 @@ export class ScriptingService {
     }).affectedItemId;
     if (!itemId) throw new ScriptingError(`Could not duplicate publication`);
     this.onMutate?.(ref.documentId);
-    return { kind: 'publication', documentId: ref.documentId, itemId };
+    return this.store.itemById(ref.documentId, itemId)?.citeKey ?? '';
   }
 
   /** `generate cite key <publication>` → the new cite key. */
@@ -407,8 +411,12 @@ export class ScriptingService {
     return null;
   }
 
-  /** `search <document> for <text>` → matching publications (any field, case-insensitive). */
-  private cmdSearch(ref: ElementRef | undefined, params: Record<string, unknown>): ElementRef[] {
+  /**
+   * `search <document> for <text>` → the cite keys of matching publications (any
+   * field, case-insensitive). Commands return text (cite keys), not live object
+   * references: re-address with `first publication whose cite key is "…"`.
+   */
+  private cmdSearch(ref: ElementRef | undefined, params: Record<string, unknown>): string[] {
     const documentId = this.documentIdOf(ref);
     const q = (params.for != null ? String(params.for) : '').toLowerCase();
     if (!q) return [];
@@ -420,7 +428,7 @@ export class ScriptingService {
           it.type.toLowerCase().includes(q) ||
           it.fieldNames().some((n) => it.stringValueOfField(n, false).toLowerCase().includes(q)),
       )
-      .map((it) => ({ kind: 'publication', documentId, itemId: it.id }));
+      .map((it) => it.citeKey);
   }
 
   /**
