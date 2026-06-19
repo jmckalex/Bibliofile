@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  electron-vite@2.3.0: e1dd03d4f61ae72f35d0b135e5cf0cfb41219bea60334e71313e400d8afc0a2f
+
 importers:
 
   .:
@@ -161,7 +164,7 @@ importers:
         version: 33.4.11
       electron-vite:
         specifier: ^2.3.0
-        version: 2.3.0(vite@5.4.21(@types/node@22.19.21))
+        version: 2.3.0(patch_hash=e1dd03d4f61ae72f35d0b135e5cf0cfb41219bea60334e71313e400d8afc0a2f)(vite@5.4.21(@types/node@22.19.21))
       vite:
         specifier: ^5.4.11
         version: 5.4.21(@types/node@22.19.21)
@@ -3122,7 +3125,7 @@ snapshots:
 
   electron-to-chromium@1.5.372: {}
 
-  electron-vite@2.3.0(vite@5.4.21(@types/node@22.19.21)):
+  electron-vite@2.3.0(patch_hash=e1dd03d4f61ae72f35d0b135e5cf0cfb41219bea60334e71313e400d8afc0a2f)(vite@5.4.21(@types/node@22.19.21)):
     dependencies:
       '@babel/core': 7.29.7
       '@babel/plugin-transform-arrow-functions': 7.29.7(@babel/core@7.29.7)

@@ -1,0 +1,46 @@
+diff --git a/dist/chunks/lib-BmEkZIgk.mjs b/dist/chunks/lib-BmEkZIgk.mjs
+index 0cf4983330fbedebdc59e3c891c0a4b1fb275916..378495fc6e405db0f215857930974d6e9e225139 100644
+--- a/dist/chunks/lib-BmEkZIgk.mjs
++++ b/dist/chunks/lib-BmEkZIgk.mjs
+@@ -837,10 +837,15 @@ function esmShimPlugin() {
+                 if (code.includes(CJSShim) || !CJSyntaxRe.test(code)) {
+                     return null;
+                 }
+-                const lastESMImport = findStaticImports(code).pop();
+-                const indexToAppend = lastESMImport ? lastESMImport.end : 0;
++                // PATCHED (bibdesk): prepend the shim instead of appending at the
++                // heuristic last-import offset. findStaticImports() false-matches the
++                // word "import" inside a string literal (e.g. an i18n value ending in
++                // "...to import" immediately before the next quoted key), so the shim
++                // was injected mid-token -> "Unterminated string literal" at transpile.
++                // Import declarations hoist, so prepending is valid ESM and the offset 0
++                // can never fall inside a string. See findStaticImports above.
+                 const s = new MagicString(code);
+-                s.appendRight(indexToAppend, CJSShim);
++                s.prepend(CJSShim);
+                 return {
+                     code: s.toString(),
+                     map: sourcemap ? s.generateMap({ hires: 'boundary' }) : null
+diff --git a/dist/chunks/lib-CMs-qhOt.cjs b/dist/chunks/lib-CMs-qhOt.cjs
+index c203707a2295dd66e6fc5c7b92f9e8b808f5685d..f2c65839c381458bf4ad32b3b4c4eb41fea8b7bf 100644
+--- a/dist/chunks/lib-CMs-qhOt.cjs
++++ b/dist/chunks/lib-CMs-qhOt.cjs
+@@ -840,10 +840,15 @@ function esmShimPlugin() {
+                 if (code.includes(CJSShim) || !CJSyntaxRe.test(code)) {
+                     return null;
+                 }
+-                const lastESMImport = findStaticImports(code).pop();
+-                const indexToAppend = lastESMImport ? lastESMImport.end : 0;
++                // PATCHED (bibdesk): prepend the shim instead of appending at the
++                // heuristic last-import offset. findStaticImports() false-matches the
++                // word "import" inside a string literal (e.g. an i18n value ending in
++                // "...to import" immediately before the next quoted key), so the shim
++                // was injected mid-token -> "Unterminated string literal" at transpile.
++                // Import declarations hoist, so prepending is valid ESM and the offset 0
++                // can never fall inside a string. See findStaticImports above.
+                 const s = new MagicString(code);
+-                s.appendRight(indexToAppend, CJSShim);
++                s.prepend(CJSShim);
+                 return {
+                     code: s.toString(),
+                     map: sourcemap ? s.generateMap({ hires: 'boundary' }) : null

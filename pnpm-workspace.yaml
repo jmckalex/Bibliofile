@@ -14,3 +14,6 @@ onlyBuiltDependencies:
   - esbuild
   - electron
   - better-sqlite3
+
+patchedDependencies:
+  electron-vite@2.3.0: patches/electron-vite@2.3.0.patch
