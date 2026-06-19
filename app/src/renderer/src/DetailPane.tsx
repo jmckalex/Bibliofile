@@ -164,6 +164,7 @@ function KeywordTokens({ itemId, field }: { itemId: string; field: ItemField }) 
   const edit = useStore((s) => s.edit);
   const [chips, setChips] = useState<readonly string[]>(() => splitGroupFieldValue(field.rawValue));
   const [draft, setDraft] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const commit = (next: readonly string[]): void => {
     setChips(next);
@@ -178,12 +179,26 @@ function KeywordTokens({ itemId, field }: { itemId: string; field: ItemField }) 
     if (fresh.length) commit([...chips, ...fresh]);
   };
   const onKey = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    const el = e.currentTarget;
     if (e.key === ',' || e.key === 'Enter') {
       e.preventDefault();
       add(draft);
       setDraft('');
-    } else if (e.key === 'Backspace' && draft === '' && chips.length > 0) {
+    } else if (
+      e.key === 'ArrowLeft' &&
+      el.selectionStart === 0 &&
+      el.selectionEnd === 0 &&
+      chips.length > 0
+    ) {
+      // Arrow into the previous chip → lift it back out to editable text (caret at
+      // its end), so the layout never shifts and the keyword can be corrected.
+      e.preventDefault();
+      const last = chips[chips.length - 1]!;
       commit(chips.slice(0, -1));
+      setDraft((d) => last + d);
+      requestAnimationFrame(() => inputRef.current?.setSelectionRange(last.length, last.length));
+    } else if (e.key === 'Backspace' && draft === '' && chips.length > 0) {
+      commit(chips.slice(0, -1)); // delete the last chip
     }
   };
 
@@ -207,6 +222,7 @@ function KeywordTokens({ itemId, field }: { itemId: string; field: ItemField }) 
         </span>
       ))}
       <input
+        ref={inputRef}
         className="bd-kw__input"
         value={draft}
         placeholder={chips.length === 0 ? t('detail.addKeyword') : undefined}

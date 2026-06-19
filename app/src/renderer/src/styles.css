@@ -1317,24 +1317,37 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
 }
 
 /* ---- Keyword token chips (the Keywords field editor) ------------------- */
+/* Chips live INSIDE one input-styled box (so the editor looks like the other
+   field inputs and there's no layout shift as text becomes a chip). */
 .bd-kwfield {
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  padding: 3px 0;
+  gap: 3px;
+  min-height: 24px;
+  padding: 2px 5px;
+  border: 1px solid var(--bd-border);
+  border-radius: 4px;
+  background: var(--bd-surface);
+}
+
+.bd-kwfield:focus-within {
+  border-color: var(--bd-accent);
+  box-shadow: 0 0 0 2px var(--bd-accent-soft);
 }
 
 /* --kw-h is a per-keyword hue (set inline) so the same keyword is always the
-   same colour; the chip fill/text adapt to the theme. */
+   same colour; the chip fill/text adapt to the theme. Kept small so the box
+   stays the same single-line height as a plain input. */
 .bd-kw {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding: 1px 4px 1px 8px;
-  border-radius: 999px;
-  font-size: var(--bd-fs-sm);
-  line-height: 1.5;
+  padding: 0 4px 0 7px;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 16px;
   background: hsl(var(--kw-h, 220), 70%, 90%);
   color: hsl(var(--kw-h, 220), 45%, 28%);
 }
@@ -1362,11 +1375,12 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
 
 .bd-kw__input {
   flex: 1;
-  min-width: 90px;
+  min-width: 60px;
   border: 0;
-  padding: 2px 0;
+  padding: 1px 0;
   background: none;
   font: inherit;
+  font-size: var(--bd-fs-sm);
   color: var(--bd-text);
   outline: none;
 }
@@ -2179,6 +2193,13 @@ button.bd-chip {
   align-items: flex-start;
   gap: 4px;
   padding: 1px 0;
+}
+
+/* Right-align the delete (⊖) button / REQ tag in every row, even when the widget
+   is short (rating stars, keyword chips) rather than a full-width input. */
+.bd-field__edit > .bd-circbtn--del,
+.bd-field__edit > .bd-field__req {
+  margin-left: auto;
 }
 
 .bd-field__del,
