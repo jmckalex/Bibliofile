@@ -158,6 +158,15 @@ const wiredWindows = new WeakSet<BrowserWindow>();
 const closeConfirmed = new WeakSet<BrowserWindow>();
 
 /**
+ * True while an app-quit is in progress (⌘Q / menu Quit). A dirty window's
+ * `close` handler must `preventDefault()` to show its save prompt synchronously,
+ * which ALSO aborts the quit; once the window actually closes we re-issue
+ * `app.quit()` to resume it. Without this the app lingers windowless after you
+ * pick "Save" from the quit prompt (looks like a hang in dev).
+ */
+let isQuitting = false;
+
+/**
  * Bind `win` to `documentId` (the library it now shows). Idempotent per window:
  * reusing a window for a new document (welcome-screen reuse, Revert) drops and
  * closes the previously shown document, but the focus/closed listeners attach
@@ -196,11 +205,16 @@ function bindWindowToDoc(win: BrowserWindow, documentId: string): void {
       message: t('dialog.saveBeforeClose', { name: displayName }),
       detail: t('dialog.changesLost'),
     });
-    if (choice === 2) return; // Cancel → keep the window open
+    if (choice === 2) {
+      // Cancel → keep the window open AND abort any quit this close was part of.
+      isQuitting = false;
+      return;
+    }
     if (choice === 0) {
       try {
         store.saveDocument(id, path);
       } catch (err) {
+        isQuitting = false; // failed save aborts the quit too
         void dialog.showMessageBox(win, {
           type: 'error',
           message: t('dialog.couldNotSave'),
@@ -211,6 +225,10 @@ function bindWindowToDoc(win: BrowserWindow, documentId: string): void {
     }
     closeConfirmed.add(win);
     win.close();
+    // `preventDefault()` above cancelled the in-progress ⌘Q/menu-Quit; now that
+    // the window is actually closing, resume it (macOS won't quit on
+    // window-all-closed). Deferred so this close event finishes unwinding first.
+    if (isQuitting) setImmediate(() => app.quit());
   });
   win.on('closed', () => {
     const id = docIdForWindow(win);
@@ -2277,6 +2295,12 @@ app.on('activate', () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
+});
+
+// Mark that a quit is underway, so a dirty window's save-prompt (which must
+// preventDefault the close, aborting the quit) can resume it after closing.
+app.on('before-quit', () => {
+  isQuitting = true;
 });
 
 // Persist the PDF text cache and tear down the worker pool on quit.
