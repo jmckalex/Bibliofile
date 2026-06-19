@@ -140,7 +140,7 @@ function builtinDefs(t: TFunction): Record<string, Col> {
     rating: col.display({
       id: 'rating',
       header: t('column.rating'),
-      meta: { width: 80, cellClass: 'bd-td--rating' } satisfies ColMeta,
+      meta: { width: 92, cellClass: 'bd-td--rating' } satisfies ColMeta,
       cell: ({ row }) => {
         const n = row.original.rating;
         if (n <= 0) return null;

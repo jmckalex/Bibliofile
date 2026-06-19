@@ -1530,6 +1530,13 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
   overflow: visible;
 }
 
+/* Rating: left-aligned stars with a tight inset (not the 10px text inset), and no
+   clipping so all five stars show at the default column width. */
+.bd-td--rating {
+  padding: 0 6px;
+  overflow: visible;
+}
+
 /* Finder-style color-label picker (right-click in the publications table). */
 .bd-colormenu {
   position: fixed;
