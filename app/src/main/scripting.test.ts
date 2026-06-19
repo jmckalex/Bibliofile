@@ -4,6 +4,7 @@
  * authors), property reads/writes (undoable), and the JSON `dispatch` transport.
  */
 import { describe, it, expect } from 'vitest';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { DocumentStore } from './document-service.js';
 import { ScriptingService, type ElementRef } from './scripting.js';
 
@@ -125,5 +126,129 @@ describe('ScriptingService — JSON dispatch (native transport)', () => {
     );
     expect(res.ok).toBe(false);
     expect(res.error).toMatch(/Can't get/);
+  });
+});
+
+describe('ScriptingService — groups', () => {
+  it('the library group contains every publication', () => {
+    const { svc, doc } = setup();
+    expect(svc.elements(doc, 'groups').length).toBeGreaterThanOrEqual(1);
+    const lib = svc.elements(doc, 'library groups');
+    expect(lib.length).toBe(1);
+    expect(svc.getProperty(lib[0]!, 'name')).toBeTruthy();
+    expect(svc.count(lib[0]!, 'publications')).toBe(2);
+  });
+
+  it('static groups filter to user static groups and expose their members', () => {
+    const { store, documentId, svc, doc } = setup();
+    store.groupEdit({
+      documentId,
+      command: { kind: 'createStatic', name: 'Faves', citeKeys: ['smith2020'] },
+    });
+    const statics = svc.elements(doc, 'static groups');
+    expect(statics.length).toBe(1);
+    expect(svc.getProperty(statics[0]!, 'name')).toBe('Faves');
+    const members = svc.elements(statics[0]!, 'publications');
+    expect(members.length).toBe(1);
+    expect(svc.getProperty(members[0]!, 'cite key')).toBe('smith2020');
+  });
+});
+
+describe('ScriptingService — commands', () => {
+  it('make new publication with properties → new entry, returns its ref', () => {
+    const { svc, doc } = setup();
+    const ref = svc.command('make', doc, {
+      withProperties: { type: 'article', title: 'Fresh', 'cite key': 'fresh2021', 'publication year': '2021' },
+    }) as ElementRef;
+    expect(svc.getProperty(ref, 'cite key')).toBe('fresh2021');
+    expect(svc.getProperty(ref, 'title')).toBe('Fresh');
+    expect(svc.getProperty(ref, 'publication year')).toBe('2021');
+    expect(svc.count(doc, 'publications')).toBe(3);
+  });
+
+  it('delete removes a publication', () => {
+    const { svc, doc, pub } = setup();
+    svc.command('delete', pub('jones2019'), {});
+    expect(svc.count(doc, 'publications')).toBe(1);
+  });
+
+  it('duplicate clones a publication', () => {
+    const { svc, doc, pub } = setup();
+    const dup = svc.command('duplicate', pub('smith2020'), {}) as ElementRef;
+    expect(svc.getProperty(dup, 'title')).toBe('Hello World');
+    expect(svc.count(doc, 'publications')).toBe(3);
+  });
+
+  it('search matches across fields (case-insensitive)', () => {
+    const { svc, doc } = setup();
+    const hits = svc.command('search', doc, { for: 'hello' }) as ElementRef[];
+    expect(hits.map((r) => svc.getProperty(r, 'cite key'))).toEqual(['smith2020']);
+    const byKey = svc.command('search', doc, { for: 'jones' }) as ElementRef[];
+    expect(byKey.map((r) => svc.getProperty(r, 'cite key'))).toEqual(['jones2019']);
+  });
+
+  it('export returns BibTeX text', () => {
+    const { svc, doc } = setup();
+    const text = svc.command('export', doc, { as: 'bibtex' }) as string;
+    expect(text).toContain('@article');
+    expect(text).toContain('smith2020');
+  });
+
+  it('export to a file writes it and returns the path', () => {
+    const { svc, doc } = setup();
+    const out = '/tmp/bibliophile-export-test.bib';
+    if (existsSync(out)) rmSync(out);
+    const path = svc.command('export', doc, { as: 'bibtex', to: out }) as string;
+    expect(path).toBe(out);
+    expect(readFileSync(out, 'utf8')).toContain('smith2020');
+    rmSync(out);
+  });
+
+  it('generate cite key assigns a (non-empty) key', () => {
+    const { svc, pub } = setup();
+    const key = svc.command('generate cite key', pub('smith2020'), {}) as string;
+    expect(key).toBeTruthy();
+    expect(svc.getProperty(pub(key), 'cite key')).toBe(key);
+  });
+
+  it('unknown command errors', () => {
+    const { svc, doc } = setup();
+    expect(() => svc.command('frobnicate', doc, {})).toThrow(/Unknown command/);
+  });
+
+  it('mutating commands fire onMutate(documentId)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title={A}}', '/tmp/cmd.bib');
+    const calls: string[] = [];
+    const svc = new ScriptingService(store, 'B', '1', (id) => calls.push(id));
+    svc.command('make', { kind: 'document', documentId }, { withProperties: { type: 'misc', title: 'New' } });
+    expect(calls).toEqual([documentId]);
+  });
+});
+
+describe('ScriptingService — commands via dispatch', () => {
+  it('search round-trips through JSON dispatch', () => {
+    const { svc, doc } = setup();
+    const res = JSON.parse(
+      svc.dispatch(JSON.stringify({ op: 'command', name: 'search', ref: doc, params: { for: 'world' } })),
+    );
+    expect(res.ok).toBe(true);
+    expect(res.value).toHaveLength(1);
+  });
+
+  it('make round-trips and returns a publication ref', () => {
+    const { svc, doc } = setup();
+    const res = JSON.parse(
+      svc.dispatch(
+        JSON.stringify({
+          op: 'command',
+          name: 'make',
+          ref: doc,
+          params: { withProperties: { type: 'article', title: 'Z' } },
+        }),
+      ),
+    );
+    expect(res.ok).toBe(true);
+    expect(res.value).toMatchObject({ kind: 'publication' });
   });
 });
