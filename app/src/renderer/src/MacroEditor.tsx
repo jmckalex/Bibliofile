@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 export function MacroEditor({ onClose }: { onClose: () => void }) {
   const t = useT();
@@ -29,7 +30,7 @@ export function MacroEditor({ onClose }: { onClose: () => void }) {
         <div className="bd-modal__header">
           <span>{t('macro.title')}</span>
           <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
-            ×
+            <Icon name="close" />
           </button>
         </div>
         <div className="bd-modal__body">
@@ -55,7 +56,7 @@ export function MacroEditor({ onClose }: { onClose: () => void }) {
                 title={t('macro.remove', { name: m.name })}
                 onClick={() => void edit({ kind: 'removeMacro', name: m.name })}
               >
-                ×
+                <Icon name="close" />
               </button>
             </div>
           ))}

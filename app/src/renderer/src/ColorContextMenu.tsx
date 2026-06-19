@@ -7,6 +7,7 @@
 import { useEffect } from 'react';
 import { LABEL_COLORS } from '@bibdesk/model';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 export function ColorContextMenu({
   x,
@@ -70,7 +71,7 @@ export function ColorContextMenu({
           onClose();
         }}
       >
-        ✕
+        <Icon name="close" />
       </button>
     </div>
   );

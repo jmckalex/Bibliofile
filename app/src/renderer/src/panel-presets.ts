@@ -21,8 +21,8 @@ const HORIZONTAL_CARD = `<div class="bd-hcard">
     {{#if authors}}<p class="bd-hcard__authors">{{authors}}</p>{{/if}}
     <p class="bd-hcard__meta">{{#if venue}}<span>{{venue}}</span>{{/if}}{{#if year}}<span>{{year}}</span>{{/if}}<span class="bd-viewfields__mono">{{citeKey}}</span></p>
     <bd-citation doc-id="{{documentId}}" item-id="{{id}}" cite-style="{{citeStyle}}"></bd-citation>
-    {{#if attachments}}<p class="bd-hcard__links">{{#each attachments}}<button type="button" class="bd-chip" data-open-file="{{url}}">📄 {{displayName}}</button>{{/each}}</p>{{/if}}
-    {{#if links}}<p class="bd-hcard__links">{{#each links}}<button type="button" class="bd-chip" data-open-url="{{url}}">🔗 {{displayName}}</button>{{/each}}</p>{{/if}}
+    {{#if attachments}}<p class="bd-hcard__links">{{#each attachments}}<button type="button" class="bd-chip" data-open-file="{{url}}">{{icon "file"}} {{displayName}}</button>{{/each}}</p>{{/if}}
+    {{#if links}}<p class="bd-hcard__links">{{#each links}}<button type="button" class="bd-chip" data-open-url="{{url}}">{{icon "link"}} {{displayName}}</button>{{/each}}</p>{{/if}}
   </div>
   {{#if notesHtml}}<div class="bd-hcard__notes">{{{notesHtml}}}</div>{{/if}}
 </div>`;
@@ -33,8 +33,8 @@ const COMPACT = `<div class="bd-compact">
   {{#if authors}}<div class="bd-compact__authors">{{authors}}</div>{{/if}}
   <div class="bd-compact__meta">{{type}}{{#if venue}} · {{venue}}{{/if}}{{#if year}} · {{year}}{{/if}} · <span class="bd-viewfields__mono">{{citeKey}}</span></div>
   <bd-citation doc-id="{{documentId}}" item-id="{{id}}" cite-style="{{citeStyle}}"></bd-citation>
-  {{#if attachments}}<div class="bd-compact__files">{{#each attachments}}<button type="button" class="bd-chip" data-open-file="{{url}}">📄 {{displayName}}</button>{{/each}}</div>{{/if}}
-  <div class="bd-compact__actions"><button type="button" class="bd-btn bd-btn--small bd-btn--primary" data-action="edit">✎ Edit…</button></div>
+  {{#if attachments}}<div class="bd-compact__files">{{#each attachments}}<button type="button" class="bd-chip" data-open-file="{{url}}">{{icon "file"}} {{displayName}}</button>{{/each}}</div>{{/if}}
+  <div class="bd-compact__actions"><button type="button" class="bd-btn bd-btn--small bd-btn--primary" data-action="edit">{{icon "edit"}} Edit…</button></div>
 </div>`;
 
 /** A focused reading view: title + byline, then the annotation (or abstract). */

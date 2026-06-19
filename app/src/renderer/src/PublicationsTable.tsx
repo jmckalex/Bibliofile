@@ -26,14 +26,11 @@ import {
 } from '@tanstack/react-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faKey, faPaperclip, faSquareCheck } from '@fortawesome/free-solid-svg-icons';
-import { faSquare } from '@fortawesome/free-regular-svg-icons';
 import type { PublicationRow, TFunction } from '@bibdesk/shared';
 import { formatCiteCommand } from '@bibdesk/shared';
 import { useStore, visibleRows } from './store.js';
 import { useT } from './i18n.js';
+import { Icon, type IconName } from './icons.js';
 import { MathText } from './MathText.js';
 import { ColorContextMenu } from './ColorContextMenu.js';
 
@@ -55,8 +52,8 @@ interface ColMeta {
 }
 
 /** A FontAwesome glyph used as a column header, with an accessible tooltip. */
-function HeaderIcon({ icon, title }: { icon: IconDefinition; title: string }) {
-  return <FontAwesomeIcon icon={icon} title={title} aria-label={title} />;
+function HeaderIcon({ name, title }: { name: IconName; title: string }) {
+  return <Icon name={name} title={title} aria-label={title} />;
 }
 
 // TanStack types `columns` as `ColumnDef<TData, any>[]`; mixing string accessors
@@ -100,16 +97,16 @@ function builtinDefs(t: TFunction): Record<string, Col> {
     }),
     keywords: col.display({
       id: 'keywords',
-      header: () => <HeaderIcon icon={faKey} title={t('column.keywords')} />,
+      header: () => <HeaderIcon name="keywords" title={t('column.keywords')} />,
       meta: { width: 34, cellClass: 'bd-td--icon' } satisfies ColMeta,
       cell: ({ row }) =>
         row.original.hasKeywords ? (
-          <FontAwesomeIcon className="bd-icon bd-icon--key" icon={faKey} title={t('table.hasKeywords')} />
+          <Icon name="keywords" className="bd-icon bd-icon--key" title={t('table.hasKeywords')} />
         ) : null,
     }),
     attachments: col.display({
       id: 'attachments',
-      header: () => <HeaderIcon icon={faPaperclip} title={t('column.attachments')} />,
+      header: () => <HeaderIcon name="attachment" title={t('column.attachments')} />,
       meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
       cell: ({ row }) => {
         const n = row.original.attachmentCount;
@@ -119,7 +116,7 @@ function builtinDefs(t: TFunction): Record<string, Col> {
             className="bd-icon bd-icon--clip"
             title={t(n === 1 ? 'table.attachmentTooltip' : 'table.attachmentTooltipPlural', { count: n })}
           >
-            <FontAwesomeIcon icon={faPaperclip} />
+            <Icon name="attachment" />
             {n > 1 && <span className="bd-icon__count">{n}</span>}
           </span>
         );
@@ -127,16 +124,16 @@ function builtinDefs(t: TFunction): Record<string, Col> {
     }),
     read: col.display({
       id: 'read',
-      header: () => <HeaderIcon icon={faSquareCheck} title={t('column.read')} />,
+      header: () => <HeaderIcon name="read" title={t('column.read')} />,
       meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
       // 1 = read (checked), -1 = explicitly unread (empty box), 0 = unset (blank).
       cell: ({ row }) => {
         const r = row.original.read;
         if (r === 0) return null;
         return r === 1 ? (
-          <FontAwesomeIcon className="bd-icon bd-icon--checked" icon={faSquareCheck} title={t('column.read')} />
+          <Icon name="read" className="bd-icon bd-icon--checked" title={t('column.read')} />
         ) : (
-          <FontAwesomeIcon className="bd-icon bd-icon--unchecked" icon={faSquare} title={t('table.unread')} />
+          <Icon name="unread" className="bd-icon bd-icon--unchecked" title={t('table.unread')} />
         );
       },
     }),
@@ -146,7 +143,14 @@ function builtinDefs(t: TFunction): Record<string, Col> {
       meta: { width: 80, cellClass: 'bd-td--rating' } satisfies ColMeta,
       cell: ({ row }) => {
         const n = row.original.rating;
-        return n > 0 ? <span title={`${n}/5`}>{'★'.repeat(n)}</span> : null;
+        if (n <= 0) return null;
+        return (
+          <span className="bd-rating" title={`${n}/5`} aria-label={`${n}/5`}>
+            {Array.from({ length: n }, (_, i) => (
+              <Icon key={i} name="starOn" className="bd-icon--star" />
+            ))}
+          </span>
+        );
       },
     }),
   };
@@ -407,7 +411,7 @@ export function PublicationsTable() {
                   {flexRender(header.column.columnDef.header, header.getContext())}
                   {spec && (
                     <span className="bd-th__sort" aria-hidden="true">
-                      {spec.direction === 'asc' ? '▲' : '▼'}
+                      <Icon name={spec.direction === 'asc' ? 'sortAsc' : 'sortDesc'} />
                       {rank > 0 && <span className="bd-th__sort-rank">{rank}</span>}
                     </span>
                   )}

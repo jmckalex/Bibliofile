@@ -13,18 +13,19 @@ import { useEffect, useMemo, useState, type DragEvent, type JSX } from 'react';
 import type { GroupKind, GroupNode } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon, type IconName } from './icons.js';
 import { SmartGroupDialog } from './SmartGroupDialog.js';
 
-/** Simple glyph per group kind (no icon dependency). */
-const KIND_ICON: Record<GroupKind, string> = {
-  library: '📚',
-  static: '📁',
-  smart: '⚙',
-  category: '🏷',
-  author: '👤',
-  url: '🔗',
-  script: '📜',
-  folder: '🗂',
+/** FontAwesome icon name per group kind. */
+const KIND_ICON: Record<GroupKind, IconName> = {
+  library: 'library',
+  static: 'staticGroup',
+  smart: 'smartGroup',
+  category: 'categoryGroup',
+  author: 'authorGroup',
+  url: 'urlGroup',
+  script: 'scriptGroup',
+  folder: 'folder',
 };
 
 const EDITABLE = (k: GroupKind): boolean => k === 'static' || k === 'smart';
@@ -146,13 +147,13 @@ function GroupRow({
             onToggle(node);
           }}
         >
-          {open ? '▾' : '▸'}
+          <Icon name={open ? 'chevronDown' : 'chevronRight'} />
         </button>
       ) : (
         <span className="bd-group__twisty bd-group__twisty--leaf" aria-hidden="true" />
       )}
       <span className="bd-group__icon" aria-hidden="true">
-        {KIND_ICON[node.kind]}
+        <Icon name={KIND_ICON[node.kind]} />
       </span>
       {editing ? (
         <input
@@ -180,7 +181,7 @@ function GroupRow({
             onEditSmart(node.id);
           }}
         >
-          ✎
+          <Icon name="edit" />
         </button>
       )}
       {node.kind === 'folder' && !editing && (
@@ -193,7 +194,7 @@ function GroupRow({
             onExportFolder(node.id);
           }}
         >
-          📤
+          <Icon name="exportFolder" />
         </button>
       )}
       {DELETABLE(node.kind) && !editing && (
@@ -206,7 +207,7 @@ function GroupRow({
             onDelete(node);
           }}
         >
-          ×
+          <Icon name="close" />
         </button>
       )}
     </div>
@@ -392,13 +393,13 @@ export function GroupsSidebar() {
       {hasDoc && (
         <div className="bd-sidebar__actions">
           <button type="button" className="bd-btn bd-btn--small" onClick={() => void newStatic()} title={t('sidebar.newStaticGroup')}>
-            {t('sidebar.group')}
+            <Icon name="plus" /> {t('sidebar.group')}
           </button>
           <button type="button" className="bd-btn bd-btn--small" onClick={() => setSmartOpen(true)} title={t('sidebar.newSmartGroup')}>
-            {t('sidebar.smart')}
+            <Icon name="smartGroup" /> {t('sidebar.smart')}
           </button>
           <button type="button" className="bd-btn bd-btn--small" onClick={() => void newFolder()} title={t('sidebar.newFolder')}>
-            {t('sidebar.folder')}
+            <Icon name="folder" /> {t('sidebar.folder')}
           </button>
         </div>
       )}

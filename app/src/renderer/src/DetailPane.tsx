@@ -13,6 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon, type IconName } from './icons.js';
 import { typesetMath, hasMath } from './mathjax.js';
 
 /** Fallback BibTeX entry types if the dynamic list hasn't loaded yet. */
@@ -22,8 +23,8 @@ const ENTRY_TYPES = [
   'unpublished', 'booklet',
 ];
 
-function fileIcon(kind: ItemFile['kind']): string {
-  return kind === 'url' ? '🔗' : '📄';
+function fileIcon(kind: ItemFile['kind']): IconName {
+  return kind === 'url' ? 'link' : 'file';
 }
 
 function openExternal(target: string, kind: 'url' | 'file'): void {
@@ -99,7 +100,7 @@ export function PreviewCard({ html, files = [] }: { html: string; files?: readon
               onClick={() => openFile(f)}
             >
               <span className="bd-file__icon" aria-hidden="true">
-                📄
+                <Icon name="file" />
               </span>
               {f.displayName}
             </button>
@@ -133,7 +134,7 @@ function RatingStars({ value, onChange }: { value: string; onChange: (v: string)
           aria-checked={i === n}
           onClick={() => onChange(i === n ? '' : String(i))}
         >
-          {i <= n ? '★' : '☆'}
+          <Icon name={i <= n ? 'starOn' : 'starOff'} />
         </button>
       ))}
     </span>
@@ -223,7 +224,7 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
             aria-label={t('detail.removeField', { name: field.name })}
             onClick={() => void edit({ kind: 'removeField', itemId, field: field.name })}
           >
-            −
+            <Icon name="removeMinus" />
           </button>
         )}
         {field.required && (
@@ -281,7 +282,7 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
           aria-label={t('detail.discardField')}
           onClick={onDone}
         >
-          −
+          <Icon name="removeMinus" />
         </button>
       </div>
     </div>
@@ -545,7 +546,7 @@ export function Attachments({
         onClick={() => openExternal(file.url, file.kind === 'url' ? 'url' : 'file')}
       >
         <span className="bd-file__icon" aria-hidden="true">
-          {fileIcon(file.kind)}
+          <Icon name={fileIcon(file.kind)} />
         </span>
         <span className="bd-file__name">{file.displayName}</span>
       </button>
@@ -556,7 +557,7 @@ export function Attachments({
           title={t('detail.removeAttachment')}
           onClick={() => void removeAttachment(detail.id, file.field!)}
         >
-          ×
+          <Icon name="close" />
         </button>
       )}
     </li>
@@ -573,7 +574,7 @@ export function Attachments({
             title={t('detail.attachTitle')}
             onClick={() => void addAttachment(detail.id)}
           >
-            {t('detail.add')}
+            <Icon name="plus" /> {t('detail.add')}
           </button>
         )}
       </div>

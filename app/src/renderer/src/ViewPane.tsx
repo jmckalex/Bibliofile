@@ -13,6 +13,7 @@ import { PreviewCard, CitationBlock, JournalCover, NotesSection, Attachments } f
 import { MathText } from './MathText.js';
 import { hydratePanel } from './panel-hydrate.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 /** Read-only field list: cite key, type, then each field's de-TeXified value. */
 function ReadOnlyFields({ detail }: { detail: ItemDetail }) {
@@ -85,7 +86,7 @@ export function ViewPane() {
           title={t('view.editTitle')}
           onClick={() => openEditor(detail.id)}
         >
-          ✎ Edit…
+          <Icon name="edit" /> Edit…
         </button>
       </div>
       {documentId && <JournalCover documentId={documentId} itemId={detail.id} />}

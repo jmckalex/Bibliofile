@@ -8,12 +8,11 @@
  */
 
 import { useEffect, useState } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFilePdf } from '@fortawesome/free-solid-svg-icons';
 import type { MenuCommand } from '@bibdesk/shared';
 import { formatCiteCommand } from '@bibdesk/shared';
 import { getStore, useStore, visibleRows } from './store.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 import { GroupsSidebar } from './GroupsSidebar.js';
 import { PublicationsTable } from './PublicationsTable.js';
 import { Splitter, RightPane, BottomPanel } from './Panels.js';
@@ -41,7 +40,7 @@ function ThemeToggle() {
       aria-label={t('theme.toggle')}
       onClick={() => void save({ theme: isDark ? 'light' : 'dark' })}
     >
-      {isDark ? '☀' : '☾'}
+      <Icon name={isDark ? 'themeLight' : 'themeDark'} />
     </button>
   );
 }
@@ -64,7 +63,7 @@ function SearchBox() {
         title={fullText ? t('search.pdfOn') : t('search.pdfOff')}
         onClick={() => void setFullTextSearch(!fullText)}
       >
-        <FontAwesomeIcon icon={faFilePdf} />
+        <Icon name="pdf" />
       </button>
       <input
         className="bd-search__input"
@@ -105,7 +104,7 @@ function Header() {
       <span className="bd-header__spacer" />
       {warnings > 0 && (
         <span className="bd-header__warn">
-          {t(warnings === 1 ? 'header.parseWarning' : 'header.parseWarnings', { count: warnings })}
+          <Icon name="warning" /> {t(warnings === 1 ? 'header.parseWarning' : 'header.parseWarnings', { count: warnings })}
         </span>
       )}
       <SearchBox />
@@ -154,7 +153,7 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
   return (
     <div className="bd-toolbar">
       <button type="button" className="bd-btn" onClick={() => void edit({ kind: 'addEntry', entryType: defaultType })}>
-        {t('toolbar.new')}
+        <Icon name="plus" /> {t('toolbar.new')}
       </button>
       <button
         type="button"
@@ -162,7 +161,7 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
         disabled={!selectedItemId}
         onClick={() => selectedItemId && void edit({ kind: 'duplicateEntry', itemId: selectedItemId })}
       >
-        {t('toolbar.duplicate')}
+        <Icon name="duplicate" /> {t('toolbar.duplicate')}
       </button>
       <button
         type="button"
@@ -170,11 +169,11 @@ function Toolbar({ onOpenMacros, onOpenOnline }: { onOpenMacros: () => void; onO
         disabled={!selectedItemId}
         onClick={() => selectedItemId && void edit({ kind: 'deleteEntry', itemId: selectedItemId })}
       >
-        {t('toolbar.delete')}
+        <Icon name="trash" /> {t('toolbar.delete')}
       </button>
       <span className="bd-toolbar__spacer" />
       <button type="button" className="bd-btn" onClick={onOpenOnline}>
-        {t('toolbar.online')}
+        <Icon name="online" /> {t('toolbar.online')}
       </button>
       <button type="button" className="bd-btn" onClick={onOpenMacros}>
         {t('toolbar.macros')}

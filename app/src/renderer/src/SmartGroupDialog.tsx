@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import type { SmartCondition } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 const COMPARISONS: { value: number; labelKey: string }[] = [
   { value: 2, labelKey: 'smart.cmp.contains' },
@@ -97,7 +98,7 @@ export function SmartGroupDialog({
         <div className="bd-modal__header">
           <span>{title}</span>
           <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
-            ×
+            <Icon name="close" />
           </button>
         </div>
         <div className="bd-modal__body">
@@ -132,7 +133,7 @@ export function SmartGroupDialog({
               </select>
               <input className="bd-input" placeholder={t('smart.valuePlaceholder')} value={r.value} onChange={(e) => update(i, { value: e.target.value })} />
               <button type="button" className="bd-field__del" title={t('smart.removeCondition')} onClick={() => removeRow(i)}>
-                ×
+                <Icon name="close" />
               </button>
             </div>
           ))}

@@ -13,10 +13,15 @@
  */
 import Handlebars from 'handlebars';
 import type { ItemDetail } from '@bibdesk/shared';
+import { panelIconSvg } from '../icon-svg.js';
 
 // Equality helper for panel templates, e.g. `{{#if (eq type "book")}}…{{/if}}`.
 // Registered on the shared Handlebars singleton (idempotent across imports).
 Handlebars.registerHelper('eq', (a: unknown, b: unknown) => a === b);
+
+// Inline-icon helper, e.g. `{{icon "file"}}` → a FontAwesome SVG (file/link/edit).
+// Emits trusted markup, so it returns a SafeString (not auto-escaped).
+Handlebars.registerHelper('icon', (name: unknown) => new Handlebars.SafeString(panelIconSvg(String(name))));
 
 /** Look up a display field value by (case-insensitive) name. */
 function fieldValue(fields: ItemDetail['fields'], name: string): string {
@@ -32,7 +37,7 @@ function fieldValue(fields: ItemDetail['fields'], name: string): string {
  * a section entirely when its data is absent (Handlebars treats `[]` as falsy).
  */
 export const DEFAULT_DETAILS_TEMPLATE = `<div class="bd-view__actions">
-  <button type="button" class="bd-btn bd-btn--small bd-btn--primary" title="Edit this publication in a separate window" data-action="edit">✎ Edit…</button>
+  <button type="button" class="bd-btn bd-btn--small bd-btn--primary" title="Edit this publication in a separate window" data-action="edit">{{icon "edit"}} Edit…</button>
 </div>
 <bd-journal-cover doc-id="{{documentId}}" item-id="{{id}}"></bd-journal-cover>
 {{#if previewHtml}}<div class="bd-preview">{{{previewHtml}}}</div>{{/if}}
@@ -51,8 +56,8 @@ export const DEFAULT_DETAILS_TEMPLATE = `<div class="bd-view__actions">
 <div class="bd-detail__section bd-detail__section--withaction"><span>Annotation</span></div>
 {{#if notesHtml}}<div class="bd-notes">{{{notesHtml}}}</div>{{else}}<div class="bd-notes__empty">No annotation.</div>{{/if}}
 <div class="bd-detail__section bd-detail__section--withaction"><span>Attachments</span></div>
-{{#if attachments}}<ul class="bd-files">{{#each attachments}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-file="{{url}}"><span class="bd-file__icon" aria-hidden="true">📄</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{else}}<div class="bd-files__empty">No attachments.</div>{{/if}}
-{{#if links}}<div class="bd-detail__section">Links</div><ul class="bd-files">{{#each links}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-url="{{url}}"><span class="bd-file__icon" aria-hidden="true">🔗</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{/if}}`;
+{{#if attachments}}<ul class="bd-files">{{#each attachments}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-file="{{url}}"><span class="bd-file__icon" aria-hidden="true">{{icon "file"}}</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{else}}<div class="bd-files__empty">No attachments.</div>{{/if}}
+{{#if links}}<div class="bd-detail__section">Links</div><ul class="bd-files">{{#each links}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-url="{{url}}"><span class="bd-file__icon" aria-hidden="true">{{icon "link"}}</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{/if}}`;
 
 /**
  * The built-in BOTTOM panel template: a full-width annotation reader for the

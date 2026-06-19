@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -76,7 +77,7 @@ export function Assistant({ onClose }: { onClose: () => void }) {
   return (
     <div className="bd-assistant" role="complementary" aria-label={t('assistant.aria')}>
       <div className="bd-assistant__bar">
-        <span className="bd-assistant__title">{t('assistant.titleBar')}</span>
+        <span className="bd-assistant__title"><Icon name="assistant" /> {t('assistant.titleBar')}</span>
         <span className="bd-toolbar__spacer" />
         {hasKey && (
           <button type="button" className="bd-btn bd-btn--small" onClick={resetChat} title={t('assistant.newChatTitle')}>
@@ -84,7 +85,7 @@ export function Assistant({ onClose }: { onClose: () => void }) {
           </button>
         )}
         <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
-          ×
+          <Icon name="close" />
         </button>
       </div>
 

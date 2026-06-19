@@ -10,6 +10,7 @@ import { useState } from 'react';
 import type { FindReplaceResult } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 // Common fields offered explicitly; "All fields" searches every field.
 const FIELD_OPTIONS = [
@@ -75,7 +76,7 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
             {groupName ? t('fr.inGroup', { name: groupName }) : ''}
           </span>
           <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
-            ×
+            <Icon name="close" />
           </button>
         </div>
         <div className="bd-modal__body">

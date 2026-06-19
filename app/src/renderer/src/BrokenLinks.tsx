@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { BrokenLink } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 export function BrokenLinks({ onClose }: { onClose: () => void }) {
   const t = useT();
@@ -70,7 +71,7 @@ export function BrokenLinks({ onClose }: { onClose: () => void }) {
             )}
           </span>
           <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
-            ×
+            <Icon name="close" />
           </button>
         </div>
         <div className="bd-modal__body">

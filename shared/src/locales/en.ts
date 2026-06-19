@@ -187,10 +187,10 @@ export const en: Catalog = {
   'prefs.fieldType.citation': 'Citation fields',
 
   // --- Toolbar ---
-  'toolbar.new': '＋ New',
-  'toolbar.duplicate': '⧉ Duplicate',
-  'toolbar.delete': '🗑 Delete',
-  'toolbar.online': '🌐 Online…',
+  'toolbar.new': 'New',
+  'toolbar.duplicate': 'Duplicate',
+  'toolbar.delete': 'Delete',
+  'toolbar.online': 'Online…',
   'toolbar.macros': '@string…',
 
   // --- Common (with interpolation) ---
@@ -202,8 +202,8 @@ export const en: Catalog = {
   'header.savingInline': ' (saving…)',
   'header.publication': '{count} publication',
   'header.publications': '{count} publications',
-  'header.parseWarning': '⚠ {count} parse warning',
-  'header.parseWarnings': '⚠ {count} parse warnings',
+  'header.parseWarning': '{count} parse warning',
+  'header.parseWarnings': '{count} parse warnings',
   'footer.row': '{count} row',
   'footer.rows': '{count} rows',
   'footer.rowsOf': '{filtered} of {total} rows',
@@ -231,9 +231,9 @@ export const en: Catalog = {
   'batch.value': 'value',
   'batch.keyword': 'Keyword',
   'batch.set': 'Set',
-  'batch.addKeyword': '+ Keyword',
-  'batch.removeKeyword': '− Keyword',
-  'batch.delete': '🗑 Delete {count}',
+  'batch.addKeyword': 'Keyword',
+  'batch.removeKeyword': 'Keyword',
+  'batch.delete': 'Delete {count}',
 
   // --- Find Duplicates ---
   'dup.ariaLabel': 'Find duplicates',
@@ -253,7 +253,7 @@ export const en: Catalog = {
 
   // --- Panels / detail view ---
   'panel.details': 'Details',
-  'panel.claude': '🤖 Claude',
+  'panel.claude': 'Claude',
   'panel.hide': 'Hide panel',
   'panel.annotation': 'Annotation',
   'panel.hideBottom': 'Hide bottom panel',
@@ -287,7 +287,7 @@ export const en: Catalog = {
   'detail.openFile': 'Open {name}',
   'detail.removeAttachment': 'Remove attachment',
   'detail.attachTitle': 'Attach file(s)',
-  'detail.add': '＋ Add',
+  'detail.add': 'Add',
   'detail.noAttachments': 'No attachments.',
   'detail.links': 'Links',
   'detail.journalCover': '{name} cover',
@@ -317,9 +317,9 @@ export const en: Catalog = {
   'sidebar.groups': 'Groups',
   'sidebar.collapse': 'Collapse',
   'sidebar.expand': 'Expand',
-  'sidebar.group': '＋ Group',
-  'sidebar.smart': '⚙ Smart',
-  'sidebar.folder': '🗂 Folder',
+  'sidebar.group': 'Group',
+  'sidebar.smart': 'Smart',
+  'sidebar.folder': 'Folder',
   'sidebar.newStaticGroup': 'New static group',
   'sidebar.newSmartGroup': 'New smart group',
   'sidebar.newFolder': 'New folder',
@@ -362,7 +362,7 @@ export const en: Catalog = {
 
   // --- Claude Assistant ---
   'assistant.aria': 'Claude Assistant',
-  'assistant.titleBar': '🤖 Claude Assistant',
+  'assistant.titleBar': 'Claude Assistant',
   'assistant.newChatTitle': 'New conversation',
   'assistant.newChat': 'New chat',
   'assistant.connectKey':

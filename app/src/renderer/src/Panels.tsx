@@ -9,6 +9,7 @@ import { ViewPane } from './ViewPane.js';
 import { Assistant } from './Assistant.js';
 import { hydratePanel } from './panel-hydrate.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 /** A drag handle between two panels. `onDrag` receives the incremental px delta. */
 export function Splitter({
@@ -75,7 +76,7 @@ export function RightPane() {
           className={'bd-rptab' + (content === 'assistant' ? ' bd-rptab--on' : '')}
           onClick={() => setLayout({ rightPaneContent: 'assistant' })}
         >
-          {t('panel.claude')}
+          <Icon name="assistant" /> {t('panel.claude')}
         </button>
         <span className="bd-toolbar__spacer" />
         <button
@@ -85,7 +86,7 @@ export function RightPane() {
           aria-label={t('panel.hide')}
           onClick={() => setLayout({ rightPaneVisible: false })}
         >
-          ×
+          <Icon name="close" />
         </button>
       </div>
       <div className="bd-rightpane__body">
@@ -130,7 +131,7 @@ export function BottomPanel() {
           aria-label={t('panel.hideBottom')}
           onClick={() => setLayout({ bottomPanelVisible: false })}
         >
-          ×
+          <Icon name="close" />
         </button>
       </div>
       {html ? (

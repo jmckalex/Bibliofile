@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 export function BatchBar() {
   const t = useT();
@@ -68,10 +69,10 @@ export function BatchBar() {
           }}
         />
         <button type="button" className="bd-btn bd-btn--small" disabled={!keyword.trim()} onClick={() => applyKeyword('addKeyword')}>
-          {t('batch.addKeyword')}
+          <Icon name="plus" /> {t('batch.addKeyword')}
         </button>
         <button type="button" className="bd-btn bd-btn--small" disabled={!keyword.trim()} onClick={() => applyKeyword('removeKeyword')}>
-          {t('batch.removeKeyword')}
+          <Icon name="removeMinus" /> {t('batch.removeKeyword')}
         </button>
       </span>
 
@@ -80,7 +81,7 @@ export function BatchBar() {
         className="bd-btn bd-btn--small bd-btn--danger"
         onClick={() => void batchEdit({ kind: 'delete' })}
       >
-        {t('batch.delete', { count: n })}
+        <Icon name="trash" /> {t('batch.delete', { count: n })}
       </button>
     </div>
   );

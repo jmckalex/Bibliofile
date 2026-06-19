@@ -61,6 +61,7 @@ import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT, parseFormat, LOCAL_FILE_FIELD
 import { makeAuthor, splitNameList, OTHERS, type Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
 import { renderMarkdown, renderNotes } from './markdown.js';
+import { panelIconSvg } from '../icon-svg.js';
 import {
   readAnnotation,
   writeAnnotation,
@@ -792,7 +793,7 @@ export function buildPreviewHtml(item: BibItem, fileCount: number): string | und
     );
   if (fileCount > 0)
     chips.push(
-      `<button type="button" class="bd-chip bd-chip--files" data-open-files="1">📎 ${fileCount} ${fileCount === 1 ? 'file' : 'files'}</button>`,
+      `<button type="button" class="bd-chip bd-chip--files" data-open-files="1">${panelIconSvg('paperclip')} ${fileCount} ${fileCount === 1 ? 'file' : 'files'}</button>`,
     );
   if (chips.length) p.push(`<div class="bd-card__chips">${chips.join('')}</div>`);
 

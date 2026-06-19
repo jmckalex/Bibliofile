@@ -8,6 +8,7 @@
  */
 import { getStore } from './store.js';
 import { typesetMath, hasMath } from './mathjax.js';
+import { panelIconSvg } from '../../icon-svg.js';
 
 function openExternal(target: string, kind: 'url' | 'file'): void {
   void window.bibdesk?.openExternal({ target, kind });
@@ -41,7 +42,7 @@ function openFilesMenu(anchor: HTMLElement): void {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'bd-filemenu__item';
-    b.innerHTML = '<span class="bd-file__icon" aria-hidden="true">📄</span>';
+    b.innerHTML = `<span class="bd-file__icon" aria-hidden="true">${panelIconSvg('file')}</span>`;
     b.appendChild(document.createTextNode(f.displayName));
     b.addEventListener('click', () => {
       openExternal(f.url, 'file');

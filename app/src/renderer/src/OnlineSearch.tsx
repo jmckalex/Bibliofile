@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { ONLINE_SOURCES, type OnlineResult, type OnlineSource } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
+import { Icon } from './icons.js';
 
 export function OnlineSearch({ onClose }: { onClose: () => void }) {
   const t = useT();
@@ -42,7 +43,7 @@ export function OnlineSearch({ onClose }: { onClose: () => void }) {
         <div className="bd-modal__header">
           <span>{t('online.title')}</span>
           <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
-            ×
+            <Icon name="close" />
           </button>
         </div>
         <div className="bd-online__bar">
