@@ -49,6 +49,7 @@ import {
 import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 
 import { DocumentStore } from './document-service.js';
+import { resolveActivePanelBody } from './panel.js';
 import { runAgentTurn } from './agent.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
@@ -1887,8 +1888,8 @@ function registerIpc(): void {
         autoFileFormat: s.autoFileFormat,
         annotationStorage: s.annotationStorage,
         defaultCiteStyle: s.defaultCiteStyle,
-        detailsTemplate: s.detailsTemplate,
-        bottomPanelTemplate: s.bottomPanelTemplate,
+        detailsTemplate: resolveActivePanelBody(s.detailsForks, s.activeDetailsFork),
+        bottomPanelTemplate: resolveActivePanelBody(s.bottomForks, s.activeBottomFork),
       });
       // Re-localize the menu when the UI language changes.
       if (req.patch.locale !== undefined) setMainLocale(s.locale);
@@ -2445,8 +2446,8 @@ if (!gotLock) {
       autoFileFormat: settings.autoFileFormat,
       annotationStorage: settings.annotationStorage,
       defaultCiteStyle: settings.defaultCiteStyle,
-      detailsTemplate: settings.detailsTemplate,
-      bottomPanelTemplate: settings.bottomPanelTemplate,
+      detailsTemplate: resolveActivePanelBody(settings.detailsForks, settings.activeDetailsFork),
+      bottomPanelTemplate: resolveActivePanelBody(settings.bottomForks, settings.activeBottomFork),
     });
     registerIpc();
     buildMenu();

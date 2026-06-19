@@ -12,8 +12,13 @@
  * `ItemDetail.detailsPanelHtml`.
  */
 import Handlebars from 'handlebars';
-import type { ItemDetail } from '@bibdesk/shared';
+import type { ItemDetail, PanelTemplate } from '@bibdesk/shared';
+import { DEFAULT_DETAILS_TEMPLATE, DEFAULT_BOTTOM_TEMPLATE } from '@bibdesk/shared';
 import { panelIconSvg } from '../icon-svg.js';
+
+// The built-in default bodies now live in @bibdesk/shared (so the renderer can
+// seed a fork from them too); re-export here for existing main-side importers.
+export { DEFAULT_DETAILS_TEMPLATE, DEFAULT_BOTTOM_TEMPLATE };
 
 // Equality helper for panel templates, e.g. `{{#if (eq type "book")}}…{{/if}}`.
 // Registered on the shared Handlebars singleton (idempotent across imports).
@@ -28,44 +33,6 @@ function fieldValue(fields: ItemDetail['fields'], name: string): string {
   const lower = name.toLowerCase();
   return fields.find((f) => f.name.toLowerCase() === lower)?.value ?? '';
 }
-
-/**
- * The built-in details template. Emits the INNER content of `.bd-detail.bd-view`
- * (the host div provides those classes), mirroring `ViewPane` section-for-section
- * and class-for-class. `{{value}}` is auto-escaped; `{{{previewHtml}}}` /
- * `{{{notesHtml}}}` are trusted main-rendered HTML. Conditionals (`{{#if}}`) drop
- * a section entirely when its data is absent (Handlebars treats `[]` as falsy).
- */
-export const DEFAULT_DETAILS_TEMPLATE = `<div class="bd-view__actions">
-  <button type="button" class="bd-btn bd-btn--small bd-btn--primary" title="Edit this publication in a separate window" data-action="edit">{{icon "edit"}} Edit…</button>
-</div>
-<bd-journal-cover doc-id="{{documentId}}" item-id="{{id}}"></bd-journal-cover>
-{{#if previewHtml}}<div class="bd-preview">{{{previewHtml}}}</div>{{/if}}
-<bd-citation doc-id="{{documentId}}" item-id="{{id}}" cite-style="{{citeStyle}}"></bd-citation>
-<div class="bd-detail__section">Fields</div>
-<dl class="bd-viewfields">
-  <dt>Cite Key</dt>
-  <dd class="bd-viewfields__mono">{{citeKey}}</dd>
-  <dt>Type</dt>
-  <dd>{{type}}</dd>
-  {{#each fields}}
-  <dt{{#if isInherited}} class="bd-viewfields__inherited"{{/if}}>{{name}}{{#if isInherited}}<span class="bd-field__badge">(inherited)</span>{{/if}}</dt>
-  <dd>{{value}}</dd>
-  {{/each}}
-</dl>
-<div class="bd-detail__section bd-detail__section--withaction"><span>Annotation</span></div>
-{{#if notesHtml}}<div class="bd-notes">{{{notesHtml}}}</div>{{else}}<div class="bd-notes__empty">No annotation.</div>{{/if}}
-<div class="bd-detail__section bd-detail__section--withaction"><span>Attachments</span></div>
-{{#if attachments}}<ul class="bd-files">{{#each attachments}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-file="{{url}}"><span class="bd-file__icon" aria-hidden="true">{{icon "file"}}</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{else}}<div class="bd-files__empty">No attachments.</div>{{/if}}
-{{#if links}}<div class="bd-detail__section">Links</div><ul class="bd-files">{{#each links}}<li class="bd-file"><button type="button" class="bd-file__btn" title="Open {{displayName}}" data-open-url="{{url}}"><span class="bd-file__icon" aria-hidden="true">{{icon "link"}}</span><span class="bd-file__name">{{displayName}}</span></button></li>{{/each}}</ul>{{/if}}`;
-
-/**
- * The built-in BOTTOM panel template: a full-width annotation reader for the
- * current selection (the wider format is easier to read than the narrow side
- * pane). Shares the same per-item context as the details template.
- */
-export const DEFAULT_BOTTOM_TEMPLATE = `<div class="bd-detail__section">Annotation — <span class="bd-viewfields__mono">{{citeKey}}</span></div>
-{{#if notesHtml}}<div class="bd-notes bd-notes--wide">{{{notesHtml}}}</div>{{else}}<div class="bd-notes__empty">No annotation for this entry.</div>{{/if}}`;
 
 /** Per-item context exposed to the details/panel template. */
 export interface DetailPanelContext {
@@ -124,6 +91,20 @@ function compile(body: string): Handlebars.TemplateDelegate {
     cache.set(body, fn);
   }
   return fn;
+}
+
+/**
+ * Resolve the active fork's body for a panel: the body of the fork named
+ * `activeName`, or `undefined` (⇒ the built-in default) when nothing is selected,
+ * the name is unknown, or the fork body is empty. The `undefined` return flows
+ * straight into the `renderDetailsPanel`/`renderBottomPanel` default fallback.
+ */
+export function resolveActivePanelBody(
+  forks: readonly PanelTemplate[],
+  activeName: string | undefined,
+): string | undefined {
+  if (!activeName) return undefined;
+  return forks.find((f) => f.name === activeName)?.body || undefined;
 }
 
 /**

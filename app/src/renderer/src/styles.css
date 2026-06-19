@@ -2528,6 +2528,29 @@ button.bd-chip {
   margin: 6px 0;
 }
 
+/* ---- panel-template forks --------------------------------------------- */
+
+.bd-panelfork {
+  margin-bottom: 16px;
+}
+
+.bd-panelfork + .bd-panelfork {
+  border-top: 1px solid var(--bd-border);
+  padding-top: 12px;
+}
+
+.bd-panelfork__activelabel {
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-faint);
+}
+
+.bd-panelfork__add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .bd-tmpl__preview {
   max-height: 220px;
   overflow: auto;

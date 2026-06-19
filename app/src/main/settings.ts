@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { sharedTypeManager } from '@bibdesk/model';
 import { DEFAULT_SETTINGS, type Settings } from '@bibdesk/shared';
+import { migrateSettings } from './settings-migrate.js';
 
 let current: Settings = DEFAULT_SETTINGS;
 
@@ -23,22 +24,6 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
     ...patch,
     fieldTypes: { ...base.fieldTypes, ...(patch.fieldTypes ?? {}) },
   };
-}
-
-/** The previous factory default for {@link Settings.citeKeyFormat}. */
-const OLD_DEFAULT_CITE_KEY_FORMAT = '%a1:%Y%u2';
-
-/**
- * One-time upgrades of stale persisted defaults to the current ones. The default
- * cite-key format changed from `%u2` (always two letters) to `%u0` (a letter only
- * on collision); carry anyone still on the old default forward. A user who set a
- * different format keeps it.
- */
-function migrate(s: Settings): Settings {
-  if (s.citeKeyFormat === OLD_DEFAULT_CITE_KEY_FORMAT) {
-    return { ...s, citeKeyFormat: DEFAULT_SETTINGS.citeKeyFormat };
-  }
-  return s;
 }
 
 /** Write settings to disk (best-effort; non-fatal on failure). */
@@ -80,7 +65,7 @@ export function loadSettings(): Settings {
   try {
     if (existsSync(settingsPath())) {
       const loaded = merge(DEFAULT_SETTINGS, JSON.parse(readFileSync(settingsPath(), 'utf8')));
-      current = migrate(loaded);
+      current = migrateSettings(loaded);
       if (current !== loaded) persist(current); // write the upgrade back
     }
   } catch {

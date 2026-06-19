@@ -972,6 +972,17 @@ export interface ExportTemplate {
   readonly body: string;
 }
 
+/**
+ * A named, user-editable "fork" of a panel (detail-pane / bottom-panel) template:
+ * a label the user picks + the Handlebars body. Forks are created by copying the
+ * built-in default (or a preset), can be renamed/deleted, and one per panel can be
+ * made the active template (see {@link Settings.activeDetailsFork}).
+ */
+export interface PanelTemplate {
+  readonly name: string;
+  readonly body: string;
+}
+
 /** Application preferences (persisted; the BibDesk-equivalent options this app has). */
 export interface Settings {
   /** UI locale: `'system'` (follow the OS) or a code from `LOCALES` (e.g. `'fr'`). */
@@ -1027,9 +1038,23 @@ export interface Settings {
   readonly exportTemplates: readonly ExportTemplate[];
   /** Resizable/hidable panel layout (persisted across sessions). */
   readonly layout: LayoutSettings;
-  /** Override Handlebars template for the detail pane (absent/empty = built-in default). */
+  /** Named, editable forks of the detail-pane template (each copied from the default or a preset). */
+  readonly detailsForks: readonly PanelTemplate[];
+  /** Named, editable forks of the bottom-panel template. */
+  readonly bottomForks: readonly PanelTemplate[];
+  /** Name of the active detail-pane fork; absent/unknown ⇒ the built-in default. */
+  readonly activeDetailsFork?: string;
+  /** Name of the active bottom-panel fork; absent/unknown ⇒ the built-in default. */
+  readonly activeBottomFork?: string;
+  /**
+   * @deprecated Migration-only. The pre-fork single override for the detail pane;
+   * folded into a `detailsForks` entry on load (see `main/settings-migrate.ts`).
+   */
   readonly detailsTemplate?: string;
-  /** Override Handlebars template for the bottom panel (absent/empty = built-in default). */
+  /**
+   * @deprecated Migration-only. The pre-fork single override for the bottom panel;
+   * folded into a `bottomForks` entry on load.
+   */
   readonly bottomPanelTemplate?: string;
 }
 
@@ -1093,6 +1118,8 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   customTypes: {},
   exportTemplates: [],
+  detailsForks: [],
+  bottomForks: [],
   layout: {
     rightPaneWidth: 340,
     rightPaneVisible: true,

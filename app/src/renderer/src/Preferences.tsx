@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { CITATION_STYLES, BUILTIN_COLUMNS, LOCALES, type Settings, type EntryTypeInfo, type ExportTemplate } from '@bibdesk/shared';
+import { CITATION_STYLES, BUILTIN_COLUMNS, LOCALES, defaultPanelBody, type Settings, type EntryTypeInfo, type ExportTemplate, type PanelTemplate, type PanelWhich } from '@bibdesk/shared';
 import { useT } from './i18n.js';
 import { CodeEditor } from './CodeEditor.js';
 import { Icon, type IconName } from './icons.js';
@@ -444,28 +444,25 @@ function TemplatesSection({
   );
 }
 
-/** One panel-template editor (detail or bottom) with a live preview. */
-function PanelTemplateEditor({
+/** One fork editor (label + body + live preview + delete) for a panel template. */
+function PanelForkRow({
+  fork,
   which,
-  label,
-  field,
-  value,
   documentId,
-  save,
+  onChange,
+  onRemove,
 }: {
-  which: 'details' | 'bottom';
-  label: string;
-  field: 'detailsTemplate' | 'bottomPanelTemplate';
-  value: string;
+  fork: PanelTemplate;
+  which: PanelWhich;
   documentId: string | undefined;
-  save: (patch: Partial<Settings>) => Promise<void>;
+  onChange: (patch: Partial<PanelTemplate>) => void;
+  onRemove: () => void;
 }) {
   const t = useT();
-  const [body, setBody] = useState(value);
+  const [body, setBody] = useState(fork.body);
   const [preview, setPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'text' | 'html'>('html');
-  const presets = PANEL_PRESETS.filter((p) => p.for === which || p.for === 'both');
 
   const runPreview = async (): Promise<void> => {
     if (!documentId) {
@@ -487,49 +484,23 @@ function PanelTemplateEditor({
   return (
     <div className="bd-ctype">
       <div className="bd-ctype__head">
-        <strong>{label}</strong>
-        <span className="bd-toolbar__spacer" />
-        <select
-          className="bd-input bd-select"
-          defaultValue=""
-          aria-label={t('prefs.loadPresetAria')}
-          title={t('prefs.loadPresetTitle')}
-          onChange={(e) => {
-            const p = presets.find((x) => x.name === e.target.value);
-            if (p) {
-              setBody(p.body);
-              void save({ [field]: p.body } as Partial<Settings>);
-            }
-            e.currentTarget.value = '';
-          }}
-        >
-          <option value="">{t('prefs.loadPreset')}</option>
-          {presets.map((p) => (
-            <option key={p.name} value={p.name}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="bd-btn bd-btn--small"
-          title={t('prefs.resetTitle')}
-          onClick={() => {
-            setBody('');
-            void save({ [field]: undefined } as Partial<Settings>);
-          }}
-        >
-          {t('prefs.reset')}
+        <input
+          className="bd-input"
+          defaultValue={fork.name}
+          aria-label={t('prefs.templateName')}
+          onBlur={(e) => onChange({ name: e.target.value.trim() || fork.name })}
+        />
+        <button type="button" className="bd-field__del" title={t('prefs.deleteTemplate')} onClick={onRemove}>
+          <Icon name="close" />
         </button>
       </div>
       <CodeEditor
         language="html"
         value={body}
-        placeholder={t('prefs.leaveEmptyDefault')}
         minHeight="140px"
         onChange={setBody}
         onBlur={() => {
-          if (body !== value) void save({ [field]: body } as Partial<Settings>);
+          if (body !== fork.body) onChange({ body });
         }}
       />
       <div className="bd-tmpl__actions">
@@ -567,7 +538,136 @@ function PanelTemplateEditor({
   );
 }
 
-/** Edit the (optional) detail-pane and bottom-panel Handlebars templates. */
+/**
+ * Manage the named forks of ONE panel (detail pane or bottom panel): pick which
+ * one is active (or the built-in default), add a fork from the default or a
+ * preset, and rename / edit / delete each. A new fork becomes active immediately
+ * so the user sees it in the live panel.
+ */
+function PanelForkManager({
+  which,
+  label,
+  forks,
+  active,
+  activeField,
+  forksField,
+  documentId,
+  save,
+}: {
+  which: PanelWhich;
+  label: string;
+  forks: readonly PanelTemplate[];
+  active: string | undefined;
+  activeField: 'activeDetailsFork' | 'activeBottomFork';
+  forksField: 'detailsForks' | 'bottomForks';
+  documentId: string | undefined;
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const t = useT();
+  const presets = PANEL_PRESETS.filter((p) => p.for === which || p.for === 'both');
+  const apply = (patch: Record<string, unknown>): void => void save(patch as Partial<Settings>);
+
+  const uniqueName = (base: string): string => {
+    const taken = new Set(forks.map((f) => f.name));
+    if (!taken.has(base)) return base;
+    for (let n = 2; ; n++) {
+      const candidate = `${base} ${n}`;
+      if (!taken.has(candidate)) return candidate;
+    }
+  };
+
+  const update = (i: number, patch: Partial<PanelTemplate>): void => {
+    // Reject a rename that collides with another fork (the input keeps its old value).
+    if (patch.name !== undefined && forks.some((f, j) => j !== i && f.name === patch.name)) return;
+    const prevName = forks[i]!.name;
+    const next = forks.map((f, j) => (j === i ? { ...f, ...patch } : f));
+    // Keep the active pointer in sync when the active fork is renamed.
+    const renamedActive = patch.name !== undefined && active === prevName;
+    apply(renamedActive ? { [forksField]: next, [activeField]: patch.name } : { [forksField]: next });
+  };
+
+  const remove = (i: number): void => {
+    const removed = forks[i]!.name;
+    const next = forks.filter((_, j) => j !== i);
+    // Deleting the active fork falls back to the built-in default.
+    apply(active === removed ? { [forksField]: next, [activeField]: undefined } : { [forksField]: next });
+  };
+
+  const addFork = (base: string, body: string): void => {
+    const name = uniqueName(base);
+    apply({ [forksField]: [...forks, { name, body }], [activeField]: name });
+  };
+
+  // An empty value resets the panel to the built-in default; a stale active name
+  // (its fork was deleted) also shows as the default.
+  const activeValue = active && forks.some((f) => f.name === active) ? active : '';
+
+  return (
+    <div className="bd-panelfork">
+      <div className="bd-ctype__head">
+        <strong>{label}</strong>
+        <span className="bd-toolbar__spacer" />
+        <span className="bd-panelfork__activelabel">{t('prefs.activeTemplate')}</span>
+        <select
+          className="bd-input bd-select"
+          value={activeValue}
+          aria-label={t('prefs.activeTemplate')}
+          onChange={(e) => apply({ [activeField]: e.target.value || undefined })}
+        >
+          <option value="">{t('prefs.builtinDefault')}</option>
+          {forks.map((f) => (
+            <option key={f.name} value={f.name}>
+              {f.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      {forks.length === 0 && <p className="bd-prefs__hint">{t('prefs.noForks')}</p>}
+      {forks.map((f, i) => (
+        <PanelForkRow
+          key={f.name}
+          fork={f}
+          which={which}
+          documentId={documentId}
+          onChange={(patch) => update(i, patch)}
+          onRemove={() => remove(i)}
+        />
+      ))}
+      <div className="bd-panelfork__add">
+        <button
+          type="button"
+          className="bd-btn bd-btn--small"
+          title={t('prefs.forkDefaultTitle')}
+          onClick={() => addFork(t('prefs.forkBaseName'), defaultPanelBody(which))}
+        >
+          {t('prefs.forkDefault')}
+        </button>
+        {presets.length > 0 && (
+          <select
+            className="bd-input bd-select"
+            defaultValue=""
+            aria-label={t('prefs.newForkFromPreset')}
+            title={t('prefs.loadPresetTitle')}
+            onChange={(e) => {
+              const p = presets.find((x) => x.name === e.target.value);
+              if (p) addFork(p.name, p.body);
+              e.currentTarget.value = '';
+            }}
+          >
+            <option value="">{t('prefs.newForkFromPreset')}</option>
+            {presets.map((p) => (
+              <option key={p.name} value={p.name}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Fork, label, edit, and switch the detail-pane and bottom-panel templates. */
 function PanelsSection({
   settings,
   documentId,
@@ -582,26 +682,31 @@ function PanelsSection({
     <section className="bd-prefs__section">
       <h3>{t('prefs.panels')}</h3>
       <p className="bd-prefs__hint">
-        Customize the right detail pane and the bottom panel with Handlebars. Per-item context:{' '}
-        <code>citeKey</code>, <code>type</code>, <code>fields</code> (<code>name</code>/<code>value</code>/
+        Fork the right detail pane and the bottom panel to customize them with Handlebars, then pick
+        which fork is active (or keep the built-in default). Per-item context: <code>citeKey</code>,{' '}
+        <code>type</code>, <code>fields</code> (<code>name</code>/<code>value</code>/
         <code>isInherited</code>), <code>{'{{{notesHtml}}}'}</code>, <code>attachments</code> /{' '}
         <code>links</code> (<code>displayName</code>/<code>url</code>), <code>{'{{{previewHtml}}}'}</code>.
         Live widgets: <code>{'<bd-journal-cover>'}</code>, <code>{'<bd-citation>'}</code> (these don’t
-        render in the sandboxed HTML preview, but do in the live panel). Leave empty for the default.
+        render in the sandboxed HTML preview, but do in the live panel).
       </p>
-      <PanelTemplateEditor
+      <PanelForkManager
         which="details"
         label={t('prefs.detailPane')}
-        field="detailsTemplate"
-        value={settings.detailsTemplate ?? ''}
+        forks={settings.detailsForks}
+        active={settings.activeDetailsFork}
+        activeField="activeDetailsFork"
+        forksField="detailsForks"
         documentId={documentId}
         save={save}
       />
-      <PanelTemplateEditor
+      <PanelForkManager
         which="bottom"
         label={t('prefs.bottomPanel')}
-        field="bottomPanelTemplate"
-        value={settings.bottomPanelTemplate ?? ''}
+        forks={settings.bottomForks}
+        active={settings.activeBottomFork}
+        activeField="activeBottomFork"
+        forksField="bottomForks"
         documentId={documentId}
         save={save}
       />

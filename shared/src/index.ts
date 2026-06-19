@@ -111,6 +111,7 @@ export {
   type SelectIncompleteRequest,
   type SelectIncompleteResponse,
   type ExportTemplate,
+  type PanelTemplate,
   type PreviewTemplateRequest,
   type PreviewTemplateResponse,
   type PreviewPanelRequest,
@@ -193,6 +194,16 @@ export { isPublicationRow, isGroupNode } from './guards.js';
 
 // --- Cite-command formatting ------------------------------------------------
 export { formatCiteCommand } from './cite.js';
+
+// --- Built-in panel template bodies -----------------------------------------
+/** The built-in detail/bottom Handlebars bodies, shared by the renderer (seed a
+ *  fork) and main (render the panel). */
+export {
+  DEFAULT_DETAILS_TEMPLATE,
+  DEFAULT_BOTTOM_TEMPLATE,
+  defaultPanelBody,
+  type PanelWhich,
+} from './panel-templates.js';
 
 // --- Localization (i18n) ----------------------------------------------------
 /** Dependency-free i18n: locale list, resolver, and a `makeT` translate factory. */

@@ -6,7 +6,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import type { ItemDetail } from '@bibdesk/shared';
-import { renderDetailsPanel, renderBottomPanel, renderPanelPreview } from './panel.js';
+import { renderDetailsPanel, renderBottomPanel, renderPanelPreview, resolveActivePanelBody } from './panel.js';
 import { PANEL_PRESETS } from '../renderer/src/panel-presets.js';
 
 function detail(over: Partial<ItemDetail> = {}): ItemDetail {
@@ -146,5 +146,38 @@ describe('showcase presets', () => {
     expect(html).toContain('A. Smith');
     expect(html).toContain('<bd-citation doc-id="d1" item-id="i1"');
     expect(html).toContain('data-open-file="/a.pdf"');
+  });
+});
+
+describe('resolveActivePanelBody', () => {
+  const forks = [
+    { name: 'Card', body: 'C:{{citeKey}}' },
+    { name: 'Reader', body: 'R:{{type}}' },
+  ];
+
+  it('returns the named fork body when it is active', () => {
+    expect(resolveActivePanelBody(forks, 'Reader')).toBe('R:{{type}}');
+  });
+
+  it('returns undefined (⇒ built-in default) when nothing is active', () => {
+    expect(resolveActivePanelBody(forks, undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when the active name is unknown (stale selection)', () => {
+    expect(resolveActivePanelBody(forks, 'Gone')).toBeUndefined();
+  });
+
+  it('treats an empty fork body as undefined (built-in default)', () => {
+    expect(resolveActivePanelBody([{ name: 'Empty', body: '' }], 'Empty')).toBeUndefined();
+  });
+
+  it('feeds the resolved body into renderDetailsPanel', () => {
+    const body = resolveActivePanelBody(forks, 'Card');
+    expect(renderDetailsPanel(detail(), 'd', 'apa', body)).toBe('C:smith2020');
+  });
+
+  it('renders the built-in default when resolution yields undefined', () => {
+    const body = resolveActivePanelBody(forks, 'Gone');
+    expect(renderDetailsPanel(detail(), 'd', 'apa', body)).toContain('bd-view__actions');
   });
 });
