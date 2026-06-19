@@ -7,7 +7,7 @@
  * groups + publications), and clean up the subscription on unmount.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type DragEvent as ReactDragEvent } from 'react';
 import type { MenuCommand } from '@bibdesk/shared';
 import { formatCiteCommand } from '@bibdesk/shared';
 import { getStore, useStore, visibleRows } from './store.js';
@@ -23,6 +23,7 @@ import { Preferences } from './Preferences.js';
 import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
 import { BrokenLinks } from './BrokenLinks.js';
+import { JournalCoverScan } from './JournalCoverScan.js';
 import { BatchBar } from './BatchBar.js';
 
 function ThemeToggle() {
@@ -204,6 +205,7 @@ interface ModalSetters {
   setFindReplaceOpen: (v: boolean) => void;
   setDuplicatesOpen: (v: boolean) => void;
   setBrokenLinksOpen: (v: boolean) => void;
+  setCoverScanOpen: (v: boolean) => void;
 }
 
 /**
@@ -283,6 +285,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       return;
     case 'findBrokenLinks':
       modals.setBrokenLinksOpen(true);
+      return;
+    case 'scanJournalCovers':
+      modals.setCoverScanOpen(true);
       return;
     case 'assistant':
       // Show the assistant in the (now swappable) right pane.
@@ -402,6 +407,7 @@ export function App() {
   const [findReplaceOpen, setFindReplaceOpen] = useState(false);
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [brokenLinksOpen, setBrokenLinksOpen] = useState(false);
+  const [coverScanOpen, setCoverScanOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
   const layout = useStore((s) => s.settings.layout);
   const setLayout = useStore((s) => s.setLayout);
@@ -440,55 +446,56 @@ export function App() {
 
   // Drag-and-drop import: drop `.bib` files (merge) or PDFs/others (entry+attach)
   // onto the window; a dragged BibTeX text snippet imports too.
-  useEffect(() => {
-    let depth = 0;
-    const onDragEnter = (e: DragEvent): void => {
-      e.preventDefault();
-      depth++;
-      // Only show the import overlay for external file drags — not for an
-      // in-app row drag-out (which carries text/plain cite commands).
-      if (e.dataTransfer?.types.includes('Files')) setDragging(true);
-    };
-    const onDragOver = (e: DragEvent): void => e.preventDefault();
-    const onDragLeave = (e: DragEvent): void => {
-      e.preventDefault();
-      if (--depth <= 0) setDragging(false);
-    };
-    const onDrop = (e: DragEvent): void => {
-      e.preventDefault();
-      depth = 0;
+  // File-drop import, SCOPED to the middle library pane (and the welcome screen) —
+  // not the whole window — so it never competes with the journal-cover drop
+  // target in the right pane. `dropDepth` balances enter/leave across the pane's
+  // nested children so the overlay doesn't flicker or stick.
+  const dropDepth = useRef(0);
+  const onDropEnter = (e: ReactDragEvent): void => {
+    e.preventDefault();
+    dropDepth.current += 1;
+    // Only show the import overlay for external file drags — not for an in-app
+    // row drag-out (which carries text/plain cite commands).
+    if (e.dataTransfer.types.includes('Files')) setDragging(true);
+  };
+  const onDropOver = (e: ReactDragEvent): void => e.preventDefault();
+  const onDropLeave = (e: ReactDragEvent): void => {
+    e.preventDefault();
+    if (--dropDepth.current <= 0) {
+      dropDepth.current = 0;
       setDragging(false);
-      const dt = e.dataTransfer;
-      const api = window.bibdesk;
-      if (!dt || !api) return;
-      const paths = Array.from(dt.files)
-        .map((f) => api.pathForFile(f))
-        .filter(Boolean);
-      if (paths.length) {
-        const st = getStore().getState();
-        if (st.documentId) {
-          void st.importFiles(paths);
-        } else {
-          // No library open yet → a dropped .bib opens it (welcome screen).
-          const bib = paths.find((p) => /\.bib$/i.test(p));
-          if (bib) void api.openDocument(bib);
-        }
-        return;
+    }
+  };
+  const onDropFiles = (e: ReactDragEvent): void => {
+    e.preventDefault();
+    dropDepth.current = 0;
+    setDragging(false);
+    const dt = e.dataTransfer;
+    const api = window.bibdesk;
+    if (!dt || !api) return;
+    const paths = Array.from(dt.files)
+      .map((f) => api.pathForFile(f))
+      .filter(Boolean);
+    if (paths.length) {
+      const st = getStore().getState();
+      if (st.documentId) {
+        void st.importFiles(paths);
+      } else {
+        // No library open yet → a dropped .bib opens it (welcome screen).
+        const bib = paths.find((p) => /\.bib$/i.test(p));
+        if (bib) void api.openDocument(bib);
       }
-      const text = dt.getData('text');
-      if (BIBTEX_RE.test(text)) void getStore().getState().pasteEntries(text);
-    };
-    window.addEventListener('dragenter', onDragEnter);
-    window.addEventListener('dragover', onDragOver);
-    window.addEventListener('dragleave', onDragLeave);
-    window.addEventListener('drop', onDrop);
-    return () => {
-      window.removeEventListener('dragenter', onDragEnter);
-      window.removeEventListener('dragover', onDragOver);
-      window.removeEventListener('dragleave', onDragLeave);
-      window.removeEventListener('drop', onDrop);
-    };
-  }, []);
+      return;
+    }
+    const text = dt.getData('text');
+    if (BIBTEX_RE.test(text)) void getStore().getState().pasteEntries(text);
+  };
+  const dropHandlers = {
+    onDragEnter: onDropEnter,
+    onDragOver: onDropOver,
+    onDragLeave: onDropLeave,
+    onDrop: onDropFiles,
+  };
 
   useEffect(() => {
     const api = window.bibdesk;
@@ -505,6 +512,7 @@ export function App() {
         setFindReplaceOpen,
         setDuplicatesOpen,
         setBrokenLinksOpen,
+        setCoverScanOpen,
       });
     });
     const unsubCols = api.onMenuToggleColumn((key) => void getStore().getState().toggleColumn(key));
@@ -534,7 +542,7 @@ export function App() {
 
   if (!hasDoc) {
     return (
-      <div className="bd-app">
+      <div className="bd-app" {...dropHandlers}>
         <Welcome />
         {dragging && (
           <div className="bd-drop-overlay" aria-hidden="true">
@@ -560,11 +568,17 @@ export function App() {
         <aside className="bd-pane">
           <GroupsSidebar />
         </aside>
-        {/* Middle column: the table, with the bottom panel scoped under it. */}
-        <section className="bd-pane bd-center">
+        {/* Middle column: the table, with the bottom panel scoped under it. This
+            pane (not the whole window) is the file-import drop target. */}
+        <section className="bd-pane bd-center" {...dropHandlers}>
           <div className="bd-center__table">
             <PublicationsTable />
           </div>
+          {dragging && (
+            <div className="bd-drop-overlay bd-drop-overlay--pane" aria-hidden="true">
+              <div className="bd-drop-overlay__msg">{t('app.dropImport')}</div>
+            </div>
+          )}
           {layout.bottomPanelVisible && (
             <>
               <Splitter
@@ -605,11 +619,7 @@ export function App() {
       {findReplaceOpen && <FindReplace onClose={() => setFindReplaceOpen(false)} />}
       {duplicatesOpen && <FindDuplicates onClose={() => setDuplicatesOpen(false)} />}
       {brokenLinksOpen && <BrokenLinks onClose={() => setBrokenLinksOpen(false)} />}
-      {dragging && hasDoc && (
-        <div className="bd-drop-overlay" aria-hidden="true">
-          <div className="bd-drop-overlay__msg">Drop .bib or files to import</div>
-        </div>
-      )}
+      {coverScanOpen && <JournalCoverScan onClose={() => setCoverScanOpen(false)} />}
     </div>
   );
 }

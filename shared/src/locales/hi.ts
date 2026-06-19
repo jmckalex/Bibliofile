@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const hi: Catalog = {
+  "menu.tools.journalCovers": "गुम पत्रिका कवर डाउनलोड करें…",
+  "app.dropImport": "आयात करने के लिए .bib या फ़ाइलें यहाँ छोड़ें",
+  "covers.title": "पत्रिका कवर डाउनलोड करें",
+  "covers.scanning": "पत्रिकाओं को स्कैन किया जा रहा है और विकिपीडिया खोजा जा रहा है…",
+  "covers.allHaveCovers": "इस लाइब्रेरी की हर पत्रिका के पास पहले से ही एक कवर है। 🎉",
+  "covers.noneFound": "जिन पत्रिकाओं के पास कवर नहीं है, उनके लिए विकिपीडिया पर कोई कवर नहीं मिला।",
+  "covers.found": "बिना कवर वाली {missing} पत्रिकाओं के लिए {found} संभावित कवर मिले।",
+  "covers.capped": "केवल पहली पत्रिकाएँ स्कैन की गईं।",
+  "covers.reviewHint": "जो गलत दिखते हैं उन्हें अनचेक करें, फिर सहेजें पर क्लिक करें। आप अपनी खुद की छवि को किसी कवर पर खींच भी सकते हैं।",
+  "covers.save": "{count} सहेजें",
   "window.help": "BibDesk सहायता",
   "dialog.helpUnavailable": "इस बिल्ड में सहायता उपलब्ध नहीं है।",
   "dialog.dontSave": "सहेजें नहीं",

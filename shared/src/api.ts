@@ -21,6 +21,12 @@ import type {
   CopyRtfResponse,
   JournalCoverRequest,
   JournalCoverResponse,
+  SetJournalCoverRequest,
+  SetJournalCoverResponse,
+  ScanJournalCoversRequest,
+  ScanJournalCoversResponse,
+  SaveJournalCoversRequest,
+  SaveJournalCoversResponse,
   FtsSearchRequest,
   FtsSearchResponse,
   GetItemDetailRequest,
@@ -149,6 +155,15 @@ export interface BibDeskApi {
 
   /** Resolve an item's journal cover thumbnail (bytes), or null when none is bundled. */
   journalCover(request: JournalCoverRequest): Promise<JournalCoverResponse>;
+
+  /** Attach a user-provided (downsized) cover image to an item's journal. */
+  setJournalCover(request: SetJournalCoverRequest): Promise<SetJournalCoverResponse>;
+
+  /** Scan the library for journals without a cover and propose Wikipedia downloads. */
+  scanJournalCovers(request: ScanJournalCoversRequest): Promise<ScanJournalCoversResponse>;
+
+  /** Persist the user-approved subset of scanned covers. */
+  saveJournalCovers(request: SaveJournalCoversRequest): Promise<SaveJournalCoversResponse>;
 
   /** Add attachment(s) to an item (opens a file picker in main). */
   addAttachment(request: AddAttachmentRequest): Promise<EditResult>;

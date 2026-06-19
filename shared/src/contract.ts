@@ -20,6 +20,12 @@ import type {
   CopyRtfResponse,
   JournalCoverRequest,
   JournalCoverResponse,
+  SetJournalCoverRequest,
+  SetJournalCoverResponse,
+  ScanJournalCoversRequest,
+  ScanJournalCoversResponse,
+  SaveJournalCoversRequest,
+  SaveJournalCoversResponse,
   FtsSearchRequest,
   FtsSearchResponse,
   GetItemDetailRequest,
@@ -128,6 +134,9 @@ export interface IpcContract {
   [IpcChannels.formatCitation]: IpcEntry<FormatCitationRequest, FormatCitationResult>;
   [IpcChannels.copyRtf]: IpcEntry<CopyRtfRequest, CopyRtfResponse>;
   [IpcChannels.journalCover]: IpcEntry<JournalCoverRequest, JournalCoverResponse>;
+  [IpcChannels.setJournalCover]: IpcEntry<SetJournalCoverRequest, SetJournalCoverResponse>;
+  [IpcChannels.scanJournalCovers]: IpcEntry<ScanJournalCoversRequest, ScanJournalCoversResponse>;
+  [IpcChannels.saveJournalCovers]: IpcEntry<SaveJournalCoversRequest, SaveJournalCoversResponse>;
   [IpcChannels.addAttachment]: IpcEntry<AddAttachmentRequest, EditResult>;
   [IpcChannels.removeAttachment]: IpcEntry<RemoveAttachmentRequest, EditResult>;
   [IpcChannels.searchOnline]: IpcEntry<SearchOnlineRequest, SearchOnlineResponse>;

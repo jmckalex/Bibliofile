@@ -48,6 +48,12 @@ export const IpcChannels = {
   copyRtf: 'bibdesk:copyRtf',
   /** Resolve an item's journal cover thumbnail (by ISSN / journal name). */
   journalCover: 'bibdesk:journalCover',
+  /** Attach a user-provided cover image to an item's journal (drag-drop). */
+  setJournalCover: 'bibdesk:setJournalCover',
+  /** Scan the library for journals lacking a cover; propose Wikipedia downloads. */
+  scanJournalCovers: 'bibdesk:scanJournalCovers',
+  /** Persist the user-approved subset of scanned covers. */
+  saveJournalCovers: 'bibdesk:saveJournalCovers',
   /** Add attachment(s) to an item (main opens a file picker). */
   addAttachment: 'bibdesk:addAttachment',
   /** Remove one managed attachment from an item. */

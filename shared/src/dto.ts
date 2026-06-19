@@ -217,6 +217,68 @@ export interface JournalCoverResponse {
   readonly journal?: string;
 }
 
+/** Attach a user-provided cover image to an item's journal (drag-drop onto the cover). */
+export interface SetJournalCoverRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+  /** Already-downsized image bytes (the renderer resizes before sending). */
+  readonly data: Uint8Array;
+  /** File extension without the dot (jpg/png/…). */
+  readonly ext: string;
+}
+
+/** Result of saving a user cover. */
+export interface SetJournalCoverResponse {
+  readonly ok: boolean;
+  /** The journal the cover was attached to (for feedback). */
+  readonly journal?: string;
+}
+
+/** Scan the open library for journals lacking a cover and propose Wikipedia downloads. */
+export interface ScanJournalCoversRequest {
+  readonly documentId: DocumentId;
+}
+
+/** One proposed cover from the scan, shown for review before saving. */
+export interface JournalCoverProposal {
+  readonly journal: string;
+  readonly issn?: string;
+  readonly data: Uint8Array;
+  readonly ext: string;
+  readonly sourceUrl: string;
+  readonly wikiTitle: string;
+}
+
+/** Result of a journal-cover scan: proposals (with image bytes) for review. */
+export interface ScanJournalCoversResponse {
+  readonly proposals: readonly JournalCoverProposal[];
+  /** How many distinct journals had no cover (the search space). */
+  readonly missing: number;
+  /** True if the scan stopped at a cap (so it didn't try every missing journal). */
+  readonly capped?: boolean;
+}
+
+/** A user-approved cover to persist (subset of the scan proposals). */
+export interface JournalCoverToSave {
+  readonly journal: string;
+  readonly issn?: string;
+  readonly data: Uint8Array;
+  readonly ext: string;
+  readonly sourceUrl?: string;
+  readonly wikiTitle?: string;
+}
+
+/** Persist the approved subset of scanned covers (documentId scopes the refresh). */
+export interface SaveJournalCoversRequest {
+  readonly documentId: DocumentId;
+  readonly covers: readonly JournalCoverToSave[];
+}
+
+/** Result: how many covers were written. */
+export interface SaveJournalCoversResponse {
+  readonly saved: number;
+}
+
 /** Result: the formatted citation as an HTML string. */
 export interface FormatCitationResult {
   readonly styleId: string;
@@ -1225,6 +1287,7 @@ export type MenuCommand =
   | 'editMacros'
   | 'findDuplicates'
   | 'findBrokenLinks'
+  | 'scanJournalCovers'
   | 'assistant'
   // Edit / clipboard (operate on the selection)
   | 'find'

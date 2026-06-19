@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const pl: Catalog = {
+  "menu.tools.journalCovers": "Pobierz brakujące okładki czasopism…",
+  "app.dropImport": "Upuść plik .bib lub pliki, aby zaimportować",
+  "covers.title": "Pobierz okładki czasopism",
+  "covers.scanning": "Skanowanie czasopism i wyszukiwanie w Wikipedii…",
+  "covers.allHaveCovers": "Każde czasopismo w tej bibliotece ma już okładkę. 🎉",
+  "covers.noneFound": "Nie znaleziono w Wikipedii okładek dla czasopism, którym ich brakuje.",
+  "covers.found": "Znaleziono {found} potencjalnych okładek dla {missing} czasopism bez okładki.",
+  "covers.capped": "Przeskanowano tylko pierwsze czasopisma.",
+  "covers.reviewHint": "Odznacz te, które wyglądają niepoprawnie, a następnie kliknij Zapisz. Możesz też przeciągnąć własny obraz na okładkę.",
+  "covers.save": "Zapisz {count}",
   "window.help": "Pomoc BibDesk",
   "dialog.helpUnavailable": "Pomoc nie jest dostępna w tej kompilacji.",
   "dialog.dontSave": "Nie zapisuj",

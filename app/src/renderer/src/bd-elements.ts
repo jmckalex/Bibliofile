@@ -36,7 +36,38 @@ function generatedCover(journal: string): string {
   )}"><span>${escapeHtml(abbr)}</span></div>`;
 }
 
-/** <bd-journal-cover doc-id item-id> — the entry's cover image, or a generated fallback. */
+/**
+ * Downsize a dropped image to a thumbnail (≤ maxPx on the long edge) and re-encode
+ * as JPEG, so a multi-megabyte drop becomes a small cover. Returns null if the file
+ * isn't a decodable image.
+ */
+async function downsizeImage(
+  file: File,
+  maxPx = 512,
+  quality = 0.85,
+): Promise<{ data: Uint8Array; ext: string } | null> {
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return null;
+  const scale = Math.min(1, maxPx / Math.max(bitmap.width, bitmap.height));
+  const w = Math.max(1, Math.round(bitmap.width * scale));
+  const h = Math.max(1, Math.round(bitmap.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    bitmap.close();
+    return null;
+  }
+  ctx.drawImage(bitmap, 0, 0, w, h);
+  bitmap.close();
+  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/jpeg', quality));
+  if (!blob) return null;
+  return { data: new Uint8Array(await blob.arrayBuffer()), ext: 'jpg' };
+}
+
+/** <bd-journal-cover doc-id item-id> — the entry's cover image, or a generated fallback.
+ *  Also a drop target: dropping an image sets that journal's cover (downsized). */
 class BdJournalCover extends HTMLElement {
   static readonly observedAttributes = ['doc-id', 'item-id'];
   private objectUrl?: string;
@@ -45,13 +76,65 @@ class BdJournalCover extends HTMLElement {
   private token = 0;
 
   connectedCallback(): void {
+    this.addEventListener('dragenter', this.onDragEnter);
+    this.addEventListener('dragover', this.onDragOver);
+    this.addEventListener('dragleave', this.onDragLeave);
+    this.addEventListener('drop', this.onDrop);
     void this.render();
   }
   attributeChangedCallback(): void {
     if (this.isConnected) void this.render();
   }
   disconnectedCallback(): void {
+    this.removeEventListener('dragenter', this.onDragEnter);
+    this.removeEventListener('dragover', this.onDragOver);
+    this.removeEventListener('dragleave', this.onDragLeave);
+    this.removeEventListener('drop', this.onDrop);
     this.revoke();
+  }
+
+  // stopPropagation on every drag event keeps the cover's drag interaction out of
+  // the window-level import-overlay handler in App.tsx — otherwise the library
+  // "drop a .bib" overlay shows over the cover and, because our drop stops the
+  // event, the window never resets its dragging state (the overlay sticks).
+  private readonly onDragEnter = (e: DragEvent): void => {
+    e.stopPropagation();
+    if (e.dataTransfer?.types.includes('Files')) {
+      e.preventDefault();
+      this.classList.add('bd-jcover-drop');
+    }
+  };
+  private readonly onDragOver = (e: DragEvent): void => {
+    e.stopPropagation();
+    if (e.dataTransfer?.types.includes('Files')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      this.classList.add('bd-jcover-drop');
+    }
+  };
+  private readonly onDragLeave = (e: DragEvent): void => {
+    e.stopPropagation();
+    this.classList.remove('bd-jcover-drop');
+  };
+  private readonly onDrop = (e: DragEvent): void => {
+    e.stopPropagation();
+    this.classList.remove('bd-jcover-drop');
+    const file = [...(e.dataTransfer?.files ?? [])].find((f) => f.type.startsWith('image/'));
+    if (!file) return;
+    e.preventDefault();
+    void this.applyDroppedCover(file);
+  };
+
+  private async applyDroppedCover(file: File): Promise<void> {
+    const documentId = this.getAttribute('doc-id');
+    const itemId = this.getAttribute('item-id');
+    if (!documentId || !itemId) return;
+    const img = await downsizeImage(file);
+    if (!img) return;
+    const res = await window.bibdesk?.setJournalCover({ documentId, itemId, data: img.data, ext: img.ext });
+    // The originating window isn't notified by the cross-window broadcast, so
+    // re-render this element directly to pick up the new cover.
+    if (res?.ok) void this.render();
   }
 
   private revoke(): void {

@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const it: Catalog = {
+  "menu.tools.journalCovers": "Scarica le copertine di riviste mancanti…",
+  "app.dropImport": "Trascina un .bib o file da importare",
+  "covers.title": "Scarica le copertine delle riviste",
+  "covers.scanning": "Scansione delle riviste e ricerca su Wikipedia…",
+  "covers.allHaveCovers": "Ogni rivista in questa libreria ha già una copertina. 🎉",
+  "covers.noneFound": "Nessuna copertina trovata su Wikipedia per le riviste che ne sono prive.",
+  "covers.found": "Trovate {found} copertine candidate per {missing} rivista/e senza copertina.",
+  "covers.capped": "Sono state scansionate solo le prime riviste.",
+  "covers.reviewHint": "Deseleziona quelle che sembrano errate, poi salva. Puoi anche trascinare una tua immagine su una copertina.",
+  "covers.save": "Salva {count}",
   "window.help": "Aiuto di BibDesk",
   "dialog.helpUnavailable": "L’aiuto non è disponibile in questa build.",
   "dialog.dontSave": "Non salvare",

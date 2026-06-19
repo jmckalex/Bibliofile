@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const ko: Catalog = {
+  "menu.tools.journalCovers": "누락된 저널 표지 다운로드…",
+  "app.dropImport": ".bib 또는 파일을 놓아 가져오기",
+  "covers.title": "저널 표지 다운로드",
+  "covers.scanning": "저널을 스캔하고 Wikipedia를 검색하는 중…",
+  "covers.allHaveCovers": "이 라이브러리의 모든 저널에 이미 표지가 있습니다. 🎉",
+  "covers.noneFound": "표지가 없는 저널에 대한 표지를 Wikipedia에서 찾지 못했습니다.",
+  "covers.found": "표지가 없는 저널 {missing}개에 대해 후보 표지 {found}개를 찾았습니다.",
+  "covers.capped": "처음 저널만 스캔되었습니다.",
+  "covers.reviewHint": "잘못되어 보이는 항목의 선택을 해제한 다음 저장을 클릭하세요. 표지에 직접 이미지를 끌어다 놓을 수도 있습니다.",
+  "covers.save": "{count}개 저장",
   "window.help": "BibDesk 도움말",
   "dialog.helpUnavailable": "이 빌드에서는 도움말을 사용할 수 없습니다.",
   "dialog.dontSave": "저장 안 함",

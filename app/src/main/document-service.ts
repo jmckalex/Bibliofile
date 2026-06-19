@@ -2430,6 +2430,29 @@ export class DocumentStore {
     return item ? item.stringValueOfField(field, true) : '';
   }
 
+  /**
+   * Distinct journal (or booktitle) names across the library, each paired with an
+   * ISSN if any entry for that journal carries one — used to scan for / download
+   * missing journal covers.
+   */
+  distinctJournals(documentId: string): Array<{ journal: string; issn: string }> {
+    const doc = this.docs.get(documentId);
+    if (!doc) return [];
+    const byName = new Map<string, { journal: string; issn: string }>();
+    for (const item of doc.library.items) {
+      const journal = (
+        item.stringValueOfField('Journal', true) || item.stringValueOfField('Booktitle', true)
+      ).trim();
+      if (!journal) continue;
+      const key = journal.toLowerCase();
+      const issn = item.stringValueOfField('Issn', true).trim();
+      const existing = byName.get(key);
+      if (!existing) byName.set(key, { journal, issn });
+      else if (!existing.issn && issn) byName.set(key, { journal: existing.journal, issn });
+    }
+    return [...byName.values()];
+  }
+
   /** Resolve a cite key (case-insensitive) to an item id, or undefined. */
   itemIdForCiteKey(documentId: string, citeKey: string): string | undefined {
     const doc = this.requireDoc(documentId);

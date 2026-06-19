@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const es: Catalog = {
+  "menu.tools.journalCovers": "Descargar portadas de revistas faltantes…",
+  "app.dropImport": "Suelta un .bib o archivos para importar",
+  "covers.title": "Descargar portadas de revistas",
+  "covers.scanning": "Analizando revistas y buscando en Wikipedia…",
+  "covers.allHaveCovers": "Todas las revistas de esta biblioteca ya tienen portada. 🎉",
+  "covers.noneFound": "No se encontraron portadas en Wikipedia para las revistas que no tienen una.",
+  "covers.found": "Se encontraron {found} portada(s) candidata(s) para {missing} revista(s) sin una.",
+  "covers.capped": "Solo se analizaron las primeras revistas.",
+  "covers.reviewHint": "Desmarca las que parezcan incorrectas y pulsa Guardar. También puedes arrastrar tu propia imagen a una portada.",
+  "covers.save": "Guardar {count}",
   "window.help": "Ayuda de BibDesk",
   "dialog.helpUnavailable": "La ayuda no está disponible en esta versión.",
   "dialog.dontSave": "No guardar",

@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const fr: Catalog = {
+  "menu.tools.journalCovers": "Télécharger les couvertures de revues manquantes…",
+  "app.dropImport": "Déposez un .bib ou des fichiers à importer",
+  "covers.title": "Télécharger les couvertures de revues",
+  "covers.scanning": "Analyse des revues et recherche sur Wikipédia…",
+  "covers.allHaveCovers": "Chaque revue de cette bibliothèque a déjà une couverture. 🎉",
+  "covers.noneFound": "Aucune couverture n'a été trouvée sur Wikipédia pour les revues qui en manquent.",
+  "covers.found": "{found} couverture(s) candidate(s) trouvée(s) pour {missing} revue(s) sans couverture.",
+  "covers.capped": "Seules les premières revues ont été analysées.",
+  "covers.reviewHint": "Décochez celles qui semblent incorrectes, puis enregistrez. Vous pouvez aussi déposer votre propre image sur une couverture.",
+  "covers.save": "Enregistrer {count}",
   "window.help": "Aide de BibDesk",
   "dialog.helpUnavailable": "L’aide n’est pas disponible dans cette version.",
   "dialog.dontSave": "Ne pas enregistrer",

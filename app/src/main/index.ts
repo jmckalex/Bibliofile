@@ -44,6 +44,7 @@ import {
   type ExportSelectionResponse,
   type EntryTypeInfo,
   type TemplateExportScope,
+  type JournalCoverProposal,
 } from '@bibdesk/shared';
 import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 
@@ -53,7 +54,15 @@ import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
 import { htmlToRtf, wrapRtf } from './rtf.js';
 import { buildPrintHtml } from './print.js';
-import { loadCoverIndex, resolveCover, coverFilePath } from './journal-covers.js';
+import {
+  loadCoverIndex,
+  resolveCover,
+  coverPathOf,
+  saveUserCover,
+  userCoversDir,
+  invalidateCoverIndex,
+} from './journal-covers.js';
+import { fetchWikipediaCover } from './journal-wikipedia.js';
 import { formatCitation } from './csl.js';
 import { searchOnline, extractDoi } from './online.js';
 import { extractPdfText } from './pdf-text.js';
@@ -1409,6 +1418,12 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('assistant'),
       },
+      { type: 'separator' },
+      {
+        label: t('menu.tools.journalCovers'),
+        enabled: docEnabled,
+        click: () => sendMenuCommand('scanJournalCovers'),
+      },
     ],
   });
 
@@ -1728,20 +1743,91 @@ function registerIpc(): void {
       const journal =
         store.fieldValue(req.documentId, req.itemId, 'Journal') ||
         store.fieldValue(req.documentId, req.itemId, 'Booktitle');
-      const loaded = loadCoverIndex(app.getAppPath());
+      const loaded = loadCoverIndex(app.getAppPath(), app.getPath('userData'));
       if (!loaded) return { data: null, ...(journal ? { journal } : {}) };
       const issn = store.fieldValue(req.documentId, req.itemId, 'Issn');
       const hit = resolveCover(loaded.index, issn, journal);
-      if (!hit) return { data: null, ...(journal ? { journal } : {}) };
+      const path = hit ? coverPathOf(loaded, hit) : null;
+      if (!hit || !path) return { data: null, ...(journal ? { journal } : {}) };
       try {
         return {
-          data: new Uint8Array(readFileSync(coverFilePath(loaded.dir, hit.file))),
+          data: new Uint8Array(readFileSync(path)),
           kind: hit.kind,
           ...(journal ? { journal } : {}),
         };
       } catch {
         return { data: null, ...(journal ? { journal } : {}) };
       }
+    },
+    [IpcChannels.setJournalCover]: (req) => {
+      const journal =
+        store.fieldValue(req.documentId, req.itemId, 'Journal') ||
+        store.fieldValue(req.documentId, req.itemId, 'Booktitle');
+      if (!journal) return { ok: false };
+      const issn = store.fieldValue(req.documentId, req.itemId, 'Issn');
+      try {
+        saveUserCover({
+          userDir: userCoversDir(app.getPath('userData')),
+          name: journal,
+          ...(issn ? { issns: [issn] } : {}),
+          ext: req.ext,
+          bytes: req.data,
+          kind: 'user',
+        });
+        invalidateCoverIndex();
+        return { ok: true, journal };
+      } catch {
+        return { ok: false, journal };
+      }
+    },
+    [IpcChannels.scanJournalCovers]: async (req) => {
+      // Cap the scan so a huge library doesn't fire hundreds of Wikipedia requests.
+      const CAP = 80;
+      const loaded = loadCoverIndex(app.getAppPath(), app.getPath('userData'));
+      const missing = store
+        .distinctJournals(req.documentId)
+        .filter((j) => !(loaded && resolveCover(loaded.index, j.issn, j.journal)));
+      const proposals: JournalCoverProposal[] = [];
+      for (const j of missing.slice(0, CAP)) {
+        const cover = await fetchWikipediaCover(j.journal);
+        if (!cover) continue;
+        proposals.push({
+          journal: j.journal,
+          ...(j.issn ? { issn: j.issn } : {}),
+          data: cover.data,
+          ext: cover.ext,
+          sourceUrl: cover.sourceUrl,
+          wikiTitle: cover.wikiTitle,
+        });
+      }
+      return { proposals, missing: missing.length, ...(missing.length > CAP ? { capped: true } : {}) };
+    },
+    [IpcChannels.saveJournalCovers]: (req) => {
+      const userDir = userCoversDir(app.getPath('userData'));
+      let saved = 0;
+      for (const c of req.covers) {
+        try {
+          saveUserCover({
+            userDir,
+            name: c.journal,
+            ...(c.issn ? { issns: [c.issn] } : {}),
+            ext: c.ext,
+            bytes: c.data,
+            kind: 'wikipedia',
+            ...(c.sourceUrl ? { sourceUrl: c.sourceUrl } : {}),
+            ...(c.wikiTitle ? { wikiTitle: c.wikiTitle } : {}),
+          });
+          saved += 1;
+        } catch {
+          /* skip a cover that failed to write */
+        }
+      }
+      if (saved) {
+        invalidateCoverIndex();
+        // Refresh every window (including the one that ran the scan) so covers re-resolve.
+        broadcastDocumentChanged(req.documentId);
+      }
+      return { saved };
     },
     [IpcChannels.addAttachment]: async (req) => {
       const opts: Electron.OpenDialogOptions = {
@@ -2177,6 +2263,15 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.journalCover, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.journalCover](req),
+  );
+  // Drop-to-add broadcasts documentChanged to OTHER windows (the originating window
+  // re-renders its cover element itself). Scan is read-only; save broadcasts itself.
+  mutating(IpcChannels.setJournalCover);
+  ipcMain.handle(IpcChannels.scanJournalCovers, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.scanJournalCovers](req),
+  );
+  ipcMain.handle(IpcChannels.saveJournalCovers, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.saveJournalCovers](req),
   );
   mutating(IpcChannels.addAttachment);
   mutating(IpcChannels.removeAttachment);

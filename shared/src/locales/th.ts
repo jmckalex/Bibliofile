@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const th: Catalog = {
+  "menu.tools.journalCovers": "ดาวน์โหลดปกวารสารที่ขาดหายไป…",
+  "app.dropImport": "วาง .bib หรือไฟล์เพื่อนำเข้า",
+  "covers.title": "ดาวน์โหลดปกวารสาร",
+  "covers.scanning": "กำลังสแกนวารสารและค้นหาในวิกิพีเดีย…",
+  "covers.allHaveCovers": "วารสารทุกฉบับในไลบรารีนี้มีปกอยู่แล้ว 🎉",
+  "covers.noneFound": "ไม่พบปกในวิกิพีเดียสำหรับวารสารที่ยังไม่มีปก",
+  "covers.found": "พบปกที่เป็นไปได้ {found} รายการสำหรับวารสาร {missing} ฉบับที่ยังไม่มีปก",
+  "covers.capped": "สแกนเฉพาะวารสารแรก ๆ เท่านั้น",
+  "covers.reviewHint": "ยกเลิกการเลือกรายการที่ดูไม่ถูกต้อง แล้วกดบันทึก คุณยังสามารถลากรูปภาพของคุณเองไปวางบนปกได้ด้วย",
+  "covers.save": "บันทึก {count}",
   "window.help": "วิธีใช้ BibDesk",
   "dialog.helpUnavailable": "ไม่มีวิธีใช้ในบิลด์นี้",
   "dialog.dontSave": "ไม่บันทึก",

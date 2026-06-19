@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const fi: Catalog = {
+  "menu.tools.journalCovers": "Lataa puuttuvat lehtien kannet…",
+  "app.dropImport": "Pudota .bib tai tiedostoja tuotavaksi",
+  "covers.title": "Lataa lehtien kannet",
+  "covers.scanning": "Selataan lehtiä ja haetaan Wikipediasta…",
+  "covers.allHaveCovers": "Jokaisella tämän kirjaston lehdellä on jo kansi. 🎉",
+  "covers.noneFound": "Wikipediasta ei löytynyt kansia lehdille, joilta se puuttuu.",
+  "covers.found": "Löytyi {found} mahdollista kantta {missing} lehdelle, joilta se puuttuu.",
+  "covers.capped": "Vain ensimmäiset lehdet selattiin.",
+  "covers.reviewHint": "Poista valinta niistä, jotka näyttävät vääriltä, ja napsauta Tallenna. Voit myös vetää oman kuvan kannen päälle.",
+  "covers.save": "Tallenna {count}",
   "window.help": "BibDeskin ohje",
   "dialog.helpUnavailable": "Ohje ei ole käytettävissä tässä koontiversiossa.",
   "dialog.dontSave": "Älä tallenna",

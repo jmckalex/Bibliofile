@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const hu: Catalog = {
+  "menu.tools.journalCovers": "Hiányzó folyóirat-borítók letöltése…",
+  "app.dropImport": "Húzzon ide egy .bib fájlt vagy fájlokat az importáláshoz",
+  "covers.title": "Folyóirat-borítók letöltése",
+  "covers.scanning": "Folyóiratok átvizsgálása és keresés a Wikipédián…",
+  "covers.allHaveCovers": "A könyvtár minden folyóiratának már van borítója. 🎉",
+  "covers.noneFound": "A Wikipédián nem található borító a borító nélküli folyóiratokhoz.",
+  "covers.found": "{found} lehetséges borító található {missing} borító nélküli folyóirathoz.",
+  "covers.capped": "Csak az első folyóiratok lettek átvizsgálva.",
+  "covers.reviewHint": "Törölje a jelölést a hibásnak tűnőkről, majd kattintson a Mentés gombra. Saját képet is ráhúzhat egy borítóra.",
+  "covers.save": "{count} mentése",
   "window.help": "BibDesk súgó",
   "dialog.helpUnavailable": "A súgó nem érhető el ebben a build-ben.",
   "dialog.dontSave": "Ne mentse",

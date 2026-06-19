@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const el: Catalog = {
+  "menu.tools.journalCovers": "Λήψη εξωφύλλων περιοδικών που λείπουν…",
+  "app.dropImport": "Αποθέστε ένα .bib ή αρχεία για εισαγωγή",
+  "covers.title": "Λήψη εξωφύλλων περιοδικών",
+  "covers.scanning": "Σάρωση περιοδικών και αναζήτηση στη Wikipedia…",
+  "covers.allHaveCovers": "Κάθε περιοδικό σε αυτή τη βιβλιοθήκη έχει ήδη εξώφυλλο. 🎉",
+  "covers.noneFound": "Δεν βρέθηκαν εξώφυλλα στη Wikipedia για τα περιοδικά που δεν έχουν.",
+  "covers.found": "Βρέθηκαν {found} πιθανά εξώφυλλα για {missing} περιοδικό(ά) χωρίς εξώφυλλο.",
+  "covers.capped": "Σαρώθηκαν μόνο τα πρώτα περιοδικά.",
+  "covers.reviewHint": "Καταργήστε την επιλογή όσων φαίνονται λάθος και πατήστε Αποθήκευση. Μπορείτε επίσης να σύρετε τη δική σας εικόνα σε ένα εξώφυλλο.",
+  "covers.save": "Αποθήκευση {count}",
   "window.help": "Βοήθεια BibDesk",
   "dialog.helpUnavailable": "Η βοήθεια δεν είναι διαθέσιμη σε αυτήν την έκδοση.",
   "dialog.dontSave": "Να μην αποθηκευτεί",

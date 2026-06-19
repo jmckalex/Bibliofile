@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const nl: Catalog = {
+  "menu.tools.journalCovers": "Ontbrekende tijdschriftomslagen downloaden…",
+  "app.dropImport": "Zet een .bib of bestanden neer om te importeren",
+  "covers.title": "Tijdschriftomslagen downloaden",
+  "covers.scanning": "Tijdschriften scannen en Wikipedia doorzoeken…",
+  "covers.allHaveCovers": "Elk tijdschrift in deze bibliotheek heeft al een omslag. 🎉",
+  "covers.noneFound": "Er zijn op Wikipedia geen omslagen gevonden voor de tijdschriften zonder omslag.",
+  "covers.found": "{found} mogelijke omslag(en) gevonden voor {missing} tijdschrift(en) zonder omslag.",
+  "covers.capped": "Alleen de eerste tijdschriften zijn gescand.",
+  "covers.reviewHint": "Schakel de omslagen uit die er verkeerd uitzien en klik op Opslaan. Je kunt ook je eigen afbeelding op een omslag slepen.",
+  "covers.save": "{count} opslaan",
   "window.help": "BibDesk Help",
   "dialog.helpUnavailable": "Help is niet beschikbaar in deze build.",
   "dialog.dontSave": "Niet bewaren",

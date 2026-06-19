@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const zhHans: Catalog = {
+  "menu.tools.journalCovers": "下载缺失的期刊封面…",
+  "app.dropImport": "拖入 .bib 或文件以导入",
+  "covers.title": "下载期刊封面",
+  "covers.scanning": "正在扫描期刊并搜索维基百科…",
+  "covers.allHaveCovers": "此库中的每本期刊都已有封面。🎉",
+  "covers.noneFound": "未在维基百科上找到缺少封面的期刊的封面。",
+  "covers.found": "为 {missing} 本没有封面的期刊找到了 {found} 个候选封面。",
+  "covers.capped": "仅扫描了前面的期刊。",
+  "covers.reviewHint": "取消勾选看起来不正确的项，然后点击保存。你也可以将自己的图片拖到封面上。",
+  "covers.save": "保存 {count}",
   "window.help": "BibDesk 帮助",
   "dialog.helpUnavailable": "此版本中没有可用的帮助。",
   "dialog.dontSave": "不保存",

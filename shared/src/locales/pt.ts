@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const pt: Catalog = {
+  "menu.tools.journalCovers": "Baixar capas de periódicos ausentes…",
+  "app.dropImport": "Solte um .bib ou arquivos para importar",
+  "covers.title": "Baixar capas de periódicos",
+  "covers.scanning": "Analisando periódicos e pesquisando na Wikipédia…",
+  "covers.allHaveCovers": "Todos os periódicos desta biblioteca já têm capa. 🎉",
+  "covers.noneFound": "Nenhuma capa foi encontrada na Wikipédia para os periódicos sem uma.",
+  "covers.found": "{found} capa(s) candidata(s) encontrada(s) para {missing} periódico(s) sem capa.",
+  "covers.capped": "Apenas os primeiros periódicos foram analisados.",
+  "covers.reviewHint": "Desmarque as que parecerem erradas e clique em Salvar. Você também pode arrastar sua própria imagem para uma capa.",
+  "covers.save": "Salvar {count}",
   "window.help": "Ajuda do BibDesk",
   "dialog.helpUnavailable": "A ajuda não está disponível nesta versão.",
   "dialog.dontSave": "Não Guardar",

@@ -75,6 +75,7 @@ export const en: Catalog = {
 
   // --- Tools / View / Help menus ---
   'menu.tools.assistant': 'Claude Assistant…',
+  'menu.tools.journalCovers': 'Download Missing Journal Covers…',
   'menu.view.toggleSide': 'Toggle Side Panel',
   'menu.view.toggleBottom': 'Toggle Bottom Panel',
   'menu.view.columns': 'Columns',
@@ -215,6 +216,7 @@ export const en: Catalog = {
   'footer.rowsOf': '{filtered} of {total} rows',
   'footer.error': 'Error: {error}',
   'common.loading': 'Loading…',
+  'app.dropImport': 'Drop .bib or files to import',
   'theme.switchLight': 'Switch to light theme',
   'theme.switchDark': 'Switch to dark theme',
   'theme.toggle': 'Toggle colour theme',
@@ -365,6 +367,16 @@ export const en: Catalog = {
   'broken.removeTitle': 'Remove this attachment from the entry',
   'broken.fieldLinkTitle': 'Edit the field on the entry to fix this link',
   'broken.fieldLink': 'field link',
+
+  // --- Journal cover scan (Tools → Download Missing Journal Covers) ---
+  'covers.title': 'Download Journal Covers',
+  'covers.scanning': 'Scanning journals and searching Wikipedia…',
+  'covers.allHaveCovers': 'Every journal in this library already has a cover. 🎉',
+  'covers.noneFound': 'No covers were found on Wikipedia for the journals missing one.',
+  'covers.found': 'Found {found} candidate cover(s) for {missing} journal(s) without one.',
+  'covers.capped': 'Only the first journals were scanned.',
+  'covers.reviewHint': 'Uncheck any that look wrong, then Save. You can also drop your own image onto a cover.',
+  'covers.save': 'Save {count}',
 
   // --- Claude Assistant ---
   'assistant.aria': 'Claude Assistant',

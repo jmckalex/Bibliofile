@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const ur: Catalog = {
+  "menu.tools.journalCovers": "غائب جرنل کور ڈاؤن لوڈ کریں…",
+  "app.dropImport": "درآمد کرنے کے لیے .bib یا فائلیں یہاں چھوڑیں",
+  "covers.title": "جرنل کور ڈاؤن لوڈ کریں",
+  "covers.scanning": "جرنلز کو اسکین اور ویکیپیڈیا پر تلاش کیا جا رہا ہے…",
+  "covers.allHaveCovers": "اس لائبریری کے ہر جرنل کے پاس پہلے سے ہی ایک کور ہے۔ 🎉",
+  "covers.noneFound": "جن جرنلز کے پاس کور نہیں ہے ان کے لیے ویکیپیڈیا پر کوئی کور نہیں ملا۔",
+  "covers.found": "بغیر کور والے {missing} جرنلز کے لیے {found} ممکنہ کور ملے۔",
+  "covers.capped": "صرف پہلے جرنلز اسکین کیے گئے۔",
+  "covers.reviewHint": "جو غلط نظر آتے ہیں ان کا نشان ہٹا دیں، پھر محفوظ کریں پر کلک کریں۔ آپ اپنی تصویر کو کور پر گھسیٹ بھی سکتے ہیں۔",
+  "covers.save": "{count} محفوظ کریں",
   "window.help": "BibDesk مدد",
   "dialog.helpUnavailable": "اس بِلڈ میں مدد دستیاب نہیں ہے۔",
   "dialog.dontSave": "محفوظ نہ کریں",

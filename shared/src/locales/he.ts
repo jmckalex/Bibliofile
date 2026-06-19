@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const he: Catalog = {
+  "menu.tools.journalCovers": "הורדת כריכות חסרות של כתבי עת…",
+  "app.dropImport": "שחרר כאן קובץ .bib או קבצים לייבוא",
+  "covers.title": "הורדת כריכות של כתבי עת",
+  "covers.scanning": "סורק כתבי עת ומחפש בוויקיפדיה…",
+  "covers.allHaveCovers": "לכל כתב עת בספרייה הזו כבר יש כריכה. 🎉",
+  "covers.noneFound": "לא נמצאו כריכות בוויקיפדיה עבור כתבי העת שחסרה להם כריכה.",
+  "covers.found": "נמצאו {found} כריכות אפשריות עבור {missing} כתבי עת ללא כריכה.",
+  "covers.capped": "נסרקו רק כתבי העת הראשונים.",
+  "covers.reviewHint": "בטל את הסימון של אלה שנראים שגויים, ואז לחץ על שמירה. אפשר גם לגרור תמונה משלך אל כריכה.",
+  "covers.save": "שמירת {count}",
   "window.help": "עזרה של BibDesk",
   "dialog.helpUnavailable": "העזרה אינה זמינה בגרסה זו.",
   "dialog.dontSave": "אל תשמור",

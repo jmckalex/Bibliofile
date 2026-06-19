@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const tr: Catalog = {
+  "menu.tools.journalCovers": "Eksik dergi kapaklarını indir…",
+  "app.dropImport": "İçe aktarmak için bir .bib veya dosya bırakın",
+  "covers.title": "Dergi kapaklarını indir",
+  "covers.scanning": "Dergiler taranıyor ve Wikipedia'da aranıyor…",
+  "covers.allHaveCovers": "Bu kitaplıktaki her derginin zaten bir kapağı var. 🎉",
+  "covers.noneFound": "Kapağı olmayan dergiler için Wikipedia'da kapak bulunamadı.",
+  "covers.found": "Kapağı olmayan {missing} dergi için {found} olası kapak bulundu.",
+  "covers.capped": "Yalnızca ilk dergiler tarandı.",
+  "covers.reviewHint": "Yanlış görünenlerin işaretini kaldırın, ardından Kaydet'e tıklayın. Ayrıca kendi resminizi bir kapağın üzerine sürükleyebilirsiniz.",
+  "covers.save": "{count} kaydet",
   "window.help": "BibDesk Yardım",
   "dialog.helpUnavailable": "Bu derlemede yardım kullanılamıyor.",
   "dialog.dontSave": "Kaydetme",

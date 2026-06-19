@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const ar: Catalog = {
+  "menu.tools.journalCovers": "تنزيل أغلفة المجلات المفقودة…",
+  "app.dropImport": "أفلِت ملف .bib أو ملفات للاستيراد",
+  "covers.title": "تنزيل أغلفة المجلات",
+  "covers.scanning": "جارٍ فحص المجلات والبحث في ويكيبيديا…",
+  "covers.allHaveCovers": "كل مجلة في هذه المكتبة لديها غلاف بالفعل. 🎉",
+  "covers.noneFound": "لم يتم العثور على أغلفة في ويكيبيديا للمجلات التي تفتقر إليها.",
+  "covers.found": "تم العثور على {found} غلاف محتمل لعدد {missing} مجلة بدون غلاف.",
+  "covers.capped": "تم فحص المجلات الأولى فقط.",
+  "covers.reviewHint": "ألغِ تحديد أي غلاف يبدو خاطئًا، ثم اضغط حفظ. يمكنك أيضًا سحب صورتك الخاصة وإفلاتها على الغلاف.",
+  "covers.save": "حفظ {count}",
   "window.help": "مساعدة BibDesk",
   "dialog.helpUnavailable": "المساعدة غير متوفرة في هذه النسخة.",
   "dialog.dontSave": "عدم الحفظ",

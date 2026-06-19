@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const fa: Catalog = {
+  "menu.tools.journalCovers": "دانلود جلدهای گمشدهٔ مجلات…",
+  "app.dropImport": "یک فایل .bib یا فایل‌ها را برای وارد کردن رها کنید",
+  "covers.title": "دانلود جلدهای مجلات",
+  "covers.scanning": "در حال بررسی مجلات و جستجو در ویکی‌پدیا…",
+  "covers.allHaveCovers": "هر مجله در این کتابخانه از قبل جلد دارد. 🎉",
+  "covers.noneFound": "هیچ جلدی در ویکی‌پدیا برای مجلاتی که جلد ندارند پیدا نشد.",
+  "covers.found": "{found} جلد احتمالی برای {missing} مجلهٔ بدون جلد پیدا شد.",
+  "covers.capped": "فقط مجلات اول بررسی شدند.",
+  "covers.reviewHint": "تیک مواردی را که نادرست به نظر می‌رسند بردارید، سپس ذخیره را بزنید. همچنین می‌توانید تصویر خود را روی یک جلد بکشید.",
+  "covers.save": "ذخیره {count}",
   "window.help": "راهنمای BibDesk",
   "dialog.helpUnavailable": "راهنما در این نسخه در دسترس نیست.",
   "dialog.dontSave": "ذخیره نشود",

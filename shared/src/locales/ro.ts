@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const ro: Catalog = {
+  "menu.tools.journalCovers": "Descarcă coperțile lipsă ale revistelor…",
+  "app.dropImport": "Trage un fișier .bib sau fișiere pentru a importa",
+  "covers.title": "Descarcă coperțile revistelor",
+  "covers.scanning": "Se scanează revistele și se caută pe Wikipedia…",
+  "covers.allHaveCovers": "Fiecare revistă din această bibliotecă are deja o copertă. 🎉",
+  "covers.noneFound": "Nu au fost găsite coperți pe Wikipedia pentru revistele care nu au una.",
+  "covers.found": "S-au găsit {found} coperți posibile pentru {missing} revistă(e) fără una.",
+  "covers.capped": "Au fost scanate doar primele reviste.",
+  "covers.reviewHint": "Debifează-le pe cele care par greșite, apoi apasă Salvează. Poți de asemenea să tragi propria imagine pe o copertă.",
+  "covers.save": "Salvează {count}",
   "window.help": "Ajutor BibDesk",
   "dialog.helpUnavailable": "Ajutorul nu este disponibil în această versiune.",
   "dialog.dontSave": "Nu salva",

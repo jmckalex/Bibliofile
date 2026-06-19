@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const cs: Catalog = {
+  "menu.tools.journalCovers": "Stáhnout chybějící obálky časopisů…",
+  "app.dropImport": "Přetáhněte sem .bib nebo soubory k importu",
+  "covers.title": "Stáhnout obálky časopisů",
+  "covers.scanning": "Procházení časopisů a vyhledávání na Wikipedii…",
+  "covers.allHaveCovers": "Každý časopis v této knihovně už má obálku. 🎉",
+  "covers.noneFound": "Na Wikipedii nebyly nalezeny žádné obálky pro časopisy, které ji nemají.",
+  "covers.found": "Nalezeno {found} možných obálek pro {missing} časopis(ů) bez obálky.",
+  "covers.capped": "Byly prohledány pouze první časopisy.",
+  "covers.reviewHint": "Zrušte zaškrtnutí těch, které vypadají špatně, a klikněte na Uložit. Můžete také přetáhnout vlastní obrázek na obálku.",
+  "covers.save": "Uložit {count}",
   "window.help": "Nápověda BibDesk",
   "dialog.helpUnavailable": "Nápověda není v tomto sestavení k dispozici.",
   "dialog.dontSave": "Neukládat",

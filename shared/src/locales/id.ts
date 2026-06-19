@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const id: Catalog = {
+  "menu.tools.journalCovers": "Unduh sampul jurnal yang hilang…",
+  "app.dropImport": "Letakkan .bib atau berkas untuk diimpor",
+  "covers.title": "Unduh sampul jurnal",
+  "covers.scanning": "Memindai jurnal dan mencari di Wikipedia…",
+  "covers.allHaveCovers": "Setiap jurnal di pustaka ini sudah memiliki sampul. 🎉",
+  "covers.noneFound": "Tidak ada sampul yang ditemukan di Wikipedia untuk jurnal yang belum memilikinya.",
+  "covers.found": "Ditemukan {found} kandidat sampul untuk {missing} jurnal tanpa sampul.",
+  "covers.capped": "Hanya jurnal pertama yang dipindai.",
+  "covers.reviewHint": "Hapus centang yang terlihat salah, lalu Simpan. Anda juga dapat menyeret gambar Anda sendiri ke sampul.",
+  "covers.save": "Simpan {count}",
   "window.help": "Bantuan BibDesk",
   "dialog.helpUnavailable": "Bantuan tidak tersedia dalam build ini.",
   "dialog.dontSave": "Jangan Simpan",

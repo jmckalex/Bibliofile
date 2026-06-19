@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const ja: Catalog = {
+  "menu.tools.journalCovers": "不足している雑誌の表紙をダウンロード…",
+  "app.dropImport": ".bib またはファイルをドロップしてインポート",
+  "covers.title": "雑誌の表紙をダウンロード",
+  "covers.scanning": "雑誌をスキャンし、Wikipedia を検索しています…",
+  "covers.allHaveCovers": "このライブラリのすべての雑誌にはすでに表紙があります。🎉",
+  "covers.noneFound": "表紙のない雑誌について、Wikipedia で表紙が見つかりませんでした。",
+  "covers.found": "表紙のない {missing} 件の雑誌に対して、{found} 件の候補表紙が見つかりました。",
+  "covers.capped": "最初の雑誌のみがスキャンされました。",
+  "covers.reviewHint": "正しくないもののチェックを外して、保存をクリックしてください。独自の画像を表紙にドラッグすることもできます。",
+  "covers.save": "{count} 件を保存",
   "window.help": "BibDesk ヘルプ",
   "dialog.helpUnavailable": "このビルドではヘルプを利用できません。",
   "dialog.dontSave": "保存しない",

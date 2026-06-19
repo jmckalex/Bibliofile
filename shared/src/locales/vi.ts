@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const vi: Catalog = {
+  "menu.tools.journalCovers": "Tải bìa tạp chí còn thiếu…",
+  "app.dropImport": "Thả tệp .bib hoặc tệp để nhập",
+  "covers.title": "Tải bìa tạp chí",
+  "covers.scanning": "Đang quét tạp chí và tìm kiếm trên Wikipedia…",
+  "covers.allHaveCovers": "Mọi tạp chí trong thư viện này đều đã có bìa. 🎉",
+  "covers.noneFound": "Không tìm thấy bìa nào trên Wikipedia cho các tạp chí còn thiếu.",
+  "covers.found": "Đã tìm thấy {found} bìa khả dĩ cho {missing} tạp chí chưa có bìa.",
+  "covers.capped": "Chỉ những tạp chí đầu tiên được quét.",
+  "covers.reviewHint": "Bỏ chọn những bìa trông sai, rồi nhấn Lưu. Bạn cũng có thể kéo hình ảnh của riêng mình vào một bìa.",
+  "covers.save": "Lưu {count}",
   "window.help": "Trợ giúp BibDesk",
   "dialog.helpUnavailable": "Trợ giúp không khả dụng trong bản dựng này.",
   "dialog.dontSave": "Không lưu",

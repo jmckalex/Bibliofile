@@ -5,6 +5,16 @@
 import type { Catalog } from '../i18n.js';
 
 export const da: Catalog = {
+  "menu.tools.journalCovers": "Hent manglende tidsskriftomslag…",
+  "app.dropImport": "Slip en .bib eller filer for at importere",
+  "covers.title": "Hent tidsskriftomslag",
+  "covers.scanning": "Skanner tidsskrifter og søger på Wikipedia…",
+  "covers.allHaveCovers": "Alle tidsskrifter i dette bibliotek har allerede et omslag. 🎉",
+  "covers.noneFound": "Der blev ikke fundet nogen omslag på Wikipedia for de tidsskrifter, der mangler et.",
+  "covers.found": "Fandt {found} mulige omslag til {missing} tidsskrift(er) uden et.",
+  "covers.capped": "Kun de første tidsskrifter blev skannet.",
+  "covers.reviewHint": "Fjern markeringen af dem, der ser forkerte ud, og klik på Gem. Du kan også trække dit eget billede ind på et omslag.",
+  "covers.save": "Gem {count}",
   "window.help": "BibDesk Hjælp",
   "dialog.helpUnavailable": "Hjælp er ikke tilgængelig i denne version.",
   "dialog.dontSave": "Gem ikke",
