@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { CITATION_STYLES, BUILTIN_COLUMNS, LOCALES, type Settings, type EntryTypeInfo, type ExportTemplate } from '@bibdesk/shared';
 import { useT } from './i18n.js';
 import { CodeEditor } from './CodeEditor.js';
+import { Icon, type IconName } from './icons.js';
 import { useStore } from './store.js';
 import { PANEL_PRESETS } from './panel-presets.js';
 
@@ -58,7 +59,7 @@ function ColumnsSection({
             <span className="bd-cols__name">{colLabel(key)}</span>
             <span className="bd-cols__btns">
               <button type="button" className="bd-field__del" onClick={() => remove(key)} title={t('prefs.removeColumn')}>
-                ×
+                <Icon name="close" />
               </button>
             </span>
           </li>
@@ -199,7 +200,7 @@ function EntryTypesSection({
                 onBlur={(e) => renameType(name, e.target.value)}
               />
               <button type="button" className="bd-field__del" title={t('prefs.deleteType')} onClick={() => removeType(name)}>
-                ×
+                <Icon name="close" />
               </button>
             </div>
             <label className="bd-prefs__row">
@@ -246,7 +247,7 @@ function EntryTypesSection({
             setNewType('');
           }}
         >
-          +
+          <Icon name="plus" />
         </button>
       </div>
       <details className="bd-ctype__std">
@@ -328,7 +329,7 @@ function TemplateRow({
           onBlur={(e) => onChange({ extension: e.target.value.replace(/^\./, '').trim() || 'txt' })}
         />
         <button type="button" className="bd-field__del" title={t('prefs.deleteTemplate')} onClick={onRemove}>
-          ×
+          <Icon name="close" />
         </button>
       </div>
       <CodeEditor
@@ -436,7 +437,7 @@ function TemplatesSection({
           aria-label={t('prefs.addExportTemplate')}
           onClick={add}
         >
-          +
+          <Icon name="plus" />
         </button>
       </div>
     </section>
@@ -608,271 +609,334 @@ function PanelsSection({
   );
 }
 
+type PrefSection =
+  | 'general'
+  | 'display'
+  | 'citation'
+  | 'citeKeys'
+  | 'files'
+  | 'fields'
+  | 'templates'
+  | 'panels'
+  | 'assistant';
+
+/** Left-rail sections (icon + label), BibDesk-style. Reuse already-translated
+ *  keys where one fits; the section-only labels live under `prefs.section.*`
+ *  (English source, fall back to English in other locales until seeded). */
+const PREF_SECTIONS: { id: PrefSection; icon: IconName; labelKey: string }[] = [
+  { id: 'general', icon: 'prefGeneral', labelKey: 'prefs.section.general' },
+  { id: 'display', icon: 'prefDisplay', labelKey: 'prefs.section.display' },
+  { id: 'citation', icon: 'prefCitation', labelKey: 'prefs.citations' },
+  { id: 'citeKeys', icon: 'prefCiteKeys', labelKey: 'prefs.citeKeys' },
+  { id: 'files', icon: 'prefFiles', labelKey: 'prefs.section.files' },
+  { id: 'fields', icon: 'prefFields', labelKey: 'prefs.section.fields' },
+  { id: 'templates', icon: 'prefTemplates', labelKey: 'prefs.section.templates' },
+  { id: 'panels', icon: 'prefPanels', labelKey: 'prefs.panels' },
+  { id: 'assistant', icon: 'prefAssistant', labelKey: 'prefs.assistant' },
+];
+
 export function Preferences({ onClose }: { onClose: () => void }) {
   const t = useT();
   const settings = useStore((s) => s.settings);
   const documentId = useStore((s) => s.documentId);
   const entryTypes = useStore((s) => s.entryTypes);
   const save = useStore((s) => s.saveSettings);
+  const [section, setSection] = useState<PrefSection>('general');
 
   return (
     <div className="bd-modal-backdrop" onClick={onClose}>
-      <div className="bd-modal bd-modal--wide" role="dialog" aria-label={t('prefs.title')} onClick={(e) => e.stopPropagation()}>
+      <div className="bd-modal bd-modal--prefs" role="dialog" aria-label={t('prefs.title')} onClick={(e) => e.stopPropagation()}>
         <div className="bd-modal__header">
           <span>{t('prefs.title')}</span>
           <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
-            ×
+            <Icon name="close" />
           </button>
         </div>
-        <div className="bd-modal__body bd-prefs">
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.appearance')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.language')}</span>
-              <select
-                className="bd-input bd-select"
-                value={settings.locale}
-                onChange={(e) => void save({ locale: e.target.value })}
+        <div className="bd-prefs">
+          <nav className="bd-prefs__nav" aria-label={t('prefs.title')}>
+            {PREF_SECTIONS.map((sec) => (
+              <button
+                key={sec.id}
+                type="button"
+                className={'bd-prefs__navitem' + (section === sec.id ? ' bd-prefs__navitem--on' : '')}
+                aria-current={section === sec.id ? 'page' : undefined}
+                onClick={() => setSection(sec.id)}
               >
-                <option value="system">{t('prefs.language.system')}</option>
-                {LOCALES.map((l) => (
-                  <option key={l.code} value={l.code}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <p className="bd-prefs__hint">{t('prefs.language.hint')}</p>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.theme')}</span>
-              <select
-                className="bd-input bd-select"
-                value={settings.theme}
-                onChange={(e) => void save({ theme: e.target.value as Settings['theme'] })}
-              >
-                <option value="system">{t('prefs.theme.system')}</option>
-                <option value="light">{t('prefs.theme.light')}</option>
-                <option value="dark">{t('prefs.theme.dark')}</option>
-              </select>
-            </label>
-          </section>
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.citations')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.defaultStyle')}</span>
-              <select
-                className="bd-input bd-select"
-                value={settings.defaultCiteStyle}
-                onChange={(e) => void save({ defaultCiteStyle: e.target.value })}
-              >
-                {CITATION_STYLES.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </section>
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.citeKeys')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.format')}</span>
-              <input
-                key={settings.citeKeyFormat}
-                className="bd-input bd-input--mono"
-                defaultValue={settings.citeKeyFormat}
-                onBlur={(e) => {
-                  if (e.target.value !== settings.citeKeyFormat) {
-                    void save({ citeKeyFormat: e.target.value });
-                  }
-                }}
-              />
-            </label>
-            <p className="bd-prefs__hint">
-              BibDesk format language — e.g. <code>%a1:%Y%u2</code> = first author, year, then a
-              unique suffix. Used by the <strong>Generate</strong> button.
-            </p>
-            <p className="bd-prefs__hint">
-              <strong>Author-count recipe</strong> (the default):{' '}
-              <code>%p[/][/etal1]2:%Y%u0</code> → <code>Surname:Year</code> for one author,{' '}
-              <code>Surname1/Surname2:Year</code> for two, <code>Surname1/etal:Year</code> for
-              three or more; <code>%u0</code> adds a disambiguating letter (<code>a</code>,{' '}
-              <code>b</code>, …) only on a clash. <code>%p</code> uses editors when an entry has
-              no author (e.g. edited books); use <code>%a</code> instead for authors only.
-            </p>
-          </section>
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.annotationStorage')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.writeNotesAs')}</span>
-              <select
-                className="bd-input bd-select"
-                value={settings.annotationStorage}
-                onChange={(e) => void save({ annotationStorage: e.target.value as Settings['annotationStorage'] })}
-              >
-                <option value="compressed">{t('prefs.annotation.compressed')}</option>
-                <option value="readable">{t('prefs.annotation.readable')}</option>
-              </select>
-            </label>
-            <p className="bd-prefs__hint">
-              <strong>Compressed</strong> stores markdown annotations lz-string-compressed in a
-              private <code>Bdsk-Annotation</code> field — brace-safe and small, but opaque to other
-              tools. <strong>Readable</strong> keeps them in the standard <code>Annote</code> field
-              (only <code>% {'{'} {'}'}</code> escaped) — portable and human-readable, but the
-              flakier path. Existing entries convert on next edit; either form always reads back.
-            </p>
-          </section>
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.citeCommand')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.dragCopyCite')}</span>
-              <input
-                key={settings.citeCommandTemplate}
-                className="bd-input bd-input--mono"
-                defaultValue={settings.citeCommandTemplate}
-                onBlur={(e) => {
-                  if (e.target.value !== settings.citeCommandTemplate) {
-                    void save({ citeCommandTemplate: e.target.value });
-                  }
-                }}
-              />
-            </label>
-            <p className="bd-prefs__hint">
-              Inserted when you drag rows to a TeX editor or run <strong>Copy \cite&#123;…&#125;</strong>.
-              <code>%K</code> expands to the cite key(s) — e.g. <code>\cite&#123;%K&#125;</code> or{' '}
-              <code>\citep&#123;%K&#125;</code>.
-            </p>
-          </section>
-
-          <ColumnsSection columns={settings.columns} save={save} />
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.autofile')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.papersFolder')}</span>
-              <span className="bd-prefs__folder">
-                <input className="bd-input" readOnly placeholder={t('prefs.folderNone')} value={settings.papersFolder} />
-                <button
-                  type="button"
-                  className="bd-btn bd-btn--small"
-                  onClick={async () => {
-                    const res = await window.bibdesk?.chooseFolder();
-                    if (res?.path) void save({ papersFolder: res.path });
-                  }}
-                >
-                  {t('prefs.choose')}
-                </button>
-                {settings.papersFolder && (
-                  <button type="button" className="bd-field__del" title={t('prefs.clear')} onClick={() => void save({ papersFolder: '' })}>
-                    ×
-                  </button>
-                )}
-              </span>
-            </label>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.fileName')}</span>
-              <input
-                key={settings.autoFileFormat}
-                className="bd-input bd-input--mono"
-                defaultValue={settings.autoFileFormat}
-                onBlur={(e) => {
-                  if (e.target.value !== settings.autoFileFormat) void save({ autoFileFormat: e.target.value });
-                }}
-              />
-            </label>
-            <p className="bd-prefs__hint">
-              <strong>Publication → AutoFile Linked Files</strong> moves an entry’s attachments into the
-              Papers folder, named by this format (e.g. <code>%a1/%Y%u0</code> = first-author folder,
-              year + disambiguator).
-            </p>
-          </section>
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.assistant')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.model')}</span>
-              <input
-                key={settings.agentModel}
-                className="bd-input bd-input--mono"
-                defaultValue={settings.agentModel}
-                onBlur={(e) => {
-                  if (e.target.value !== settings.agentModel) void save({ agentModel: e.target.value });
-                }}
-              />
-            </label>
-            <p className="bd-prefs__hint">
-              The assistant (Tools → Claude Assistant, ⌘J) uses your Anthropic API key, stored
-              encrypted on this device. It reads the library freely and asks before any change.
-            </p>
-          </section>
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.saving')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.autosave')}</span>
-              <input
-                type="checkbox"
-                checked={settings.autosave}
-                onChange={(e) => void save({ autosave: e.target.checked })}
-              />
-            </label>
-            <p className="bd-prefs__hint">
-              Save automatically a moment after each edit. Undo (⌘Z) / Redo (⇧⌘Z) work regardless.
-            </p>
-          </section>
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.newEntries')}</h3>
-            <label className="bd-prefs__row">
-              <span>{t('prefs.defaultType')}</span>
-              <select
-                className="bd-input bd-select"
-                value={settings.defaultEntryType}
-                onChange={(e) => void save({ defaultEntryType: e.target.value })}
-              >
-                {(entryTypes.length ? entryTypes.map((et) => et.name) : ENTRY_TYPES).map((ty) => (
-                  <option key={ty} value={ty}>
-                    {ty}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </section>
-
-          <EntryTypesSection customTypes={settings.customTypes} entryTypes={entryTypes} save={save} />
-
-          <TemplatesSection templates={settings.exportTemplates} documentId={documentId} save={save} />
-
-          <PanelsSection settings={settings} documentId={documentId} save={save} />
-
-          <section className="bd-prefs__section">
-            <h3>{t('prefs.fieldTypes')}</h3>
-            <p className="bd-prefs__hint">
-              Comma-separated field names. These control how the app treats each field — which
-              are parsed as people, shown as links, rated, etc.
-            </p>
-            {FIELD_CATEGORIES.map(({ key, labelKey }) => (
-              <label className="bd-prefs__row" key={key}>
-                <span>{t(labelKey)}</span>
-                <input
-                  key={`${key}:${settings.fieldTypes[key].join(',')}`}
-                  className="bd-input"
-                  defaultValue={settings.fieldTypes[key].join(', ')}
-                  onBlur={(e) => {
-                    const arr = e.target.value
-                      .split(',')
-                      .map((x) => x.trim())
-                      .filter(Boolean);
-                    void save({ fieldTypes: { ...settings.fieldTypes, [key]: arr } });
-                  }}
-                />
-              </label>
+                <span className="bd-prefs__navicon">
+                  <Icon name={sec.icon} />
+                </span>
+                <span className="bd-prefs__navlabel">{t(sec.labelKey)}</span>
+              </button>
             ))}
-          </section>
+          </nav>
+
+          <div className="bd-prefs__content">
+            {section === 'general' && (
+              <>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.appearance')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.language')}</span>
+                    <select
+                      className="bd-input bd-select"
+                      value={settings.locale}
+                      onChange={(e) => void save({ locale: e.target.value })}
+                    >
+                      <option value="system">{t('prefs.language.system')}</option>
+                      {LOCALES.map((l) => (
+                        <option key={l.code} value={l.code}>
+                          {l.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p className="bd-prefs__hint">{t('prefs.language.hint')}</p>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.theme')}</span>
+                    <select
+                      className="bd-input bd-select"
+                      value={settings.theme}
+                      onChange={(e) => void save({ theme: e.target.value as Settings['theme'] })}
+                    >
+                      <option value="system">{t('prefs.theme.system')}</option>
+                      <option value="light">{t('prefs.theme.light')}</option>
+                      <option value="dark">{t('prefs.theme.dark')}</option>
+                    </select>
+                  </label>
+                </section>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.saving')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.autosave')}</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.autosave}
+                      onChange={(e) => void save({ autosave: e.target.checked })}
+                    />
+                  </label>
+                  <p className="bd-prefs__hint">
+                    Save automatically a moment after each edit. Undo (⌘Z) / Redo (⇧⌘Z) work regardless.
+                  </p>
+                </section>
+              </>
+            )}
+
+            {section === 'display' && <ColumnsSection columns={settings.columns} save={save} />}
+
+            {section === 'citation' && (
+              <>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.citations')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.defaultStyle')}</span>
+                    <select
+                      className="bd-input bd-select"
+                      value={settings.defaultCiteStyle}
+                      onChange={(e) => void save({ defaultCiteStyle: e.target.value })}
+                    >
+                      {CITATION_STYLES.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </section>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.citeCommand')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.dragCopyCite')}</span>
+                    <input
+                      key={settings.citeCommandTemplate}
+                      className="bd-input bd-input--mono"
+                      defaultValue={settings.citeCommandTemplate}
+                      onBlur={(e) => {
+                        if (e.target.value !== settings.citeCommandTemplate) {
+                          void save({ citeCommandTemplate: e.target.value });
+                        }
+                      }}
+                    />
+                  </label>
+                  <p className="bd-prefs__hint">
+                    Inserted when you drag rows to a TeX editor or run <strong>Copy \cite&#123;…&#125;</strong>.
+                    <code>%K</code> expands to the cite key(s) — e.g. <code>\cite&#123;%K&#125;</code> or{' '}
+                    <code>\citep&#123;%K&#125;</code>.
+                  </p>
+                </section>
+              </>
+            )}
+
+            {section === 'citeKeys' && (
+              <section className="bd-prefs__section">
+                <h3>{t('prefs.citeKeys')}</h3>
+                <label className="bd-prefs__row">
+                  <span>{t('prefs.format')}</span>
+                  <input
+                    key={settings.citeKeyFormat}
+                    className="bd-input bd-input--mono"
+                    defaultValue={settings.citeKeyFormat}
+                    onBlur={(e) => {
+                      if (e.target.value !== settings.citeKeyFormat) {
+                        void save({ citeKeyFormat: e.target.value });
+                      }
+                    }}
+                  />
+                </label>
+                <p className="bd-prefs__hint">
+                  BibDesk format language — e.g. <code>%a1:%Y%u2</code> = first author, year, then a
+                  unique suffix. Used by the <strong>Generate</strong> button.
+                </p>
+                <p className="bd-prefs__hint">
+                  <strong>Author-count recipe</strong> (the default):{' '}
+                  <code>%p[/][/etal1]2:%Y%u0</code> → <code>Surname:Year</code> for one author,{' '}
+                  <code>Surname1/Surname2:Year</code> for two, <code>Surname1/etal:Year</code> for
+                  three or more; <code>%u0</code> adds a disambiguating letter (<code>a</code>,{' '}
+                  <code>b</code>, …) only on a clash. <code>%p</code> uses editors when an entry has
+                  no author (e.g. edited books); use <code>%a</code> instead for authors only.
+                </p>
+              </section>
+            )}
+
+            {section === 'files' && (
+              <>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.autofile')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.papersFolder')}</span>
+                    <span className="bd-prefs__folder">
+                      <input className="bd-input" readOnly placeholder={t('prefs.folderNone')} value={settings.papersFolder} />
+                      <button
+                        type="button"
+                        className="bd-btn bd-btn--small"
+                        onClick={async () => {
+                          const res = await window.bibdesk?.chooseFolder();
+                          if (res?.path) void save({ papersFolder: res.path });
+                        }}
+                      >
+                        {t('prefs.choose')}
+                      </button>
+                      {settings.papersFolder && (
+                        <button type="button" className="bd-field__del" title={t('prefs.clear')} onClick={() => void save({ papersFolder: '' })}>
+                          <Icon name="close" />
+                        </button>
+                      )}
+                    </span>
+                  </label>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.fileName')}</span>
+                    <input
+                      key={settings.autoFileFormat}
+                      className="bd-input bd-input--mono"
+                      defaultValue={settings.autoFileFormat}
+                      onBlur={(e) => {
+                        if (e.target.value !== settings.autoFileFormat) void save({ autoFileFormat: e.target.value });
+                      }}
+                    />
+                  </label>
+                  <p className="bd-prefs__hint">
+                    <strong>Publication → AutoFile Linked Files</strong> moves an entry’s attachments into the
+                    Papers folder, named by this format (e.g. <code>%a1/%Y%u0</code> = first-author folder,
+                    year + disambiguator).
+                  </p>
+                </section>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.annotationStorage')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.writeNotesAs')}</span>
+                    <select
+                      className="bd-input bd-select"
+                      value={settings.annotationStorage}
+                      onChange={(e) => void save({ annotationStorage: e.target.value as Settings['annotationStorage'] })}
+                    >
+                      <option value="compressed">{t('prefs.annotation.compressed')}</option>
+                      <option value="readable">{t('prefs.annotation.readable')}</option>
+                    </select>
+                  </label>
+                  <p className="bd-prefs__hint">
+                    <strong>Compressed</strong> stores markdown annotations lz-string-compressed in a
+                    private <code>Bdsk-Annotation</code> field — brace-safe and small, but opaque to other
+                    tools. <strong>Readable</strong> keeps them in the standard <code>Annote</code> field
+                    (only <code>% {'{'} {'}'}</code> escaped) — portable and human-readable, but the
+                    flakier path. Existing entries convert on next edit; either form always reads back.
+                  </p>
+                </section>
+              </>
+            )}
+
+            {section === 'fields' && (
+              <>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.newEntries')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.defaultType')}</span>
+                    <select
+                      className="bd-input bd-select"
+                      value={settings.defaultEntryType}
+                      onChange={(e) => void save({ defaultEntryType: e.target.value })}
+                    >
+                      {(entryTypes.length ? entryTypes.map((et) => et.name) : ENTRY_TYPES).map((ty) => (
+                        <option key={ty} value={ty}>
+                          {ty}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </section>
+                <EntryTypesSection customTypes={settings.customTypes} entryTypes={entryTypes} save={save} />
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.fieldTypes')}</h3>
+                  <p className="bd-prefs__hint">
+                    Comma-separated field names. These control how the app treats each field — which
+                    are parsed as people, shown as links, rated, etc.
+                  </p>
+                  {FIELD_CATEGORIES.map(({ key, labelKey }) => (
+                    <label className="bd-prefs__row" key={key}>
+                      <span>{t(labelKey)}</span>
+                      <input
+                        key={`${key}:${settings.fieldTypes[key].join(',')}`}
+                        className="bd-input"
+                        defaultValue={settings.fieldTypes[key].join(', ')}
+                        onBlur={(e) => {
+                          const arr = e.target.value
+                            .split(',')
+                            .map((x) => x.trim())
+                            .filter(Boolean);
+                          void save({ fieldTypes: { ...settings.fieldTypes, [key]: arr } });
+                        }}
+                      />
+                    </label>
+                  ))}
+                </section>
+              </>
+            )}
+
+            {section === 'templates' && (
+              <TemplatesSection templates={settings.exportTemplates} documentId={documentId} save={save} />
+            )}
+
+            {section === 'panels' && <PanelsSection settings={settings} documentId={documentId} save={save} />}
+
+            {section === 'assistant' && (
+              <section className="bd-prefs__section">
+                <h3>{t('prefs.assistant')}</h3>
+                <label className="bd-prefs__row">
+                  <span>{t('prefs.model')}</span>
+                  <input
+                    key={settings.agentModel}
+                    className="bd-input bd-input--mono"
+                    defaultValue={settings.agentModel}
+                    onBlur={(e) => {
+                      if (e.target.value !== settings.agentModel) void save({ agentModel: e.target.value });
+                    }}
+                  />
+                </label>
+                <p className="bd-prefs__hint">
+                  The assistant (Tools → Claude Assistant, ⌘J) uses your Anthropic API key, stored
+                  encrypted on this device. It reads the library freely and asks before any change.
+                </p>
+              </section>
+            )}
+          </div>
         </div>
       </div>
     </div>

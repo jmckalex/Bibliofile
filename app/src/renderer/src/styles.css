@@ -2255,6 +2255,82 @@ button.bd-chip {
 
 /* ---- Preferences ------------------------------------------------------- */
 
+/* Sectioned layout: a left icon rail + a scrollable content pane (System
+   Settings style). The modal is fixed-size so switching sections doesn't
+   resize the window. */
+.bd-modal--prefs {
+  width: 760px;
+  height: 560px;
+}
+
+.bd-prefs {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.bd-prefs__nav {
+  flex: none;
+  width: 176px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-right: 1px solid var(--bd-border);
+  background: var(--bd-surface-alt);
+  overflow-y: auto;
+}
+
+.bd-prefs__navitem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--bd-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-prefs__navitem:hover {
+  background: var(--bd-hover);
+}
+
+.bd-prefs__navitem--on,
+.bd-prefs__navitem--on:hover {
+  background: var(--bd-accent);
+  color: #fff;
+}
+
+.bd-prefs__navicon {
+  flex: none;
+  width: 18px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--bd-text-muted);
+}
+
+.bd-prefs__navitem--on .bd-prefs__navicon {
+  color: inherit;
+}
+
+.bd-prefs__navlabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bd-prefs__content {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 16px;
+  overflow-y: auto;
+}
+
 .bd-prefs__section {
   padding: 6px 0 12px;
   border-bottom: 1px solid var(--bd-border);
@@ -2287,6 +2363,14 @@ button.bd-chip {
   width: auto;
   justify-self: start;
   min-width: 160px;
+}
+
+/* Checkboxes sit at the start of the control column, next to their label —
+   not stretched across the full row width. */
+.bd-prefs__row input[type='checkbox'] {
+  justify-self: start;
+  width: auto;
+  margin: 0;
 }
 
 .bd-prefs__hint {

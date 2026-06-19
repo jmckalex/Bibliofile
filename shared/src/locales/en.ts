@@ -111,6 +111,12 @@ export const en: Catalog = {
   // they embed format codes (%a1, %K), Handlebars tokens and field names that
   // must not be translated.
   'prefs.title': 'Preferences',
+  // Left-rail section labels (the others reuse existing prefs.* keys).
+  'prefs.section.general': 'General',
+  'prefs.section.display': 'Display',
+  'prefs.section.files': 'Files',
+  'prefs.section.fields': 'Fields',
+  'prefs.section.templates': 'Templates',
   'prefs.appearance': 'Appearance',
   'prefs.theme': 'Theme',
   'prefs.theme.system': 'System',
