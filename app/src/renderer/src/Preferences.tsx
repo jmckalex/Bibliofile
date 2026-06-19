@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { CITATION_STYLES, BUILTIN_COLUMNS, LOCALES, type Settings, type EntryTypeInfo, type ExportTemplate } from '@bibdesk/shared';
 import { useT } from './i18n.js';
+import { CodeEditor } from './CodeEditor.js';
 import { useStore } from './store.js';
 import { PANEL_PRESETS } from './panel-presets.js';
 
@@ -330,12 +331,11 @@ function TemplateRow({
           ×
         </button>
       </div>
-      <textarea
-        className="bd-input bd-input--area bd-tmpl__body"
+      <CodeEditor
+        language="html"
         value={body}
-        rows={6}
-        spellCheck={false}
-        onChange={(e) => setBody(e.target.value)}
+        minHeight="140px"
+        onChange={setBody}
         onBlur={() => {
           if (body !== template.body) onChange({ body });
         }}
@@ -521,13 +521,12 @@ function PanelTemplateEditor({
           {t('prefs.reset')}
         </button>
       </div>
-      <textarea
-        className="bd-input bd-input--area bd-tmpl__body"
+      <CodeEditor
+        language="html"
         value={body}
-        rows={6}
-        spellCheck={false}
         placeholder={t('prefs.leaveEmptyDefault')}
-        onChange={(e) => setBody(e.target.value)}
+        minHeight="140px"
+        onChange={setBody}
         onBlur={() => {
           if (body !== value) void save({ [field]: body } as Partial<Settings>);
         }}

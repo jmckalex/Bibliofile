@@ -14,6 +14,7 @@ import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from 
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
 import { Icon, type IconName } from './icons.js';
+import { CodeEditor } from './CodeEditor.js';
 import { typesetMath, hasMath } from './mathjax.js';
 
 /** Fallback BibTeX entry types if the dynamic list hasn't loaded yet. */
@@ -342,6 +343,19 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
   const selectByCiteKey = useStore((s) => s.selectByCiteKey);
   const [editing, setEditing] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  // Live editor content; committed to the Annote field on blur / Done (one undo
+  // step per editing session, like the old textarea). Reset on item switch or
+  // after a save so we never write one entry's draft onto another.
+  const draftRef = useRef(detail.notesRaw);
+  useEffect(() => {
+    draftRef.current = detail.notesRaw;
+  }, [detail.id, detail.notesRaw]);
+
+  const commitNotes = useCallback(() => {
+    if (draftRef.current !== detail.notesRaw) {
+      void edit({ kind: 'setField', itemId: detail.id, field: 'Annote', value: draftRef.current });
+    }
+  }, [detail.id, detail.notesRaw, edit]);
 
   useEffect(() => {
     if (!editing && ref.current && hasMath(detail.notesHtml)) void typesetMath(ref.current);
@@ -372,24 +386,27 @@ export function NotesSection({ detail, readOnly = false }: { detail: ItemDetail;
           <button
             type="button"
             className="bd-btn bd-btn--small"
-            onClick={() => setEditing((v) => !v)}
+            onClick={() => {
+              if (editing) commitNotes();
+              setEditing((v) => !v);
+            }}
           >
             {editing ? t('detail.done') : t('detail.edit')}
           </button>
         )}
       </div>
       {editing && !readOnly ? (
-        <textarea
+        <CodeEditor
           key={`${detail.id}:notes`}
-          className="bd-input bd-input--area bd-notes__editor"
-          defaultValue={detail.notesRaw}
-          rows={6}
+          language="markdown"
+          value={detail.notesRaw}
           placeholder={t('detail.notesPlaceholder')}
-          onBlur={(e) => {
-            if (e.target.value !== detail.notesRaw) {
-              void edit({ kind: 'setField', itemId: detail.id, field: 'Annote', value: e.target.value });
-            }
+          minHeight="160px"
+          autoFocus
+          onChange={(v) => {
+            draftRef.current = v;
           }}
+          onBlur={commitNotes}
         />
       ) : detail.notesHtml ? (
         <div
