@@ -52,7 +52,16 @@ export function EditorWindow({ documentId, itemId }: { documentId: string; itemI
           {detail ? ` · ${detail.citeKey}` : '…'}
         </span>
         <span className="bd-editorwin__spacer" />
-        <button type="button" className="bd-btn bd-btn--small" onClick={() => window.close()}>
+        <button
+          type="button"
+          className="bd-btn bd-btn--small"
+          onClick={() => {
+            // Flush a field being edited (its blur-commit) before tearing down the
+            // window, so a value typed but not yet Enter/blur-confirmed isn't lost.
+            (document.activeElement as HTMLElement | null)?.blur();
+            window.close();
+          }}
+        >
           {t('common.close')}
         </button>
       </header>

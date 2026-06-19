@@ -256,8 +256,15 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
     if (e.key === 'Enter') commit();
     else if (e.key === 'Escape') onDone();
   };
+  // Commit when focus leaves the whole row — clicking away, tabbing out, or closing
+  // the editor — not when moving between the name + value inputs (relatedTarget is
+  // still inside the row) and not via the discard button (which runs onDone). Without
+  // this, a field typed but not Enter-confirmed was silently lost when the dialog closed.
+  const onBlur = (e: React.FocusEvent<HTMLDivElement>): void => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) commit();
+  };
   return (
-    <div className="bd-field bd-field--add" style={{ display: 'contents' }}>
+    <div className="bd-field bd-field--add" style={{ display: 'contents' }} onBlur={onBlur}>
       <div className="bd-field__name">
         <input
           className="bd-input bd-input--newname"
