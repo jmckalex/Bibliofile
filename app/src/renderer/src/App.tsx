@@ -570,7 +570,7 @@ export function App() {
             <>
               <Splitter
                 orientation="horizontal"
-                label="Resize bottom panel"
+                label={t('splitter.bottom')}
                 onDrag={(dy) => {
                   const cur = getStore().getState().settings.layout.bottomPanelHeight;
                   setLayout({ bottomPanelHeight: Math.max(80, Math.min(600, cur - dy)) }, false);
@@ -587,7 +587,7 @@ export function App() {
           <>
             <Splitter
               orientation="vertical"
-              label="Resize side panel"
+              label={t('splitter.side')}
               onDrag={(dx) => {
                 const cur = getStore().getState().settings.layout.rightPaneWidth;
                 setLayout({ rightPaneWidth: Math.max(240, Math.min(800, cur - dx)) }, false);
