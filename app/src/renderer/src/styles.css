@@ -1385,6 +1385,14 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
   outline: none;
 }
 
+/* When the caret sits *between* chips, the input sizes to its content (driven by
+   the `size` attribute) so the chips on its right abut the draft instead of being
+   pushed flush-right by a row-filling input. */
+.bd-kw__input--mid {
+  flex: 0 1 auto;
+  min-width: 2ch;
+}
+
 /* ---- Group editor (sidebar) -------------------------------------------- */
 
 .bd-sidebar__actions {

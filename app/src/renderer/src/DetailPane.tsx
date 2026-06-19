@@ -282,7 +282,10 @@ function TokenInput({
       {before.map((kw, i) => chip(kw, `b-${kw}-${i}`, () => apply(before.filter((_, j) => j !== i), after, draft)))}
       <input
         ref={inputRef}
-        className="bd-kw__input"
+        className={'bd-kw__input' + (after.length ? ' bd-kw__input--mid' : '')}
+        // With chips to the right, size the box to the draft (min 1ch) so they
+        // abut the caret; with none, the class lets it flex to fill the row.
+        size={after.length ? Math.max(draft.length, 1) : undefined}
         value={draft}
         placeholder={empty ? placeholder : undefined}
         onChange={(e) => setDraft(e.target.value)}
