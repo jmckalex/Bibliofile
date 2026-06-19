@@ -1349,11 +1349,14 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
   font-size: 11px;
   line-height: 16px;
   background: hsl(var(--kw-h, 220), 70%, 90%);
+  /* Thin rim: the fill mixed with 20% black, so it reads a touch darker. */
+  border: 1px solid color-mix(in srgb, hsl(var(--kw-h, 220), 70%, 90%) 80%, black);
   color: hsl(var(--kw-h, 220), 45%, 28%);
 }
 
 :root[data-theme='dark'] .bd-kw {
   background: hsl(var(--kw-h, 220), 32%, 28%);
+  border-color: color-mix(in srgb, hsl(var(--kw-h, 220), 32%, 28%) 80%, black);
   color: hsl(var(--kw-h, 220), 70%, 82%);
 }
 
