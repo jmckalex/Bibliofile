@@ -435,6 +435,23 @@ body.bd-resizing {
   background: var(--bd-surface-alt);
 }
 
+/* The Claude toggle button kept beside the side-pane content dropdown. */
+.bd-rptab {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--bd-text-muted);
+  font: inherit;
+  font-size: var(--bd-fs-sm);
+  padding: 3px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.bd-rptab--on {
+  background: var(--bd-accent);
+  color: #fff;
+}
+
 /* The pane-content dropdown shown in the right- and bottom-panel headers. */
 .bd-paneswitch {
   appearance: auto;

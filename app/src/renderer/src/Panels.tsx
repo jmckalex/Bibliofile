@@ -85,23 +85,33 @@ function PaneSwitch({
   );
 }
 
-/** The right pane: a Details ↔ Claude content dropdown + a hide button, then the body. */
+/**
+ * The right pane: a content dropdown for the detail view (will grow to list
+ * detail templates) + a dedicated Claude toggle button (the assistant is a
+ * frequently-flipped mode, so it keeps its own button), then the body.
+ */
 export function RightPane() {
   const t = useT();
   const content = useStore((s) => s.settings.layout.rightPaneContent);
   const setLayout = useStore((s) => s.setLayout);
+  const showAssistant = content === 'assistant';
   return (
     <section className="bd-pane bd-pane--detail bd-rightpane">
       <div className="bd-rightpane__tabs">
         <PaneSwitch
           label={t('panel.content')}
-          value={content}
-          options={[
-            ['details', t('panel.details')],
-            ['assistant', t('panel.claude')],
-          ]}
-          onChange={(v) => setLayout({ rightPaneContent: v as 'details' | 'assistant' })}
+          value="details"
+          options={[['details', t('panel.details')]]}
+          onChange={() => setLayout({ rightPaneContent: 'details' })}
         />
+        <button
+          type="button"
+          aria-pressed={showAssistant}
+          className={'bd-rptab' + (showAssistant ? ' bd-rptab--on' : '')}
+          onClick={() => setLayout({ rightPaneContent: showAssistant ? 'details' : 'assistant' })}
+        >
+          <Icon name="assistant" /> {t('panel.claude')}
+        </button>
         <span className="bd-toolbar__spacer" />
         <button
           type="button"
