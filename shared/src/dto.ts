@@ -1120,6 +1120,8 @@ export interface LayoutSettings {
   readonly bottomPanelHeight: number;
   /** Whether the bottom panel is shown. */
   readonly bottomPanelVisible: boolean;
+  /** What the bottom panel shows: the entry annotation, or the LaTeX preview. */
+  readonly bottomPaneContent: 'annotation' | 'texPreview';
 }
 
 /** Builtin (non-field) table column keys. */
@@ -1178,6 +1180,7 @@ export const DEFAULT_SETTINGS: Settings = {
     rightPaneContent: 'details',
     bottomPanelHeight: 200,
     bottomPanelVisible: false,
+    bottomPaneContent: 'annotation',
   },
 };
 
@@ -1385,6 +1388,10 @@ export type MenuCommand =
   | 'toggleTheme'
   | 'toggleSidePanel'
   | 'toggleBottomPanel'
+  | 'sidePaneDetails'
+  | 'sidePaneAssistant'
+  | 'bottomPaneAnnotation'
+  | 'bottomPaneTexPreview'
   // App
   | 'save'
   | 'print'

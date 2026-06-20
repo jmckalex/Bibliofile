@@ -7,6 +7,7 @@ import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from 'react
 import { useStore } from './store.js';
 import { ViewPane } from './ViewPane.js';
 import { Assistant } from './Assistant.js';
+import { TexPreviewPane } from './TexPreviewPane.js';
 import { hydratePanel } from './panel-hydrate.js';
 import { useT } from './i18n.js';
 import { Icon } from './icons.js';
@@ -52,32 +53,55 @@ export function Splitter({
   );
 }
 
-/** The right pane: a Details ↔ Claude tab switch + a hide button, then the body. */
+/**
+ * A small dropdown that swaps what a pane shows. Used in both pane headers so the
+ * user can switch content (which they do somewhat frequently) without the menu.
+ * Values are constrained by the caller's `options`, so the `onChange` cast is safe.
+ */
+function PaneSwitch({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: ReadonlyArray<readonly [value: string, label: string]>;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <select
+      className="bd-paneswitch"
+      aria-label={label}
+      value={value}
+      onChange={(e) => onChange(e.currentTarget.value)}
+    >
+      {options.map(([v, lbl]) => (
+        <option key={v} value={v}>
+          {lbl}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/** The right pane: a Details ↔ Claude content dropdown + a hide button, then the body. */
 export function RightPane() {
   const t = useT();
   const content = useStore((s) => s.settings.layout.rightPaneContent);
   const setLayout = useStore((s) => s.setLayout);
   return (
     <section className="bd-pane bd-pane--detail bd-rightpane">
-      <div className="bd-rightpane__tabs" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={content === 'details'}
-          className={'bd-rptab' + (content === 'details' ? ' bd-rptab--on' : '')}
-          onClick={() => setLayout({ rightPaneContent: 'details' })}
-        >
-          {t('panel.details')}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={content === 'assistant'}
-          className={'bd-rptab' + (content === 'assistant' ? ' bd-rptab--on' : '')}
-          onClick={() => setLayout({ rightPaneContent: 'assistant' })}
-        >
-          <Icon name="assistant" /> {t('panel.claude')}
-        </button>
+      <div className="bd-rightpane__tabs">
+        <PaneSwitch
+          label={t('panel.content')}
+          value={content}
+          options={[
+            ['details', t('panel.details')],
+            ['assistant', t('panel.claude')],
+          ]}
+          onChange={(v) => setLayout({ rightPaneContent: v as 'details' | 'assistant' })}
+        />
         <span className="bd-toolbar__spacer" />
         <button
           type="button"
@@ -101,13 +125,11 @@ export function RightPane() {
 }
 
 /**
- * Bottom panel — a configurable, selection-driven reader (default = the current
- * entry's annotation, full-width). Renders main-built HTML (a Handlebars template)
- * and hydrates it like the detail pane.
+ * The annotation reader: the current entry's annotation, full-width. Renders
+ * main-built HTML (a Handlebars template) and hydrates it like the detail pane.
  */
-export function BottomPanel() {
+function AnnotationBody() {
   const t = useT();
-  const setLayout = useStore((s) => s.setLayout);
   const detail = useStore((s) => s.detail);
   const selectedItemId = useStore((s) => s.selectedItemId);
   const hostRef = useRef<HTMLDivElement>(null);
@@ -119,10 +141,37 @@ export function BottomPanel() {
     return hydratePanel(el);
   }, [html]);
 
+  return html ? (
+    <div className="bd-bottompanel__body" ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
+  ) : (
+    <div className="bd-bottompanel__body">
+      <p className="bd-bottompanel__hint">{selectedItemId ? '' : t('panel.selectAnnotation')}</p>
+    </div>
+  );
+}
+
+/**
+ * Bottom panel — a configurable, selection-driven reader whose content the user
+ * picks from the header dropdown (or the View ▸ Bottom Panel menu): the entry
+ * annotation (default) or the LaTeX preview.
+ */
+export function BottomPanel() {
+  const t = useT();
+  const setLayout = useStore((s) => s.setLayout);
+  const content = useStore((s) => s.settings.layout.bottomPaneContent) ?? 'annotation';
+
   return (
     <div className="bd-bottompanel">
       <div className="bd-bottompanel__bar">
-        <span className="bd-bottompanel__title">{t('panel.annotation')}</span>
+        <PaneSwitch
+          label={t('panel.content')}
+          value={content}
+          options={[
+            ['annotation', t('panel.annotation')],
+            ['texPreview', t('panel.texPreview')],
+          ]}
+          onChange={(v) => setLayout({ bottomPaneContent: v as 'annotation' | 'texPreview' })}
+        />
         <span className="bd-toolbar__spacer" />
         <button
           type="button"
@@ -134,15 +183,7 @@ export function BottomPanel() {
           <Icon name="close" />
         </button>
       </div>
-      {html ? (
-        <div className="bd-bottompanel__body" ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
-      ) : (
-        <div className="bd-bottompanel__body">
-          <p className="bd-bottompanel__hint">
-            {selectedItemId ? '' : t('panel.selectAnnotation')}
-          </p>
-        </div>
-      )}
+      {content === 'texPreview' ? <TexPreviewPane /> : <AnnotationBody />}
     </div>
   );
 }

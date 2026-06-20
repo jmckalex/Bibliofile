@@ -23,6 +23,9 @@ function merge(base: Settings, patch: Partial<Settings>): Settings {
     ...base,
     ...patch,
     fieldTypes: { ...base.fieldTypes, ...(patch.fieldTypes ?? {}) },
+    // Deep-merge layout so newly-added fields (e.g. bottomPaneContent) backfill
+    // their defaults for users whose persisted layout predates them.
+    layout: { ...base.layout, ...(patch.layout ?? {}) },
   };
 }
 

@@ -302,6 +302,18 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'toggleBottomPanel':
       store.setLayout({ bottomPanelVisible: !store.settings.layout.bottomPanelVisible });
       return;
+    case 'sidePaneDetails':
+      store.setLayout({ rightPaneVisible: true, rightPaneContent: 'details' });
+      return;
+    case 'sidePaneAssistant':
+      store.setLayout({ rightPaneVisible: true, rightPaneContent: 'assistant' });
+      return;
+    case 'bottomPaneAnnotation':
+      store.setLayout({ bottomPanelVisible: true, bottomPaneContent: 'annotation' });
+      return;
+    case 'bottomPaneTexPreview':
+      store.setLayout({ bottomPanelVisible: true, bottomPaneContent: 'texPreview' });
+      return;
     case 'toggleTheme': {
       const isDark =
         store.settings.theme === 'dark' ||

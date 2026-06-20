@@ -435,20 +435,17 @@ body.bd-resizing {
   background: var(--bd-surface-alt);
 }
 
-.bd-rptab {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  color: var(--bd-text-muted);
+/* The pane-content dropdown shown in the right- and bottom-panel headers. */
+.bd-paneswitch {
+  appearance: auto;
+  border: 1px solid var(--bd-border);
+  background: var(--bd-surface);
+  color: var(--bd-text);
   font: inherit;
   font-size: var(--bd-fs-sm);
-  padding: 3px 10px;
+  padding: 2px 6px;
   border-radius: 5px;
   cursor: pointer;
-}
-.bd-rptab--on {
-  background: var(--bd-accent);
-  color: #fff;
 }
 
 .bd-rightpane__body {

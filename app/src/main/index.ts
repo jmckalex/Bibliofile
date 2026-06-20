@@ -1456,6 +1456,36 @@ function buildMenu(): void {
         accelerator: 'CmdOrCtrl+Alt+B',
         click: () => sendMenuCommand('toggleBottomPanel'),
       },
+      {
+        label: t('menu.view.sidePanel'),
+        submenu: [
+          {
+            label: t('panel.details'),
+            accelerator: 'CmdOrCtrl+Alt+1',
+            click: () => sendMenuCommand('sidePaneDetails'),
+          },
+          {
+            label: t('panel.claude'),
+            accelerator: 'CmdOrCtrl+Alt+2',
+            click: () => sendMenuCommand('sidePaneAssistant'),
+          },
+        ],
+      },
+      {
+        label: t('menu.view.bottomPanel'),
+        submenu: [
+          {
+            label: t('panel.annotation'),
+            accelerator: 'CmdOrCtrl+Alt+3',
+            click: () => sendMenuCommand('bottomPaneAnnotation'),
+          },
+          {
+            label: t('panel.texPreview'),
+            accelerator: 'CmdOrCtrl+Alt+4',
+            click: () => sendMenuCommand('bottomPaneTexPreview'),
+          },
+        ],
+      },
       { type: 'separator' },
       { label: t('menu.view.columns'), submenu: columnMenuItems() },
       { type: 'separator' },
