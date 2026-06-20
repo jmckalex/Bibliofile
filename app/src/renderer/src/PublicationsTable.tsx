@@ -260,6 +260,7 @@ export function PublicationsTable() {
   const selectAll = useStore((s) => s.selectAll);
   const setSort = useStore((s) => s.setSort);
   const openEditor = useStore((s) => s.openEditor);
+  const deleteSelection = useStore((s) => s.deleteSelection);
   const loading = useStore((s) => s.loading);
   const citeTemplate = useStore((s) => s.settings.citeCommandTemplate);
   const columnKeys = useStore((s) => s.settings.columns);
@@ -268,7 +269,9 @@ export function PublicationsTable() {
   const setColor = useStore((s) => s.setColor);
 
   // Right-click color picker: cursor position + the clicked row's current color.
-  const [colorMenu, setColorMenu] = useState<{ x: number; y: number; current?: string } | undefined>();
+  const [colorMenu, setColorMenu] = useState<
+    { x: number; y: number; current?: string; count: number } | undefined
+  >();
 
   // Live width of the column being drag-resized (persisted to settings on mouseup).
   const [dragWidth, setDragWidth] = useState<{ id: string; width: number } | null>(null);
@@ -408,6 +411,16 @@ export function PublicationsTable() {
         selectAll(ids);
         return;
       }
+      // Delete / Backspace removes the current selection (1 or many). Undoable;
+      // the floating delete button was removed in favour of this + the menu.
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (selectedItemId || selectedIds.length > 0) {
+          e.preventDefault();
+          void deleteSelection();
+        }
+        return;
+      }
+
       if (e.metaKey || e.ctrlKey || e.altKey) return; // leave Cmd+C / shortcuts alone
 
       const pageRows = Math.max(
@@ -458,7 +471,7 @@ export function PublicationsTable() {
         }
       }
     },
-    [data, selectedItemId, sort, selectItem, extendSelectionTo, selectAll, openEditor, virtualizer],
+    [data, selectedItemId, selectedIds, sort, selectItem, extendSelectionTo, selectAll, openEditor, deleteSelection, virtualizer],
   );
 
   // Keep the primary selection in view when it changes programmatically — e.g. a
@@ -592,7 +605,10 @@ export function PublicationsTable() {
                     // Finder-style: a right-click on a row outside the current
                     // selection selects just it first; otherwise act on the selection.
                     if (!selected) void selectItem(row.original.id);
-                    setColorMenu({ x: e.clientX, y: e.clientY, current: row.original.color });
+                    // Right-click outside the selection acts on just this row;
+                    // inside it acts on the whole selection.
+                    const count = selected ? Math.max(1, selectedIds.length) : 1;
+                    setColorMenu({ x: e.clientX, y: e.clientY, current: row.original.color, count });
                   }}
                   onDoubleClick={() => openEditor(row.original.id)}
                   onDragStart={(e) => {
@@ -638,7 +654,9 @@ export function PublicationsTable() {
         x={colorMenu.x}
         y={colorMenu.y}
         current={colorMenu.current}
+        count={colorMenu.count}
         onPick={(idx) => void setColor(idx)}
+        onDelete={() => void deleteSelection()}
         onClose={() => setColorMenu(undefined)}
       />
     )}

@@ -235,7 +235,7 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       if (selectedItemId) await store.edit({ kind: 'duplicateEntry', itemId: selectedItemId });
       return;
     case 'delete':
-      if (selectedItemId) await store.edit({ kind: 'deleteEntry', itemId: selectedItemId });
+      await store.deleteSelection();
       return;
     case 'generateCiteKey':
       if (selectedItemId) await store.edit({ kind: 'generateCiteKey', itemId: selectedItemId });

@@ -199,6 +199,11 @@ export interface ViewerState {
   selectAll: (orderedIds: readonly string[]) => void;
   /** Apply a batch operation to the current multi-selection; reload. */
   batchEdit: (op: BatchOp) => Promise<void>;
+  /**
+   * Delete the current selection (Delete key / context menu): a single
+   * undo-grouped batch delete for 2+ rows, or a plain delete for one.
+   */
+  deleteSelection: () => Promise<void>;
   /** Select an entry by cite key (used by notes `[[citeKey]]` cross-references). */
   selectByCiteKey: (citeKey: string) => Promise<void>;
   /** Pick a `.aux` file (main opens the dialog) and select the publications it cites. */
@@ -527,6 +532,17 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         set({ error: errorMessage(err) });
       }
+    },
+
+    deleteSelection: async () => {
+      const { selectedIds, selectedItemId } = get();
+      // 2+ rows → one undo-grouped batch delete; one row → the plain delete path.
+      if (selectedIds.length >= 2) {
+        await get().batchEdit({ kind: 'delete' });
+        return;
+      }
+      const id = selectedItemId ?? selectedIds[0];
+      if (id) await get().edit({ kind: 'deleteEntry', itemId: id });
     },
 
     selectByCiteKey: async (citeKey) => {

@@ -263,6 +263,10 @@ export const en: Catalog = {
   'batch.removeKeyword': 'Keyword',
   'batch.delete': 'Delete {count}',
 
+  // --- Row context menu ---
+  'context.delete': 'Delete entry',
+  'context.deleteEntries': 'Delete {count} entries',
+
   // --- Find Duplicates ---
   'dup.ariaLabel': 'Find duplicates',
   'dup.title': 'Find Duplicates',

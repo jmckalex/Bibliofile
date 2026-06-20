@@ -90,7 +90,6 @@ export const DEFAULT_MULTI_DETAILS_TEMPLATE = `<div class="bd-multi">
         <input class="bd-input bd-input--small" data-batch="keyword" placeholder="Keyword" aria-label="Keyword">
         <button type="button" class="bd-btn bd-btn--small" data-action="batch-add-keyword">{{icon "plus"}} Add keyword</button>
         <button type="button" class="bd-btn bd-btn--small" data-action="batch-remove-keyword">{{icon "removeMinus"}} Remove keyword</button>
-        <button type="button" class="bd-btn bd-btn--small bd-btn--danger" data-action="batch-delete">{{icon "trash"}} Delete {{count}}</button>
       </div>
     </div>
   </div>

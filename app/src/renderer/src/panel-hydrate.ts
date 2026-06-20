@@ -23,10 +23,6 @@ function applyBatchAction(action: string, tools: HTMLElement): void {
   const store = getStore().getState();
   const input = (name: string): HTMLInputElement | null =>
     tools.querySelector<HTMLInputElement>(`[data-batch="${name}"]`);
-  if (action === 'batch-delete') {
-    void store.batchEdit({ kind: 'delete' });
-    return;
-  }
   if (action === 'batch-set') {
     const field = input('field');
     if (!field?.value.trim()) return;

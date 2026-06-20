@@ -173,7 +173,9 @@ describe('renderMultiPanels — multi-select view', () => {
     expect(detailsHtml).toContain('data-batch-tools');
     expect(detailsHtml).toContain('data-batch="field"');
     expect(detailsHtml).toContain('data-action="batch-set"');
-    expect(detailsHtml).toContain('data-action="batch-delete"');
+    expect(detailsHtml).toContain('data-action="batch-add-keyword"');
+    // Delete moved out of the panel to the Delete key / row context menu.
+    expect(detailsHtml).not.toContain('data-action="batch-delete"');
     // per-entry pretty-printed preview (raw HTML passthrough), with cite-key labels
     expect(detailsHtml).toContain('smith2020');
     expect(detailsHtml).toContain('<div class="bd-preview bd-preview--multi"><article>S</article></div>');
