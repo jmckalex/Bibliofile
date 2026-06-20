@@ -19,6 +19,14 @@ import type {
   FormatCitationResult,
   CopyRtfRequest,
   CopyRtfResponse,
+  ListCitationStylesRequest,
+  ListCitationStylesResponse,
+  InstallCitationStyleRequest,
+  InstallCitationStyleResponse,
+  RemoveCitationStyleRequest,
+  RemoveCitationStyleResponse,
+  TexPreviewRequest,
+  TexPreviewResponse,
   JournalCoverRequest,
   JournalCoverResponse,
   SetJournalCoverRequest,
@@ -152,6 +160,14 @@ export interface BibDeskApi {
 
   /** Copy one item's formatted citation to the clipboard as RTF (+ plain text). */
   copyRtf(request: CopyRtfRequest): Promise<CopyRtfResponse>;
+  /** List bundled + user-installed CSL styles. */
+  listCitationStyles(request: ListCitationStylesRequest): Promise<ListCitationStylesResponse>;
+  /** Install a user-chosen `.csl` file (opens a dialog in main). */
+  installCitationStyle(request: InstallCitationStyleRequest): Promise<InstallCitationStyleResponse>;
+  /** Remove a user-installed CSL style by id. */
+  removeCitationStyle(request: RemoveCitationStyleRequest): Promise<RemoveCitationStyleResponse>;
+  /** Render a LaTeX/BibTeX preview PDF (spawns pdflatex + bibtex; opens a window). */
+  texPreview(request: TexPreviewRequest): Promise<TexPreviewResponse>;
 
   /** Resolve an item's journal cover thumbnail (bytes), or null when none is bundled. */
   journalCover(request: JournalCoverRequest): Promise<JournalCoverResponse>;

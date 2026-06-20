@@ -65,7 +65,14 @@ import {
   invalidateCoverIndex,
 } from './journal-covers.js';
 import { fetchWikipediaCover } from './journal-wikipedia.js';
-import { formatCitation } from './csl.js';
+import {
+  formatCitation,
+  loadUserStyles,
+  listStyles,
+  installCslFile,
+  removeCslStyle,
+} from './csl.js';
+import { renderTexPreview } from './tex-preview.js';
 import { searchOnline, extractDoi } from './online.js';
 import { extractPdfText } from './pdf-text.js';
 import { PdfPool } from './pdf-pool.js';
@@ -1426,6 +1433,12 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('scanJournalCovers'),
       },
+      { type: 'separator' },
+      {
+        label: t('menu.tools.texPreview'),
+        enabled: docEnabled,
+        click: () => sendMenuCommand('texPreview'),
+      },
     ],
   });
 
@@ -1736,6 +1749,60 @@ function registerIpc(): void {
       try {
         const html = formatCitation(store.cslItemFor(req.documentId, req.itemId), req.styleId);
         clipboard.write({ rtf: wrapRtf([htmlToRtf(html)]), text: htmlToPlain(html) });
+        return { ok: true };
+      } catch (e) {
+        return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      }
+    },
+    [IpcChannels.listCitationStyles]: () => ({ styles: listStyles() }),
+    [IpcChannels.installCitationStyle]: async () => {
+      const parent = dialogParent();
+      const opts: Electron.OpenDialogOptions = {
+        title: t('prefs.installStyleTitle'),
+        properties: ['openFile'],
+        filters: [
+          { name: 'CSL style', extensions: ['csl'] },
+          { name: 'All Files', extensions: ['*'] },
+        ],
+      };
+      const result = parent ? await dialog.showOpenDialog(parent, opts) : await dialog.showOpenDialog(opts);
+      const file = result.canceled ? undefined : result.filePaths[0];
+      if (!file) return {}; // cancelled
+      try {
+        return { style: installCslFile(file) };
+      } catch (e) {
+        return { error: e instanceof Error ? e.message : String(e) };
+      }
+    },
+    [IpcChannels.removeCitationStyle]: (req) => ({ ok: removeCslStyle(req.id) }),
+    [IpcChannels.texPreview]: async (req) => {
+      try {
+        const bibText = store.serializeDocument(req.documentId);
+        const s = getSettings();
+        const result = await renderTexPreview({
+          bibText,
+          citeKeys: req.scope === 'selection' ? req.citeKeys : undefined,
+          bstStyle: s.texBibStyle,
+          binDir: s.texBinDir || undefined,
+        });
+        if (result.error || !result.pdfPath) {
+          const parent = dialogParent();
+          const opts: Electron.MessageBoxOptions = {
+            type: 'warning',
+            message: t('texPreview.failed'),
+            detail: result.error ?? '',
+          };
+          if (parent) void dialog.showMessageBox(parent, opts);
+          else void dialog.showMessageBox(opts);
+          return { ok: false, error: result.error };
+        }
+        const win = new BrowserWindow({
+          width: 820,
+          height: 1000,
+          title: t('window.texPreview'),
+          webPreferences: { contextIsolation: true, nodeIntegration: false, plugins: true },
+        });
+        void win.loadFile(result.pdfPath);
         return { ok: true };
       } catch (e) {
         return { ok: false, error: e instanceof Error ? e.message : String(e) };
@@ -2263,6 +2330,18 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.copyRtf, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.copyRtf](req),
   );
+  ipcMain.handle(IpcChannels.listCitationStyles, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.listCitationStyles](req),
+  );
+  ipcMain.handle(IpcChannels.installCitationStyle, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.installCitationStyle](req),
+  );
+  ipcMain.handle(IpcChannels.removeCitationStyle, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.removeCitationStyle](req),
+  );
+  ipcMain.handle(IpcChannels.texPreview, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.texPreview](req),
+  );
   ipcMain.handle(IpcChannels.journalCover, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.journalCover](req),
   );
@@ -2438,6 +2517,7 @@ if (!gotLock) {
     app.setAsDefaultProtocolClient('x-bibdesk');
 
     const settings = loadSettings();
+    loadUserStyles(); // register any user-installed CSL styles before first render
     setMainLocale(settings.locale); // bind the menu translator before buildMenu()
     store.setEditConfig({
       citeKeyFormat: settings.citeKeyFormat,

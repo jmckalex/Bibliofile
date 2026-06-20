@@ -289,6 +289,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'scanJournalCovers':
       modals.setCoverScanOpen(true);
       return;
+    case 'texPreview':
+      void store.texPreview();
+      return;
     case 'assistant':
       // Show the assistant in the (now swappable) right pane.
       getStore().getState().setLayout({ rightPaneVisible: true, rightPaneContent: 'assistant' });
@@ -400,6 +403,7 @@ export function App() {
   const onDocumentOpened = useStore((s) => s.onDocumentOpened);
   const loadSettings = useStore((s) => s.loadSettings);
   const loadEntryTypes = useStore((s) => s.loadEntryTypes);
+  const loadCitationStyles = useStore((s) => s.loadCitationStyles);
   const hasDoc = useStore((s) => s.documentId !== undefined);
   const [macrosOpen, setMacrosOpen] = useState(false);
   const [onlineOpen, setOnlineOpen] = useState(false);
@@ -415,7 +419,8 @@ export function App() {
   useEffect(() => {
     void loadSettings();
     void loadEntryTypes();
-  }, [loadSettings, loadEntryTypes]);
+    void loadCitationStyles();
+  }, [loadSettings, loadEntryTypes, loadCitationStyles]);
 
   // Autosave: a short debounce after the document becomes dirty (opt-in).
   const dirty = useStore((s) => s.dirty);

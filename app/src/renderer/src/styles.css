@@ -2206,6 +2206,12 @@ button.bd-chip {
   color: var(--bd-text-muted);
 }
 
+/* A row of small buttons inside a Preferences row (e.g. Install / Remove CSL). */
+.bd-prefs__btnrow {
+  display: inline-flex;
+  gap: 6px;
+}
+
 /* Cite-key validation: red border + caution glyph when empty/duplicate/fragile. */
 .bd-input--warn,
 .bd-input--warn:focus {

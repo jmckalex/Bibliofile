@@ -32,8 +32,9 @@ import type {
   SortSpec,
   EntryTypeInfo,
   TemplateExportScope,
+  CitationStyle,
 } from '@bibdesk/shared';
-import { DEFAULT_SETTINGS, BUILTIN_COLUMNS } from '@bibdesk/shared';
+import { DEFAULT_SETTINGS, BUILTIN_COLUMNS, CITATION_STYLES } from '@bibdesk/shared';
 
 /** Apply the chosen theme to the document root (`system` follows the OS). */
 export function applyTheme(theme: Settings['theme']): void {
@@ -226,10 +227,20 @@ export interface ViewerState {
   fieldSuggestions: (field: string) => Promise<readonly string[]>;
   /** Known entry types (standard + custom) for the type dropdowns and editor. */
   entryTypes: readonly EntryTypeInfo[];
+  /** Bundled + user-installed CSL styles (for the Preferences picker). */
+  citationStyles: readonly CitationStyle[];
   /** Load preferences from main and apply the theme. */
   loadSettings: () => Promise<void>;
   /** Load the known entry types (standard + custom) from main. */
   loadEntryTypes: () => Promise<void>;
+  /** Load the available CSL styles (bundled + installed) from main. */
+  loadCitationStyles: () => Promise<void>;
+  /** Pick + install a `.csl` file, then select it as the default style. */
+  installCitationStyle: () => Promise<void>;
+  /** Remove a user-installed CSL style by id. */
+  removeCitationStyle: (id: string) => Promise<void>;
+  /** Render a LaTeX/BibTeX preview PDF of the whole library (opens a window). */
+  texPreview: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
   /**
@@ -275,6 +286,7 @@ export function createStore(api: BibDeskApi) {
     ftsIds: null,
     settings: DEFAULT_SETTINGS,
     entryTypes: [],
+    citationStyles: [...CITATION_STYLES],
     macros: [],
     selectedIds: [],
     dirty: false,
@@ -846,6 +858,51 @@ export function createStore(api: BibDeskApi) {
       try {
         const { types } = await api.listEntryTypes();
         set({ entryTypes: types });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    loadCitationStyles: async () => {
+      try {
+        const { styles } = await api.listCitationStyles({});
+        set({ citationStyles: styles });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    installCitationStyle: async () => {
+      try {
+        const res = await api.installCitationStyle({});
+        if (res.error) {
+          set({ error: res.error });
+          return;
+        }
+        if (res.style) {
+          await get().loadCitationStyles();
+          await get().saveSettings({ defaultCiteStyle: res.style.id }); // select the new style
+        }
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    removeCitationStyle: async (id) => {
+      try {
+        await api.removeCitationStyle({ id });
+        if (get().settings.defaultCiteStyle === id) await get().saveSettings({ defaultCiteStyle: 'apa' });
+        await get().loadCitationStyles();
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    texPreview: async () => {
+      const { documentId } = get();
+      if (!documentId) return;
+      try {
+        await api.texPreview({ documentId, scope: 'library' });
       } catch (err) {
         set({ error: errorMessage(err) });
       }

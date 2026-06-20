@@ -76,6 +76,7 @@ export const en: Catalog = {
   // --- Tools / View / Help menus ---
   'menu.tools.assistant': 'Claude Assistant…',
   'menu.tools.journalCovers': 'Download Missing Journal Covers…',
+  'menu.tools.texPreview': 'LaTeX Preview',
   'menu.view.toggleSide': 'Toggle Side Panel',
   'menu.view.toggleBottom': 'Toggle Bottom Panel',
   'menu.view.columns': 'Columns',
@@ -125,6 +126,16 @@ export const en: Catalog = {
   'prefs.theme.dark': 'Dark',
   'prefs.citations': 'Citations',
   'prefs.defaultStyle': 'Default style',
+  'prefs.installStyle': 'Install CSL file…',
+  'prefs.removeStyle': 'Remove',
+  'prefs.installStyleTitle': 'Install a CSL style',
+  'prefs.installStyleHint':
+    'Install any Citation Style Language (.csl) file — e.g. from the Zotero / CSL style repository — then pick it above. ★ marks an installed style.',
+  'prefs.texPreview': 'LaTeX preview',
+  'prefs.texBibStyle': 'BibTeX style (.bst)',
+  'prefs.texBinDir': 'TeX bin directory',
+  'prefs.texPreviewHint':
+    'Tools → LaTeX Preview typesets the bibliography with your local pdflatex + bibtex using this .bst style (e.g. plain, abbrv, ieeetr). Leave the bin directory blank to search your PATH.',
   'prefs.citeKeys': 'Cite keys',
   'prefs.format': 'Format',
   'prefs.annotationStorage': 'Annotation storage',
@@ -446,6 +457,8 @@ export const en: Catalog = {
 
   // --- Native dialogs (main process) ---
   'window.help': 'BibDesk Help',
+  'window.texPreview': 'LaTeX Preview',
+  'texPreview.failed': 'LaTeX preview failed',
   'dialog.helpUnavailable': 'Help is not available in this build.',
   'dialog.dontSave': 'Don’t Save',
   'dialog.ok': 'OK',

@@ -6,7 +6,7 @@
  */
 
 import { useState } from 'react';
-import { CITATION_STYLES, BUILTIN_COLUMNS, LOCALES, defaultPanelBody, type Settings, type EntryTypeInfo, type ExportTemplate, type PanelTemplate, type PanelWhich } from '@bibdesk/shared';
+import { BUILTIN_COLUMNS, LOCALES, defaultPanelBody, type Settings, type EntryTypeInfo, type ExportTemplate, type PanelTemplate, type PanelWhich } from '@bibdesk/shared';
 import { useT } from './i18n.js';
 import { CodeEditor } from './CodeEditor.js';
 import { Icon, type IconName } from './icons.js';
@@ -745,6 +745,9 @@ export function Preferences({ onClose }: { onClose: () => void }) {
   const settings = useStore((s) => s.settings);
   const documentId = useStore((s) => s.documentId);
   const entryTypes = useStore((s) => s.entryTypes);
+  const citationStyles = useStore((s) => s.citationStyles);
+  const installCitationStyle = useStore((s) => s.installCitationStyle);
+  const removeCitationStyle = useStore((s) => s.removeCitationStyle);
   const save = useStore((s) => s.saveSettings);
   const [section, setSection] = useState<PrefSection>('general');
 
@@ -839,13 +842,36 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                       value={settings.defaultCiteStyle}
                       onChange={(e) => void save({ defaultCiteStyle: e.target.value })}
                     >
-                      {CITATION_STYLES.map((s) => (
+                      {citationStyles.map((s) => (
                         <option key={s.id} value={s.id}>
                           {s.label}
+                          {s.custom ? ' ★' : ''}
                         </option>
                       ))}
                     </select>
                   </label>
+                  <div className="bd-prefs__row">
+                    <span />
+                    <span className="bd-prefs__btnrow">
+                      <button
+                        type="button"
+                        className="bd-btn bd-btn--small"
+                        onClick={() => void installCitationStyle()}
+                      >
+                        {t('prefs.installStyle')}
+                      </button>
+                      {citationStyles.find((s) => s.id === settings.defaultCiteStyle)?.custom && (
+                        <button
+                          type="button"
+                          className="bd-btn bd-btn--small bd-btn--danger"
+                          onClick={() => void removeCitationStyle(settings.defaultCiteStyle)}
+                        >
+                          {t('prefs.removeStyle')}
+                        </button>
+                      )}
+                    </span>
+                  </div>
+                  <p className="bd-prefs__hint">{t('prefs.installStyleHint')}</p>
                 </section>
                 <section className="bd-prefs__section">
                   <h3>{t('prefs.citeCommand')}</h3>
@@ -867,6 +893,36 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                     <code>%K</code> expands to the cite key(s) — e.g. <code>\cite&#123;%K&#125;</code> or{' '}
                     <code>\citep&#123;%K&#125;</code>.
                   </p>
+                </section>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.texPreview')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.texBibStyle')}</span>
+                    <input
+                      key={settings.texBibStyle}
+                      className="bd-input bd-input--mono"
+                      defaultValue={settings.texBibStyle}
+                      placeholder="plain"
+                      onBlur={(e) => {
+                        if (e.target.value !== settings.texBibStyle) {
+                          void save({ texBibStyle: e.target.value.trim() || 'plain' });
+                        }
+                      }}
+                    />
+                  </label>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.texBinDir')}</span>
+                    <input
+                      key={settings.texBinDir}
+                      className="bd-input bd-input--mono"
+                      defaultValue={settings.texBinDir}
+                      placeholder="/Library/TeX/texbin"
+                      onBlur={(e) => {
+                        if (e.target.value !== settings.texBinDir) void save({ texBinDir: e.target.value.trim() });
+                      }}
+                    />
+                  </label>
+                  <p className="bd-prefs__hint">{t('prefs.texPreviewHint')}</p>
                 </section>
               </>
             )}

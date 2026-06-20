@@ -46,6 +46,14 @@ export const IpcChannels = {
   formatCitation: 'bibdesk:formatCitation',
   /** Copy one item's formatted citation to the clipboard as RTF (+ plain text). */
   copyRtf: 'bibdesk:copyRtf',
+  /** List bundled + user-installed CSL styles. */
+  listCitationStyles: 'bibdesk:listCitationStyles',
+  /** Install a `.csl` file (opens a file dialog). */
+  installCitationStyle: 'bibdesk:installCitationStyle',
+  /** Remove a user-installed CSL style by id. */
+  removeCitationStyle: 'bibdesk:removeCitationStyle',
+  /** Render a LaTeX/BibTeX preview PDF (spawns pdflatex + bibtex). */
+  texPreview: 'bibdesk:texPreview',
   /** Resolve an item's journal cover thumbnail (by ISSN / journal name). */
   journalCover: 'bibdesk:journalCover',
   /** Attach a user-provided cover image to an item's journal (drag-drop). */

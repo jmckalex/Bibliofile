@@ -38,6 +38,14 @@ import type {
   FormatCitationResult,
   CopyRtfRequest,
   CopyRtfResponse,
+  ListCitationStylesRequest,
+  ListCitationStylesResponse,
+  InstallCitationStyleRequest,
+  InstallCitationStyleResponse,
+  RemoveCitationStyleRequest,
+  RemoveCitationStyleResponse,
+  TexPreviewRequest,
+  TexPreviewResponse,
   JournalCoverRequest,
   JournalCoverResponse,
   SetJournalCoverRequest,
@@ -149,6 +157,18 @@ const api: BibDeskApi = {
   },
   copyRtf(request: CopyRtfRequest): Promise<CopyRtfResponse> {
     return ipcRenderer.invoke(IpcChannels.copyRtf, request);
+  },
+  listCitationStyles(request: ListCitationStylesRequest): Promise<ListCitationStylesResponse> {
+    return ipcRenderer.invoke(IpcChannels.listCitationStyles, request);
+  },
+  installCitationStyle(request: InstallCitationStyleRequest): Promise<InstallCitationStyleResponse> {
+    return ipcRenderer.invoke(IpcChannels.installCitationStyle, request);
+  },
+  removeCitationStyle(request: RemoveCitationStyleRequest): Promise<RemoveCitationStyleResponse> {
+    return ipcRenderer.invoke(IpcChannels.removeCitationStyle, request);
+  },
+  texPreview(request: TexPreviewRequest): Promise<TexPreviewResponse> {
+    return ipcRenderer.invoke(IpcChannels.texPreview, request);
   },
   journalCover(request: JournalCoverRequest): Promise<JournalCoverResponse> {
     return ipcRenderer.invoke(IpcChannels.journalCover, request);

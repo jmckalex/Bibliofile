@@ -172,6 +172,8 @@ export interface SaveDocumentResult {
 export interface CitationStyle {
   readonly id: string;
   readonly label: string;
+  /** True for a user-installed CSL style (removable in Preferences); bundled styles omit it. */
+  readonly custom?: boolean;
 }
 
 /** The CSL styles the app offers (bundled offline by citation-js plugin-csl). */
@@ -199,6 +201,47 @@ export interface CopyRtfRequest {
 /** Result of a clipboard write. */
 export interface CopyRtfResponse {
   readonly ok: boolean;
+  readonly error?: string;
+}
+
+/** List bundled + user-installed CSL styles (for the Preferences picker). */
+export type ListCitationStylesRequest = Record<string, never>;
+export interface ListCitationStylesResponse {
+  readonly styles: readonly CitationStyle[];
+}
+
+/** Install a `.csl` file the user picks (opens a file dialog in the main process). */
+export type InstallCitationStyleRequest = Record<string, never>;
+export interface InstallCitationStyleResponse {
+  /** The newly installed style; undefined if the user cancelled the dialog. */
+  readonly style?: CitationStyle;
+  /** Set when the chosen file was not a valid CSL style. */
+  readonly error?: string;
+}
+
+/** Remove a user-installed CSL style by id (bundled styles cannot be removed). */
+export interface RemoveCitationStyleRequest {
+  readonly id: string;
+}
+export interface RemoveCitationStyleResponse {
+  readonly ok: boolean;
+}
+
+/**
+ * Render a LaTeX/BibTeX preview of the bibliography by spawning the user's local
+ * `pdflatex` + `bibtex` (opt-in power-user feature; needs a TeX install). The
+ * resulting PDF opens in an in-app preview window.
+ */
+export interface TexPreviewRequest {
+  readonly documentId: DocumentId;
+  /** Which entries to typeset: the current selection, or the whole library. */
+  readonly scope: 'selection' | 'library';
+  /** Cite keys to include when `scope === 'selection'`. */
+  readonly citeKeys?: readonly string[];
+}
+export interface TexPreviewResponse {
+  readonly ok: boolean;
+  /** Short failure reason (+ a log tail) on error: no TeX found, or a compile failure. */
   readonly error?: string;
 }
 
@@ -1030,6 +1073,13 @@ export interface Settings {
   readonly fullTextSearch: boolean;
   /** Anthropic model id for the Claude assistant (e.g. `claude-opus-4-8`). */
   readonly agentModel: string;
+  /** BibTeX `.bst` style name for the LaTeX preview (e.g. `plain`, `abbrv`, `ieeetr`). */
+  readonly texBibStyle: string;
+  /**
+   * Directory containing `pdflatex`/`bibtex`, when not on PATH (e.g.
+   * `/Library/TeX/texbin`). Empty ⇒ search PATH + common install locations.
+   */
+  readonly texBinDir: string;
   /** Field-type classification overrides. */
   readonly fieldTypes: FieldTypeSettings;
   /** User-defined entry types (name → required/optional fields); standard types are protected. */
@@ -1107,6 +1157,8 @@ export const DEFAULT_SETTINGS: Settings = {
   autosave: false,
   fullTextSearch: false,
   agentModel: 'claude-opus-4-8',
+  texBibStyle: 'plain',
+  texBinDir: '',
   fieldTypes: {
     person: ['Author', 'Editor'],
     localFile: ['Local-Url'],
@@ -1315,6 +1367,7 @@ export type MenuCommand =
   | 'findDuplicates'
   | 'findBrokenLinks'
   | 'scanJournalCovers'
+  | 'texPreview'
   | 'assistant'
   // Edit / clipboard (operate on the selection)
   | 'find'

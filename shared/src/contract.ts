@@ -18,6 +18,14 @@ import type {
   FormatCitationResult,
   CopyRtfRequest,
   CopyRtfResponse,
+  ListCitationStylesRequest,
+  ListCitationStylesResponse,
+  InstallCitationStyleRequest,
+  InstallCitationStyleResponse,
+  RemoveCitationStyleRequest,
+  RemoveCitationStyleResponse,
+  TexPreviewRequest,
+  TexPreviewResponse,
   JournalCoverRequest,
   JournalCoverResponse,
   SetJournalCoverRequest,
@@ -133,6 +141,10 @@ export interface IpcContract {
   [IpcChannels.saveDocument]: IpcEntry<SaveDocumentRequest, SaveDocumentResult>;
   [IpcChannels.formatCitation]: IpcEntry<FormatCitationRequest, FormatCitationResult>;
   [IpcChannels.copyRtf]: IpcEntry<CopyRtfRequest, CopyRtfResponse>;
+  [IpcChannels.listCitationStyles]: IpcEntry<ListCitationStylesRequest, ListCitationStylesResponse>;
+  [IpcChannels.installCitationStyle]: IpcEntry<InstallCitationStyleRequest, InstallCitationStyleResponse>;
+  [IpcChannels.removeCitationStyle]: IpcEntry<RemoveCitationStyleRequest, RemoveCitationStyleResponse>;
+  [IpcChannels.texPreview]: IpcEntry<TexPreviewRequest, TexPreviewResponse>;
   [IpcChannels.journalCover]: IpcEntry<JournalCoverRequest, JournalCoverResponse>;
   [IpcChannels.setJournalCover]: IpcEntry<SetJournalCoverRequest, SetJournalCoverResponse>;
   [IpcChannels.scanJournalCovers]: IpcEntry<ScanJournalCoversRequest, ScanJournalCoversResponse>;
