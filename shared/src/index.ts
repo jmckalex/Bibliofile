@@ -66,6 +66,8 @@ export {
   type GroupNode,
   type ListGroupsResponse,
   type GetItemDetailRequest,
+  type RenderMultiPanelRequest,
+  type RenderMultiPanelResponse,
   type ItemField,
   type ItemFile,
   type ItemDetail,
@@ -209,6 +211,8 @@ export { formatCiteCommand } from './cite.js';
 export {
   DEFAULT_DETAILS_TEMPLATE,
   DEFAULT_BOTTOM_TEMPLATE,
+  DEFAULT_MULTI_DETAILS_TEMPLATE,
+  DEFAULT_MULTI_BOTTOM_TEMPLATE,
   defaultPanelBody,
   type PanelWhich,
 } from './panel-templates.js';

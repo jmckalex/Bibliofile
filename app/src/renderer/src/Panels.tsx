@@ -142,8 +142,18 @@ function AnnotationBody() {
   const t = useT();
   const detail = useStore((s) => s.detail);
   const selectedItemId = useStore((s) => s.selectedItemId);
+  const selectedIds = useStore((s) => s.selectedIds);
+  const multiPanel = useStore((s) => s.multiPanel);
   const hostRef = useRef<HTMLDivElement>(null);
-  const html = detail && detail.id === selectedItemId ? detail.bottomPanelHtml : undefined;
+
+  // 2+ rows selected → the multi-select annotation list (one entry per item);
+  // otherwise the single selected entry's annotation.
+  const multi = selectedIds.length >= 2;
+  const html = multi
+    ? multiPanel?.bottomHtml
+    : detail && detail.id === selectedItemId
+      ? detail.bottomPanelHtml
+      : undefined;
 
   useEffect(() => {
     const el = hostRef.current;
@@ -151,11 +161,20 @@ function AnnotationBody() {
     return hydratePanel(el);
   }, [html]);
 
-  return html ? (
-    <div className="bd-bottompanel__body" ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
-  ) : (
+  if (html) {
+    return (
+      <div
+        className={'bd-bottompanel__body' + (multi ? ' bd-bottompanel__body--multi' : '')}
+        ref={hostRef}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  }
+  return (
     <div className="bd-bottompanel__body">
-      <p className="bd-bottompanel__hint">{selectedItemId ? '' : t('panel.selectAnnotation')}</p>
+      <p className="bd-bottompanel__hint">
+        {multi ? t('common.loading') : selectedItemId ? '' : t('panel.selectAnnotation')}
+      </p>
     </div>
   );
 }

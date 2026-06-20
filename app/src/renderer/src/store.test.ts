@@ -85,6 +85,7 @@ function makeFakeApi() {
       return { rows: sorted, total: sorted.length };
     },
     getItemDetail: async () => DETAIL,
+    renderMultiPanel: async (r) => ({ count: r.itemIds.length }),
     openExternal: async () => ({ ok: true }),
     applyEdit: async (r) =>
       r.command.kind === 'addEntry'

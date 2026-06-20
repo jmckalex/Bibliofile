@@ -39,6 +39,8 @@ import type {
   GetItemDetailRequest,
   ImportOnlineRequest,
   ItemDetail,
+  RenderMultiPanelRequest,
+  RenderMultiPanelResponse,
   RemoveAttachmentRequest,
   SearchOnlineRequest,
   SearchOnlineResponse,
@@ -134,6 +136,7 @@ export interface IpcContract {
   >;
   [IpcChannels.listGroups]: IpcEntry<ListGroupsRequest, ListGroupsResponse>;
   [IpcChannels.getItemDetail]: IpcEntry<GetItemDetailRequest, ItemDetail>;
+  [IpcChannels.renderMultiPanel]: IpcEntry<RenderMultiPanelRequest, RenderMultiPanelResponse>;
   [IpcChannels.openExternal]: IpcEntry<OpenExternalRequest, OpenExternalResult>;
   [IpcChannels.applyEdit]: IpcEntry<ApplyEditRequest, EditResult>;
   [IpcChannels.batchEdit]: IpcEntry<BatchEditRequest, BatchEditResult>;

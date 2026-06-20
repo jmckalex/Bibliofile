@@ -24,7 +24,6 @@ import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
 import { BrokenLinks } from './BrokenLinks.js';
 import { JournalCoverScan } from './JournalCoverScan.js';
-import { BatchBar } from './BatchBar.js';
 
 function ThemeToggle() {
   const t = useT();
@@ -447,6 +446,17 @@ export function App() {
     return () => clearTimeout(t);
   }, [dirty, autosave, saving, save]);
 
+  // Build the multi-select panels (debounced) whenever 2+ rows are selected, so
+  // keyboard range-selection doesn't rebuild per step. One place handles it for
+  // both panes (the right detail pane and the bottom annotation pane).
+  const selectedIds = useStore((s) => s.selectedIds);
+  const loadMultiPanel = useStore((s) => s.loadMultiPanel);
+  useEffect(() => {
+    if (selectedIds.length < 2) return;
+    const id = setTimeout(() => void loadMultiPanel(), 150);
+    return () => clearTimeout(id);
+  }, [selectedIds, loadMultiPanel]);
+
   // Paste BibTeX into the library (e.g. from Google Scholar). Editable fields
   // keep their normal paste; a bare paste of `@type{…}` text imports entries.
   useEffect(() => {
@@ -631,7 +641,6 @@ export function App() {
         )}
       </div>
       <Footer />
-      <BatchBar />
       {macrosOpen && <MacroEditor onClose={() => setMacrosOpen(false)} />}
       {onlineOpen && <OnlineSearch onClose={() => setOnlineOpen(false)} />}
       {prefsOpen && <Preferences onClose={() => setPrefsOpen(false)} />}

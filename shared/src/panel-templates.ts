@@ -67,6 +67,64 @@ export const DEFAULT_DETAILS_TEMPLATE = `<div class="bd-view__actions">
 export const DEFAULT_BOTTOM_TEMPLATE = `<div class="bd-detail__section">Annotation — <span class="bd-viewfields__mono">{{citeKey}}</span></div>
 {{#if notesHtml}}<div class="bd-notes bd-notes--wide">{{{notesHtml}}}</div>{{else}}<div class="bd-notes__empty">No annotation for this entry.</div>{{/if}}`;
 
+/**
+ * The built-in MULTI-SELECT details template, shown in place of the single-item
+ * detail when 2+ rows are selected. A sticky header ("Multiple entries selected")
+ * with the batch tools sits above a scrollable list of each entry's pretty-printed
+ * BibTeX preview (no per-field breakdown). The tools are plain inputs/buttons with
+ * `data-batch` / `data-action` attributes; `panel-hydrate.ts` reads the inputs and
+ * dispatches `batchEdit` (so the whole thing stays Handlebars, no React).
+ *
+ * Context: `{ count, moreCount, items: [{ id, citeKey, previewHtml }] }`.
+ */
+export const DEFAULT_MULTI_DETAILS_TEMPLATE = `<div class="bd-multi">
+  <div class="bd-multi__sticky">
+    <div class="bd-multi__head">Multiple entries selected <span class="bd-multi__count">{{count}}</span></div>
+    <div class="bd-multi__tools" data-batch-tools>
+      <div class="bd-multi__toolrow">
+        <input class="bd-input bd-input--small" data-batch="field" placeholder="Field" aria-label="Field name">
+        <input class="bd-input bd-input--small" data-batch="value" placeholder="Value" aria-label="Field value">
+        <button type="button" class="bd-btn bd-btn--small" data-action="batch-set">Set field</button>
+      </div>
+      <div class="bd-multi__toolrow">
+        <input class="bd-input bd-input--small" data-batch="keyword" placeholder="Keyword" aria-label="Keyword">
+        <button type="button" class="bd-btn bd-btn--small" data-action="batch-add-keyword">{{icon "plus"}} Add keyword</button>
+        <button type="button" class="bd-btn bd-btn--small" data-action="batch-remove-keyword">{{icon "removeMinus"}} Remove keyword</button>
+        <button type="button" class="bd-btn bd-btn--small bd-btn--danger" data-action="batch-delete">{{icon "trash"}} Delete {{count}}</button>
+      </div>
+    </div>
+  </div>
+  <ul class="bd-multi__list">
+    {{#each items}}
+    <li class="bd-multi__item">
+      <div class="bd-multi__key">{{citeKey}}</div>
+      {{#if previewHtml}}<div class="bd-preview bd-preview--multi">{{{previewHtml}}}</div>{{else}}<div class="bd-multi__bare">No preview.</div>{{/if}}
+    </li>
+    {{/each}}
+    {{#if moreCount}}<li class="bd-multi__more">+{{moreCount}} more not shown</li>{{/if}}
+  </ul>
+</div>`;
+
+/**
+ * The built-in MULTI-SELECT bottom-panel template: the same sticky indicator over
+ * a scrollable list of each selected entry's annotation (no batch tools — those
+ * live in the details pane). Context: `{ count, moreCount, items: [{ citeKey, notesHtml }] }`.
+ */
+export const DEFAULT_MULTI_BOTTOM_TEMPLATE = `<div class="bd-multi bd-multi--bottom">
+  <div class="bd-multi__sticky">
+    <div class="bd-multi__head">Multiple entries selected <span class="bd-multi__count">{{count}}</span></div>
+  </div>
+  <ul class="bd-multi__list">
+    {{#each items}}
+    <li class="bd-multi__item">
+      <div class="bd-multi__key">{{citeKey}}</div>
+      {{#if notesHtml}}<div class="bd-notes bd-notes--wide">{{{notesHtml}}}</div>{{else}}<div class="bd-notes__empty">No annotation.</div>{{/if}}
+    </li>
+    {{/each}}
+    {{#if moreCount}}<li class="bd-multi__more">+{{moreCount}} more not shown</li>{{/if}}
+  </ul>
+</div>`;
+
 /** Which panel a template/fork targets. */
 export type PanelWhich = 'details' | 'bottom';
 

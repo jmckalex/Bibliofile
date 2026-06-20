@@ -47,20 +47,34 @@ export function ViewPane() {
   const detail = useStore((s) => s.detail);
   const documentId = useStore((s) => s.documentId);
   const selectedItemId = useStore((s) => s.selectedItemId);
+  const selectedIds = useStore((s) => s.selectedIds);
+  const multiPanel = useStore((s) => s.multiPanel);
   const detailLoading = useStore((s) => s.detailLoading);
   const openEditor = useStore((s) => s.openEditor);
   const hostRef = useRef<HTMLDivElement>(null);
 
-  // The pane is rendered (in main) from a Handlebars template; the default
-  // reproduces the legacy layout below. Hydrate the inserted HTML: the bd-*
-  // custom elements upgrade themselves, and hydratePanel wires the data-* clicks
-  // + MathJax. Re-runs when the rendered HTML changes (item switch / edit).
-  const html = detail && detail.id === selectedItemId ? detail.detailsPanelHtml : undefined;
+  // With 2+ rows selected, show the multi-select list (+ batch tools) instead of
+  // the single-item detail. Both are main-rendered Handlebars HTML, hydrated the
+  // same way (the multi HTML additionally wires the batch-tool inputs).
+  const multi = selectedIds.length >= 2;
+  const html = multi
+    ? multiPanel?.detailsHtml
+    : detail && detail.id === selectedItemId
+      ? detail.detailsPanelHtml
+      : undefined;
   useEffect(() => {
     const el = hostRef.current;
     if (!el || !html) return;
     return hydratePanel(el);
   }, [html]);
+
+  if (multi) {
+    return html ? (
+      <div className="bd-detail bd-view bd-detail--multi" ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
+    ) : (
+      <div className="bd-detail__empty">{t('common.loading')}</div>
+    );
+  }
 
   if (!selectedItemId) {
     return <div className="bd-detail__empty">{t('detail.empty.select')}</div>;

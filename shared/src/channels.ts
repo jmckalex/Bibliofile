@@ -32,6 +32,8 @@ export const IpcChannels = {
   listGroups: 'bibdesk:listGroups',
   /** Get the full detail (fields + files + preview) of one item. */
   getItemDetail: 'bibdesk:getItemDetail',
+  /** Render the multi-select detail + bottom panels for 2+ selected items. */
+  renderMultiPanel: 'bibdesk:renderMultiPanel',
   /** Open a URL or local file in the OS default handler. */
   openExternal: 'bibdesk:openExternal',
   /** Apply one edit command (mutate the in-memory model). */

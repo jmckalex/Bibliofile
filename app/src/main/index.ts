@@ -49,7 +49,7 @@ import {
 import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 
 import { DocumentStore } from './document-service.js';
-import { resolveActivePanelBody } from './panel.js';
+import { resolveActivePanelBody, renderMultiPanels, MULTI_LIST_CAP } from './panel.js';
 import { runAgentTurn } from './agent.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
@@ -1757,6 +1757,19 @@ function registerIpc(): void {
     [IpcChannels.listPublications]: (req) => store.listPublications(req),
     [IpcChannels.listGroups]: (req) => store.listGroups(req),
     [IpcChannels.getItemDetail]: (req) => store.getItemDetail(req),
+    [IpcChannels.renderMultiPanel]: (req) => {
+      // Build the (capped) per-item context, then render both multi templates.
+      const shown = req.itemIds.slice(0, MULTI_LIST_CAP);
+      const items = shown.map((id) => {
+        const d = store.getItemDetail({ documentId: req.documentId, itemId: id });
+        return { id, citeKey: d.citeKey, previewHtml: d.previewHtml, notesHtml: d.notesHtml };
+      });
+      const count = req.itemIds.length;
+      return {
+        count,
+        ...renderMultiPanels({ count, moreCount: Math.max(0, count - items.length), items }),
+      };
+    },
     [IpcChannels.openExternal]: (req) => openExternalTarget(req),
     [IpcChannels.applyEdit]: (req) => store.applyEdit(req),
     [IpcChannels.batchEdit]: (req) => store.batchEdit(req.documentId, req.itemIds, req.op),
@@ -2340,6 +2353,9 @@ function registerIpc(): void {
   );
   ipcMain.handle(IpcChannels.getItemDetail, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.getItemDetail](req),
+  );
+  ipcMain.handle(IpcChannels.renderMultiPanel, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.renderMultiPanel](req),
   );
   ipcMain.handle(IpcChannels.openExternal, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.openExternal](req),

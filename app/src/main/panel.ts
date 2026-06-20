@@ -13,7 +13,12 @@
  */
 import Handlebars from 'handlebars';
 import type { ItemDetail, PanelTemplate } from '@bibdesk/shared';
-import { DEFAULT_DETAILS_TEMPLATE, DEFAULT_BOTTOM_TEMPLATE } from '@bibdesk/shared';
+import {
+  DEFAULT_DETAILS_TEMPLATE,
+  DEFAULT_BOTTOM_TEMPLATE,
+  DEFAULT_MULTI_DETAILS_TEMPLATE,
+  DEFAULT_MULTI_BOTTOM_TEMPLATE,
+} from '@bibdesk/shared';
 import { panelIconSvg } from '../icon-svg.js';
 
 // The built-in default bodies now live in @bibdesk/shared (so the renderer can
@@ -157,4 +162,50 @@ function renderPanel(
   } catch {
     return undefined;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Multi-selection panels (2+ rows selected)
+// ---------------------------------------------------------------------------
+
+/** Cap on how many entries are rendered into the multi-select list; the batch
+ *  tools still apply to the whole selection. Keeps a select-all from rendering
+ *  thousands of preview cards (and dozens of MathJax passes). */
+export const MULTI_LIST_CAP = 50;
+
+/** One entry in the multi-select list (pretty-printed preview + annotation). */
+export interface MultiPanelItem {
+  readonly id: string;
+  readonly citeKey: string;
+  readonly previewHtml?: string;
+  readonly notesHtml?: string;
+}
+
+/** Context for the multi-select templates: total `count`, the (capped) `items`,
+ *  and how many were elided (`moreCount`). */
+export interface MultiPanelContext {
+  readonly count: number;
+  readonly moreCount: number;
+  readonly items: readonly MultiPanelItem[];
+}
+
+/**
+ * Render the details + bottom HTML for a multi-row selection. Each returns
+ * `undefined` on a template error so the renderer can fall back gracefully.
+ */
+export function renderMultiPanels(ctx: MultiPanelContext): {
+  detailsHtml?: string;
+  bottomHtml?: string;
+} {
+  const render = (body: string): string | undefined => {
+    try {
+      return compile(body)(ctx);
+    } catch {
+      return undefined;
+    }
+  };
+  return {
+    detailsHtml: render(DEFAULT_MULTI_DETAILS_TEMPLATE),
+    bottomHtml: render(DEFAULT_MULTI_BOTTOM_TEMPLATE),
+  };
 }

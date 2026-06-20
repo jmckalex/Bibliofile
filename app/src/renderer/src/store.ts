@@ -102,6 +102,16 @@ export interface TexPreviewState {
   readonly error?: string;
 }
 
+/** The rendered multi-select panels (2+ rows selected), built in main on demand. */
+export interface MultiPanelView {
+  /** Total number of selected items (the list itself may be capped). */
+  readonly count: number;
+  /** Multi-select details-pane HTML. */
+  readonly detailsHtml?: string;
+  /** Multi-select bottom-pane HTML. */
+  readonly bottomHtml?: string;
+}
+
 export interface ViewerState {
   /** Active document, set once `documentOpened` fires. */
   documentId?: string;
@@ -155,6 +165,8 @@ export interface ViewerState {
   editorMode: boolean;
   /** Latest LaTeX-preview artifact + status for the bottom panel's preview pane. */
   texPreviewState: TexPreviewState;
+  /** Rendered multi-select panels, present while 2+ rows are selected. */
+  multiPanel?: MultiPanelView;
 
   // --- actions ---
   /** Handle a `documentOpened` event: store ids, then load groups + rows. */
@@ -261,6 +273,11 @@ export interface ViewerState {
    * this on open and (debounced) whenever the selection changes.
    */
   texPreview: () => Promise<void>;
+  /**
+   * (Re)build the multi-select panels for the current 2+ row selection into
+   * `multiPanel`. Triggered (debounced) on selection change and after a batch edit.
+   */
+  loadMultiPanel: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
   /**
@@ -298,6 +315,8 @@ export function createStore(api: BibDeskApi) {
   // Monotonic token so an in-flight LaTeX render that's been superseded by a
   // newer one (selection changed mid-render) discards its now-stale result.
   let texSeq = 0;
+  // Same guard for the multi-select panel build (selection can change mid-flight).
+  let multiSeq = 0;
   return createZustandStore<ViewerState>((set, get) => ({
     itemCount: 0,
     warnings: 0,
@@ -501,6 +520,9 @@ export function createStore(api: BibDeskApi) {
           const sel = get().selectedItemId;
           // loadDetail refreshes the pane without disturbing the multi-selection.
           if (sel) await get().loadDetail(sel);
+          // The batch changed fields/keywords, so the multi-select list is stale
+          // (selection is unchanged, so nothing else triggers a rebuild).
+          if (get().selectedIds.length >= 2) void get().loadMultiPanel();
         }
       } catch (err) {
         set({ error: errorMessage(err) });
@@ -949,6 +971,21 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         if (seq !== texSeq) return;
         set({ texPreviewState: { loading: false, error: errorMessage(err) } });
+      }
+    },
+
+    loadMultiPanel: async () => {
+      const { documentId, selectedIds } = get();
+      if (!documentId || selectedIds.length < 2) return;
+      const seq = ++multiSeq;
+      try {
+        const res = await api.renderMultiPanel({ documentId, itemIds: selectedIds });
+        // Drop if superseded, or if the selection dropped back below 2 meanwhile.
+        if (seq !== multiSeq || get().selectedIds.length < 2) return;
+        set({ multiPanel: { count: res.count, detailsHtml: res.detailsHtml, bottomHtml: res.bottomHtml } });
+      } catch (err) {
+        if (seq !== multiSeq) return;
+        set({ error: errorMessage(err) });
       }
     },
 

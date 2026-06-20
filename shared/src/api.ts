@@ -40,6 +40,8 @@ import type {
   GetItemDetailRequest,
   ImportOnlineRequest,
   ItemDetail,
+  RenderMultiPanelRequest,
+  RenderMultiPanelResponse,
   RemoveAttachmentRequest,
   SearchOnlineRequest,
   SearchOnlineResponse,
@@ -139,6 +141,7 @@ export interface BibDeskApi {
 
   /** Fetch one item's full detail for the detail/preview pane. */
   getItemDetail(request: GetItemDetailRequest): Promise<ItemDetail>;
+  renderMultiPanel(request: RenderMultiPanelRequest): Promise<RenderMultiPanelResponse>;
 
   /** Open a URL in the browser, or a local file in its default app. */
   openExternal(request: OpenExternalRequest): Promise<OpenExternalResult>;

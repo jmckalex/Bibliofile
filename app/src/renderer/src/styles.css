@@ -560,6 +560,76 @@ canvas.bd-texpreview__page {
   font-size: var(--bd-fs-sm);
 }
 
+/* Multi-select panels (2+ rows): a sticky header — with the batch tools in the
+   details pane — over a scrollable list of each entry's pretty-printed preview
+   (details) or annotation (bottom). The host's own padding is dropped so the
+   sticky header reaches the pane's top edge. */
+.bd-detail--multi,
+.bd-bottompanel__body--multi {
+  padding: 0;
+}
+.bd-multi__sticky {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 12px;
+  background: var(--bd-surface);
+  border-bottom: 1px solid var(--bd-border);
+}
+.bd-multi__head {
+  font-weight: 600;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+}
+.bd-multi__count {
+  display: inline-block;
+  min-width: 20px;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--bd-accent);
+  color: #fff;
+  text-align: center;
+}
+.bd-multi__tools {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.bd-multi__toolrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.bd-multi__list {
+  margin: 0;
+  padding: 6px 12px 12px;
+  list-style: none;
+}
+.bd-multi__item {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bd-border);
+}
+.bd-multi__item:last-child {
+  border-bottom: 0;
+}
+.bd-multi__key {
+  margin-bottom: 4px;
+  font-family: var(--bd-mono);
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+}
+.bd-multi__bare,
+.bd-multi__more {
+  color: var(--bd-text-faint);
+  font-size: var(--bd-fs-sm);
+}
+.bd-multi__more {
+  padding-top: 10px;
+}
+
 /* The bd-* custom elements are block-level (they replace block React components). */
 bd-journal-cover,
 bd-citation {

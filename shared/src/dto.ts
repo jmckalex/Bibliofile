@@ -480,6 +480,25 @@ export interface GetItemDetailRequest {
   readonly itemId: ItemId;
 }
 
+/**
+ * Render the multi-select panels for a 2+ row selection: the detail pane (a list
+ * of each entry's BibTeX preview + batch tools) and the bottom pane (each entry's
+ * annotation). Main caps the rendered list; the response reports the full `count`.
+ */
+export interface RenderMultiPanelRequest {
+  readonly documentId: DocumentId;
+  /** Every selected item, in selection order (main caps how many it renders). */
+  readonly itemIds: readonly ItemId[];
+}
+export interface RenderMultiPanelResponse {
+  /** Total number of selected items (may exceed the number rendered into the list). */
+  readonly count: number;
+  /** Multi-select details-pane HTML (undefined on a template error). */
+  readonly detailsHtml?: string;
+  /** Multi-select bottom-pane HTML (undefined on a template error). */
+  readonly bottomHtml?: string;
+}
+
 /** One field row in the detail view (display value, not raw BibTeX). */
 /**
  * Field-type hint so the renderer can show the right editor widget. Classified by

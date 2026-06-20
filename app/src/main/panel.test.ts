@@ -6,7 +6,13 @@
  */
 import { describe, it, expect } from 'vitest';
 import type { ItemDetail } from '@bibdesk/shared';
-import { renderDetailsPanel, renderBottomPanel, renderPanelPreview, resolveActivePanelBody } from './panel.js';
+import {
+  renderDetailsPanel,
+  renderBottomPanel,
+  renderPanelPreview,
+  resolveActivePanelBody,
+  renderMultiPanels,
+} from './panel.js';
 import { PANEL_PRESETS } from '../renderer/src/panel-presets.js';
 
 function detail(over: Partial<ItemDetail> = {}): ItemDetail {
@@ -146,6 +152,45 @@ describe('showcase presets', () => {
     expect(html).toContain('A. Smith');
     expect(html).toContain('<bd-citation doc-id="d1" item-id="i1"');
     expect(html).toContain('data-open-file="/a.pdf"');
+  });
+});
+
+describe('renderMultiPanels — multi-select view', () => {
+  const ctx = {
+    count: 3,
+    moreCount: 1,
+    items: [
+      { id: 'i1', citeKey: 'smith2020', previewHtml: '<article>S</article>', notesHtml: '<p>n1</p>' },
+      { id: 'i2', citeKey: 'jones2021', previewHtml: '<article>J</article>', notesHtml: '' },
+    ],
+  };
+
+  it('details pane: indicator + batch tools + per-entry previews + "+N more"', () => {
+    const { detailsHtml } = renderMultiPanels(ctx);
+    expect(detailsHtml).toContain('Multiple entries selected');
+    expect(detailsHtml).toContain('<span class="bd-multi__count">3</span>');
+    // batch tools (read by panel-hydrate)
+    expect(detailsHtml).toContain('data-batch-tools');
+    expect(detailsHtml).toContain('data-batch="field"');
+    expect(detailsHtml).toContain('data-action="batch-set"');
+    expect(detailsHtml).toContain('data-action="batch-delete"');
+    // per-entry pretty-printed preview (raw HTML passthrough), with cite-key labels
+    expect(detailsHtml).toContain('smith2020');
+    expect(detailsHtml).toContain('<div class="bd-preview bd-preview--multi"><article>S</article></div>');
+    expect(detailsHtml).toContain('+1 more not shown');
+  });
+
+  it('bottom pane: indicator + per-entry annotations, NO batch tools', () => {
+    const { bottomHtml } = renderMultiPanels(ctx);
+    expect(bottomHtml).toContain('Multiple entries selected');
+    expect(bottomHtml).toContain('<div class="bd-notes bd-notes--wide"><p>n1</p></div>');
+    expect(bottomHtml).toContain('No annotation.'); // i2 has no notes
+    expect(bottomHtml).not.toContain('data-batch-tools');
+  });
+
+  it('omits the "+N more" line when nothing was elided', () => {
+    const { detailsHtml } = renderMultiPanels({ ...ctx, moreCount: 0 });
+    expect(detailsHtml).not.toContain('more not shown');
   });
 });
 

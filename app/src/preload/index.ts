@@ -24,6 +24,8 @@ import type {
   ListGroupsResponse,
   GetItemDetailRequest,
   ItemDetail,
+  RenderMultiPanelRequest,
+  RenderMultiPanelResponse,
   OpenExternalRequest,
   OpenExternalResult,
   ApplyEditRequest,
@@ -136,6 +138,9 @@ const api: BibDeskApi = {
   },
   getItemDetail(request: GetItemDetailRequest): Promise<ItemDetail> {
     return ipcRenderer.invoke(IpcChannels.getItemDetail, request);
+  },
+  renderMultiPanel(request: RenderMultiPanelRequest): Promise<RenderMultiPanelResponse> {
+    return ipcRenderer.invoke(IpcChannels.renderMultiPanel, request);
   },
   openExternal(request: OpenExternalRequest): Promise<OpenExternalResult> {
     return ipcRenderer.invoke(IpcChannels.openExternal, request);
