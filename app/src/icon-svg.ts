@@ -9,7 +9,7 @@
  * tracks the surrounding text like the emoji glyphs it replaces did).
  */
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { faPen, faFile, faLink, faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faFile, faLink, faPaperclip, faPlus, faMinus } from '@fortawesome/free-solid-svg-icons';
 
 /** Build an inline `<svg>` string for a FontAwesome icon definition. */
 export function iconSvg(def: IconDefinition): string {
@@ -28,6 +28,10 @@ const PANEL_ICONS: Record<string, IconDefinition> = {
   file: faFile,
   link: faLink,
   paperclip: faPaperclip,
+  // Used by the multi-select panel's batch-keyword buttons (mirrors the renderer
+  // `plus` / `removeMinus` glyphs).
+  plus: faPlus,
+  removeMinus: faMinus,
 };
 
 /** Inline SVG for a named panel icon; empty string if the name is unknown. */
