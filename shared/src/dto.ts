@@ -229,8 +229,9 @@ export interface RemoveCitationStyleResponse {
 
 /**
  * Render a LaTeX/BibTeX preview of the bibliography by spawning the user's local
- * `pdflatex` + `bibtex` (opt-in power-user feature; needs a TeX install). The
- * resulting PDF opens in an in-app preview window.
+ * TeX toolchain (opt-in power-user feature; needs a TeX install). The artifact is
+ * delivered back to the renderer's bottom panel: a small selection comes back as
+ * inline SVG (DVI→dvisvgm), the whole library as PDF bytes (rendered with PDF.js).
  */
 export interface TexPreviewRequest {
   readonly documentId: DocumentId;
@@ -241,6 +242,12 @@ export interface TexPreviewRequest {
 }
 export interface TexPreviewResponse {
   readonly ok: boolean;
+  /** Which artifact came back: themeable inline SVG, or PDF bytes for PDF.js. */
+  readonly kind?: 'svg' | 'pdf';
+  /** Inline SVG strings, one per page, when `kind === 'svg'`. */
+  readonly svgs?: readonly string[];
+  /** Raw PDF bytes (passed over IPC, not a path) when `kind === 'pdf'`. */
+  readonly pdfBytes?: Uint8Array;
   /** Short failure reason (+ a log tail) on error: no TeX found, or a compile failure. */
   readonly error?: string;
 }

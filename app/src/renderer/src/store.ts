@@ -88,6 +88,20 @@ export function visibleRows(
   return filterRows(rows, query);
 }
 
+/** The LaTeX-preview artifact + status shown in the bottom panel's preview pane. */
+export interface TexPreviewState {
+  /** True while the TeX toolchain is running. */
+  readonly loading: boolean;
+  /** Which artifact came back (undefined before the first render). */
+  readonly kind?: 'svg' | 'pdf';
+  /** Inline SVG strings (one per page) when `kind === 'svg'`. */
+  readonly svgs?: readonly string[];
+  /** Raw PDF bytes when `kind === 'pdf'` (rendered with PDF.js in the pane). */
+  readonly pdfBytes?: Uint8Array;
+  /** A readable failure message (no TeX, or a compile error). */
+  readonly error?: string;
+}
+
 export interface ViewerState {
   /** Active document, set once `documentOpened` fires. */
   documentId?: string;
@@ -139,6 +153,8 @@ export interface ViewerState {
   error?: string;
   /** True in the standalone editor window: skip table/group reloads on edits. */
   editorMode: boolean;
+  /** Latest LaTeX-preview artifact + status for the bottom panel's preview pane. */
+  texPreviewState: TexPreviewState;
 
   // --- actions ---
   /** Handle a `documentOpened` event: store ids, then load groups + rows. */
@@ -239,7 +255,10 @@ export interface ViewerState {
   installCitationStyle: () => Promise<void>;
   /** Remove a user-installed CSL style by id. */
   removeCitationStyle: (id: string) => Promise<void>;
-  /** Render a LaTeX/BibTeX preview PDF of the whole library (opens a window). */
+  /**
+   * Render a LaTeX/BibTeX preview into the bottom panel: shows the preview pane,
+   * then renders the current selection (SVG) or the whole library (PDF).
+   */
   texPreview: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
   saveSettings: (patch: Partial<Settings>) => Promise<void>;
@@ -294,6 +313,7 @@ export function createStore(api: BibDeskApi) {
     loading: false,
     detailLoading: false,
     editorMode: false,
+    texPreviewState: { loading: false },
 
     onDocumentOpened: async (doc) => {
       set({
@@ -899,12 +919,31 @@ export function createStore(api: BibDeskApi) {
     },
 
     texPreview: async () => {
-      const { documentId } = get();
+      const { documentId, selectedIds, rows } = get();
       if (!documentId) return;
+      // Reveal the preview pane in the bottom panel before the (slow) render.
+      get().setLayout({ bottomPanelVisible: true, bottomPaneContent: 'texPreview' });
+
+      // Selection scope when rows are selected (typeset just those keys), else the
+      // whole library. `\nocite{*}` only works for the library; selection passes keys.
+      const keyById = new Map(rows.map((r) => [r.id, r.citeKey]));
+      const citeKeys = selectedIds.map((id) => keyById.get(id)).filter((k): k is string => !!k);
+      const scope = citeKeys.length > 0 ? 'selection' : 'library';
+
+      set({ texPreviewState: { loading: true } });
       try {
-        await api.texPreview({ documentId, scope: 'library' });
+        const res = await api.texPreview({
+          documentId,
+          scope,
+          ...(scope === 'selection' ? { citeKeys } : {}),
+        });
+        set({
+          texPreviewState: res.ok
+            ? { loading: false, kind: res.kind, svgs: res.svgs, pdfBytes: res.pdfBytes }
+            : { loading: false, error: res.error ?? 'LaTeX preview failed.' },
+        });
       } catch (err) {
-        set({ error: errorMessage(err) });
+        set({ texPreviewState: { loading: false, error: errorMessage(err) } });
       }
     },
 

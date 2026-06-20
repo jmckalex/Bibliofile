@@ -527,6 +527,51 @@ body.bd-resizing {
   max-width: 80ch;
 }
 
+/* LaTeX preview pane (bottom panel): a thin toolbar + a scrolling page area. */
+.bd-texpreview {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.bd-texpreview__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--bd-border);
+}
+.bd-texpreview__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+/* One typeset page (SVG wrapper or rasterised PDF canvas), centred. */
+.bd-texpreview__page {
+  display: block;
+  margin: 0 auto 12px;
+  max-width: 100%;
+}
+/* SVG glyphs are recoloured to currentColor by dvisvgm, so they theme here. */
+.bd-texpreview__svg {
+  color: var(--bd-text);
+}
+.bd-texpreview__svg svg {
+  max-width: 100%;
+  height: auto;
+}
+/* PDF pages are real raster images: keep a white page with a soft shadow. */
+canvas.bd-texpreview__page {
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+.bd-texpreview__error {
+  margin: 0;
+  white-space: pre-wrap;
+  color: var(--bd-danger, #c0392b);
+  font-size: var(--bd-fs-sm);
+}
+
 /* The bd-* custom elements are block-level (they replace block React components). */
 bd-journal-cover,
 bd-citation {

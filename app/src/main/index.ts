@@ -72,7 +72,7 @@ import {
   installCslFile,
   removeCslStyle,
 } from './csl.js';
-import { renderTexPreview } from './tex-preview.js';
+import { findTexBin, renderTexPreview, renderTexPreviewSvg, SVG_MAX_KEYS } from './tex-preview.js';
 import { searchOnline, extractDoi } from './online.js';
 import { extractPdfText } from './pdf-text.js';
 import { PdfPool } from './pdf-pool.js';
@@ -1809,31 +1809,30 @@ function registerIpc(): void {
       try {
         const bibText = store.serializeDocument(req.documentId);
         const s = getSettings();
-        const result = await renderTexPreview({
-          bibText,
-          citeKeys: req.scope === 'selection' ? req.citeKeys : undefined,
-          bstStyle: s.texBibStyle,
-          binDir: s.texBinDir || undefined,
-        });
-        if (result.error || !result.pdfPath) {
-          const parent = dialogParent();
-          const opts: Electron.MessageBoxOptions = {
-            type: 'warning',
-            message: t('texPreview.failed'),
-            detail: result.error ?? '',
-          };
-          if (parent) void dialog.showMessageBox(parent, opts);
-          else void dialog.showMessageBox(opts);
-          return { ok: false, error: result.error };
+        const binDir = s.texBinDir || undefined;
+        const citeKeys = req.scope === 'selection' ? req.citeKeys : undefined;
+        const keyCount = citeKeys?.length ?? 0;
+
+        // Small selections → crisp, theme-able inline SVG; the whole library and
+        // big selections → PDF (PDF.js). Fall back to PDF when dvisvgm is absent.
+        const useSvg =
+          req.scope === 'selection' &&
+          keyCount > 0 &&
+          keyCount <= SVG_MAX_KEYS &&
+          !!findTexBin('dvisvgm', binDir);
+        if (useSvg) {
+          const svg = await renderTexPreviewSvg({ bibText, citeKeys, bstStyle: s.texBibStyle, binDir });
+          if (svg.svgs?.length) return { ok: true, kind: 'svg', svgs: svg.svgs };
+          // A real compile error (TeX present) is worth surfacing; otherwise drop
+          // through and let the PDF path report the missing-TeX message.
+          if (svg.error && findTexBin('latex', binDir)) return { ok: false, error: svg.error };
         }
-        const win = new BrowserWindow({
-          width: 820,
-          height: 1000,
-          title: t('window.texPreview'),
-          webPreferences: { contextIsolation: true, nodeIntegration: false, plugins: true },
-        });
-        void win.loadFile(result.pdfPath);
-        return { ok: true };
+
+        const result = await renderTexPreview({ bibText, citeKeys, bstStyle: s.texBibStyle, binDir });
+        if (result.error || !result.pdfPath) {
+          return { ok: false, error: result.error ?? t('texPreview.failed') };
+        }
+        return { ok: true, kind: 'pdf', pdfBytes: new Uint8Array(readFileSync(result.pdfPath)) };
       } catch (e) {
         return { ok: false, error: e instanceof Error ? e.message : String(e) };
       }

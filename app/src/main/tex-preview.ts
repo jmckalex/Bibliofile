@@ -7,12 +7,19 @@
  */
 
 import { execFile } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { delimiter, join } from 'node:path';
 import { promisify } from 'node:util';
 
 const execFileP = promisify(execFile);
+
+/**
+ * Selection size at/under which we render crisp, theme-able inline SVG (DVI →
+ * dvisvgm). Larger selections and the whole library go to PDF (PDF.js) instead,
+ * where one rasterised page scales better than dozens of inline SVGs.
+ */
+export const SVG_MAX_KEYS = 20;
 
 /** Common TeX `bin` locations probed when the binaries aren't on `PATH`. */
 const COMMON_TEX_DIRS = [
@@ -57,6 +64,31 @@ export interface TexRenderResult {
   readonly pdfPath?: string;
   /** A readable failure message (missing TeX, or a compile error) on failure. */
   readonly error?: string;
+}
+
+export interface TexSvgResult {
+  /** One inline SVG string per typeset page on success. */
+  readonly svgs?: readonly string[];
+  /** A readable failure message (missing toolchain, or a compile error) on failure. */
+  readonly error?: string;
+}
+
+/** Read `preview.log` and surface the first few LaTeX error (`!`) lines. */
+function firstTexErrors(dir: string): string {
+  let log = '';
+  try {
+    log = readFileSync(join(dir, 'preview.log'), 'utf8');
+  } catch {
+    /* no log */
+  }
+  const errs = log
+    .split('\n')
+    .filter((l) => l.startsWith('!'))
+    .slice(0, 6)
+    .join('\n');
+  return errs
+    ? `LaTeX compile failed:\n${errs}`
+    : 'LaTeX compile failed. Check that the chosen .bst style exists.';
 }
 
 /** Build the wrapper `.tex` that prints just the bibliography. */
@@ -114,22 +146,59 @@ export async function renderTexPreview(input: TexRenderInput): Promise<TexRender
 
   const pdfPath = join(dir, 'preview.pdf');
   if (existsSync(pdfPath)) return { pdfPath };
+  return { error: firstTexErrors(dir) };
+}
 
-  // No PDF → surface the first few LaTeX error lines from the log.
-  let log = '';
-  try {
-    log = readFileSync(join(dir, 'preview.log'), 'utf8');
-  } catch {
-    /* no log */
+/**
+ * Render the bibliography to inline SVG (one string per page) via
+ * latex → bibtex → latex → latex → dvisvgm. The DVI route lets dvisvgm trace
+ * glyph outlines (`--no-fonts`) and recolour black to `currentColor`
+ * (`--currentcolor`), so the result is crisp and inherits the pane's text
+ * colour. Returns an error sentinel when the latex/dvisvgm toolchain is absent
+ * (the caller then falls back to the PDF path).
+ */
+export async function renderTexPreviewSvg(input: TexRenderInput): Promise<TexSvgResult> {
+  const latex = findTexBin('latex', input.binDir);
+  const bibtex = findTexBin('bibtex', input.binDir);
+  const dvisvgm = findTexBin('dvisvgm', input.binDir);
+  if (!latex || !bibtex || !dvisvgm) {
+    return { error: 'No latex + dvisvgm toolchain found for SVG preview.' };
   }
-  const errs = log
-    .split('\n')
-    .filter((l) => l.startsWith('!'))
-    .slice(0, 6)
-    .join('\n');
-  return {
-    error: errs
-      ? `LaTeX compile failed:\n${errs}`
-      : 'LaTeX compile failed (no PDF produced). Check that the chosen .bst style exists.',
-  };
+
+  const dir = mkdtempSync(join(tmpdir(), 'bibdesk-tex-'));
+  const bst = (input.bstStyle || 'plain').replace(/[^A-Za-z0-9._-]/g, '') || 'plain';
+  const nocite = input.citeKeys && input.citeKeys.length > 0 ? input.citeKeys.join(',') : '*';
+  writeFileSync(join(dir, 'preview.bib'), input.bibText, 'utf8');
+  writeFileSync(join(dir, 'preview.tex'), previewTex(nocite, bst), 'utf8');
+
+  const env = { ...process.env };
+  if (input.binDir) env.PATH = `${input.binDir}${delimiter}${env.PATH ?? ''}`;
+  const run = (cmd: string, args: string[]): Promise<unknown> =>
+    execFileP(cmd, args, { cwd: dir, env, timeout: 60_000, maxBuffer: 8 * 1024 * 1024 }).catch(
+      () => undefined, // tolerate non-zero exits; success is judged by the output
+    );
+
+  const latexArgs = ['-interaction=nonstopmode', '-halt-on-error', 'preview.tex'];
+  await run(latex, latexArgs);
+  await run(bibtex, ['preview']);
+  await run(latex, latexArgs);
+  await run(latex, latexArgs);
+
+  if (!existsSync(join(dir, 'preview.dvi'))) return { error: firstTexErrors(dir) };
+
+  // `%f-%p.svg` ⇒ preview-1.svg, preview-2.svg, … (one file per page).
+  await run(dvisvgm, [
+    '--no-fonts',
+    '--currentcolor',
+    '--page=1-',
+    '--output=%f-%p.svg',
+    'preview.dvi',
+  ]);
+
+  const pageNum = (f: string): number => Number(f.match(/-(\d+)\.svg$/)?.[1] ?? 0);
+  const files = readdirSync(dir)
+    .filter((f) => /^preview-\d+\.svg$/.test(f))
+    .sort((a, b) => pageNum(a) - pageNum(b));
+  if (!files.length) return { error: 'dvisvgm produced no SVG output.' };
+  return { svgs: files.map((f) => readFileSync(join(dir, f), 'utf8')) };
 }
