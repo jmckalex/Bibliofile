@@ -12,6 +12,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { splitGroupFieldValue } from '@bibdesk/groups';
+import { filterCiteKeyInput, citeKeyHasFragileChars } from '@bibdesk/formats';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
 import { Icon, type IconName } from './icons.js';
@@ -634,25 +635,48 @@ function Identity({ detail }: { detail: ItemDetail }) {
   // Dynamic types (standard + custom); fall back to the static list pre-load.
   const names = entryTypes.length ? entryTypes.map((et) => et.name) : ENTRY_TYPES;
   const types = names.includes(detail.type) ? names : [detail.type, ...names];
+  // Live cite-key validation: filter illegal characters as you type, and flag an
+  // empty / duplicate / TeX-fragile key. The duplicate check is client-side
+  // against the loaded rows — cite keys must be unique within one `.bib`.
+  const rows = useStore((s) => s.rows);
+  const [keyDraft, setKeyDraft] = useState(detail.citeKey);
+  useEffect(() => setKeyDraft(detail.citeKey), [detail.id, detail.citeKey]);
+  const trimmedKey = keyDraft.trim();
+  const keyDuplicate =
+    trimmedKey !== '' && rows.some((r) => r.id !== detail.id && r.citeKey === trimmedKey);
+  const keyWarning =
+    trimmedKey === ''
+      ? t('detail.citeKeyEmpty')
+      : keyDuplicate
+        ? t('detail.citeKeyDuplicate')
+        : citeKeyHasFragileChars(trimmedKey)
+          ? t('detail.citeKeyFragile')
+          : '';
+  const commitCiteKey = (): void => {
+    if (trimmedKey && trimmedKey !== detail.citeKey) {
+      void edit({ kind: 'setCiteKey', itemId: detail.id, citeKey: trimmedKey });
+    } else if (!trimmedKey) {
+      setKeyDraft(detail.citeKey); // never commit an empty key — revert to the current one
+    }
+  };
   return (
     <div className="bd-identity">
       <div className="bd-identity__row">
         <label className="bd-identity__label">{t('column.citeKey')}</label>
         <input
-          // Key includes the cite key so the uncontrolled input re-mounts (and
-          // shows the new value) when it changes externally — e.g. via Generate.
-          key={`${detail.id}:${detail.citeKey}`}
-          className="bd-input bd-input--mono"
-          defaultValue={detail.citeKey}
-          onBlur={(e) => {
-            if (e.target.value && e.target.value !== detail.citeKey) {
-              void edit({ kind: 'setCiteKey', itemId: detail.id, citeKey: e.target.value });
-            }
-          }}
+          className={'bd-input bd-input--mono' + (keyWarning ? ' bd-input--warn' : '')}
+          value={keyDraft}
+          onChange={(e) => setKeyDraft(filterCiteKeyInput(e.target.value))}
+          onBlur={commitCiteKey}
           onKeyDown={(e) => {
             if (e.key === 'Enter') e.currentTarget.blur();
           }}
         />
+        {keyWarning && (
+          <span className="bd-identity__warn" role="img" aria-label={keyWarning} title={keyWarning}>
+            <Icon name="warning" />
+          </span>
+        )}
         <button
           type="button"
           className="bd-btn bd-btn--small"

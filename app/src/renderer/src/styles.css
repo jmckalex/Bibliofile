@@ -2199,6 +2199,20 @@ button.bd-chip {
   color: var(--bd-text-muted);
 }
 
+/* Cite-key validation: red border + caution glyph when empty/duplicate/fragile. */
+.bd-input--warn,
+.bd-input--warn:focus {
+  border-color: var(--bd-danger, #c0392b);
+}
+
+.bd-identity__warn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  color: var(--bd-danger, #c0392b);
+  font-size: 12px;
+}
+
 .bd-field__edit {
   display: flex;
   align-items: flex-start;

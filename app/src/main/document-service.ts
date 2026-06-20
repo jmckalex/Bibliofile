@@ -91,6 +91,7 @@ import {
   SmartGroup,
   type Group,
   type EvaluableItem,
+  type EvaluateOptions,
 } from '@bibdesk/groups';
 import type {
   OpenedDocument,
@@ -329,6 +330,16 @@ function filterFromDecoded(data: Record<string, unknown>): Filter {
  */
 function asEvaluable(item: BibItem): EvaluableItem {
   return item as unknown as EvaluableItem;
+}
+
+/**
+ * Options threaded into group membership tests: the session window (so
+ * `ThisSession` date groups bound to when the document was opened, instead of
+ * matching everything) and the author factory (so person-field GroupContain
+ * uses fuzzy author equivalence rather than exact `originalName` matching).
+ */
+function evalOpts(doc: OpenDoc): EvaluateOptions {
+  return { sessionStart: doc.openedAt, makeAuthor };
 }
 
 /** Plist integers arrive as `{ __plistInteger: "n" }`; coerce any to a number. */
@@ -932,6 +943,8 @@ function toCslName(a: Author): Record<string, string> {
 interface OpenDoc {
   readonly documentId: string;
   path: string;
+  /** When this document was opened — the `ThisSession` smart-group window start. */
+  readonly openedAt: Date;
   readonly library: BibLibrary;
   /** Typed membership groups (library + parsed static/smart). */
   readonly groups: Group[];
@@ -1089,6 +1102,7 @@ export class DocumentStore {
     const next: OpenDoc = {
       documentId,
       path: prev.path,
+      openedAt: prev.openedAt, // reload (undo/redo/external change) keeps the session start
       library,
       groups: groupsFromLibrary(library),
       itemsById,
@@ -1143,6 +1157,7 @@ export class DocumentStore {
     const doc: OpenDoc = {
       documentId: opened.documentId,
       path: opened.path,
+      openedAt: new Date(),
       library,
       groups: groupsFromLibrary(library),
       itemsById,
@@ -1223,7 +1238,7 @@ export class DocumentStore {
         // author/keyword category group: precomputed member set
         items = items.filter((it) => categoryMembers.has(it.id));
       } else if (group) {
-        items = items.filter((it) => group.containsItem(asEvaluable(it)));
+        items = items.filter((it) => group.containsItem(asEvaluable(it), evalOpts(doc)));
       } else {
         items = []; // unknown/url/script group => no members in this session
       }
@@ -1292,7 +1307,7 @@ export class DocumentStore {
         kind: node.kind,
         name: node.name,
         count: node.group
-          ? doc.library.items.filter((it) => node.group!.containsItem(asEvaluable(it))).length
+          ? doc.library.items.filter((it) => node.group!.containsItem(asEvaluable(it), evalOpts(doc))).length
           : 0,
         ...(parentId ? { parentId } : {}),
       });
@@ -1503,7 +1518,7 @@ export class DocumentStore {
       const files: string[] = [];
       if (node.group) {
         for (const it of doc.library.items) {
-          if (!node.group.containsItem(asEvaluable(it))) continue;
+          if (!node.group.containsItem(asEvaluable(it), evalOpts(doc))) continue;
           for (const f of itemFiles(it, doc.library, doc.path)) {
             if (f.kind !== 'file') continue;
             const p = f.url.replace(/^file:\/\/(localhost)?/i, '');
@@ -2347,7 +2362,7 @@ export class DocumentStore {
     const categoryMembers = this.categoriesOf(doc).members.get(groupId);
     if (categoryMembers) return doc.library.items.filter((it) => categoryMembers.has(it.id));
     const group = this.resolveParsedGroup(doc, groupId);
-    if (group) return doc.library.items.filter((it) => group.containsItem(asEvaluable(it)));
+    if (group) return doc.library.items.filter((it) => group.containsItem(asEvaluable(it), evalOpts(doc)));
     return [];
   }
 
