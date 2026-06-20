@@ -256,8 +256,9 @@ export interface ViewerState {
   /** Remove a user-installed CSL style by id. */
   removeCitationStyle: (id: string) => Promise<void>;
   /**
-   * Render a LaTeX/BibTeX preview into the bottom panel: shows the preview pane,
-   * then renders the current selection (SVG) or the whole library (PDF).
+   * Render a LaTeX/BibTeX preview of the current selection (SVG) or the whole
+   * library (PDF) into `texPreviewState`. Driven by the preview pane, which calls
+   * this on open and (debounced) whenever the selection changes.
    */
   texPreview: () => Promise<void>;
   /** Patch preferences, persist via main, and re-apply the theme. */
@@ -294,6 +295,9 @@ const DEFAULT_SORT: readonly SortSpec[] = [{ key: 'citeKey', direction: 'asc' }]
  * module-level singleton) so tests can inject a fake api.
  */
 export function createStore(api: BibDeskApi) {
+  // Monotonic token so an in-flight LaTeX render that's been superseded by a
+  // newer one (selection changed mid-render) discards its now-stale result.
+  let texSeq = 0;
   return createZustandStore<ViewerState>((set, get) => ({
     itemCount: 0,
     warnings: 0,
@@ -921,8 +925,7 @@ export function createStore(api: BibDeskApi) {
     texPreview: async () => {
       const { documentId, selectedIds, rows } = get();
       if (!documentId) return;
-      // Reveal the preview pane in the bottom panel before the (slow) render.
-      get().setLayout({ bottomPanelVisible: true, bottomPaneContent: 'texPreview' });
+      const seq = ++texSeq;
 
       // Selection scope when rows are selected (typeset just those keys), else the
       // whole library. `\nocite{*}` only works for the library; selection passes keys.
@@ -937,12 +940,14 @@ export function createStore(api: BibDeskApi) {
           scope,
           ...(scope === 'selection' ? { citeKeys } : {}),
         });
+        if (seq !== texSeq) return; // a newer render started; drop this stale result
         set({
           texPreviewState: res.ok
             ? { loading: false, kind: res.kind, svgs: res.svgs, pdfBytes: res.pdfBytes }
             : { loading: false, error: res.error ?? 'LaTeX preview failed.' },
         });
       } catch (err) {
+        if (seq !== texSeq) return;
         set({ texPreviewState: { loading: false, error: errorMessage(err) } });
       }
     },

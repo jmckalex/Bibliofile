@@ -290,7 +290,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       modals.setCoverScanOpen(true);
       return;
     case 'texPreview':
-      void store.texPreview();
+      // Reveal the preview pane; it renders the current selection on open and
+      // auto-refreshes as the selection changes.
+      store.setLayout({ bottomPanelVisible: true, bottomPaneContent: 'texPreview' });
       return;
     case 'assistant':
       // Show the assistant in the (now swappable) right pane.

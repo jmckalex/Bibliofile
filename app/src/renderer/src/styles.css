@@ -527,19 +527,7 @@ body.bd-resizing {
   max-width: 80ch;
 }
 
-/* LaTeX preview pane (bottom panel): a thin toolbar + a scrolling page area. */
-.bd-texpreview {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-.bd-texpreview__bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-bottom: 1px solid var(--bd-border);
-}
+/* LaTeX preview pane (bottom panel): a scrolling page area that auto-refreshes. */
 .bd-texpreview__body {
   flex: 1;
   min-height: 0;
