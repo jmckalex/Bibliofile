@@ -880,18 +880,21 @@ bd-citation {
   color: var(--bd-text-muted);
 }
 
-/* Inline MathJax inside table cells: keep it on the row's line, never grow it. */
+/* Inline MathJax inside table cells: keep it on the row's line, never grow it.
+   Use baseline alignment so typeset math sits on the text baseline like the
+   surrounding title text (MathJax sets a baseline-relative offset on the
+   container; a `middle` here would override it and lift the glyph). */
 .bd-td mjx-container,
 .bd-math mjx-container {
   display: inline-block;
-  vertical-align: middle;
+  vertical-align: baseline;
   margin: 0 !important;
 }
 
 .bd-td mjx-container svg,
 .bd-math mjx-container svg {
   max-height: 1.5em;
-  vertical-align: middle;
+  vertical-align: baseline;
 }
 
 /* ---- Find & Replace modal ---------------------------------------------- */
