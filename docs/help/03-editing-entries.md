@@ -313,7 +313,7 @@ keyboard shortcut — are:
 |--------|-----------------|--------|--------------------|
 | **＋ New** | **Publication → New Publication** (**⌘N** / **Ctrl+N**) | Create a fresh, empty entry and select it. | No |
 | **⧉ Duplicate** | **Publication → Duplicate** (**⇧⌘D** / **Shift+Ctrl+D**) | Copy the selected entry under a new cite key. | Yes |
-| **🗑 Delete** | **Publication → Delete Publication** | Remove the selected entry. | Yes |
+| **🗑 Delete** | **Publication → Delete Publication**, the **Delete** / **Backspace** key, or **right-click → Delete** | Remove the selected entry (or entries). | Yes |
 
 The **Publication** menu also holds **Generate Cite Key** (**⌘K**),
 **Find Duplicates…** (see
@@ -352,15 +352,31 @@ differ.
 
 ### 🗑 Delete
 
-Removes the selected entry from the library immediately.
+Removes the selected entry (or entries) from the library. You can delete in
+several equivalent ways:
 
-> **Warning:** There is no undo stack yet. Delete removes the entry from the
-> in-memory document at once. However, because nothing is written to disk until
-> you **Save**, a mistaken deletion is recoverable: if you have not yet saved,
-> close the document without saving (or simply do not press Save) and the entry
-> is still in your file. Once you save, the deletion is permanent in the file
-> (though the previous version survives in the `.bib.bak` backup — see
+- The toolbar **🗑 Delete** button or **Publication → Delete Publication** (the
+  current single selection).
+- The **Delete** or **Backspace** key, with the publications table focused —
+  this removes the **whole selection** (one row or many).
+- A **right-click** on a row and **Delete entry** / **Delete N entries** from the
+  [context menu](10-panels.md#the-row-context-menu).
+
+> **Note:** When several rows are selected, deleting them is a **single undo
+> step** — one **Edit → Undo** (**⌘Z** / **Ctrl+Z**) restores the whole batch.
+> The [multi-select view](10-panels.md#working-with-multiple-selected-entries)
+> itself has no delete button; use the key or the context menu.
+
+> **Tip:** A deletion is undoable, and is in any case only in memory until you
+> **Save**: if you have not yet saved, **File → Revert to Saved** reloads the last
+> saved version. Once you save, the deletion is written to the file (though the
+> previous version survives in the `.bib.bak` backup — see
 > [The dirty/save model](#the-dirtysave-model)).
+
+To change a field, keyword, or colour label across **many** entries at once, use
+the batch tools in the multi-select detail pane (**Set field**, **Add keyword**,
+**Remove keyword**) — see
+[Configurable Panels → Working with multiple selected entries](10-panels.md#working-with-multiple-selected-entries).
 
 ## Crossref inheritance
 

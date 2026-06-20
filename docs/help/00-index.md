@@ -52,9 +52,14 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
    on-save normalisations, where each kind of data is stored, a special-field
    reference, citations, current limitations, a glossary, and general
    troubleshooting.
-10. **[Configurable Panels](10-panels.md)** — Resizing, hiding, and swapping the
-    detail pane (Details ↔ Claude), the bottom annotation reader, and designing
-    your own panels with Handlebars templates.
+10. **[Configurable Panels](10-panels.md)** — Resizing, hiding, and switching the
+    panels: the detail pane's content dropdown plus the **🤖 Claude** toggle, the
+    bottom panel's **Annotation ↔ LaTeX Preview** (true BibTeX/`.bst` typesetting
+    of the selection), the **View → Side/Bottom Panel** shortcuts, the multi-select
+    view with its batch tools, and the row context menu.
+11. **[Customizing Panels & Outputs](11-customizing-panels.md)** — Designing your
+    own panel and output templates with Handlebars: the context fields, helpers,
+    live widgets, interactive hooks, and worked examples.
 
 ## Conventions used in this manual
 

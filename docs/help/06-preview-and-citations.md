@@ -21,6 +21,13 @@ they are produced, and notes the current limitations honestly.
 > To change what they show, edit the entry's fields below them (see
 > [Editing Entries](03-editing-entries.md)); the views refresh automatically.
 
+> **Note:** The formatted citation here is a **CSL** rendering (APA / Vancouver /
+> Harvard) — convenient and copy-ready, but independent of LaTeX's `.bst` system.
+> If you want to see exactly what `bibtex` will produce for the `.bst` style you
+> cite with, open the **LaTeX Preview** in the bottom panel: it typesets the
+> selected entries' bibliography with your local TeX install and chosen `.bst`.
+> See [Configurable Panels → LaTeX preview](10-panels.md#latex-preview).
+
 ## The preview card
 
 At the top of the detail pane sits the **preview card**: a clean, typographic
@@ -274,7 +281,9 @@ A few things are worth setting expectations on:
   A CSL style of the "same name" may differ in small ways from the `.bst` you use
   when typesetting a document. Treat the Citation block as a convenient,
   copy-ready reference, not as a preview of what `bibtex`/`biber` will produce in
-  your paper.
+  your paper — for that, use the
+  [LaTeX Preview](10-panels.md#latex-preview) in the bottom panel, which runs your
+  local TeX install with the chosen `.bst`.
 - **The card needs data.** Elements only appear when their fields are present; an
   entry missing a title, authors, venue, and year shows no card at all.
 - **English locale.** Citations are formatted with the `en-US` locale.
@@ -323,5 +332,7 @@ there. If nothing opens, the field may be empty or hold a malformed address.
 - [Attachments](04-attachments.md) — the files behind the 📎 chip.
 - [Importing & Exporting](07-importing-and-exporting.md) — the HTML export
   produces a styled bibliography; **Copy as BibTeX** copies one entry's source.
+- [Configurable Panels](10-panels.md#latex-preview) — the **LaTeX Preview** in the
+  bottom panel: true BibTeX/`.bst` typesetting of the selected entries.
 - [Getting Started](01-getting-started.md) — the window layout and the theme
   toggle.

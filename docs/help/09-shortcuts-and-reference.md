@@ -48,9 +48,12 @@ On Windows and Linux these items live elsewhere: **Preferences…** moves to the
 
 ### Edit menu
 
-The first block (Undo, Redo, Cut, Copy, Paste, Paste and Match Style, Delete,
-Select All) are the standard platform editing roles with their usual system
-shortcuts; they apply to text fields. The app-specific commands are:
+**Undo** (**⌘Z** / **Ctrl+Z**) and **Redo** (**⇧⌘Z** / **Shift+Ctrl+Z**) are
+document-level: they step a library edit (a field change, a delete, a batch
+operation, …) back and forth, and the menu labels name the action (e.g. *Undo
+Delete*). Cut, Copy, Paste, Paste and Match Style, Delete, and Select All are the
+standard platform editing roles with their usual system shortcuts and apply to
+text fields. The app-specific commands are:
 
 | Item | macOS | Win/Linux | What it does |
 | --- | --- | --- | --- |
@@ -83,10 +86,30 @@ Every item needs an open library.
 
 | Item | macOS | Win/Linux | What it does |
 | --- | --- | --- | --- |
+| Toggle Side Panel | ⌘⌥S | Ctrl+Alt+S | Show/hide the right (detail) pane (see [Configurable Panels](10-panels.md)) |
+| Toggle Bottom Panel | ⌘⌥B | Ctrl+Alt+B | Show/hide the bottom panel |
+| Side Panel → Details | ⌘⌥1 | Ctrl+Alt+1 | Show the read-only detail view in the side pane |
+| Side Panel → Claude | ⌘⌥2 | Ctrl+Alt+2 | Show the 🤖 Claude assistant in the side pane |
+| Bottom Panel → Annotation | ⌘⌥3 | Ctrl+Alt+3 | Show the annotation reader in the bottom panel |
+| Bottom Panel → LaTeX Preview | ⌘⌥4 | Ctrl+Alt+4 | Show the [LaTeX preview](10-panels.md#latex-preview) in the bottom panel |
 | Columns → (submenu of checkboxes) | — | — | Show/hide table columns (see [Configuring the columns](02-browsing-and-searching.md#226-configuring-the-columns)) |
 | Toggle Light / Dark Theme | ⌘⇧L | Ctrl+Shift+L | Switch between light and dark appearance |
 | Actual Size / Zoom In / Zoom Out | ⌘0 / ⌘+ / ⌘− | Ctrl+0 / Ctrl+ / Ctrl− | Standard zoom roles |
 | Toggle Full Screen / Reload / Toggle Developer Tools | platform defaults | platform defaults | Standard window roles |
+
+> **Note:** Choosing a **Side Panel** or **Bottom Panel** content item also
+> *reveals* that panel if it was hidden, so a single shortcut both shows the panel
+> and selects its content.
+
+### Tools menu
+
+Every item needs an open library.
+
+| Item | macOS | Win/Linux | What it does |
+| --- | --- | --- | --- |
+| Claude Assistant… | ⌘J | Ctrl+J | Open the 🤖 Claude assistant in the side pane |
+| Scan for Journal Covers… | — | — | Look up missing journal/book cover images online |
+| LaTeX Preview | — | — | Open the bottom panel's [LaTeX preview](10-panels.md#latex-preview) (true BibTeX/`.bst` typesetting of the selection) |
 
 ### Window and Help menus
 
@@ -115,7 +138,13 @@ Linux ⌘ is Ctrl, ⌥ is Alt):
 | ⌥⌘C | Copy \cite{…} |
 | ⇧⌘D | Duplicate |
 | ⌘K | Generate Cite Key |
+| Delete / Backspace | Delete the selected entries (with the table focused; undoable) |
 | ⌘⇧L | Toggle Light / Dark Theme |
+| ⌘⌥S | Toggle Side Panel |
+| ⌘⌥B | Toggle Bottom Panel |
+| ⌘⌥1 / ⌘⌥2 | Side panel content: Details / Claude |
+| ⌘⌥3 / ⌘⌥4 | Bottom panel content: Annotation / LaTeX Preview |
+| ⌘J | Claude Assistant (in the side pane) |
 | ⌘, | Preferences… |
 | Enter | Commit a single-line field edit / the cite key / the *New field* row; run an online search; run a Find preview |
 
@@ -131,6 +160,9 @@ useful ones:
 | Action | How |
 | --- | --- |
 | **Select an entry** | Click its row in the publications table; the detail pane updates |
+| **Extend the selection** | **Cmd/Ctrl-click** a row to add/remove it; **Shift-click** for a range; **⌘A** / **Ctrl+A** for all. 2+ rows switch both panels to the [multi-select view](10-panels.md#working-with-multiple-selected-entries) |
+| **Right-click a row** | Open the row [context menu](10-panels.md#the-row-context-menu): a strip of **colour-label** dots (and a **✕** to clear) plus **Delete entry** / **Delete N entries**. A right-click outside the selection selects just that row first |
+| **Delete the selection** | Press **Delete** / **Backspace** (table focused), or use the right-click **Delete** item; undoable |
 | **Sort the table** | Click a **column header**; click the same header again to flip ascending/descending (a ▲/▼ marks the active column) |
 | **Drag out a citation** | Drag a row into a TeX editor (or any text field) to insert a `\cite{…}` |
 | **Filter by group** | Click a group in the left sidebar (Library, a Static/Smart group, or an Author/Keyword category) |
@@ -334,10 +366,11 @@ In the interest of honesty, here is what is **incomplete, deferred, or
 platform-specific** in the current build. None of these affect the integrity of
 your `.bib` file; they're missing conveniences, not data hazards.
 
-- **No undo stack.** Edits apply immediately to the in-memory model; there is no
-  multi-step undo/redo. Your safety net is explicit save plus the `.bib.bak`
-  backup, and **File → Revert to Saved** to reload the last saved version — so if
-  you make a mess, reload (or fall back to the backup) instead of saving.
+- **Undo is per-document.** Library edits apply immediately to the in-memory
+  model but are **undoable**: **Edit → Undo** / **Redo** (⌘Z / ⇧⌘Z) step them
+  back and forth (a batch edit or a multi-row delete is one step). Beyond that,
+  your safety net is explicit save plus the `.bib.bak` backup and **File → Revert
+  to Saved**, which reloads the last saved version from disk.
 - **Autosave is opt-in.** Saving is explicit by default (⌘S / Ctrl+S); unsaved
   imports and edits are lost if you quit without saving. You can turn on
   **Preferences → Saving → Autosave** to have the app save for you after each
