@@ -195,7 +195,7 @@ function findTopLevelEquals(s: string): number {
       } else if (c === '"' && depthBrace === 0) inQuote = false;
       continue;
     }
-    if (c === '"') inQuote = true;
+    if (c === '"' && depthBrace === 0) inQuote = true;
     else if (c === '{') depthBrace++;
     else if (c === '}') {
       if (depthBrace > 0) depthBrace--;
@@ -222,7 +222,7 @@ function splitTopLevel(s: string, sep: ',' | ';'): string[] {
       } else if (c === '"' && depthBrace === 0) inQuote = false;
       continue;
     }
-    if (c === '"') inQuote = true;
+    if (c === '"' && depthBrace === 0) inQuote = true;
     else if (c === '{') depthBrace++;
     else if (c === '}') {
       if (depthBrace > 0) depthBrace--;
@@ -252,7 +252,7 @@ function stripLineComments(seg: string): string {
       } else if (c === '"' && depthBrace === 0) inQuote = false;
       continue;
     }
-    if (c === '"') inQuote = true;
+    if (c === '"' && depthBrace === 0) inQuote = true;
     else if (c === '{') depthBrace++;
     else if (c === '}') {
       if (depthBrace > 0) depthBrace--;
