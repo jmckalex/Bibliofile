@@ -825,6 +825,13 @@ bd-citation {
   position: relative;
 }
 
+/* The body is focusable (tabIndex 0) for keyboard nav; the selection highlight
+   is the focus indicator, so suppress the default focus ring. */
+.bd-table__body:focus,
+.bd-table__body:focus-visible {
+  outline: none;
+}
+
 .bd-tr {
   display: flex;
   position: absolute;

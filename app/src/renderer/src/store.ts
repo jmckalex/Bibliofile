@@ -113,6 +113,8 @@ export interface ViewerState {
   detail?: ItemDetail;
   /** Multi-selection (always includes selectedItemId); drives batch operations. */
   selectedIds: string[];
+  /** Fixed anchor a shift-extension (keyboard or click) grows from; set on plain select. */
+  selectionAnchor?: string;
 
   /** Current table sort keys in priority order (default: cite key asc). */
   sort: readonly SortSpec[];
@@ -162,6 +164,10 @@ export interface ViewerState {
   toggleSelect: (itemId: string) => void;
   /** Shift-click: extend the selection from the primary to this row (visible order). */
   rangeSelectTo: (itemId: string, orderedIds: readonly string[]) => void;
+  /** Shift+Arrow/Home/End/Page: extend from the fixed anchor to this row (keyboard). */
+  extendSelectionTo: (itemId: string, orderedIds: readonly string[]) => void;
+  /** Cmd/Ctrl+A: select every row in the given visible order. */
+  selectAll: (orderedIds: readonly string[]) => void;
   /** Apply a batch operation to the current multi-selection; reload. */
   batchEdit: (op: BatchOp) => Promise<void>;
   /** Select an entry by cite key (used by notes `[[citeKey]]` cross-references). */
@@ -396,7 +402,7 @@ export function createStore(api: BibDeskApi) {
     },
 
     selectItem: async (itemId) => {
-      set({ selectedIds: [itemId] });
+      set({ selectedIds: [itemId], selectionAnchor: itemId });
       await get().loadDetail(itemId);
     },
 
@@ -420,6 +426,29 @@ export function createStore(api: BibDeskApi) {
       const [lo, hi] = a <= b ? [a, b] : [b, a];
       set({ selectedIds: orderedIds.slice(lo, hi + 1) });
       void get().loadDetail(itemId);
+    },
+
+    extendSelectionTo: (itemId, orderedIds) => {
+      // Like rangeSelectTo but anchored on the FIXED selectionAnchor (not the
+      // moving primary), so repeated Shift+Arrow grows the range from one end.
+      const anchor = get().selectionAnchor ?? get().selectedItemId;
+      const a = anchor ? orderedIds.indexOf(anchor) : -1;
+      const b = orderedIds.indexOf(itemId);
+      if (a === -1 || b === -1) {
+        void get().selectItem(itemId);
+        return;
+      }
+      const [lo, hi] = a <= b ? [a, b] : [b, a];
+      set({ selectedIds: orderedIds.slice(lo, hi + 1) }); // anchor stays put
+      void get().loadDetail(itemId); // active end follows the caret
+    },
+
+    selectAll: (orderedIds) => {
+      if (orderedIds.length === 0) return;
+      const cur = get().selectedItemId;
+      const primary = cur && orderedIds.includes(cur) ? cur : orderedIds[0]!;
+      set({ selectedIds: [...orderedIds], selectionAnchor: primary });
+      if (get().selectedItemId !== primary) void get().loadDetail(primary);
     },
 
     batchEdit: async (op) => {

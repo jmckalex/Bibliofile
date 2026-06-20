@@ -15,6 +15,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent,
   type MouseEvent,
   type UIEvent,
 } from 'react';
@@ -202,6 +203,48 @@ function buildColumns(keys: readonly string[], t: TFunction): Col[] {
   );
 }
 
+/** Reset window for the table's type-ahead buffer (ms between keystrokes). */
+const TYPE_AHEAD_RESET_MS = 700;
+
+/** The text a row contributes to type-select, given the active sort column. */
+export function rowSortText(row: PublicationRow, key: string | undefined): string {
+  switch (key) {
+    case 'type':
+      return row.type;
+    case 'authors':
+      return row.authorsDisplay;
+    case 'year':
+      return row.year;
+    case 'citeKey':
+      return row.citeKey;
+    case 'title':
+    case undefined:
+      return row.title;
+    default:
+      return row.extra?.[key] ?? row.title;
+  }
+}
+
+/**
+ * Index of the next row (searching forward from `from`, wrapping) whose active
+ * sort-column text starts with `needle` (already lowercased). -1 if none match.
+ */
+export function nextTypeMatch(
+  rows: readonly PublicationRow[],
+  from: number,
+  needle: string,
+  key: string | undefined,
+): number {
+  const n = rows.length;
+  if (n === 0 || needle === '') return -1;
+  const start = ((from % n) + n) % n;
+  for (let i = 0; i < n; i++) {
+    const idx = (start + i) % n;
+    if (rowSortText(rows[idx]!, key).toLowerCase().startsWith(needle)) return idx;
+  }
+  return -1;
+}
+
 export function PublicationsTable() {
   const t = useT();
   const rows = useStore((s) => s.rows);
@@ -213,6 +256,8 @@ export function PublicationsTable() {
   const selectItem = useStore((s) => s.selectItem);
   const toggleSelect = useStore((s) => s.toggleSelect);
   const rangeSelectTo = useStore((s) => s.rangeSelectTo);
+  const extendSelectionTo = useStore((s) => s.extendSelectionTo);
+  const selectAll = useStore((s) => s.selectAll);
   const setSort = useStore((s) => s.setSort);
   const openEditor = useStore((s) => s.openEditor);
   const loading = useStore((s) => s.loading);
@@ -235,6 +280,7 @@ export function PublicationsTable() {
   const resizeRef = useRef<{ id: string; startX: number; startWidth: number } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
+  const typeAhead = useRef<{ buffer: string; at: number }>({ buffer: '', at: 0 });
 
   const data = useMemo(() => visibleRows(rows, query, ftsIds), [rows, query, ftsIds]);
   const columns = useMemo(() => buildColumns(columnKeys, t), [columnKeys, t]);
@@ -343,6 +389,78 @@ export function PublicationsTable() {
     [setSort],
   );
 
+  /**
+   * Keyboard navigation + type-select for the focused table body. Arrow / Home /
+   * End / PageUp / PageDown move the primary selection (Shift extends from the
+   * fixed anchor); Cmd/Ctrl+A selects all; Enter opens the editor; a printable
+   * key jumps to the next row whose active-sort-column text matches the typed
+   * prefix (BibDesk's type-select), cycling on repeat and resetting after a pause.
+   */
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>): void => {
+      if (data.length === 0) return;
+      const ids = data.map((r) => r.id);
+      const cur = selectedItemId ? ids.indexOf(selectedItemId) : -1;
+      const last = data.length - 1;
+
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'a' || e.key === 'A')) {
+        e.preventDefault();
+        selectAll(ids);
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return; // leave Cmd+C / shortcuts alone
+
+      const pageRows = Math.max(
+        1,
+        Math.floor((scrollRef.current?.clientHeight ?? ROW_HEIGHT * 10) / ROW_HEIGHT) - 1,
+      );
+      let target: number | null = null;
+      switch (e.key) {
+        case 'ArrowDown': target = cur < 0 ? 0 : Math.min(last, cur + 1); break;
+        case 'ArrowUp': target = cur < 0 ? last : Math.max(0, cur - 1); break;
+        case 'Home': target = 0; break;
+        case 'End': target = last; break;
+        case 'PageDown': target = cur < 0 ? 0 : Math.min(last, cur + pageRows); break;
+        case 'PageUp': target = cur < 0 ? last : Math.max(0, cur - pageRows); break;
+        case 'Enter':
+          if (selectedItemId) {
+            e.preventDefault();
+            openEditor(selectedItemId);
+          }
+          return;
+        default:
+          break;
+      }
+
+      if (target !== null) {
+        e.preventDefault();
+        const id = ids[target]!;
+        if (e.shiftKey) extendSelectionTo(id, ids);
+        else void selectItem(id);
+        virtualizer.scrollToIndex(target, { align: 'auto' });
+        return;
+      }
+
+      // Type-select: a single printable character, ignoring key auto-repeat.
+      if (e.key.length === 1 && !e.repeat) {
+        const now = Date.now();
+        const ta = typeAhead.current;
+        ta.buffer = now - ta.at > TYPE_AHEAD_RESET_MS ? e.key : ta.buffer + e.key;
+        ta.at = now;
+        // A fresh single char starts past the current row (so repeats cycle
+        // forward); a growing buffer re-checks from the current row.
+        const from = ta.buffer.length > 1 ? Math.max(0, cur) : cur + 1;
+        const idx = nextTypeMatch(data, from, ta.buffer.toLowerCase(), sort[0]?.key);
+        if (idx >= 0) {
+          e.preventDefault();
+          void selectItem(data[idx]!.id);
+          virtualizer.scrollToIndex(idx, { align: 'auto' });
+        }
+      }
+    },
+    [data, selectedItemId, sort, selectItem, extendSelectionTo, selectAll, openEditor, virtualizer],
+  );
+
   // Keep the primary selection in view when it changes programmatically — e.g. a
   // new publication (which sorts in anywhere) or "Select Crossref Parent". Keyed
   // on selectedItemId only, so it doesn't yank the scroll on every sort/filter;
@@ -430,7 +548,13 @@ export function PublicationsTable() {
         </div>
       </div>
 
-      <div className="bd-table__body" ref={scrollRef} onScroll={syncHeaderScroll}>
+      <div
+        className="bd-table__body"
+        ref={scrollRef}
+        onScroll={syncHeaderScroll}
+        tabIndex={0}
+        onKeyDown={onKeyDown}
+      >
         {tableRows.length === 0 ? (
           <div className="bd-empty-state">{loading ? t('common.loading') : t('table.empty')}</div>
         ) : (
