@@ -41,8 +41,9 @@ npmRebuild: false # we rebuild better-sqlite3 for Electron ourselves (see script
 
 # Notarize + staple the signed .app (skips itself without APPLE_* env vars).
 afterSign: scripts/notarize.cjs
-# Notarize + staple the .dmg itself (the .app's ticket doesn't cover the dmg
-# container — different cdhash). Same self-skip when APPLE_* are unset.
+# Code-sign + notarize + staple the .dmg itself (the .app's signature/ticket
+# don't cover the dmg container — different cdhash). Same self-skip when APPLE_*
+# are unset.
 afterAllArtifactBuild: scripts/notarize-dmg.cjs
 
 mac:

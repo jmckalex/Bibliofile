@@ -47,12 +47,14 @@ What happens, in order:
    Apple's notary service, waits for the ticket, then `xcrun stapler staple`s it.
    (This is the app that ends up inside the auto-update `.zip`.)
 4. electron-builder builds the `.dmg` and `.zip` from that notarized app.
-5. The **afterAllArtifactBuild hook** (`scripts/notarize-dmg.cjs`) notarizes +
-   staples the `.dmg` *itself* — a separate ticket from the app, because the dmg
-   container has a different cdhash. Without this the dmg download would trip
-   Gatekeeper even though the app inside is fine.
+5. The **afterAllArtifactBuild hook** (`scripts/notarize-dmg.cjs`) **code-signs**
+   the `.dmg` (Developer ID Application cert, auto-discovered, preferring the one
+   matching `APPLE_TEAM_ID`), then notarizes + staples it — a separate ticket from
+   the app, because the dmg container has a different cdhash. Without this the dmg
+   download would trip Gatekeeper even though the app inside is fine, and `spctl`
+   couldn't assess the unsigned dmg cleanly.
 6. Output lands in `release/` (`Bibliofile-<version>-arm64.dmg` / `.zip`), both
-   notarized + stapled.
+   signed + notarized + stapled.
 
 So a full `pnpm dist:mac` makes **two** notary submissions (app, then dmg); the
 dmg one is quick since its contents are already notarized.
@@ -73,10 +75,16 @@ codesign --verify --deep --strict --verbose=2 "release/mac-arm64/Bibliofile.app"
 spctl --assess --type execute --verbose "release/mac-arm64/Bibliofile.app"
 xcrun stapler validate "release/mac-arm64/Bibliofile.app"
 
-# Dmg: notarized + stapled too (this is what testers download)?
+# Dmg: signed + notarized + stapled (this is what testers download)?
 spctl --assess --type open --context context:primary-signature -v "release/Bibliofile-0.1.0-arm64.dmg"
+#   → accepted   source=Notarized Developer ID   (now that the dmg is signed)
 xcrun stapler validate "release/Bibliofile-0.1.0-arm64.dmg"
 ```
+
+Note: `stapler validate` is the authoritative dmg check (the notarization ticket
+is attached). The `spctl` line only reports a clean `accepted` because the dmg is
+now code-signed too — an *unsigned* but notarized dmg still opens fine on
+download, but `spctl` can't assess it and reports a misleading "rejected".
 
 ## Credentials — keep them out of git
 
@@ -96,5 +104,5 @@ as the bundle's team.
 | `electron-builder.yml` → `afterSign: scripts/notarize.cjs` | notarize + staple the **.app** after signing |
 | `electron-builder.yml` → `afterAllArtifactBuild: scripts/notarize-dmg.cjs` | notarize + staple the **.dmg** after it's built |
 | `scripts/notarize.cjs` | `@electron/notarize` call, `appBundleId: com.jmckalex.bibliofile`, stapler |
-| `scripts/notarize-dmg.cjs` | `xcrun notarytool submit` + `stapler staple` on each built `.dmg` |
+| `scripts/notarize-dmg.cjs` | `codesign` + `xcrun notarytool submit` + `stapler staple` on each built `.dmg` |
 | `build/entitlements.mac.plist` | hardened-runtime entitlements (incl. unsigned-mem / dylib-env for the asar-unpacked native module) |
