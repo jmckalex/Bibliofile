@@ -18,11 +18,12 @@
     "dev": "pnpm --filter @bibdesk/app dev",
     "build:app": "pnpm --filter @bibdesk/app build:app",
     "rebuild:electron": "node scripts/rebuild-native.mjs electron",
-    "pack:dir": "pnpm rebuild:electron && pnpm build:app && electron-builder --dir",
+    "pack:dir": "pnpm rebuild:electron && pnpm build:app && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --dir",
     "dist": "pnpm rebuild:electron && pnpm build:app && electron-builder",
     "dist:mac": "pnpm rebuild:electron && pnpm build:app && electron-builder --mac"
   },
   "devDependencies": {
+    "@electron/notarize": "^3.1.1",
     "@eslint/js": "^9.16.0",
     "@types/node": "^22.10.2",
     "electron-builder": "^24.13.3",

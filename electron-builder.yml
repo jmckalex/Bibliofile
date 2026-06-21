@@ -7,8 +7,13 @@
 #
 # Native rebuild for the Electron ABI is done by `scripts/rebuild-native.mjs
 # electron` before packaging (see the root `pack`/`dist` scripts), so npmRebuild is
-# off here. Builds are currently UNSIGNED (mac.identity: null) — set real signing
-# (Developer ID + notarization) when you have certificates.
+# off here.
+#
+# Signing: macOS builds are signed with the Developer ID Application cert
+# auto-discovered from the login keychain (no `identity` field) and then notarized
+# + stapled by the afterSign hook below. Set CSC_IDENTITY_AUTO_DISCOVERY=false to
+# force an unsigned build (the `pack:dir` dev script does this); the afterSign hook
+# self-skips when the APPLE_* env vars are absent.
 appId: com.jmckalex.bibliophile
 productName: Bibliophile
 copyright: © 2026 J. McKenzie Alexander
@@ -34,6 +39,9 @@ asarUnpack:
 
 npmRebuild: false # we rebuild better-sqlite3 for Electron ourselves (see scripts)
 
+# Notarize + staple the signed .app (skips itself without APPLE_* env vars).
+afterSign: scripts/notarize.cjs
+
 mac:
   target:
     - dmg
@@ -42,9 +50,11 @@ mac:
   hardenedRuntime: true
   entitlements: build/entitlements.mac.plist
   entitlementsInherit: build/entitlements.mac.plist
-  # Local/beta builds are unsigned. Remove this (and set CSC_* / notarize) once you
-  # have an Apple Developer ID certificate.
-  identity: null
+  gatekeeperAssess: false # we notarize separately via the afterSign hook
+  # electron-builder's own notarize step is off; our afterSign hook handles it so
+  # we control bundle id + stapling. With no `identity` set, electron-builder
+  # auto-discovers the "Developer ID Application" cert from the login keychain.
+  notarize: false
 
 win:
   target:
