@@ -1,72 +1,246 @@
 # bibdesk-electron
 
-Cross-platform Electron rewrite of [BibDesk](https://bibdesk.sourceforge.io/).
-Working title — to be renamed.
+> A cross-platform desktop **bibliography manager** for your BibTeX (`.bib`)
+> research libraries — a modern, themeable [Electron](https://www.electronjs.org/)
+> rewrite of the classic macOS [BibDesk](https://bibdesk.sourceforge.io/).
+> Your plain-text `.bib` file stays the **single source of truth**.
 
-**Status:** the headless core (BibTeX read/write + model) and a **working read/write editor
-with a rich, themed preview and formatted citations** are built and tested. `pnpm test` →
-**1261 tests** green; `pnpm -r build` typechecks clean. See `BUILD-LOG.md` for the full build
-journal and `/Users/jalex/Source/BibDesk/port-analysis/` for the analysis + plan driving it.
+![bibdesk-electron — the three-pane window with a themed, math-rendered preview](docs/viewer-stage6-light.png)
 
-![Editor with MathJax preview + CSL citation](docs/viewer-citation.png)
-![Viewer (dark) with category groups](docs/viewer-category-groups.png)
+bibdesk-electron gives you a friendly three-pane window — a groups sidebar, a fast
+virtualized publications table, and a configurable detail pane — for browsing,
+searching, grouping, editing, and citing references. It renders a beautiful typeset
+preview with **real math** and **formatted citations**, manages file attachments and
+Markdown notes, pulls new references from online databases, and round-trips your file
+**byte-for-byte** through a custom BibTeX parser, so it stays compatible with macOS
+BibDesk and your TeX workflow.
 
-## What works today
+> **Status.** Actively developed. Builds and runs on macOS, Windows, and Linux.
+> ~1,586 passing unit/integration tests; all packages typecheck clean. Not yet
+> packaged for distribution — run it from source (see [Getting started](#getting-started)).
+> Requires Node.js 20+ and pnpm.
 
-- **Byte-faithful BibTeX round-trip** — a custom parser + serializer reproducing BibDesk's
-  exact on-disk format, including `@string` macros, `@preamble`, the Static/Smart/URL/Script
-  group `@comment` blocks, `@bibdesk_info`, and `bdsk-file-N` base64 binary-plist blobs.
-  Proven against a golden corpus (incl. a real BibDesk-authored file).
-- **Headless core** (platform-agnostic, Vitest-tested): TeX↔Unicode codec, BibTeX name
-  parsing + display variants, the BibItem/ComplexValue/macro/crossref model, cite-key/
-  autofile format language, and the smart-group predicate evaluator.
-- **Viewer** (Electron + React + Zustand + TanStack): virtualized publications table
-  (sortable columns), groups sidebar with **dynamic Author/Keyword category groups**, live
-  **search/filter**, and a detail pane.
-- **Editor** — inline-edit fields, cite keys (+ generate), entry types; add / duplicate /
-  delete entries; `@string` macro editor; **explicit Save** (Cmd+S, atomic write + `.bak`
-  backup) round-tripping through the byte-faithful serializer.
-- **Beautiful preview pane** — typographic entry cards with entry-type accent colours,
-  DOI/URL/attachment chips, keyword tags, **MathJax** math in titles/abstracts, **dark mode**,
-  and **clickable** DOI/URL/attachment links (open externally).
-- **Formatted citations** — citeproc-js/CSL (APA/Vancouver/Harvard, offline) in the detail
-  pane. citeproc-js is AGPL — the one intentionally non-permissive dependency.
+---
 
-## Layout
+## Highlights
+
+- 📚 **Byte-faithful BibTeX** round-trip — your file, your format, preserved exactly.
+- 🔎 Fast **virtualized table** with configurable columns, live filter, and SQLite **full-text search** (incl. PDF text).
+- 🗂️ **Groups**: Library, Static, Smart (condition builder), nestable **Folders**, and dynamic **Author / Keyword** categories.
+- ✍️ Inline **editing** with field autocomplete, cite-key generation, `@string` macros, **Find & Replace**, and full **undo/redo**.
+- 🎨 Themed **preview** with MathJax math, chips, keyword tags, journal covers, and **light / dark** modes.
+- 📑 Formatted **CSL citations** (APA / Vancouver / Harvard, offline) — install your own `.csl` styles.
+- 🧮 **LaTeX preview** — typeset the selection's bibliography with your own TeX + `.bst` style (crisp SVG or PDF).
+- 🪟 **Configurable panels** you can resize, hide, swap, and redesign with **Handlebars templates**.
+- 📥 **Import / export** — paste BibTeX, drag-and-drop `.bib`/PDFs, RIS import; export BibTeX / RIS / CSV / styled HTML.
+- 🌐 **Online search** of CrossRef and arXiv, importing results as new entries.
+- 🤖 An optional **Claude assistant** in the side pane (bring your own API key).
+- 🌓 Native menus, keyboard shortcuts, a full in-app **manual**, and UI scaffolding for **30 languages**.
+
+---
+
+## Features in depth
+
+### 📚 Library, browsing & search
+
+- A **virtualized publications table** that stays smooth on large libraries, with
+  sortable, **configurable columns** (any field, plus the keyword / attachment /
+  Read / rating icon columns).
+- **Live search** as you type, backed by an optional **SQLite FTS5 full-text index**
+  that also searches extracted **PDF text**.
+- A **groups sidebar**: the whole **Library**, **Static** groups, **Smart** groups
+  (a condition builder over the entry fields), nestable **Folders**, and dynamic
+  **Author** and **Keyword** category groups that build themselves from your data.
+- **Find Duplicates** (by cite key and fuzzy title/author) and **Find Broken Links**
+  for attachments that have moved.
+- **Keyboard-first** navigation: arrow keys, type-ahead select, range/multi-select,
+  and `Delete` to remove the selection.
+
+![Dynamic Author and Keyword category groups in the sidebar](docs/viewer-category-groups.png)
+
+### ✍️ Editing entries
+
+- Edit fields **inline** in the detail pane, with **autocomplete** from existing
+  values (keywords, journals, crossref keys).
+- Change **cite keys** (with one-click **Generate** from a configurable format
+  language) and **entry types**; add, duplicate, and delete entries.
+- `Crossref` **inheritance**, the `@string` **macro editor**, and **Find & Replace**
+  across fields.
+- A real **undo / redo** stack (per document) and an optional **autosave**; otherwise
+  edits are written only on explicit **Save** (atomic write + `.bak` backup) through
+  the byte-faithful serializer.
+- Select **multiple entries** to edit them together: a floating batch bar sets a
+  field or adds/removes a keyword across the whole selection in **one undo step**.
+
+![Editing an entry with the live CSL citation block and cite-key generation](docs/viewer-citation.png)
+
+### 📎 Attachments & files
+
+- Attach, open (in your OS default app), and remove files; macOS BibDesk's
+  `Bdsk-File-N` blobs and relative paths are fully supported, so libraries stay
+  portable and round-trip cleanly.
+- A **Links** section for `Url` / `Doi` (with bare-DOI → doi.org rewriting).
+- **AutoFile** moves attachments into a Papers folder named by a format language,
+  and **Folders** can export a mirrored directory tree of the attached PDFs.
+- Drop **PDFs** onto the window to create entries and auto-attach them.
+
+### 📝 Notes & abstracts
+
+- Write abstracts and per-entry notes in **Markdown** (with math), rendered live.
+- Notes support **`[[citeKey]]` cross-references** between entries and inline
+  `<iframe>` embeds (e.g. a lecture video).
+
+![Markdown notes with [[citeKey]] cross-references and an inline embed](docs/viewer-notes.png)
+
+### 🎨 Preview & citations
+
+- A typographic **preview card** — title, authors, venue, DOI/URL/attachment chips,
+  keyword tags, a generated **journal cover**, and a **MathJax**-rendered abstract —
+  with entry-type accent colours, in **light or dark** mode.
+- A live, formatted **CSL citation** block (APA / Vancouver / Harvard, fully offline)
+  and **Copy Citation** / **Copy as BibTeX** / **Copy `\cite{…}`** clipboard commands.
+- **Install your own `.csl` styles** (Preferences → Citations) to cite in any style.
+- **LaTeX preview** — for true BibTeX output, typeset the selected entries'
+  bibliography with your **local TeX** install and a chosen `.bst` style: a small
+  selection renders as crisp, theme-aware **inline SVG** (via `dvisvgm`); the whole
+  library renders as a **PDF** (via PDF.js). It auto-refreshes as your selection
+  changes.
+
+<table>
+  <tr>
+    <td><img src="docs/viewer-stage6-light.png" alt="Light theme"></td>
+    <td><img src="docs/viewer-stage6-dark.png" alt="Dark theme"></td>
+  </tr>
+  <tr><td align="center"><em>Light</em></td><td align="center"><em>Dark</em></td></tr>
+</table>
+
+### 🪟 Configurable panels
+
+- **Resize, hide, and swap** the side detail pane and the bottom panel; the layout is
+  remembered across launches.
+- **Switch what each pane shows** — the side pane between the **Details** view and the
+  **Claude** assistant, the bottom pane between the **Annotation** reader and the
+  **LaTeX Preview** — from in-pane dropdowns or **View → Side/Bottom Panel** (with
+  shortcuts).
+- Selecting **two or more** entries switches both panes to a **multi-select view**: a
+  "Multiple entries selected (N)" indicator over a scrollable list of each entry's
+  preview / annotation.
+- **Design your own panels** with **Handlebars templates** — see
+  [Customizing panels & outputs](docs/help/11-customizing-panels.md) for the full
+  reference (template context, helpers, live widgets, interactive hooks, and worked
+  examples), plus user-editable **export templates**.
+
+### 📥 Import & export
+
+- Get references **in**: paste BibTeX from the clipboard (e.g. Google Scholar),
+  drag-and-drop `.bib` files to merge, **File → Import** for BibTeX and **RIS**.
+- Get references **out**: **File → Export** to BibTeX / RIS / CSV or a styled **HTML**
+  bibliography, plus your own Handlebars **export templates**.
+
+### 🌐 Online search
+
+- Search **CrossRef** and **arXiv** from inside the app and import results as new
+  entries, capturing each source's fields.
+
+### 🤖 Claude assistant
+
+- An optional **Claude** assistant lives in the side pane (**Tools → Claude
+  Assistant**, **⌘J**). Bring your own Anthropic API key — it's stored securely in
+  the OS keychain via Electron **safeStorage**, never on disk in plaintext.
+
+### ⚙️ Preferences, themes, languages & help
+
+- A **Preferences** window for appearance, the default citation style, the cite-key
+  format, default entry type, field-type classification, custom entry types, CSL
+  styles, panel & export templates, and the TeX `.bst` style / bin directory.
+- System-aware **light / dark** theming throughout.
+- UI localization scaffolding for **30 languages** (English complete; the others are
+  machine-seeded and pending native review).
+- A complete, illustrated **in-app manual** (Help menu), also readable as Markdown in
+  [`docs/help/`](docs/help/).
+
+<table>
+  <tr>
+    <td><img src="docs/viewer-preferences.png" alt="Preferences"></td>
+    <td><img src="docs/viewer-help.png" alt="In-app help manual"></td>
+  </tr>
+  <tr><td align="center"><em>Preferences</em></td><td align="center"><em>In-app manual</em></td></tr>
+</table>
+
+---
+
+## Getting started
+
+### Requirements
+
+- **Node.js** 20+ and **pnpm**.
+- Optional — a **TeX** installation (MacTeX / TeX Live / MiKTeX) for the LaTeX
+  preview; `dvisvgm` enables the crisp inline-SVG path.
+- Optional — an **Anthropic API key** for the Claude assistant.
+
+### Install & run
+
+```bash
+pnpm install
+pnpm test     # all unit/integration tests (core + app)
+pnpm build    # typecheck every package
+pnpm dev      # launch the Electron app (electron-vite dev)
+```
+
+### Open a library
+
+Pass a `.bib` file via the **File → Open** dialog, as a CLI argument, or set
+`BIBDESK_OPEN=/abs/path/to/library.bib` before launching. The bundled
+[`docs/math-demo.bib`](docs/math-demo.bib) is a tiny fixture that shows off the math
+preview, citations, and category groups.
+
+---
+
+## Architecture
+
+A pnpm monorepo. The `core/*` packages are **platform-agnostic** (no Electron/DOM —
+`fs` lives only at the app layer) and run headless under Vitest; the app's document
+logic is a pure, unit-tested `document-service` with the Electron shell as a thin
+wrapper around it.
 
 ```
-core/tex      TeXify/deTeXify codec (CharacterConversion + accent algorithm)
+core/tex      TeXify / deTeXify codec (character conversion + accent algorithm)
 core/names    BibTeX name splitting (Patashnik) + display variants
 core/config   ported BibDesk type/field configuration (JSON)
 core/model    BibItem / ComplexValue / TypeManager / MacroResolver / crossref
 core/bibtex   custom byte-faithful round-trip parser + serializer (the keystone)
 core/formats  cite-key / autofile format mini-language, CRC32, sanitizers
 core/groups   group taxonomy + smart-group predicate evaluator
-shared        IPC contract + structured-clone-safe DTOs
-plugins-sdk   JS plugin API surface (stub)
-app           Electron shell: main (pure document-service + IPC) + preload + React renderer
+shared        IPC contract + structured-clone-safe DTOs + i18n catalogs
+plugins-sdk   JS plugin API surface
+app           Electron shell: main (document-service + IPC) + preload + React renderer
 ```
 
-`core/*` is platform-agnostic (no Electron/DOM; `fs` only at the app layer) and runs headless
-under Vitest. The app's document logic lives in a pure, unit-tested `document-service`; the
-Electron shell is a thin wrapper.
+**Tech stack:** Electron · React · Zustand · TanStack Table/Virtual · Handlebars
+(panels & export) · citation-js / CSL · MathJax · PDF.js · SQLite FTS5 · Vite /
+electron-vite · TypeScript · Vitest.
 
-## Develop
+---
 
-```bash
-pnpm install
-pnpm test                 # all unit tests (core + app)
-pnpm build                # typecheck every package
-pnpm --filter @bibdesk/app dev   # launch the Electron viewer (electron-vite dev)
-```
+## Documentation
 
-To open a library on launch, set `BIBDESK_OPEN=/abs/path/to/library.bib` (or pass the `.bib`
-as a CLI arg / open via the File menu). `docs/math-demo.bib` is a small fixture that shows
-the MathJax preview and category groups.
+- **In-app manual** — the Help menu, or read the chapters in
+  [`docs/help/`](docs/help/) (Getting Started, Browsing & Searching, Editing,
+  Attachments, Notes, Preview & Citations, Import/Export, Online Search, Shortcuts,
+  Configurable Panels, and the Handlebars customization reference).
+- **Automation** — an optional loopback bridge for scripting; see
+  [`docs/automation/`](docs/automation/).
 
-## Next
+---
 
-Possible next stages (see `PLAN.md` phases 4–9): SQLite FTS5 full-text search, export
-(RTF/Docx/HTML), file-attachment auto-filing + thumbnails, online search servers, an undo
-stack + autosave, and cross-platform packaging. The only non-permissive dependency is
-citeproc-js (AGPL, used for CSL citations, accepted deliberately).
+## License & dependencies
+
+The single intentionally non-permissive dependency is **citeproc-js** (AGPL), used
+for CSL citation formatting — accepted deliberately. All other dependencies are
+permissively licensed.
+
+## Acknowledgements
+
+Built as a respectful, modernized port of the original macOS
+[**BibDesk**](https://bibdesk.sourceforge.io/) — consulted as a reference, never
+copied. Thanks to its authors for decades of a great bibliography manager.
