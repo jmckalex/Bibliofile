@@ -513,7 +513,7 @@ group), ready to inspect, edit, or delete.
 
 ## 2.7 Performance notes for large libraries
 
-bibdesk-electron is built to handle large libraries comfortably:
+Bibliophile is built to handle large libraries comfortably:
 
 - **The table is virtualized** (§2.2.4), so rendering cost scales with the
   window, not the library. Scrolling stays smooth at thousands of rows.

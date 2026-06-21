@@ -8,7 +8,7 @@
 import { XMLParser } from 'fast-xml-parser';
 import type { OnlineResult, OnlineSource } from '@bibdesk/shared';
 
-const UA = 'bibdesk-electron (https://bibdesk.sourceforge.io/)';
+const UA = 'Bibliophile (bibliography manager)';
 
 /** CrossRef work `type` → BibTeX entry type. */
 const CROSSREF_TYPE: Record<string, string> = {

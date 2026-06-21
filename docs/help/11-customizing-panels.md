@@ -1,6 +1,6 @@
 # Customizing Panels & Outputs
 
-bibdesk-electron renders its **detail pane** and **bottom panel** from
+Bibliophile renders its **detail pane** and **bottom panel** from
 [**Handlebars**](https://handlebarsjs.com/) templates, and lets you replace
 either one with a template of your own. The same template engine also powers
 your own **export formats** under **File → Export**. This chapter is the

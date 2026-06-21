@@ -594,7 +594,7 @@ document — for example `\citep{%K}` for `natbib`, or `\autocite{%K}` for
 
 ## The dirty/save model
 
-Editing in bibdesk-electron is **explicit-save by default**: your changes live in
+Editing in Bibliophile is **explicit-save by default**: your changes live in
 memory until you save them. This section explains exactly what that means and why
 it was chosen. (An optional **autosave** can change this — see
 [Optional autosave](#optional-autosave) below.)
@@ -678,7 +678,7 @@ unasked.
 
 ## Round-trip fidelity
 
-A core design goal of bibdesk-electron is that your `.bib` file keeps working
+A core design goal of Bibliophile is that your `.bib` file keeps working
 flawlessly alongside macOS BibDesk and the wider LaTeX ecosystem. On save, the
 app re-emits the library in BibDesk's **byte-faithful** on-disk format.
 

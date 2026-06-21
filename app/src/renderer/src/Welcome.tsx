@@ -17,7 +17,7 @@ export function Welcome() {
         <div className="bd-welcome__logo" aria-hidden="true">
           📚
         </div>
-        <h1 className="bd-welcome__title">BibDesk</h1>
+        <h1 className="bd-welcome__title">Bibliophile</h1>
         <p className="bd-welcome__tagline">{t('welcome.tagline')}</p>
         <div className="bd-welcome__actions">
           <button type="button" className="bd-btn bd-btn--primary" onClick={open}>

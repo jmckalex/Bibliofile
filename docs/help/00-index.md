@@ -1,6 +1,6 @@
-# bibdesk-electron Help
+# Bibliophile Help
 
-Welcome to the **bibdesk-electron** manual. bibdesk-electron is a
+Welcome to the **Bibliophile** manual. Bibliophile is a
 cross-platform, desktop bibliography manager for your `.bib` (BibTeX) research
 libraries — a fresh Electron rewrite of the classic
 [BibDesk](https://bibdesk.sourceforge.io/). It gives you a friendly three-pane

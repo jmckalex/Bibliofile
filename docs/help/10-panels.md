@@ -1,6 +1,6 @@
 # Configurable Panels
 
-bibdesk-electron's window is built from panels you can **resize, hide, and
+Bibliophile's window is built from panels you can **resize, hide, and
 switch**. This chapter covers the side (detail) panel, the bottom panel, the
 content each can show — the read-only **Details** view, the **🤖 Claude**
 assistant, the annotation reader, and the **LaTeX preview** — how working with a

@@ -14,7 +14,7 @@ describe('help manual', () => {
     const dir = findHelpDir(appDir)!;
     const html = buildHelpHtml(dir);
     expect(html).toContain('<nav>');
-    expect(html).toContain('BibDesk Help');
+    expect(html).toContain('Bibliophile Help');
     // chapters present as sections with anchor ids (numbering may grow as the
     // manual gains chapters, so match the reference chapter by name, not number)
     expect(html).toContain('id="00-index"');
