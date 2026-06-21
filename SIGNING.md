@@ -45,9 +45,19 @@ What happens, in order:
    (hardened runtime + `build/entitlements.mac.plist`).
 3. The **afterSign hook** (`scripts/notarize.cjs`) uploads the signed app to
    Apple's notary service, waits for the ticket, then `xcrun stapler staple`s it.
-4. Output lands in `release/` (`Bibliofile-<version>-arm64.dmg` / `.zip`).
+   (This is the app that ends up inside the auto-update `.zip`.)
+4. electron-builder builds the `.dmg` and `.zip` from that notarized app.
+5. The **afterAllArtifactBuild hook** (`scripts/notarize-dmg.cjs`) notarizes +
+   staples the `.dmg` *itself* — a separate ticket from the app, because the dmg
+   container has a different cdhash. Without this the dmg download would trip
+   Gatekeeper even though the app inside is fine.
+6. Output lands in `release/` (`Bibliofile-<version>-arm64.dmg` / `.zip`), both
+   notarized + stapled.
 
-The hook **self-skips** if any of `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` /
+So a full `pnpm dist:mac` makes **two** notary submissions (app, then dmg); the
+dmg one is quick since its contents are already notarized.
+
+Both hooks **self-skip** if any of `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` /
 `APPLE_TEAM_ID` is unset — so a plain `pnpm dist:mac` without the env vars
 produces a signed-but-not-notarized build, and `pnpm pack:dir`
 (`CSC_IDENTITY_AUTO_DISCOVERY=false`) produces a fast **unsigned** dev build with
@@ -59,9 +69,13 @@ no keychain prompt.
 # Signed with the Developer ID cert?
 codesign --verify --deep --strict --verbose=2 "release/mac-arm64/Bibliofile.app"
 
-# Notarization ticket stapled + Gatekeeper accepts it?
+# App: notarization ticket stapled + Gatekeeper accepts it?
 spctl --assess --type execute --verbose "release/mac-arm64/Bibliofile.app"
 xcrun stapler validate "release/mac-arm64/Bibliofile.app"
+
+# Dmg: notarized + stapled too (this is what testers download)?
+spctl --assess --type open --context context:primary-signature -v "release/Bibliofile-0.1.0-arm64.dmg"
+xcrun stapler validate "release/Bibliofile-0.1.0-arm64.dmg"
 ```
 
 ## Credentials — keep them out of git
@@ -79,6 +93,8 @@ as the bundle's team.
 | `electron-builder.yml` → `mac.hardenedRuntime: true` + `entitlements` | required for notarization |
 | `electron-builder.yml` → no `mac.identity` | auto-discover the Developer ID cert |
 | `electron-builder.yml` → `mac.notarize: false` | electron-builder's own notarize off; our hook owns it |
-| `electron-builder.yml` → `afterSign: scripts/notarize.cjs` | runs notarize + staple after signing |
+| `electron-builder.yml` → `afterSign: scripts/notarize.cjs` | notarize + staple the **.app** after signing |
+| `electron-builder.yml` → `afterAllArtifactBuild: scripts/notarize-dmg.cjs` | notarize + staple the **.dmg** after it's built |
 | `scripts/notarize.cjs` | `@electron/notarize` call, `appBundleId: com.jmckalex.bibliofile`, stapler |
+| `scripts/notarize-dmg.cjs` | `xcrun notarytool submit` + `stapler staple` on each built `.dmg` |
 | `build/entitlements.mac.plist` | hardened-runtime entitlements (incl. unsigned-mem / dylib-env for the asar-unpacked native module) |
