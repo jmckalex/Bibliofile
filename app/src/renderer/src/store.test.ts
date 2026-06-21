@@ -25,6 +25,7 @@ const DOC: OpenedDocument = {
   displayName: 'test.bib',
   itemCount: 3,
   warnings: [],
+  encoding: 'utf8',
 };
 
 const GROUPS: GroupNode[] = [

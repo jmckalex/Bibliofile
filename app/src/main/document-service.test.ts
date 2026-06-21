@@ -9,6 +9,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { describe, it, expect } from 'vitest';
+import iconv from 'iconv-lite';
 
 import {
   DocumentStore,
@@ -1066,6 +1067,62 @@ describe('document-service: BD test.bib', () => {
     // and the saved file re-opens cleanly with the same item count
     const reopened = new DocumentStore().openFile(file);
     expect(reopened.itemCount).toBe(3);
+  });
+
+  it('opens a Windows-1252 file, decodes it, and saves back in the same encoding', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-enc-'));
+    const file = join(dir, 'lib.bib');
+    // '€' is in Windows-1252 (0x80) and has NO TeX form, so it survives serialization
+    // as a literal char — a clean probe that the encoding is preserved on save.
+    // (Accents like é are written the BibTeX way, {\'e}, so they become ASCII.)
+    const original = '@article{a, author = {Café Müller}, title = {Price €5}, year = {2020}}\n';
+    writeFileSync(file, iconv.encode(original, 'windows-1252')); // 8-bit bytes, invalid as UTF-8
+
+    const store = new DocumentStore();
+    const opened = store.openFile(file);
+    expect(opened.encoding).toBe('windows-1252'); // detected (not valid UTF-8 → 8-bit fallback)
+    const { rows } = store.listPublications({ documentId: opened.documentId, offset: 0, limit: -1 });
+    const detail = store.getItemDetail({ documentId: opened.documentId, itemId: rows[0]!.id });
+    expect(detail.fields.find((f) => f.name.toLowerCase() === 'author')?.value).toContain('Café Müller');
+    expect(detail.fields.find((f) => f.name.toLowerCase() === 'title')?.value).toContain('€');
+
+    store.saveDocument(opened.documentId);
+    const saved = readFileSync(file);
+    expect(saved.includes(0x80)).toBe(true); // '€' as one Windows-1252 byte…
+    expect(saved.includes(0xe2)).toBe(false); // …NOT re-encoded as the UTF-8 '€' (E2 82 AC)
+    const roundtrip = iconv.decode(saved, 'windows-1252');
+    expect(roundtrip).toContain('€');
+    expect(roundtrip).toContain("{\\'e}"); // accents written as TeX (ASCII)
+  });
+
+  it('flags a lossy save and offers UTF-8 / Windows-1252 as non-lossy alternatives', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-enc2-'));
+    const file = join(dir, 'lib.bib');
+    writeFileSync(file, iconv.encode('@article{a, title = {Price €5}, year = {2020}}\n', 'windows-1252'));
+    const store = new DocumentStore();
+    const opened = store.openFile(file); // detected windows-1252 (€ = 0x80 there)
+    expect(store.saveEncodingPreview(opened.documentId).lossy).toBe(false); // € fits in Windows-1252
+    expect(store.saveEncodingPreview(opened.documentId, 'iso-8859-1')).toMatchObject({
+      lossy: true,
+      lostChars: ['€'], // Latin-1 has no euro sign and € has no TeX form
+    });
+    expect(store.saveEncodingPreview(opened.documentId, 'utf8').lossy).toBe(false);
+  });
+
+  it('reinterpret re-reads the file with a chosen encoding', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-enc3-'));
+    const file = join(dir, 'lib.bib');
+    // Mac Roman 'é' is 0x8E — auto-detect mis-guesses Windows-1252 (where 0x8E is 'Ž').
+    writeFileSync(file, iconv.encode('@article{a, title = {café}, year = {2020}}\n', 'macintosh'));
+    const store = new DocumentStore();
+    const opened = store.openFile(file);
+    const re = store.setDocumentEncoding(opened.documentId, 'macintosh'); // reinterpret
+    expect(re.encoding).toBe('macintosh');
+    const { rows } = store.listPublications({ documentId: opened.documentId, offset: 0, limit: -1 });
+    const title = store
+      .getItemDetail({ documentId: opened.documentId, itemId: rows[0]!.id })
+      .fields.find((f) => f.name.toLowerCase() === 'title');
+    expect(title?.value).toContain('café');
   });
 
   it('applyEdit: add / duplicate / delete entries and edit cite keys', () => {

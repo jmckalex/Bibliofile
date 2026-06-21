@@ -53,6 +53,11 @@ export interface OpenedDocument {
   readonly warnings: readonly ParseWarning[];
   /** Whether the document has unsaved edits (true after undo/redo re-opens it). */
   readonly dirty?: boolean;
+  /**
+   * The file's detected text encoding (id, e.g. `utf8`, `windows-1252`, `macintosh`).
+   * The file is read and written in this encoding (see File → Text Encoding).
+   */
+  readonly encoding: string;
 }
 
 /** Request payload for closing a document. */

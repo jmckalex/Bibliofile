@@ -60,6 +60,7 @@ import {
 import { generateCiteKey, DEFAULT_CITE_KEY_FORMAT, parseFormat, LOCAL_FILE_FIELD } from '@bibdesk/formats';
 import { makeAuthor, splitNameList, OTHERS, type Author } from '@bibdesk/names';
 import { detexify } from '@bibdesk/tex';
+import { decodeBib, decodeBibAs, encodeBib, lostChars } from './bib-encoding.js';
 import { renderMarkdown, renderNotes } from './markdown.js';
 import { panelIconSvg } from '../icon-svg.js';
 import {
@@ -149,6 +150,10 @@ export interface OpenDocumentResult {
   readonly library: BibLibrary;
   /** Live crossref store (resolves parents against the current item list). */
   readonly crossrefStore: LibraryCrossrefStore;
+  /** Detected file encoding id (read + written in this encoding). */
+  readonly encoding: string;
+  /** Whether the file began with a byte-order mark (re-added on save). */
+  readonly hadBom: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -192,6 +197,8 @@ function nextDocumentId(): string {
 export function openLibraryFromText(
   text: string,
   path: string,
+  encoding = 'utf8',
+  hadBom = false,
 ): OpenDocumentResult {
   const library = parse(text);
 
@@ -210,20 +217,22 @@ export function openLibraryFromText(
     displayName: basename(path),
     itemCount: library.items.length,
     warnings,
+    encoding,
   };
-  return { opened, library, crossrefStore: store };
+  return { opened, library, crossrefStore: store, encoding, hadBom };
 }
 
 /**
  * Thin file-reading wrapper around {@link openLibraryFromText}. This is the ONLY
  * place in the service that touches the filesystem (`node:fs`); the core stays
- * I/O-free. Reads UTF-8 (the BibDesk default; encoding heuristics are out of
- * scope for the read-only viewer).
+ * I/O-free. Auto-detects the text encoding (UTF-8 / UTF-16 / legacy 8-bit) and
+ * decodes to Unicode; the encoding is remembered so the file is written back in it.
  */
-export function openLibraryFromFile(path: string): OpenDocumentResult {
+export function openLibraryFromFile(path: string, encoding?: string): OpenDocumentResult {
   const abs = resolve(path);
-  const text = readFileSync(abs, 'utf8');
-  return openLibraryFromText(text, abs);
+  const buf = readFileSync(abs);
+  const decoded = encoding ? decodeBibAs(buf, encoding) : decodeBib(buf);
+  return openLibraryFromText(decoded.text, abs, decoded.encoding, decoded.hadBom);
 }
 
 // ---------------------------------------------------------------------------
@@ -962,6 +971,10 @@ interface OpenDoc {
   attachmentsIndexed: boolean;
   /** Unsaved-changes flag, set by edits and cleared on save. */
   dirty: boolean;
+  /** Text encoding id the file is read + written in (e.g. `utf8`, `windows-1252`). */
+  encoding: string;
+  /** Whether the file began with a byte-order mark (re-added on save). */
+  hadBom: boolean;
 }
 
 /** Concatenated searchable text for an item (field text + any indexed PDF text). */
@@ -1086,10 +1099,16 @@ export class DocumentStore {
     return true;
   }
 
-  /** Rebuild a document's in-memory state from a serialized snapshot (keeps id+path). */
-  private restoreSnapshot(documentId: string, text: string): void {
+  /** Rebuild a document's in-memory state from text (keeps id/path/openedAt). */
+  private rebuildFromText(
+    documentId: string,
+    text: string,
+    encoding: string,
+    hadBom: boolean,
+    dirty: boolean,
+  ): void {
     const prev = this.requireDoc(documentId);
-    const { library, crossrefStore } = openLibraryFromText(text, prev.path);
+    const { library, crossrefStore } = openLibraryFromText(text, prev.path, encoding, hadBom);
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
     const records = library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') }));
@@ -1111,9 +1130,17 @@ export class DocumentStore {
       ftsFields,
       pdfText: new Map(),
       attachmentsIndexed: false,
-      dirty: true,
+      dirty,
+      encoding,
+      hadBom,
     };
     this.docs.set(documentId, next);
+  }
+
+  /** Rebuild from a serialized snapshot (undo/redo/external) — keeps encoding, marks dirty. */
+  private restoreSnapshot(documentId: string, text: string): void {
+    const prev = this.requireDoc(documentId);
+    this.rebuildFromText(documentId, text, prev.encoding, prev.hadBom, true);
   }
 
   /** Open from already-loaded text. Retains the library and returns the summary. */
@@ -1140,12 +1167,13 @@ export class DocumentStore {
       itemCount: doc.library.items.length,
       warnings: [],
       dirty: doc.dirty,
+      encoding: doc.encoding,
     };
   }
 
   /** Retain an open result in the store and return its summary. */
   private retain(result: OpenDocumentResult): OpenedDocument {
-    const { opened, library, crossrefStore } = result;
+    const { opened, library, crossrefStore, encoding, hadBom } = result;
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
     const pdfText = new Map<string, string>();
@@ -1167,6 +1195,8 @@ export class DocumentStore {
       pdfText,
       attachmentsIndexed: false,
       dirty: false,
+      encoding,
+      hadBom,
     };
     this.docs.set(opened.documentId, doc);
     return opened;
@@ -2155,15 +2185,15 @@ export class DocumentStore {
     for (const p of paths) {
       try {
         if (/\.bib$/i.test(p)) {
-          const res = this.importBibtexText(documentId, readFileSync(p, 'utf8'));
+          const res = this.importBibtexText(documentId, decodeBib(readFileSync(p)).text);
           addedIds.push(...res.addedIds);
           warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
         } else if (/\.ris$/i.test(p)) {
-          const res = this.importRisText(documentId, readFileSync(p, 'utf8'));
+          const res = this.importRisText(documentId, decodeBib(readFileSync(p)).text);
           addedIds.push(...res.addedIds);
           warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
         } else if (/\.(enw|enl|xml)$/i.test(p)) {
-          const res = this.importEndnoteText(documentId, readFileSync(p, 'utf8'));
+          const res = this.importEndnoteText(documentId, decodeBib(readFileSync(p)).text);
           addedIds.push(...res.addedIds);
           warnings.push(...res.warnings.map((w) => `${basename(p)}: ${w}`));
         } else {
@@ -2812,20 +2842,71 @@ export class DocumentStore {
    * atomically (temp file in the same dir, then rename over the target). Clears
    * the dirty flag. `targetPath` overrides the document's own path (Save As).
    */
-  saveDocument(documentId: string, targetPath?: string): { documentId: string; path: string } {
+  saveDocument(
+    documentId: string,
+    targetPath?: string,
+    opts?: { encoding?: string },
+  ): { documentId: string; path: string } {
     const doc = this.requireDoc(documentId);
     const path = resolve(targetPath ?? doc.path);
-    const text = serialize(doc.library);
+    const encoding = opts?.encoding ?? doc.encoding;
+    // A different encoding (Convert to UTF-8) starts fresh — no carried-over BOM.
+    const hadBom = encoding === doc.encoding ? doc.hadBom : false;
+    const { bytes } = encodeBib(serialize(doc.library), encoding, hadBom);
 
     if (existsSync(path)) copyFileSync(path, `${path}.bak`);
 
     const tmp = `${path}.tmp.${process.pid}.${__tmpSeq++}`;
-    writeFileSync(tmp, text, 'utf8');
+    writeFileSync(tmp, bytes);
     renameSync(tmp, path); // atomic on the same filesystem
 
     doc.path = path;
     doc.dirty = false;
+    doc.encoding = encoding; // a chosen encoding (Convert) persists for later saves
+    doc.hadBom = hadBom;
     return { documentId, path };
+  }
+
+  /**
+   * Whether saving (in the document's encoding, or an `encoding` override) would
+   * drop characters the target can't represent — and which ones. (Accents are
+   * already TeX-escaped by the serializer; what's left, e.g. €/CJK, needs UTF-8.)
+   * Writes nothing — drives the lossy-save dialog.
+   */
+  saveEncodingPreview(
+    documentId: string,
+    encoding?: string,
+  ): { encoding: string; lossy: boolean; lostChars: string[] } {
+    const doc = this.requireDoc(documentId);
+    const enc = encoding ?? doc.encoding;
+    const text = serialize(doc.library);
+    if (!encodeBib(text, enc, doc.hadBom).lossy) return { encoding: enc, lossy: false, lostChars: [] };
+    return { encoding: enc, lossy: true, lostChars: lostChars(text, enc) };
+  }
+
+  /** The document's current text encoding id. */
+  documentEncoding(documentId: string): string {
+    return this.requireDoc(documentId).encoding;
+  }
+
+  /**
+   * Re-read the file from disk decoding with `encoding` (fixes a wrong auto-detect),
+   * or — when `convertOnly` — keep the in-memory data and just switch the encoding it
+   * will be saved in (e.g. Convert to UTF-8), marking the document dirty.
+   */
+  setDocumentEncoding(documentId: string, encoding: string, convertOnly = false): OpenedDocument {
+    const doc = this.requireDoc(documentId);
+    if (convertOnly) {
+      // Keep the in-memory (Unicode) data; just change the save encoding (e.g. → UTF-8).
+      doc.encoding = encoding;
+      doc.hadBom = false;
+      doc.dirty = true;
+      return this.summarize(documentId);
+    }
+    // Re-read the file's bytes with the chosen encoding (fixes a wrong auto-detect).
+    const decoded = decodeBibAs(readFileSync(doc.path), encoding);
+    this.rebuildFromText(documentId, decoded.text, decoded.encoding, decoded.hadBom, false);
+    return this.summarize(documentId);
   }
 
   // --- internals -----------------------------------------------------------

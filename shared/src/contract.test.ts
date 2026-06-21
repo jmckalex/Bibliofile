@@ -106,6 +106,7 @@ const sampleOpened: OpenedDocument = {
   displayName: 'refs.bib',
   itemCount: 1234,
   warnings: [{ severity: 'warning', message: 'unbalanced brace', line: 42 }],
+  encoding: 'utf8',
 };
 
 describe('DTO guards', () => {
