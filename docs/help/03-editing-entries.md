@@ -374,9 +374,9 @@ several equivalent ways:
 > [The dirty/save model](#the-dirtysave-model)).
 
 To change a field, keyword, or colour label across **many** entries at once, use
-the batch tools in the multi-select detail pane (**Set field**, **Add keyword**,
-**Remove keyword**) — see
-[Configurable Panels → Working with multiple selected entries](10-panels.md#working-with-multiple-selected-entries).
+the floating **batch-edit bar** that appears at the bottom of the window when
+several rows are selected (**Set field**, **Add keyword**, **Remove keyword**) —
+see [Configurable Panels → Batch tools](10-panels.md#batch-tools-the-selection-bar).
 
 ## Crossref inheritance
 

@@ -135,20 +135,24 @@ list**: in the detail pane, each entry's preview; in the bottom panel, each
 entry's annotation. The list shows up to **50** entries; beyond that a final
 **"+N more not shown"** line tells you how many were elided.
 
-### Batch tools (detail pane)
+### Batch tools (the selection bar)
 
-At the top of the multi-select **detail pane**, below the indicator, is a small
-**batch-tools** bar that applies one change to the **whole selection** in a
-**single undo step**:
+Whenever two or more rows are selected, a floating **batch-edit bar** appears at
+the bottom of the window. Each tool applies one change to the **whole selection**
+in a **single undo step**:
 
 | Tool | What it does |
 | --- | --- |
-| **Set field** | Type a field name and a value, then **Set field** to write that field on every selected entry |
+| **Set field** | Type a field name and a value, then **Set** to write that field on every selected entry |
 | **Add keyword** | Type a keyword and **Add keyword** to add it to every selected entry's `Keywords` |
 | **Remove keyword** | Type a keyword and **Remove keyword** to strip it from every selected entry |
 
+> **Tip:** Press **Enter** in the **value** box to apply **Set**, or in the
+> **keyword** box to **Add keyword**, without reaching for the button.
+
 Because each batch operation is a single undoable step, you can apply one and
-then **Edit → Undo** (**⌘Z** / **Ctrl+Z**) to back it all out at once.
+then **Edit → Undo** (**⌘Z** / **Ctrl+Z**) to back it all out at once. The bar
+disappears as soon as fewer than two rows are selected.
 
 ### Deleting a selection
 

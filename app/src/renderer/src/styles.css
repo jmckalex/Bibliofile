@@ -591,18 +591,6 @@ canvas.bd-texpreview__page {
   color: #fff;
   text-align: center;
 }
-.bd-multi__tools {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 8px;
-}
-.bd-multi__toolrow {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
 .bd-multi__list {
   margin: 0;
   padding: 6px 12px 12px;

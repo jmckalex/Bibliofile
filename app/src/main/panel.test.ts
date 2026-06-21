@@ -165,24 +165,20 @@ describe('renderMultiPanels — multi-select view', () => {
     ],
   };
 
-  it('details pane: indicator + batch tools + per-entry previews + "+N more"', () => {
+  it('details pane: indicator + per-entry previews + "+N more" (no in-panel tools)', () => {
     const { detailsHtml } = renderMultiPanels(ctx);
     expect(detailsHtml).toContain('Multiple entries selected');
     expect(detailsHtml).toContain('<span class="bd-multi__count">3</span>');
-    // batch tools (read by panel-hydrate)
-    expect(detailsHtml).toContain('data-batch-tools');
-    expect(detailsHtml).toContain('data-batch="field"');
-    expect(detailsHtml).toContain('data-action="batch-set"');
-    expect(detailsHtml).toContain('data-action="batch-add-keyword"');
-    // Delete moved out of the panel to the Delete key / row context menu.
-    expect(detailsHtml).not.toContain('data-action="batch-delete"');
     // per-entry pretty-printed preview (raw HTML passthrough), with cite-key labels
     expect(detailsHtml).toContain('smith2020');
     expect(detailsHtml).toContain('<div class="bd-preview bd-preview--multi"><article>S</article></div>');
     expect(detailsHtml).toContain('+1 more not shown');
+    // Batch editing lives in the floating bar, not the template.
+    expect(detailsHtml).not.toContain('data-batch-tools');
+    expect(detailsHtml).not.toContain('data-action="batch-');
   });
 
-  it('bottom pane: indicator + per-entry annotations, NO batch tools', () => {
+  it('bottom pane: indicator + per-entry annotations', () => {
     const { bottomHtml } = renderMultiPanels(ctx);
     expect(bottomHtml).toContain('Multiple entries selected');
     expect(bottomHtml).toContain('<div class="bd-notes bd-notes--wide"><p>n1</p></div>');

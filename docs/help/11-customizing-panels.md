@@ -228,8 +228,8 @@ helper knows:
 | `file` | a file (used on attachment buttons) |
 | `link` | a chain link (used on URL-link buttons) |
 | `paperclip` | a paperclip |
-| `plus` | a plus sign (used on the **Add keyword** batch button) |
-| `removeMinus` | a minus sign (used on the **Remove keyword** batch button) |
+| `plus` | a plus sign |
+| `removeMinus` | a minus sign |
 
 ```handlebars
 <button type="button" data-action="edit">{{icon "edit"}} Edit…</button>
@@ -432,11 +432,14 @@ classes and inline styles.
 When you select **two or more** entries, both panes switch to a multi-select view
 instead of the single-entry layout.
 
-- The **detail pane** shows a sticky **"Multiple entries selected"** header with
-  **batch tools** above a scrollable list of each selected entry's pretty-printed
-  citation preview.
+- The **detail pane** shows a sticky **"Multiple entries selected"** header above a
+  scrollable list of each selected entry's pretty-printed citation preview.
 - The **bottom panel** shows the same sticky header above a list of each entry's
-  annotation (no batch tools — those live in the detail pane).
+  annotation.
+
+Neither multi-select template contains editing controls: batch editing (set field,
+add/remove keyword) is done from the floating **batch-edit bar** at the bottom of
+the window — see [Configurable Panels → Batch tools](10-panels.md#batch-tools-the-selection-bar).
 
 Their context is:
 
@@ -448,57 +451,33 @@ Their context is:
 
 > **Note:** The multi-select list is capped at **50** entries — a *Select All* on a
 > large library won't render thousands of preview cards (or run dozens of MathJax
-> passes). The batch tools still act on the **whole** selection, not just the 50
-> shown; `moreCount` tells the template how many were elided so it can show a
-> *"+N more not shown"* line.
+> passes). `moreCount` tells the template how many were elided so it can show a
+> *"+N more not shown"* line. (The batch-edit bar still acts on the **whole**
+> selection, not just the 50 shown.)
 
 > **Warning:** Unlike the detail and bottom panels, the **multi-select templates
 > are built-in only** — there is no fork or editor for them in Preferences. They
-> are documented here so you understand the batch-tool markup contract (below) and
-> the cap, but you cannot replace them.
+> are documented here so you understand their context and the cap, but you cannot
+> replace them.
 
-### The batch-tool markup contract
-
-The built-in multi-select detail template includes inline batch tools — plain
-inputs and buttons, no JavaScript. The renderer reads them by their `data-*`
-attributes and dispatches a single batch edit over the whole selection. This is
-the contract it expects:
-
-- A wrapper element carrying **`data-batch-tools`** groups one set of tools.
-- Inside it, **inputs** are tagged **`data-batch="field"`**, **`data-batch="value"`**,
-  and **`data-batch="keyword"`** — the renderer reads their current values.
-- **Buttons** carry a **`data-action`**:
-  - `data-action="batch-set"` — set the named field (`data-batch="field"`) to the
-    given value (`data-batch="value"`) on every selected entry. Does nothing if the
-    field box is empty.
-  - `data-action="batch-add-keyword"` — add the keyword (`data-batch="keyword"`) to
-    every selected entry.
-  - `data-action="batch-remove-keyword"` — remove that keyword from every selected
-    entry.
-- **Enter behavior** — pressing **Enter** in the **value** box runs *Set field*, and
-  Enter in the **keyword** box runs *Add keyword*. Enter in the **field** box does
-  nothing (so you can't accidentally set a field to an empty value).
-
-For reference, this is the built-in tools block:
+For reference, this is the built-in multi-select detail template:
 
 ```handlebars
-<div class="bd-multi__tools" data-batch-tools>
-  <div class="bd-multi__toolrow">
-    <input class="bd-input bd-input--small" data-batch="field" placeholder="Field" aria-label="Field name">
-    <input class="bd-input bd-input--small" data-batch="value" placeholder="Value" aria-label="Field value">
-    <button type="button" class="bd-btn bd-btn--small" data-action="batch-set">Set field</button>
+<div class="bd-multi">
+  <div class="bd-multi__sticky">
+    <div class="bd-multi__head">Multiple entries selected <span class="bd-multi__count">{{count}}</span></div>
   </div>
-  <div class="bd-multi__toolrow">
-    <input class="bd-input bd-input--small" data-batch="keyword" placeholder="Keyword" aria-label="Keyword">
-    <button type="button" class="bd-btn bd-btn--small" data-action="batch-add-keyword">{{icon "plus"}} Add keyword</button>
-    <button type="button" class="bd-btn bd-btn--small" data-action="batch-remove-keyword">{{icon "removeMinus"}} Remove keyword</button>
-  </div>
+  <ul class="bd-multi__list">
+    {{#each items}}
+    <li class="bd-multi__item">
+      <div class="bd-multi__key">{{citeKey}}</div>
+      {{#if previewHtml}}<div class="bd-preview bd-preview--multi">{{{previewHtml}}}</div>{{else}}<div class="bd-multi__bare">No preview.</div>{{/if}}
+    </li>
+    {{/each}}
+    {{#if moreCount}}<li class="bd-multi__more">+{{moreCount}} more not shown</li>{{/if}}
+  </ul>
 </div>
 ```
-
-> **Note:** A batch edit is one undo step, and — like every edit — isn't written
-> until you **Save** (**⌘S** / **Ctrl+S**). See
-> [Editing entries](03-editing-entries.md).
 
 ## 11.11 Customizing outputs
 

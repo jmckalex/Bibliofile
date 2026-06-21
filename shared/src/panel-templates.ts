@@ -70,28 +70,15 @@ export const DEFAULT_BOTTOM_TEMPLATE = `<div class="bd-detail__section">Annotati
 /**
  * The built-in MULTI-SELECT details template, shown in place of the single-item
  * detail when 2+ rows are selected. A sticky header ("Multiple entries selected")
- * with the batch tools sits above a scrollable list of each entry's pretty-printed
- * BibTeX preview (no per-field breakdown). The tools are plain inputs/buttons with
- * `data-batch` / `data-action` attributes; `panel-hydrate.ts` reads the inputs and
- * dispatches `batchEdit` (so the whole thing stays Handlebars, no React).
+ * sits above a scrollable list of each entry's pretty-printed BibTeX preview (no
+ * per-field breakdown). Batch editing (set field / add-remove keyword) lives in
+ * the floating bar at the bottom of the window (`BatchBar`), not in this template.
  *
  * Context: `{ count, moreCount, items: [{ id, citeKey, previewHtml }] }`.
  */
 export const DEFAULT_MULTI_DETAILS_TEMPLATE = `<div class="bd-multi">
   <div class="bd-multi__sticky">
     <div class="bd-multi__head">Multiple entries selected <span class="bd-multi__count">{{count}}</span></div>
-    <div class="bd-multi__tools" data-batch-tools>
-      <div class="bd-multi__toolrow">
-        <input class="bd-input bd-input--small" data-batch="field" placeholder="Field" aria-label="Field name">
-        <input class="bd-input bd-input--small" data-batch="value" placeholder="Value" aria-label="Field value">
-        <button type="button" class="bd-btn bd-btn--small" data-action="batch-set">Set field</button>
-      </div>
-      <div class="bd-multi__toolrow">
-        <input class="bd-input bd-input--small" data-batch="keyword" placeholder="Keyword" aria-label="Keyword">
-        <button type="button" class="bd-btn bd-btn--small" data-action="batch-add-keyword">{{icon "plus"}} Add keyword</button>
-        <button type="button" class="bd-btn bd-btn--small" data-action="batch-remove-keyword">{{icon "removeMinus"}} Remove keyword</button>
-      </div>
-    </div>
   </div>
   <ul class="bd-multi__list">
     {{#each items}}

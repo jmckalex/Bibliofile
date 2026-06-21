@@ -56,7 +56,7 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
     panels: the detail pane's content dropdown plus the **🤖 Claude** toggle, the
     bottom panel's **Annotation ↔ LaTeX Preview** (true BibTeX/`.bst` typesetting
     of the selection), the **View → Side/Bottom Panel** shortcuts, the multi-select
-    view with its batch tools, and the row context menu.
+    view, the floating batch-edit bar, and the row context menu.
 11. **[Customizing Panels & Outputs](11-customizing-panels.md)** — Designing your
     own panel and output templates with Handlebars: the context fields, helpers,
     live widgets, interactive hooks, and worked examples.

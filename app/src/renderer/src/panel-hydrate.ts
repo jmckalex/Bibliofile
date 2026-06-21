@@ -14,35 +14,6 @@ function openExternal(target: string, kind: 'url' | 'file'): void {
   void window.bibdesk?.openExternal({ target, kind });
 }
 
-/**
- * Run a batch tool from the multi-select panel: read the relevant `[data-batch]`
- * inputs inside `tools` and dispatch a single `batchEdit` over the whole selection.
- * Inputs hold their own DOM state, so the template stays React-free.
- */
-function applyBatchAction(action: string, tools: HTMLElement): void {
-  const store = getStore().getState();
-  const input = (name: string): HTMLInputElement | null =>
-    tools.querySelector<HTMLInputElement>(`[data-batch="${name}"]`);
-  if (action === 'batch-set') {
-    const field = input('field');
-    if (!field?.value.trim()) return;
-    const value = input('value');
-    void store.batchEdit({ kind: 'setField', field: field.value.trim(), value: value?.value ?? '' });
-    field.value = '';
-    if (value) value.value = '';
-    return;
-  }
-  if (action === 'batch-add-keyword' || action === 'batch-remove-keyword') {
-    const kw = input('keyword');
-    if (!kw?.value.trim()) return;
-    void store.batchEdit({
-      kind: action === 'batch-add-keyword' ? 'addKeyword' : 'removeKeyword',
-      keyword: kw.value.trim(),
-    });
-    kw.value = '';
-  }
-}
-
 /** A small popup of the entry's file attachments, mirroring PreviewCard's menu. */
 function openFilesMenu(anchor: HTMLElement): void {
   const files = (getStore().getState().detail?.files ?? []).filter((f) => f.kind === 'file');
@@ -121,34 +92,11 @@ export function hydratePanel(root: HTMLElement): () => void {
       e.preventDefault();
       const id = getStore().getState().detail?.id;
       if (id) getStore().getState().openEditor(id);
-      return;
     }
-    if (action?.dataset.action?.startsWith('batch-')) {
-      e.preventDefault();
-      const tools = action.closest<HTMLElement>('[data-batch-tools]');
-      if (tools) applyBatchAction(action.dataset.action, tools);
-    }
-  };
-  // Enter in a multi-select batch input applies its action (parity with the old
-  // floating bar): the value box sets the field, the keyword box adds a keyword.
-  // The field box does nothing on Enter (no premature empty-value set).
-  const onKeyDown = (e: KeyboardEvent): void => {
-    if (e.key !== 'Enter') return;
-    const input = (e.target as HTMLElement).closest<HTMLElement>('[data-batch]');
-    const tools = input?.closest<HTMLElement>('[data-batch-tools]');
-    if (!input || !tools) return;
-    const which = input.dataset.batch;
-    if (which !== 'value' && which !== 'keyword') return;
-    e.preventDefault();
-    applyBatchAction(which === 'keyword' ? 'batch-add-keyword' : 'batch-set', tools);
   };
   root.addEventListener('click', onClick);
-  root.addEventListener('keydown', onKeyDown);
   // Typeset static math (field values, notes, preview/abstract). bd-citation
   // typesets its own (async) content separately.
   if (hasMath(root.textContent ?? '')) void typesetMath(root);
-  return () => {
-    root.removeEventListener('click', onClick);
-    root.removeEventListener('keydown', onKeyDown);
-  };
+  return () => root.removeEventListener('click', onClick);
 }

@@ -24,6 +24,7 @@ import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
 import { BrokenLinks } from './BrokenLinks.js';
 import { JournalCoverScan } from './JournalCoverScan.js';
+import { BatchBar } from './BatchBar.js';
 
 function ThemeToggle() {
   const t = useT();
@@ -641,6 +642,7 @@ export function App() {
         )}
       </div>
       <Footer />
+      <BatchBar />
       {macrosOpen && <MacroEditor onClose={() => setMacrosOpen(false)} />}
       {onlineOpen && <OnlineSearch onClose={() => setOnlineOpen(false)} />}
       {prefsOpen && <Preferences onClose={() => setPrefsOpen(false)} />}
