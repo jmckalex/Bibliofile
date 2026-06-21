@@ -56,7 +56,7 @@ BibDesk and your TeX workflow.
 - **Keyboard-first** navigation: arrow keys, type-ahead select, range/multi-select,
   and `Delete` to remove the selection.
 
-![Dynamic Author and Keyword category groups in the sidebar](docs/viewer-category-groups.png)
+![The publications table with math-rendered titles, configurable columns, and the dynamic Author/Keyword category groups](docs/viewer-category-groups.png)
 
 ### ✍️ Editing entries
 
@@ -71,8 +71,6 @@ BibDesk and your TeX workflow.
   the byte-faithful serializer.
 - Select **multiple entries** to edit them together: a floating batch bar sets a
   field or adds/removes a keyword across the whole selection in **one undo step**.
-
-![Editing an entry with the live CSL citation block and cite-key generation](docs/viewer-citation.png)
 
 ### 📎 Attachments & files
 
@@ -89,8 +87,6 @@ BibDesk and your TeX workflow.
 - Write abstracts and per-entry notes in **Markdown** (with math), rendered live.
 - Notes support **`[[citeKey]]` cross-references** between entries and inline
   `<iframe>` embeds (e.g. a lecture video).
-
-![Markdown notes with [[citeKey]] cross-references and an inline embed](docs/viewer-notes.png)
 
 ### 🎨 Preview & citations
 

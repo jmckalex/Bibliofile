@@ -402,6 +402,10 @@ function createWindow(): BrowserWindow {
             900,
           );
         }
+        // optionally open the Preferences pane (its own IPC event, not a menuCommand)
+        if (process.env.BIBDESK_SMOKE_PREFS) {
+          setTimeout(() => win.webContents.send(IpcEvents.showPreferences, null), 900);
+        }
         // optionally Cmd-click extra rows to exercise multi-select + the batch bar
         const multi = process.env.BIBDESK_SMOKE_MULTI
           ? "document.querySelectorAll('.bd-tr')[1]?.dispatchEvent(new MouseEvent('click',{bubbles:true,metaKey:true}));document.querySelectorAll('.bd-tr')[2]?.dispatchEvent(new MouseEvent('click',{bubbles:true,metaKey:true}));"
