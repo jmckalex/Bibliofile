@@ -80,6 +80,7 @@ import { PdfTextCache } from './pdf-cache.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
 import { getSettings, loadSettings, updateSettings } from './settings.js';
 import { t, setMainLocale } from './i18n.js';
+import { encodingLabel, SUPPORTED_ENCODINGS } from './bib-encoding.js';
 
 // A stable product name so userData (settings, agent key, automation
 // `bridge.json`) lives at a predictable `…/Application Support/Bibliophile/` path
@@ -927,6 +928,91 @@ function doRedo(): void {
   }
 }
 
+/**
+ * Save `documentId`, but if writing in its (legacy) encoding would drop characters
+ * the encoding can't hold (e.g. € in Latin-1, CJK/emoji in any 8-bit), prompt first:
+ * Convert to UTF-8, save anyway (lossy), or cancel. Returns `cancelled` on cancel.
+ */
+async function saveWithEncodingGuard(
+  documentId: string,
+  targetPath: string | undefined,
+  win: BrowserWindow | undefined,
+): Promise<{ documentId: string; path: string; cancelled?: boolean }> {
+  const preview = store.saveEncodingPreview(documentId);
+  let opts: { encoding?: string } | undefined;
+  if (preview.lossy) {
+    const box: Electron.MessageBoxOptions = {
+      type: 'warning',
+      message: t('save.lossyTitle', { encoding: encodingLabel(preview.encoding) }),
+      detail: t('save.lossyDetail', {
+        encoding: encodingLabel(preview.encoding),
+        chars: preview.lostChars.join('  '),
+      }),
+      buttons: [t('save.convertUtf8'), t('save.saveAnyway'), t('common.cancel')],
+      defaultId: 0,
+      cancelId: 2,
+    };
+    const { response } = win ? await dialog.showMessageBox(win, box) : await dialog.showMessageBox(box);
+    if (response === 2) return { documentId, path: store.summarize(documentId).path, cancelled: true };
+    if (response === 0) opts = { encoding: 'utf8' };
+  }
+  const res = store.saveDocument(documentId, targetPath, opts);
+  if (win) setWindowTitle(win, basename(res.path), res.path);
+  if (opts?.encoding) buildMenu(); // encoding changed → refresh the Text Encoding marks
+  return res;
+}
+
+/** File → Text Encoding submenu: pick an encoding to re-read with, or Convert to UTF-8. */
+function textEncodingMenuItems(): MenuItemConstructorOptions[] {
+  const id = focusedDocId();
+  const current = id ? store.documentEncoding(id) : undefined;
+  const items: MenuItemConstructorOptions[] = SUPPORTED_ENCODINGS.map((e) => ({
+    label: e.label,
+    type: 'radio' as const,
+    checked: e.id === current,
+    enabled: !!id,
+    click: () => void reinterpretEncoding(e.id),
+  }));
+  items.push({ type: 'separator' });
+  items.push({
+    label: t('menu.file.convertUtf8'),
+    enabled: !!id && current !== 'utf8',
+    click: () => convertEncodingToUtf8(),
+  });
+  return items;
+}
+
+/** Re-read the focused document's file decoding it with `encoding` (fix a mis-detect). */
+async function reinterpretEncoding(encoding: string): Promise<void> {
+  const id = focusedDocId();
+  if (!id || store.documentEncoding(id) === encoding) return;
+  const win = windowForDoc(id);
+  if (store.isDirty(id)) {
+    const box: Electron.MessageBoxOptions = {
+      type: 'warning',
+      message: t('encoding.rereadTitle'),
+      detail: t('encoding.rereadDetail', { encoding: encodingLabel(encoding) }),
+      buttons: [t('encoding.reread'), t('common.cancel')],
+      defaultId: 1,
+      cancelId: 1,
+    };
+    const { response } = win ? await dialog.showMessageBox(win, box) : await dialog.showMessageBox(box);
+    if (response === 1) return;
+  }
+  store.setDocumentEncoding(id, encoding, false); // re-reads from disk
+  notifyDocumentOpened(store.summarize(id), win);
+  buildMenu();
+}
+
+/** Keep the in-memory data; write the focused document as UTF-8 from now on. */
+function convertEncodingToUtf8(): void {
+  const id = focusedDocId();
+  if (!id || store.documentEncoding(id) === 'utf8') return;
+  store.setDocumentEncoding(id, 'utf8', true); // convert-only → marks dirty
+  notifyDocumentOpened(store.summarize(id), windowForDoc(id));
+  buildMenu();
+}
+
 /** Save As: pick a new path, write there, and re-sync the renderer (name + dirty). */
 async function saveDocumentAs(): Promise<void> {
   const id = focusedDocId();
@@ -940,9 +1026,9 @@ async function saveDocumentAs(): Promise<void> {
   });
   if (result.canceled || !result.filePath) return;
   try {
-    const saved = store.saveDocument(id, result.filePath);
+    const saved = await saveWithEncodingGuard(id, result.filePath, win);
+    if (saved.cancelled) return;
     app.addRecentDocument(saved.path);
-    if (win) setWindowTitle(win, basename(saved.path), saved.path);
     // Re-notify so the renderer picks up the new display name + cleared dirty.
     notifyDocumentOpened(store.summarize(id), win);
   } catch (err) {
@@ -1178,6 +1264,7 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => void revertToSaved(),
       },
+      { label: t('menu.file.textEncoding'), enabled: docEnabled, submenu: textEncodingMenuItems() },
       {
         label: isMac ? t('menu.file.showInFinder') : t('menu.file.showInFileManager'),
         enabled: docEnabled,
@@ -1778,12 +1865,8 @@ function registerIpc(): void {
     [IpcChannels.applyEdit]: (req) => store.applyEdit(req),
     [IpcChannels.batchEdit]: (req) => store.batchEdit(req.documentId, req.itemIds, req.op),
     [IpcChannels.listMacros]: (req) => store.listMacros(req),
-    [IpcChannels.saveDocument]: (req) => {
-      const res = store.saveDocument(req.documentId, req.targetPath);
-      const win = windowForDoc(req.documentId);
-      if (win) setWindowTitle(win, basename(res.path), res.path);
-      return res;
-    },
+    [IpcChannels.saveDocument]: (req) =>
+      saveWithEncodingGuard(req.documentId, req.targetPath, windowForDoc(req.documentId)),
     [IpcChannels.formatCitation]: (req) => {
       try {
         const html = formatCitation(store.cslItemFor(req.documentId, req.itemId), req.styleId);

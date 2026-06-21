@@ -710,8 +710,9 @@ export function createStore(api: BibDeskApi) {
       if (!documentId || !dirty) return;
       set({ saving: true, error: undefined });
       try {
-        await api.saveDocument({ documentId });
-        set({ dirty: false, saving: false });
+        const res = await api.saveDocument({ documentId });
+        // Cancelled at the lossy-encoding prompt → nothing written, stay dirty.
+        set({ saving: false, dirty: res.cancelled ? get().dirty : false });
       } catch (err) {
         set({ saving: false, error: errorMessage(err) });
       }

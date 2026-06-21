@@ -169,6 +169,8 @@ export interface SaveDocumentRequest {
 export interface SaveDocumentResult {
   readonly documentId: DocumentId;
   readonly path: string;
+  /** True if the user cancelled at the lossy-encoding prompt (nothing was written). */
+  readonly cancelled?: boolean;
 }
 
 // --- Formatted citations (CSL) ----------------------------------------------

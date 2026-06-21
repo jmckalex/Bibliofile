@@ -23,6 +23,8 @@ export const en: Catalog = {
   'menu.file.save': 'Save',
   'menu.file.saveAs': 'Save As…',
   'menu.file.revert': 'Revert to Saved',
+  'menu.file.textEncoding': 'Text Encoding',
+  'menu.file.convertUtf8': 'Convert to UTF-8',
   'menu.file.showInFinder': 'Show in Finder',
   'menu.file.showInFileManager': 'Show in File Manager',
   'menu.file.import': 'Import',
@@ -371,6 +373,17 @@ export const en: Catalog = {
   'sidebar.editConditions': 'Edit conditions for “{name}”',
   'sidebar.exportFolder': 'Export “{name}” to a PDF folder tree',
   'sidebar.deleteGroup': 'Delete “{name}”',
+
+  // --- Text encoding (lossy-save prompt + Reopen-with-encoding) ---
+  'save.lossyTitle': 'Some characters can’t be saved as {encoding}',
+  'save.lossyDetail':
+    'These characters have no representation in {encoding}:  {chars}\n\nConvert the file to UTF-8 to keep them, or save anyway to replace them with “?”.',
+  'save.convertUtf8': 'Convert to UTF-8',
+  'save.saveAnyway': 'Save Anyway',
+  'encoding.rereadTitle': 'Re-read the file with a different encoding?',
+  'encoding.rereadDetail':
+    'This re-reads the file from disk as {encoding} and discards your unsaved changes.',
+  'encoding.reread': 'Re-read',
 
   // --- Common buttons / labels (shared across dialogs) ---
   'common.cancel': 'Cancel',
