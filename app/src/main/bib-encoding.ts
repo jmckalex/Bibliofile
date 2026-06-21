@@ -1,7 +1,7 @@
 /**
  * `.bib` file text-encoding support. BibTeX files predate UTF-8 and are still
  * commonly stored in legacy 8-bit encodings (Windows-1252, ISO-8859-1, Mac Roman)
- * or UTF-16. Bibliophile auto-detects the encoding on open, decodes to a Unicode
+ * or UTF-16. Bibliofile auto-detects the encoding on open, decodes to a Unicode
  * string for the model, and — by default — writes the file back in the SAME
  * encoding (a faithful round-trip; the user can Convert to UTF-8 when they want).
  *
@@ -14,7 +14,7 @@
  */
 import iconv from 'iconv-lite';
 
-/** The encodings Bibliophile can read and write a `.bib` in (ids are iconv-lite names). */
+/** The encodings Bibliofile can read and write a `.bib` in (ids are iconv-lite names). */
 export const SUPPORTED_ENCODINGS = [
   { id: 'utf8', label: 'UTF-8' },
   { id: 'utf16le', label: 'UTF-16 LE' },

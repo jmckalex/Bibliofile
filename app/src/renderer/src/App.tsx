@@ -90,7 +90,7 @@ function Header() {
   return (
     <header className="bd-header">
       <span className="bd-header__title">
-        {displayName ?? 'Bibliophile'}
+        {displayName ?? 'Bibliofile'}
         {displayName && (saving || dirty) && (
           <span className="bd-header__dirty" title={saving ? t('header.saving') : t('header.unsaved')}>
             {saving ? t('header.savingInline') : ' •'}

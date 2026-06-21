@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Bibliophile — cross-platform BibTeX bibliography manager (Electron shell: main + preload + renderer).",
+  "description": "Bibliofile — cross-platform BibTeX bibliography manager (Electron shell: main + preload + renderer).",
   "author": "J. McKenzie Alexander <jmckalex@gmail.com>",
   "main": "out/main/index.js",
   "scripts": {

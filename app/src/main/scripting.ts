@@ -1,5 +1,5 @@
 /**
- * Bibliophile scripting service — the platform-agnostic "brain" behind the macOS
+ * Bibliofile scripting service — the platform-agnostic "brain" behind the macOS
  * AppleScript dictionary. It maps BibDesk's scripting vocabulary onto the
  * {@link DocumentStore} / `BibItem` model and is PURE (no Electron / Cocoa), so
  * it's fully unit-testable. The native Cocoa-Scripting bridge
@@ -98,7 +98,7 @@ function groupKindFilter(el: string): ((k: GroupKind) => boolean) | null {
 export class ScriptingService {
   constructor(
     private readonly store: DocumentStore,
-    private readonly appName = 'Bibliophile',
+    private readonly appName = 'Bibliofile',
     private readonly appVersion = '0.0.0',
     /** Called with the documentId after a successful mutation, so the host can
      *  notify open windows (the AppleScript path bypasses the IPC broadcast). */

@@ -2,7 +2,7 @@
 #
 # Phase 1 de-risk spike: prove the NATIVE AppleScript -> JS bridge.
 #
-# Assembles a throwaway Bibliophile.app from the dev Electron.app whose main
+# Assembles a throwaway Bibliofile.app from the dev Electron.app whose main
 # process is app/native/scripting/test/main.js (registers a JS handler), bundles
 # the native addon, declares a custom `bibliophile query` command in a test sdef,
 # ad-hoc signs, launches, and sends `bibliophile query "hello"` via osascript.
@@ -35,7 +35,7 @@ ADDON="$ADDON_DIR/build/Release/bibliophile_scripting.node"
 # --- assemble the test bundle ------------------------------------------------
 BUNDLE_ID="org.bibdesk.bibliophile.bridge"
 WORK="/tmp/bibliophile-bridge"
-APP="$WORK/Bibliophile.app"
+APP="$WORK/Bibliofile.app"
 PLIST="$APP/Contents/Info.plist"
 PB=/usr/libexec/PlistBuddy
 
@@ -50,7 +50,7 @@ mkdir -p "$APP/Contents/Resources/app"
 cp "$ADDON_DIR/test/main.js" "$ADDON_DIR/test/package.json" "$APP/Contents/Resources/app/"
 cp "$ADDON" "$APP/Contents/Resources/app/bibliophile_scripting.node"
 cp "$ADDON_DIR/test/Bridge.sdef" "$APP/Contents/Resources/Bridge.sdef"
-$PB -c "Set :CFBundleName Bibliophile" "$PLIST"
+$PB -c "Set :CFBundleName Bibliofile" "$PLIST"
 $PB -c "Set :CFBundleIdentifier $BUNDLE_ID" "$PLIST"
 $PB -c "Add :NSAppleScriptEnabled bool true" "$PLIST" 2>/dev/null || $PB -c "Set :NSAppleScriptEnabled true" "$PLIST"
 $PB -c "Add :OSAScriptingDefinition string Bridge.sdef" "$PLIST" 2>/dev/null || $PB -c "Set :OSAScriptingDefinition Bridge.sdef" "$PLIST"

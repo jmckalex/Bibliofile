@@ -1,5 +1,5 @@
 /**
- * Bibliophile scripting service — exercises the AppleScript object model against
+ * Bibliofile scripting service — exercises the AppleScript object model against
  * a real DocumentStore (application -> documents -> publications -> fields /
  * authors), property reads/writes (undoable), and the JSON `dispatch` transport.
  */
@@ -15,7 +15,7 @@ function setup() {
       '@book{jones2019, Editor = {Ann Jones}, Title = {A Book}, Year = {2019}}',
     '/tmp/scripting.bib',
   );
-  const svc = new ScriptingService(store, 'Bibliophile', '1.2.3');
+  const svc = new ScriptingService(store, 'Bibliofile', '1.2.3');
   const app: ElementRef = { kind: 'application' };
   const doc: ElementRef = { kind: 'document', documentId };
   const pub = (citeKey: string): ElementRef =>
@@ -27,7 +27,7 @@ describe('ScriptingService — read model', () => {
   it('application has the open documents', () => {
     const { svc, app } = setup();
     expect(svc.count(app, 'documents')).toBe(1);
-    expect(svc.getProperty(app, 'name')).toBe('Bibliophile');
+    expect(svc.getProperty(app, 'name')).toBe('Bibliofile');
     expect(svc.getProperty(app, 'version')).toBe('1.2.3');
     expect(svc.elements(app, 'documents')[0]).toMatchObject({ kind: 'document' });
   });
@@ -196,7 +196,7 @@ describe('ScriptingService — commands', () => {
 
   it('export to a file writes it and returns the path', () => {
     const { svc, doc } = setup();
-    const out = '/tmp/bibliophile-export-test.bib';
+    const out = '/tmp/bibliofile-export-test.bib';
     if (existsSync(out)) rmSync(out);
     const path = svc.command('export', doc, { as: 'bibtex', to: out }) as string;
     expect(path).toBe(out);

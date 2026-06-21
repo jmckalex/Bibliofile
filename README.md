@@ -1,13 +1,13 @@
-# Bibliophile
+# Bibliofile
 
 > A cross-platform desktop **bibliography manager** for your BibTeX (`.bib`)
 > research libraries — a modern, themeable [Electron](https://www.electronjs.org/)
 > rewrite of the classic macOS [BibDesk](https://bibdesk.sourceforge.io/).
 > Your plain-text `.bib` file stays the **single source of truth**.
 
-![Bibliophile — the three-pane window with a themed, math-rendered preview](docs/viewer-stage6-light.png)
+![Bibliofile — the three-pane window with a themed, math-rendered preview](docs/viewer-stage6-light.png)
 
-Bibliophile gives you a friendly three-pane window — a groups sidebar, a fast
+Bibliofile gives you a friendly three-pane window — a groups sidebar, a fast
 virtualized publications table, and a configurable detail pane — for browsing,
 searching, grouping, editing, and citing references. It renders a beautiful typeset
 preview with **real math** and **formatted citations**, manages file attachments and

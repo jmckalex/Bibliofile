@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Phase 2 de-risk: prove the native Cocoa-Scripting PROXY MODEL against the real
-# Bibliophile.sdef, using canned data (app/native/scripting/test/model-main.js).
+# Bibliofile.sdef, using canned data (app/native/scripting/test/model-main.js).
 # Drives genuine AppleScript object specifiers -- count / by-index / every /
 # property reads / a write -- through native proxy objects that call `dispatch`.
 # macOS only.
@@ -26,7 +26,7 @@ ADDON="$ADDON_DIR/build/Release/bibliophile_scripting.node"
 
 BUNDLE_ID="org.bibdesk.bibliophile.model"
 WORK="/tmp/bibliophile-model"
-APP="$WORK/Bibliophile.app"
+APP="$WORK/Bibliofile.app"
 PLIST="$APP/Contents/Info.plist"
 PB=/usr/libexec/PlistBuddy
 cleanup() { osascript -e "tell application id \"$BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
@@ -39,11 +39,11 @@ mkdir -p "$APP/Contents/Resources/app"
 cp "$ADDON_DIR/test/model-main.js" "$APP/Contents/Resources/app/main.js"
 printf '{"name":"bibliophile-model","main":"main.js","private":true}\n' > "$APP/Contents/Resources/app/package.json"
 cp "$ADDON" "$APP/Contents/Resources/app/bibliophile_scripting.node"
-cp app/scripting/Bibliophile.sdef "$APP/Contents/Resources/Bibliophile.sdef"
-$PB -c "Set :CFBundleName Bibliophile" "$PLIST"
+cp app/scripting/Bibliofile.sdef "$APP/Contents/Resources/Bibliofile.sdef"
+$PB -c "Set :CFBundleName Bibliofile" "$PLIST"
 $PB -c "Set :CFBundleIdentifier $BUNDLE_ID" "$PLIST"
 $PB -c "Add :NSAppleScriptEnabled bool true" "$PLIST" 2>/dev/null || $PB -c "Set :NSAppleScriptEnabled true" "$PLIST"
-$PB -c "Add :OSAScriptingDefinition string Bibliophile.sdef" "$PLIST" 2>/dev/null || $PB -c "Set :OSAScriptingDefinition Bibliophile.sdef" "$PLIST"
+$PB -c "Add :OSAScriptingDefinition string Bibliofile.sdef" "$PLIST" 2>/dev/null || $PB -c "Set :OSAScriptingDefinition Bibliofile.sdef" "$PLIST"
 codesign --force --deep --sign - "$APP" >/dev/null 2>&1
 
 open -g "$APP"

@@ -14,7 +14,7 @@ export const en: Catalog = {
   'menu.tools': 'Tools',
   'menu.window': 'Window',
   'menu.help': 'Help',
-  'menu.about': 'About Bibliophile',
+  'menu.about': 'About Bibliofile',
   'menu.preferences': 'Preferences…',
 
   // --- File menu ---
@@ -85,7 +85,7 @@ export const en: Catalog = {
   'menu.view.bottomPanel': 'Bottom Panel',
   'menu.view.columns': 'Columns',
   'menu.view.toggleTheme': 'Toggle Light / Dark Theme',
-  'menu.help.bibdesk': 'Bibliophile Help',
+  'menu.help.bibdesk': 'Bibliofile Help',
 
   // --- Table columns (translatable builtin names) ---
   'column.citeKey': 'Cite Key',
@@ -397,8 +397,8 @@ export const en: Catalog = {
   'color.none': 'No color',
 
   // --- Editor window ---
-  'editor.docTitle': 'Edit · {key} — Bibliophile',
-  'editor.docTitleEmpty': 'Edit Publication — Bibliophile',
+  'editor.docTitle': 'Edit · {key} — Bibliofile',
+  'editor.docTitleEmpty': 'Edit Publication — Bibliofile',
   'editor.editing': 'Editing',
 
   // --- Broken links ---
@@ -479,7 +479,7 @@ export const en: Catalog = {
   'fr.replaceAll': 'Replace All',
 
   // --- Native dialogs (main process) ---
-  'window.help': 'Bibliophile Help',
+  'window.help': 'Bibliofile Help',
   'window.texPreview': 'LaTeX Preview',
   'texPreview.failed': 'LaTeX preview failed',
   'dialog.helpUnavailable': 'Help is not available in this build.',

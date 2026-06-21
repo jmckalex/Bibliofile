@@ -88,5 +88,5 @@ export function buildHelpHtml(helpDir: string): string {
     .map((c) => `<a href="#${c.id}">${esc(c.title)}</a>`)
     .join('\n');
   const body = chapters.map((c) => `<section id="${c.id}">${c.html}</section>`).join('\n<hr>\n');
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Bibliophile Help</title><style>${HELP_CSS}</style></head><body><nav><h2>Bibliophile Help</h2>${toc}</nav><main>${body}</main></body></html>`;
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Bibliofile Help</title><style>${HELP_CSS}</style></head><body><nav><h2>Bibliofile Help</h2>${toc}</nav><main>${body}</main></body></html>`;
 }

@@ -1,6 +1,6 @@
 # Getting Started
 
-Welcome to **Bibliophile**, a cross-platform bibliography manager for your
+Welcome to **Bibliofile**, a cross-platform bibliography manager for your
 research libraries. It is a fresh, desktop rewrite of the classic
 [BibDesk](https://bibdesk.sourceforge.io/), so if you have used BibDesk before
 you will feel immediately at home — and if you have not, this chapter will get
@@ -19,7 +19,7 @@ It closes with a *Map of this manual* that points you to every other Help page.
 
 ## 1.1 What this application is
 
-Bibliophile is a **BibTeX library manager**. You point it at a `.bib` file
+Bibliofile is a **BibTeX library manager**. You point it at a `.bib` file
 and it gives you a friendly, three-pane window for browsing, searching,
 grouping, editing, annotating, and citing your references. It is built with
 Electron, so the same application runs on macOS, Windows, and Linux from a
@@ -72,9 +72,9 @@ no surprises.
 
 ### 1.1.3 Interoperability with BibDesk and the TeX ecosystem
 
-Because the format is faithful, Bibliophile is designed to live *alongside*
+Because the format is faithful, Bibliofile is designed to live *alongside*
 your existing tools rather than to replace them. You can edit the same library
-in BibDesk on a Mac and in Bibliophile on another machine, cite it from a
+in BibDesk on a Mac and in Bibliofile on another machine, cite it from a
 LaTeX document with `\cite{...}`, run it through `bibtex` or `biber`, and pass
 it between collaborators — all without conversion steps.
 
@@ -91,7 +91,7 @@ and [Notes & abstracts](05-notes-and-abstracts.md).
 
 ## 1.2 Supported platforms
 
-Bibliophile is a cross-platform Electron application. The core library code
+Bibliofile is a cross-platform Electron application. The core library code
 is platform-agnostic (it does not depend on any operating-system feature), and
 the desktop shell runs on:
 

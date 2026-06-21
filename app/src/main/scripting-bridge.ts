@@ -2,7 +2,7 @@
  * Wires the macOS AppleScript dictionary to the live library: loads the native
  * Cocoa-Scripting addon (`app/native/scripting`) and points its `dispatch` at a
  * {@link ScriptingService} over the running {@link DocumentStore}. So
- * `tell application "Bibliophile" to get cite key of publication 1 of document 1`
+ * `tell application "Bibliofile" to get cite key of publication 1 of document 1`
  * resolves against the user's actual open `.bib`.
  *
  * No-op on non-macOS or when the addon isn't built — keeps the app working

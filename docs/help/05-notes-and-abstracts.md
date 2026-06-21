@@ -1,7 +1,7 @@
 # Notes & Abstracts
 
 Every reference in your library can carry two kinds of free-form prose: an
-**Abstract** and a set of **Notes**. In Bibliophile both are written in
+**Abstract** and a set of **Notes**. In Bibliofile both are written in
 **Markdown** — a handful of plain-text conventions that the app renders into
 clean, typeset prose in the detail pane. Both can contain **mathematics**, which
 is typeset with MathJax; Notes can additionally hold **cross-references** to
@@ -25,7 +25,7 @@ features with worked examples, and finishes with edge cases and troubleshooting.
 
 ## Two fields, two purposes
 
-Bibliophile deliberately keeps the two prose fields distinct, because they
+Bibliofile deliberately keeps the two prose fields distinct, because they
 play different roles in a reference library.
 
 ### The Abstract field
@@ -149,7 +149,7 @@ allowed."*
 
 ## Markdown reference
 
-Bibliophile renders Markdown with a standard CommonMark-style parser and
+Bibliofile renders Markdown with a standard CommonMark-style parser and
 then runs the result through a **sanitizer** that keeps only a known-safe set of
 HTML tags. This section documents everything the renderer supports; the
 [sanitizer](#the-sanitizer-what-survives-rendering) section below explains what

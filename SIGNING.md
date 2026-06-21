@@ -1,6 +1,6 @@
 # Code signing + notarization (macOS)
 
-How to produce a **signed + notarized** Bibliophile build that opens on other
+How to produce a **signed + notarized** Bibliofile build that opens on other
 people's Macs without the "unidentified developer" / "damaged" Gatekeeper block.
 
 ## One-time setup (already done on this machine)
@@ -19,7 +19,7 @@ people's Macs without the "unidentified developer" / "damaged" Gatekeeper block.
 2. **App-specific password** for notarization (the notary service won't take your
    normal Apple ID password):
    - Sign in at <https://appleid.apple.com> → **Sign-In and Security** →
-     **App-Specific Passwords** → **+** → name it e.g. `bibliophile-notarize`.
+     **App-Specific Passwords** → **+** → name it e.g. `bibliofile-notarize`.
    - Copy the `xxxx-xxxx-xxxx-xxxx` value — you can't see it again.
 
 ## Building a signed + notarized release
@@ -37,11 +37,11 @@ What happens, in order:
 
 1. `pnpm dist:mac` rebuilds `better-sqlite3` for the Electron ABI, runs the
    electron-vite build, then invokes electron-builder.
-2. electron-builder **code-signs** `Bibliophile.app` with the Developer ID cert
+2. electron-builder **code-signs** `Bibliofile.app` with the Developer ID cert
    (hardened runtime + `build/entitlements.mac.plist`).
 3. The **afterSign hook** (`scripts/notarize.cjs`) uploads the signed app to
    Apple's notary service, waits for the ticket, then `xcrun stapler staple`s it.
-4. Output lands in `release/` (`Bibliophile-<version>-arm64.dmg` / `.zip`).
+4. Output lands in `release/` (`Bibliofile-<version>-arm64.dmg` / `.zip`).
 
 The hook **self-skips** if any of `APPLE_ID` / `APPLE_APP_PASSWORD` /
 `APPLE_TEAM_ID` is unset — so a plain `pnpm dist:mac` without the env vars
@@ -53,11 +53,11 @@ no keychain prompt.
 
 ```sh
 # Signed with the Developer ID cert?
-codesign --verify --deep --strict --verbose=2 "release/mac-arm64/Bibliophile.app"
+codesign --verify --deep --strict --verbose=2 "release/mac-arm64/Bibliofile.app"
 
 # Notarization ticket stapled + Gatekeeper accepts it?
-spctl --assess --type execute --verbose "release/mac-arm64/Bibliophile.app"
-xcrun stapler validate "release/mac-arm64/Bibliophile.app"
+spctl --assess --type execute --verbose "release/mac-arm64/Bibliofile.app"
+xcrun stapler validate "release/mac-arm64/Bibliofile.app"
 ```
 
 ## Credentials — keep them out of git
@@ -76,5 +76,5 @@ as the bundle's team.
 | `electron-builder.yml` → no `mac.identity` | auto-discover the Developer ID cert |
 | `electron-builder.yml` → `mac.notarize: false` | electron-builder's own notarize off; our hook owns it |
 | `electron-builder.yml` → `afterSign: scripts/notarize.cjs` | runs notarize + staple after signing |
-| `scripts/notarize.cjs` | `@electron/notarize` call, `appBundleId: com.jmckalex.bibliophile`, stapler |
+| `scripts/notarize.cjs` | `@electron/notarize` call, `appBundleId: com.jmckalex.bibliofile`, stapler |
 | `build/entitlements.mac.plist` | hardened-runtime entitlements (incl. unsigned-mem / dylib-env for the asar-unpacked native module) |

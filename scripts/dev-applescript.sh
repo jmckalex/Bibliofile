@@ -2,14 +2,14 @@
 #
 # Make the LIVE app scriptable for development. AppleScript needs a real .app
 # bundle with the sdef + Info.plist keys, but `electron-vite dev`/`preview` run
-# the dev Electron.app. This patches THAT bundle (renames it "Bibliophile",
+# the dev Electron.app. This patches THAT bundle (renames it "Bibliofile",
 # enables AppleScript, installs the sdef) and ad-hoc re-signs, then builds the
 # native addon. After running this, the live app exposes the dictionary:
 #
 #   bash scripts/dev-applescript.sh
 #   pnpm build:app && pnpm --filter @bibdesk/app start   # or: pnpm dev
 #   # open a .bib, then in Script Editor / osascript:
-#   tell application "Bibliophile" to get cite key of every publication of document 1
+#   tell application "Bibliofile" to get cite key of every publication of document 1
 #
 # Side effect: the shared dev Electron.app is renamed/re-signed (reset by
 # `pnpm install`). macOS only.
@@ -32,17 +32,17 @@ echo "Building native addon for Electron ${ELECTRON_VER} ..."
 # Patch the dev Electron.app bundle.
 PLIST="$ELECTRON_APP/Contents/Info.plist"
 PB=/usr/libexec/PlistBuddy
-echo "Patching $(basename "$(dirname "$(dirname "$ELECTRON_APP")")")/Electron.app -> Bibliophile (scriptable) ..."
-$PB -c "Set :CFBundleName Bibliophile" "$PLIST"
-$PB -c "Add :CFBundleDisplayName string Bibliophile" "$PLIST" 2>/dev/null || $PB -c "Set :CFBundleDisplayName Bibliophile" "$PLIST"
+echo "Patching $(basename "$(dirname "$(dirname "$ELECTRON_APP")")")/Electron.app -> Bibliofile (scriptable) ..."
+$PB -c "Set :CFBundleName Bibliofile" "$PLIST"
+$PB -c "Add :CFBundleDisplayName string Bibliofile" "$PLIST" 2>/dev/null || $PB -c "Set :CFBundleDisplayName Bibliofile" "$PLIST"
 $PB -c "Set :CFBundleIdentifier org.bibdesk.bibliophile" "$PLIST" 2>/dev/null || $PB -c "Add :CFBundleIdentifier string org.bibdesk.bibliophile" "$PLIST"
 $PB -c "Add :NSAppleScriptEnabled bool true" "$PLIST" 2>/dev/null || $PB -c "Set :NSAppleScriptEnabled true" "$PLIST"
-$PB -c "Add :OSAScriptingDefinition string Bibliophile.sdef" "$PLIST" 2>/dev/null || $PB -c "Set :OSAScriptingDefinition Bibliophile.sdef" "$PLIST"
-cp app/scripting/Bibliophile.sdef "$ELECTRON_APP/Contents/Resources/Bibliophile.sdef"
+$PB -c "Add :OSAScriptingDefinition string Bibliofile.sdef" "$PLIST" 2>/dev/null || $PB -c "Set :OSAScriptingDefinition Bibliofile.sdef" "$PLIST"
+cp app/scripting/Bibliofile.sdef "$ELECTRON_APP/Contents/Resources/Bibliofile.sdef"
 codesign --force --deep --sign - "$ELECTRON_APP" >/dev/null 2>&1
 
-echo "Done. The live app is now scriptable as \"Bibliophile\"."
+echo "Done. The live app is now scriptable as \"Bibliofile\"."
 echo "Run it (built):  pnpm build:app && pnpm --filter @bibdesk/app start"
 echo "or (dev server): pnpm dev"
 echo "Then open a .bib and script it, e.g.:"
-echo "  osascript -e 'tell application \"Bibliophile\" to get cite key of every publication of document 1'"
+echo "  osascript -e 'tell application \"Bibliofile\" to get cite key of every publication of document 1'"

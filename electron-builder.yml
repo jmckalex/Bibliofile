@@ -1,4 +1,4 @@
-# Packaging config for Bibliophile (electron-builder).
+# Packaging config for Bibliofile (electron-builder).
 #
 # Two-package.json layout: the dev deps + this config live at the repo root; the
 # Electron app (its `main`, version, and runtime deps) is `app/`. electron-vite
@@ -14,8 +14,8 @@
 # + stapled by the afterSign hook below. Set CSC_IDENTITY_AUTO_DISCOVERY=false to
 # force an unsigned build (the `pack:dir` dev script does this); the afterSign hook
 # self-skips when the APPLE_* env vars are absent.
-appId: com.jmckalex.bibliophile
-productName: Bibliophile
+appId: com.jmckalex.bibliofile
+productName: Bibliofile
 copyright: © 2026 J. McKenzie Alexander
 # Pinned because electron-builder can't auto-detect Electron through pnpm's
 # symlinked layout with `directories.app`. Keep in sync with app's electron devDep.

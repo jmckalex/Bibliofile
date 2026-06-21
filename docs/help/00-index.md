@@ -1,6 +1,6 @@
-# Bibliophile Help
+# Bibliofile Help
 
-Welcome to the **Bibliophile** manual. Bibliophile is a
+Welcome to the **Bibliofile** manual. Bibliofile is a
 cross-platform, desktop bibliography manager for your `.bib` (BibTeX) research
 libraries — a fresh Electron rewrite of the classic
 [BibDesk](https://bibdesk.sourceforge.io/). It gives you a friendly three-pane

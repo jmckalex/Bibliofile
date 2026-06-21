@@ -3,7 +3,7 @@
 Sooner or later you need a reference you don't yet have: a paper a colleague
 mentioned, the canonical version of a preprint, or the full bibliographic
 record behind a bare DOI. **Online search** lets you query established
-bibliographic databases from inside Bibliophile and pull results straight
+bibliographic databases from inside Bibliofile and pull results straight
 into your open library as new entries — no web browser, no copy-and-paste, and
 no hand-typing of author lists. It is the fourth of the ways to bring references
 in; the other three (pasting BibTeX, drag-and-drop, and importing from a file)

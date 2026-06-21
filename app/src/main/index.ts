@@ -83,9 +83,9 @@ import { t, setMainLocale } from './i18n.js';
 import { encodingLabel, SUPPORTED_ENCODINGS } from './bib-encoding.js';
 
 // A stable product name so userData (settings, agent key, automation
-// `bridge.json`) lives at a predictable `…/Application Support/Bibliophile/` path
+// `bridge.json`) lives at a predictable `…/Application Support/Bibliofile/` path
 // the native helpers can find — instead of the `@bibdesk/app` package name.
-app.setName('Bibliophile');
+app.setName('Bibliofile');
 
 // ---------------------------------------------------------------------------
 // Process-wide singletons
@@ -314,7 +314,7 @@ function createWindow(): BrowserWindow {
     minWidth: 640,
     minHeight: 400,
     show: false,
-    title: 'Bibliophile',
+    title: 'Bibliofile',
     webPreferences: {
       // electron-vite emits the preload as ESM `index.mjs` (this package is
       // type:module). Electron 33 loads an ESM preload when sandbox is off.
@@ -567,7 +567,7 @@ function scheduleIndex(documentId: string): void {
 /** Set a window's title + represented file (macOS proxy icon) for a document. */
 function setWindowTitle(win: BrowserWindow, displayName: string, path: string): void {
   if (win.isDestroyed()) return;
-  win.setTitle(`${displayName} — Bibliophile`);
+  win.setTitle(`${displayName} — Bibliofile`);
   win.setRepresentedFilename?.(path);
 }
 

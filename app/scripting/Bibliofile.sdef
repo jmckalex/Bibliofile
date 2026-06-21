@@ -2,7 +2,7 @@
 <!DOCTYPE dictionary SYSTEM "file://localhost/System/Library/DTDs/sdef.dtd">
 
 <!--
-  Bibliophile scripting dictionary.
+  Bibliofile scripting dictionary.
 
   Object model: application -> documents -> publications -> { fields, authors,
   editors }; documents also own groups (library / static / smart / field /
@@ -13,7 +13,7 @@
   subset — the rich-text suite, search/web/shared groups, script hooks, bookmarks,
   templates-as-objects and search servers are intentionally not modelled).
 -->
-<dictionary title="Bibliophile Terminology">
+<dictionary title="Bibliofile Terminology">
 
 	<suite name="Standard Suite" code="????" description="Common classes and commands for all applications.">
 
@@ -73,7 +73,7 @@
 
 	</suite>
 
-	<suite name="Bibliophile Suite" code="Bibl" description="Classes and commands for Bibliophile.">
+	<suite name="Bibliofile Suite" code="Bibl" description="Classes and commands for Bibliofile.">
 
 		<command name="search" code="Biblsrch" description="Search a document for publications matching a string (any field).">
 			<direct-parameter type="document" description="the document to search"/>

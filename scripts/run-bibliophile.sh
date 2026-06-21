@@ -10,7 +10,7 @@
 # Then:
 #   bash scripts/run-bibliophile.sh [path/to/library.bib]
 #   # quit normally with Cmd-Q when done. Then from Script Editor / osascript:
-#   tell application "Bibliophile" to get cite key of every publication of document 1
+#   tell application "Bibliofile" to get cite key of every publication of document 1
 #
 # macOS only.
 set -euo pipefail
@@ -38,7 +38,7 @@ if [ -n "$BIB" ]; then
 else
   open -n "$EAPP" --args "$APPDIR"
 fi
-echo "Launched Bibliophile via LaunchServices. Quit with Cmd-Q when done."
+echo "Launched Bibliofile via LaunchServices. Quit with Cmd-Q when done."
 echo "Test it, e.g.:"
-echo "  osascript -e 'tell application \"Bibliophile\" to count documents'"
-echo "  osascript -e 'tell application \"Bibliophile\" to get cite key of every publication of document 1'"
+echo "  osascript -e 'tell application \"Bibliofile\" to count documents'"
+echo "  osascript -e 'tell application \"Bibliofile\" to get cite key of every publication of document 1'"

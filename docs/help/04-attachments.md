@@ -2,7 +2,7 @@
 
 A bibliographic entry is rarely just metadata. The paper itself — a PDF — usually
 lives somewhere on your disk, and you want it one click away from the citation.
-Bibliophile lets each entry carry **any number of attachments**: the PDF of
+Bibliofile lets each entry carry **any number of attachments**: the PDF of
 the article, supplementary data, slides, a scanned figure, or a link to the
 online version. Attachments live in the **Attachments** section near the bottom
 of the detail pane, and they are stored inside your `.bib` file in a format that
@@ -220,7 +220,7 @@ for awareness but are fixed by editing that field on the entry.
 
 ## Compatibility with macOS BibDesk
 
-Bibliophile is designed to share libraries seamlessly with the original
+Bibliofile is designed to share libraries seamlessly with the original
 macOS BibDesk. There are two things to know about attachment compatibility.
 
 ### macOS bookmarks are preserved
@@ -230,7 +230,7 @@ contains an Apple **file bookmark** (alias) — macOS's mechanism for tracking a
 file even after it is renamed or moved within a volume.
 
 This app **preserves those bookmarks untouched** when it saves. It re-emits the
-existing blob byte-for-byte, so a library you round-trip through Bibliophile
+existing blob byte-for-byte, so a library you round-trip through Bibliofile
 stays fully valid for macOS BibDesk: the bookmarks BibDesk relies on are still
 there, intact.
 
@@ -238,7 +238,7 @@ there, intact.
 
 The flip side of the previous point: while this app *preserves* macOS bookmarks,
 it does **not yet use** them to *find* a moved file. macOS BibDesk can follow a
-bookmark to locate a PDF you renamed or moved elsewhere; Bibliophile, being
+bookmark to locate a PDF you renamed or moved elsewhere; Bibliofile, being
 cross-platform, currently resolves attachments **by their relative path only**
 (as described in [How attachments resolve](#how-attachments-resolve)).
 

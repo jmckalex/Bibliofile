@@ -1,4 +1,4 @@
-// Bibliophile AppleScript bridge (native, macOS).
+// Bibliofile AppleScript bridge (native, macOS).
 //
 // The "transport" half of the scripting feature — generic Cocoa-Scripting glue;
 // ALL domain logic lives in TS (`ScriptingService`, app/src/main/scripting.ts).
@@ -23,7 +23,7 @@
 //      its TS handler stays for a future fix.
 //
 // Valid because Electron main-process JS and Apple Events share the main thread.
-// Cocoa `key`/`class` names match app/scripting/Bibliophile.sdef.
+// Cocoa `key`/`class` names match app/scripting/Bibliofile.sdef.
 
 #include <node_api.h>
 #import <Foundation/Foundation.h>
@@ -219,13 +219,13 @@ static NSString *BPHumanPropName(NSString *kvc) {
 static id BPCommandResult(NSScriptCommand *cmd, NSDictionary *resp) {
   if (resp == nil) {
     [cmd setScriptErrorNumber:-1700];
-    [cmd setScriptErrorString:@"Bibliophile is not responding."];
+    [cmd setScriptErrorString:@"Bibliofile is not responding."];
     return nil;
   }
   if (![resp[@"ok"] boolValue]) {
     [cmd setScriptErrorNumber:-10000];
     id e = resp[@"error"];
-    [cmd setScriptErrorString:[e isKindOfClass:[NSString class]] ? e : @"Bibliophile scripting error."];
+    [cmd setScriptErrorString:[e isKindOfClass:[NSString class]] ? e : @"Bibliofile scripting error."];
     return nil;
   }
   return BPWrapValue(resp[@"value"]);

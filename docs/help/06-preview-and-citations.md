@@ -1,6 +1,6 @@
 # Preview & Citations
 
-One of the headline goals of Bibliophile — and a deliberate step up from
+One of the headline goals of Bibliofile — and a deliberate step up from
 classic BibDesk — is a **rich, themed presentation** of your references. When you
 select an entry, the right-hand detail pane opens with two reading-oriented
 views stacked above the editor:
@@ -260,7 +260,7 @@ local settings), so the app reopens in the theme you last used. See
 
 ## Why rich views?
 
-Classic BibDesk presents references fairly plainly. Bibliophile leans the
+Classic BibDesk presents references fairly plainly. Bibliofile leans the
 other way on purpose: it treats browsing your library as something you should
 *enjoy*. Rendered maths in titles and abstracts, formatted Markdown, clickable
 links and attachments, colour-coded entry types, keyword tags, and proper CSL

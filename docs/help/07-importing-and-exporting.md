@@ -1,7 +1,7 @@
 # Importing & Exporting
 
 A bibliography manager is only as useful as the references you can get *into* it
-and the formats you can get back *out*. Bibliophile has grown a full set of
+and the formats you can get back *out*. Bibliofile has grown a full set of
 get-references-in and get-references-out paths that sit alongside the in-app
 [Online search](08-online-search.md): you can **paste** BibTeX straight from the
 clipboard, **drag and drop** files onto the window, **import from a file** in
@@ -40,7 +40,7 @@ gets a `-1`, `-2`, … suffix), and the import is **in memory until you Save**.
 The fastest way to capture a single reference is to paste it. Most databases and
 search engines — Google Scholar, publisher pages, the ACM and IEEE libraries,
 arXiv — offer a "BibTeX" or "Export citation" button that puts an `@article{…}`
-record on your clipboard. Bibliophile turns that clipboard text into a real
+record on your clipboard. Bibliofile turns that clipboard text into a real
 entry.
 
 There are two ways to do it, and both end up in the same place.
@@ -97,7 +97,7 @@ than its BibTeX source).
 
 ## 7.3 Drag and drop
 
-You can drop files straight onto the Bibliophile window. As soon as you drag
+You can drop files straight onto the Bibliofile window. As soon as you drag
 files over the window, a full-window overlay appears reading **"Drop .bib or
 files to import"**, confirming the drop will land. Release the files and the app
 imports them according to their type.
@@ -226,7 +226,7 @@ cleanly with its mappable fields and quietly drops the rest.
 
 ### 7.5.3 EndNote import
 
-Bibliophile reads the two EndNote formats you actually run into:
+Bibliofile reads the two EndNote formats you actually run into:
 
 - **Refer / tagged** (`.enw`) — the line-oriented `%X value` format. This is
   what **Google Scholar's "EndNote" download** produces, and what many journal
@@ -264,7 +264,7 @@ entries (nothing is overwritten); unrecognised tags are ignored.
 
 ## 7.6 Exporting your library
 
-To get references *out* of Bibliophile in a different format, use the
+To get references *out* of Bibliofile in a different format, use the
 **Export** menu. Each format writes the **whole library** to a file you choose.
 
 Choose **File → Export →** and then one of:
