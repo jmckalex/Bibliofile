@@ -5,16 +5,19 @@
  * add / remove a keyword. (Deleting a selection is done with the Delete key or
  * the row context menu, not here.)
  *
- * It floats a small offset above the window's bottom edge, horizontally centred
- * over the bottom panel (the middle content column) when that column is the
- * relevant target — i.e. when the bottom panel is open — and over the whole
- * window otherwise.
+ * When the bottom panel is open, the bar floats just *above* the panel's top
+ * edge, horizontally centred over it (the middle content column). When the panel
+ * is closed, it sits a small offset above the window's bottom edge, centred over
+ * the window (the CSS defaults).
  */
 
 import { useLayoutEffect, useState } from 'react';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
 import { Icon } from './icons.js';
+
+/** Gap between the bar's bottom edge and the bottom panel's top edge (clears the splitter). */
+const PANEL_GAP_PX = 12;
 
 export function BatchBar() {
   const t = useT();
@@ -24,31 +27,31 @@ export function BatchBar() {
   const [field, setField] = useState('');
   const [value, setValue] = useState('');
   const [keyword, setKeyword] = useState('');
-  const [centerX, setCenterX] = useState<number | null>(null);
+  const [pos, setPos] = useState<{ left: number; bottom: number } | null>(null);
 
   const n = selectedIds.length;
   const visible = n >= 2;
 
-  // When the bottom panel is open, centre the bar over the middle content column
-  // (which is exactly where the bottom panel sits) rather than the whole window.
-  // A ResizeObserver keeps it in sync as the side pane / sidebar / window resize.
+  // When the bottom panel is open, lift the bar above it: horizontally centred
+  // over the middle content column, vertically just above the panel's top edge.
+  // A ResizeObserver keeps it in sync as the side pane / sidebar / panel / window
+  // resize. When closed, `pos` is null and the CSS defaults apply.
   useLayoutEffect(() => {
-    if (!visible || !bottomPanelVisible) {
-      setCenterX(null);
-      return;
-    }
-    const el = document.querySelector<HTMLElement>('.bd-center');
-    if (!el) {
-      setCenterX(null);
+    const center = document.querySelector<HTMLElement>('.bd-center');
+    const panel = document.querySelector<HTMLElement>('.bd-bottom');
+    if (!visible || !bottomPanelVisible || !center || !panel) {
+      setPos(null);
       return;
     }
     const measure = (): void => {
-      const r = el.getBoundingClientRect();
-      setCenterX(r.left + r.width / 2);
+      const c = center.getBoundingClientRect();
+      const p = panel.getBoundingClientRect();
+      setPos({ left: c.left + c.width / 2, bottom: window.innerHeight - p.top + PANEL_GAP_PX });
     };
     measure();
     const ro = new ResizeObserver(measure);
-    ro.observe(el);
+    ro.observe(center);
+    ro.observe(panel);
     window.addEventListener('resize', measure);
     return () => {
       ro.disconnect();
@@ -75,9 +78,10 @@ export function BatchBar() {
       className="bd-batch"
       role="toolbar"
       aria-label={t('batch.actions')}
-      // Inline `left` overrides the CSS `left: 50%` (window centre) when we've
-      // measured the content column; the `translateX(-50%)` recentres on it.
-      style={centerX != null ? { left: centerX } : undefined}
+      // Inline left/bottom override the CSS defaults (window centre, 16px above
+      // the window's bottom) to lift the bar above the open bottom panel; the
+      // CSS `translateX(-50%)` still recentres it on `left`.
+      style={pos ? { left: pos.left, bottom: pos.bottom } : undefined}
     >
       <span className="bd-batch__count">{t('common.itemsSelected', { count: n })}</span>
 
