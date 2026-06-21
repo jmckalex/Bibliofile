@@ -7,16 +7,21 @@
 //
 // Must be CommonJS (.cjs) because the root package.json is `type: module`.
 //
-// Skipped automatically unless the three Apple credentials are present in the
+// Skipped automatically unless all three Apple credentials are present in the
 // environment, so unsigned/dev builds (`pnpm pack:dir`) never hit Apple:
 //
-//   APPLE_ID            Apple ID email of the Developer account
-//   APPLE_APP_PASSWORD  app-specific password (appleid.apple.com → Sign-In and
-//                       Security → App-Specific Passwords), NOT the login pw
-//   APPLE_TEAM_ID       10-char Team ID (QC883N4FQC)
+//   APPLE_ID                      Apple ID email of the Developer account
+//   APPLE_APP_SPECIFIC_PASSWORD   app-specific password (appleid.apple.com →
+//   (or APPLE_APP_PASSWORD)       Sign-In and Security → App-Specific
+//                                 Passwords), NOT the login password
+//   APPLE_TEAM_ID                 10-char Team ID (QC883N4FQC)
+//
+// The password is read from APPLE_APP_SPECIFIC_PASSWORD first (the name used in
+// this machine's shell profile, shared with Folio), falling back to
+// APPLE_APP_PASSWORD.
 //
 // Run a full signed+notarized build with:
-//   APPLE_ID=you@example.com APPLE_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx \
+//   APPLE_ID=you@example.com APPLE_APP_SPECIFIC_PASSWORD=xxxx-xxxx-xxxx-xxxx \
 //     APPLE_TEAM_ID=QC883N4FQC pnpm dist:mac
 
 const { notarize } = require('@electron/notarize');
@@ -26,9 +31,14 @@ exports.default = async function notarizing(context) {
   const { electronPlatformName, appOutDir } = context;
   if (electronPlatformName !== 'darwin') return;
 
+  const appPassword =
+    process.env.APPLE_APP_SPECIFIC_PASSWORD || process.env.APPLE_APP_PASSWORD;
+
   // No credentials → leave the build signed-but-not-notarized (or unsigned).
-  if (!process.env.APPLE_ID || !process.env.APPLE_APP_PASSWORD || !process.env.APPLE_TEAM_ID) {
-    console.log('[notarize] APPLE_* env vars not set — skipping notarization.');
+  if (!process.env.APPLE_ID || !appPassword || !process.env.APPLE_TEAM_ID) {
+    console.log(
+      '[notarize] APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID not all set — skipping notarization.',
+    );
     return;
   }
 
@@ -40,7 +50,7 @@ exports.default = async function notarizing(context) {
     appBundleId: 'com.jmckalex.bibliofile',
     appPath,
     appleId: process.env.APPLE_ID,
-    appleIdPassword: process.env.APPLE_APP_PASSWORD,
+    appleIdPassword: appPassword,
     teamId: process.env.APPLE_TEAM_ID,
   });
 

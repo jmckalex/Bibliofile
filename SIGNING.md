@@ -24,14 +24,18 @@ people's Macs without the "unidentified developer" / "damaged" Gatekeeper block.
 
 ## Building a signed + notarized release
 
-Set three environment variables and run the mac dist script:
+Set three environment variables and run the mac dist script. On this machine
+these are already exported from the shell profile (shared with Folio), so a bare
+`pnpm dist:mac` notarizes automatically:
 
 ```sh
-APPLE_ID=jmckalex@gmail.com \
-APPLE_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx \
+APPLE_ID=j.mckenzie.alexander@mac.com \
+APPLE_APP_SPECIFIC_PASSWORD=xxxx-xxxx-xxxx-xxxx \
 APPLE_TEAM_ID=QC883N4FQC \
 pnpm dist:mac
 ```
+
+(The hook also accepts `APPLE_APP_PASSWORD` as a fallback name for the password.)
 
 What happens, in order:
 
@@ -43,7 +47,7 @@ What happens, in order:
    Apple's notary service, waits for the ticket, then `xcrun stapler staple`s it.
 4. Output lands in `release/` (`Bibliofile-<version>-arm64.dmg` / `.zip`).
 
-The hook **self-skips** if any of `APPLE_ID` / `APPLE_APP_PASSWORD` /
+The hook **self-skips** if any of `APPLE_ID` / `APPLE_APP_SPECIFIC_PASSWORD` /
 `APPLE_TEAM_ID` is unset — so a plain `pnpm dist:mac` without the env vars
 produces a signed-but-not-notarized build, and `pnpm pack:dir`
 (`CSC_IDENTITY_AUTO_DISCOVERY=false`) produces a fast **unsigned** dev build with
