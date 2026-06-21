@@ -1,16 +1,57 @@
-# Packaging config only — no packaging run this session.
-appId: org.placeholder.bibdesk-electron
-productName: BibDesk
+# Packaging config for Bibliophile (electron-builder).
+#
+# Two-package.json layout: the dev deps + this config live at the repo root; the
+# Electron app (its `main`, version, and runtime deps) is `app/`. electron-vite
+# bundles the renderer/preload/main, externalising ONLY the native `better-sqlite3`
+# — so the packaged app is `app/out/**` plus that one native module (asar-unpacked).
+#
+# Native rebuild for the Electron ABI is done by `scripts/rebuild-native.mjs
+# electron` before packaging (see the root `pack`/`dist` scripts), so npmRebuild is
+# off here. Builds are currently UNSIGNED (mac.identity: null) — set real signing
+# (Developer ID + notarization) when you have certificates.
+appId: com.jmckalex.bibliophile
+productName: Bibliophile
+copyright: © 2026 J. McKenzie Alexander
+# Pinned because electron-builder can't auto-detect Electron through pnpm's
+# symlinked layout with `directories.app`. Keep in sync with app's electron devDep.
+electronVersion: 33.4.11
+
 directories:
-  output: release
-  buildResources: build
+  app: app # the Electron application directory (app/package.json)
+  output: release # built installers land in ./release (repo root)
+  buildResources: build # icons + entitlements live in ./build (repo root)
+
+# Relative to the app dir (app/). The whole app is bundled into out/**; the only
+# runtime node_modules dependency is the native better-sqlite3 (+ its deps), which
+# electron-builder collects automatically from the production dependency tree.
 files:
-  - 'app/out/**/*'
+  - out/**/*
+  - package.json
+
+# Native .node binaries can't live inside the asar archive.
+asarUnpack:
+  - '**/*.node'
+
+npmRebuild: false # we rebuild better-sqlite3 for Electron ourselves (see scripts)
+
 mac:
-  target: [dmg, zip]
+  target:
+    - dmg
+    - zip
   category: public.app-category.productivity
+  hardenedRuntime: true
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Local/beta builds are unsigned. Remove this (and set CSC_* / notarize) once you
+  # have an Apple Developer ID certificate.
+  identity: null
+
 win:
-  target: [nsis]
+  target:
+    - nsis
+
 linux:
-  target: [AppImage, deb]
+  target:
+    - AppImage
+    - deb
   category: Office

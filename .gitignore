@@ -16,3 +16,6 @@ HANDOVER.md
 # Native addon build output (ABI-specific; rebuilt via node-gyp)
 app/native/**/build/
 *.node
+
+# electron-builder output
+release/

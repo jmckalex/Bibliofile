@@ -1,9 +1,10 @@
 {
   "name": "@bibdesk/app",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Electron shell: main process, preload, and React renderer (read-only viewer this session).",
+  "description": "Bibliophile — cross-platform BibTeX bibliography manager (Electron shell: main + preload + renderer).",
+  "author": "J. McKenzie Alexander <jmckalex@gmail.com>",
   "main": "out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
@@ -41,7 +42,9 @@
     "@tanstack/react-table": "^8.20.5",
     "@tanstack/react-virtual": "^3.10.9",
     "better-sqlite3": "^11.10.0",
+    "bindings": "^1.5.0",
     "fast-xml-parser": "^4.5.6",
+    "file-uri-to-path": "^1.0.0",
     "handlebars": "^4.7.9",
     "lz-string": "^1.5.0",
     "marked": "^14.1.4",
