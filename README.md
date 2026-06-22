@@ -15,10 +15,11 @@ Markdown notes, pulls new references from online databases, and round-trips your
 **byte-for-byte** through a custom BibTeX parser, so it stays compatible with macOS
 BibDesk and your TeX workflow.
 
-> **Status.** Actively developed. Builds and runs on macOS, Windows, and Linux.
-> ~1,586 passing unit/integration tests; all packages typecheck clean. Not yet
-> packaged for distribution — run it from source (see [Getting started](#getting-started)).
-> Requires Node.js 20+ and pnpm.
+> **Status.** Actively developed; in **beta**. Runs on macOS, Windows, and Linux.
+> macOS builds are **code-signed + notarized** (Apple Developer ID); Windows and
+> Linux build from source for now. ~1,600 passing unit/integration tests; all
+> packages typecheck clean. Building from source needs Node.js 20+ and pnpm
+> (see [Getting started](#getting-started)).
 
 ---
 
