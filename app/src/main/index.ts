@@ -2028,6 +2028,11 @@ function registerIpc(): void {
       return { saved };
     },
     [IpcChannels.addAttachment]: async (req) => {
+      // Paths supplied (drag-and-drop onto the detail pane) → attach directly.
+      if (req.paths && req.paths.length > 0) {
+        return store.addAttachments(req.documentId, req.itemId, req.paths);
+      }
+      // Otherwise prompt with a native file picker.
       const opts: Electron.OpenDialogOptions = {
         title: t('dialog.addAttachmentTitle'),
         properties: ['openFile', 'multiSelections'],

@@ -6,7 +6,7 @@
  * ({@link EditorWindow}); changes there refresh this pane via documentChanged.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, type DragEvent as ReactDragEvent } from 'react';
 import type { ItemDetail } from '@bibdesk/shared';
 import { useStore } from './store.js';
 import { PreviewCard, CitationBlock, JournalCover, NotesSection, Attachments } from './DetailPane.js';
@@ -51,7 +51,10 @@ export function ViewPane() {
   const multiPanel = useStore((s) => s.multiPanel);
   const detailLoading = useStore((s) => s.detailLoading);
   const openEditor = useStore((s) => s.openEditor);
+  const addAttachment = useStore((s) => s.addAttachment);
   const hostRef = useRef<HTMLDivElement>(null);
+  const dropDepth = useRef(0);
+  const [dropping, setDropping] = useState(false);
 
   // With 2+ rows selected, show the multi-select list (+ batch tools) instead of
   // the single-item detail. Both are main-rendered Handlebars HTML, hydrated the
@@ -67,6 +70,44 @@ export function ViewPane() {
     if (!el || !html) return;
     return hydratePanel(el);
   }, [html]);
+
+  // File drag-and-drop onto the detail pane attaches the file(s) to the entry
+  // currently shown. The <bd-journal-cover> element stops propagation for its own
+  // (image) drops, so dropping ON the cover sets the cover and never lands here.
+  const dropItemId = detail?.id;
+  const acceptsFiles = (e: ReactDragEvent): boolean => e.dataTransfer.types.includes('Files');
+  const dropHandlers = {
+    onDragEnter: (e: ReactDragEvent) => {
+      if (!acceptsFiles(e)) return;
+      e.preventDefault();
+      dropDepth.current += 1;
+      setDropping(true);
+    },
+    onDragOver: (e: ReactDragEvent) => {
+      if (!acceptsFiles(e)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+    },
+    onDragLeave: (e: ReactDragEvent) => {
+      if (!acceptsFiles(e)) return;
+      e.preventDefault();
+      if (--dropDepth.current <= 0) {
+        dropDepth.current = 0;
+        setDropping(false);
+      }
+    },
+    onDrop: (e: ReactDragEvent) => {
+      e.preventDefault();
+      dropDepth.current = 0;
+      setDropping(false);
+      if (!dropItemId) return;
+      const paths = Array.from(e.dataTransfer.files)
+        .map((f) => window.bibdesk?.pathForFile(f))
+        .filter((p): p is string => !!p);
+      if (paths.length) void addAttachment(dropItemId, paths);
+    },
+  };
+  const dropClass = dropping ? ' bd-detail--dropping' : '';
 
   if (multi) {
     return html ? (
@@ -85,14 +126,19 @@ export function ViewPane() {
 
   if (html) {
     return (
-      <div className="bd-detail bd-view" ref={hostRef} dangerouslySetInnerHTML={{ __html: html }} />
+      <div
+        className={'bd-detail bd-view' + dropClass}
+        ref={hostRef}
+        {...dropHandlers}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     );
   }
 
   // Fallback: the legacy React composition, used only if the template render
   // failed in main (detailsPanelHtml absent) — so the pane is never broken.
   return (
-    <div className="bd-detail bd-view">
+    <div className={'bd-detail bd-view' + dropClass} {...dropHandlers}>
       <div className="bd-view__actions">
         <button
           type="button"

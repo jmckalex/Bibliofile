@@ -544,10 +544,13 @@ export interface ItemFile {
   readonly field?: string;
 }
 
-/** Request to add attachment(s) to an item (main opens a file picker). */
+/** Request to add attachment(s) to an item. With `paths`, attaches those files
+ * directly (drag-and-drop); without them, the main process opens a file picker. */
 export interface AddAttachmentRequest {
   readonly documentId: DocumentId;
   readonly itemId: ItemId;
+  /** Absolute file paths to attach. When omitted/empty, main opens a picker. */
+  readonly paths?: readonly string[];
 }
 
 /** Request to remove one managed attachment (`Bdsk-File-N`) from an item. */

@@ -230,8 +230,9 @@ export interface ViewerState {
   save: () => Promise<void>;
   /** (Re)load the document's `@string` macros. */
   loadMacros: () => Promise<void>;
-  /** Attach file(s) to an item (opens a picker in main); refresh detail + dirty. */
-  addAttachment: (itemId: string) => Promise<void>;
+  /** Attach file(s) to an item; refresh detail + dirty. With `paths` (drag-and-drop)
+   * attaches those files directly, otherwise main opens a file picker. */
+  addAttachment: (itemId: string, paths?: readonly string[]) => Promise<void>;
   /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
   removeAttachment: (itemId: string, field: string) => Promise<void>;
   /** AutoFile an item's attachments into the Papers folder; refresh detail. */
@@ -729,11 +730,11 @@ export function createStore(api: BibDeskApi) {
       }
     },
 
-    addAttachment: async (itemId) => {
+    addAttachment: async (itemId, paths) => {
       const { documentId } = get();
       if (!documentId) return;
       try {
-        const res = await api.addAttachment({ documentId, itemId });
+        const res = await api.addAttachment({ documentId, itemId, paths });
         set({ dirty: res.dirty });
         if (res.detail) set({ selectedItemId: itemId, detail: res.detail });
       } catch (err) {

@@ -1306,6 +1306,13 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
   outline-offset: 2px;
 }
 
+/* Dragging a file over the detail pane → drop to attach it to the shown entry. */
+.bd-detail--dropping {
+  outline: 2px dashed var(--bd-accent);
+  outline-offset: -4px;
+  background: color-mix(in srgb, var(--bd-accent) 7%, transparent);
+}
+
 /* ---- Journal-cover scan (review dialog) -------------------------------- */
 
 .bd-covers__grid {
