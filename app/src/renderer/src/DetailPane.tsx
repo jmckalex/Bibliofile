@@ -320,6 +320,28 @@ function KeywordTokens({ itemId, field }: { itemId: string; field: ItemField }) 
   );
 }
 
+/**
+ * Fields whose value is unique per entry (titles, identifiers, page ranges) or
+ * is free-form prose — completing them against OTHER entries' values is just
+ * noise, so they get a plain input with no autocomplete datalist. Shared-
+ * vocabulary fields (Journal, Publisher, Series, Editor, Author, Year, Volume…)
+ * keep autocomplete. Names are compared lower-cased; tune this set to taste.
+ */
+const NO_AUTOCOMPLETE_FIELDS = new Set([
+  'title',
+  'subtitle',
+  'abstract',
+  'note',
+  'annote',
+  'doi',
+  'url',
+  'eprint',
+  'pages',
+  'isbn',
+  'date-added',
+  'date-modified',
+]);
+
 /** One editable field row (uncontrolled; commits on blur / Enter). `template`
  * marks a not-yet-saved row offered for the entry type (no remove button). */
 function FieldRow({ itemId, field, template = false }: { itemId: string; field: ItemField; template?: boolean }) {
@@ -329,6 +351,8 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
   const long = field.name.toLowerCase() === 'abstract' || field.rawValue.length > 60;
   const [suggestions, setSuggestions] = useState<readonly string[]>([]);
   const listId = `dl-${itemId}-${field.name}`;
+  // Autocomplete only for shared-vocabulary fields, not unique/free-text ones.
+  const completable = !NO_AUTOCOMPLETE_FIELDS.has(field.name.toLowerCase());
 
   const commit = (value: string): void => {
     if (value !== field.rawValue) {
@@ -381,16 +405,16 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
           <input
             key={`${itemId}:${field.name}`}
             className="bd-input"
-            list={listId}
+            list={completable ? listId : undefined}
             defaultValue={field.rawValue}
-            onFocus={loadSuggestions}
+            onFocus={completable ? loadSuggestions : undefined}
             onBlur={(e) => commit(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') e.currentTarget.blur();
             }}
           />
         )}
-        {suggestions.length > 0 && (
+        {completable && suggestions.length > 0 && (
           <datalist id={listId}>
             {suggestions.map((v) => (
               <option key={v} value={v} />
