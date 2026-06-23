@@ -2738,6 +2738,21 @@ button.bd-chip {
   margin: 0;
 }
 
+/* Stacked radio options in the control column (e.g. the full-text page limit). */
+.bd-prefs__radios {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bd-prefs__radios label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.bd-prefs__radios .bd-input {
+  width: auto;
+}
+
 .bd-prefs__hint {
   margin: 4px 0 6px;
   font-size: var(--bd-fs-sm);

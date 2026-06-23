@@ -5,7 +5,7 @@
  * how the model treats person / URL / rating / boolean / citation fields).
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BUILTIN_COLUMNS, LOCALES, defaultPanelBody, type Settings, type EntryTypeInfo, type ExportTemplate, type PanelTemplate, type PanelWhich } from '@bibdesk/shared';
 import { useT } from './i18n.js';
 import { CodeEditor } from './CodeEditor.js';
@@ -104,6 +104,76 @@ function ColumnsSection({
         <strong>Reorder</strong> columns by dragging a header; <strong>resize</strong> by dragging a
         header’s right edge. Any BibTeX field name works as a column, and the{' '}
         <strong>View → Columns</strong> menu toggles these too.
+      </p>
+    </section>
+  );
+}
+
+/**
+ * Full-text PDF indexing depth: "At most N pages" vs "All". Stored as the single
+ * `ftsPageLimit` number (0 = all); a local `pageCount` remembers the last N so
+ * toggling back from "All" restores it rather than snapping to a default.
+ */
+function FullTextSection({
+  pageLimit,
+  save,
+}: {
+  pageLimit: number;
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const t = useT();
+  const isAll = pageLimit === 0;
+  const [pageCount, setPageCount] = useState(pageLimit > 0 ? pageLimit : 40);
+  useEffect(() => {
+    if (pageLimit > 0) setPageCount(pageLimit);
+  }, [pageLimit]);
+
+  return (
+    <section className="bd-prefs__section">
+      <h3>{t('prefs.fullText')}</h3>
+      <div className="bd-prefs__row">
+        <span>{t('prefs.ftsPageLimit')}</span>
+        <div className="bd-prefs__radios">
+          <label>
+            <input
+              type="radio"
+              name="ftsPageLimit"
+              checked={!isAll}
+              onChange={() => void save({ ftsPageLimit: pageCount || 40 })}
+            />
+            {t('prefs.ftsAtMost')}{' '}
+            <input
+              type="number"
+              min={1}
+              step={1}
+              className="bd-input"
+              style={{ maxWidth: '4.5rem' }}
+              value={pageCount}
+              disabled={isAll}
+              onChange={(e) => {
+                const n = Math.max(1, Math.floor(Number(e.target.value) || 1));
+                setPageCount(n);
+                if (!isAll) void save({ ftsPageLimit: n });
+              }}
+            />{' '}
+            {t('prefs.ftsPages')}
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="ftsPageLimit"
+              checked={isAll}
+              onChange={() => void save({ ftsPageLimit: 0 })}
+            />
+            {t('prefs.ftsAll')}
+          </label>
+        </div>
+      </div>
+      <p className="bd-prefs__hint">
+        How many pages of each PDF to scan for the full-text index. <strong>At most N</strong>
+        keeps indexing fast (40 is plenty for articles); <strong>All</strong> indexes the whole
+        PDF — useful for long or scanned books, <em>provided the scan has a searchable text layer
+        (OCR)</em>. Changing this re-indexes any open libraries.
       </p>
     </section>
   );
@@ -831,31 +901,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                     Save automatically a moment after each edit. Undo (⌘Z) / Redo (⇧⌘Z) work regardless.
                   </p>
                 </section>
-                <section className="bd-prefs__section">
-                  <h3>{t('prefs.fullText')}</h3>
-                  <label className="bd-prefs__row">
-                    <span>{t('prefs.ftsPageLimit')}</span>
-                    <input
-                      type="number"
-                      min={0}
-                      step={1}
-                      className="bd-input"
-                      style={{ maxWidth: '6rem' }}
-                      value={settings.ftsPageLimit ?? 40}
-                      onChange={(e) => {
-                        const n = Math.max(0, Math.floor(Number(e.target.value) || 0));
-                        if (n !== (settings.ftsPageLimit ?? 40)) void save({ ftsPageLimit: n });
-                      }}
-                    />
-                  </label>
-                  <p className="bd-prefs__hint">
-                    How many pages of each PDF to scan for the full-text index. The default
-                    <strong> 40</strong> keeps indexing fast for articles; set <strong>0</strong> to
-                    index the <em>whole</em> PDF — useful for long or scanned books, <em>provided
-                    the scan has a searchable text layer (OCR)</em>. Changing this re-indexes any
-                    open libraries.
-                  </p>
-                </section>
+                <FullTextSection pageLimit={settings.ftsPageLimit ?? 40} save={save} />
               </>
             )}
 
