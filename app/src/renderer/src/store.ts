@@ -736,7 +736,11 @@ export function createStore(api: BibDeskApi) {
       try {
         const res = await api.addAttachment({ documentId, itemId, paths });
         set({ dirty: res.dirty });
-        if (res.detail) set({ selectedItemId: itemId, detail: res.detail });
+        if (res.detail) {
+          set({ selectedItemId: itemId, detail: res.detail });
+          // Refresh the table so its attachment-count (📎) column reflects the add.
+          await get().loadPublications();
+        }
       } catch (err) {
         set({ error: errorMessage(err) });
       }
@@ -748,7 +752,11 @@ export function createStore(api: BibDeskApi) {
       try {
         const res = await api.removeAttachment({ documentId, itemId, field });
         set({ dirty: res.dirty });
-        if (res.detail) set({ detail: res.detail });
+        if (res.detail) {
+          set({ detail: res.detail });
+          // Refresh the table so its attachment-count (📎) column reflects the removal.
+          await get().loadPublications();
+        }
       } catch (err) {
         set({ error: errorMessage(err) });
       }
