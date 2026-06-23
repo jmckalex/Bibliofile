@@ -623,6 +623,26 @@ describe('document-service: BD test.bib', () => {
     expect(existsSync(papers)).toBe(false); // Papers folder never created
   });
 
+  it('the read flag treats Read as boolean (1/yes = read, 0 = unread, absent = unset)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      [
+        '@article{readone, Title = {A}, Read = {1}}',
+        '@article{readyes, Title = {B}, Read = {Yes}}',
+        '@article{readzero, Title = {C}, Read = {0}}',
+        '@article{readnone, Title = {D}}',
+      ].join('\n\n'),
+      '/tmp/read.bib',
+    );
+    const read = Object.fromEntries(
+      store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => [r.citeKey, r.read]),
+    );
+    expect(read['readone']).toBe(1); // Read=1 → read (regression: tri-state reader gave 0)
+    expect(read['readyes']).toBe(1); // Read=Yes → read
+    expect(read['readzero']).toBe(-1); // Read=0 → explicitly unread
+    expect(read['readnone']).toBe(0); // no Read field → unset/blank
+  });
+
   it('consolidateLinkedFiles bulk-files every entry, then is idempotent', () => {
     const dir = mkdtempSync(join(tmpdir(), 'bd-consolidate-'));
     const store = new DocumentStore();

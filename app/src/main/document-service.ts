@@ -414,6 +414,18 @@ function attachmentCountOf(item: BibItem): number {
   return n;
 }
 
+/**
+ * Read-column display state: 1 = read, -1 = explicitly unread, 0 = unset/blank.
+ * `Read` is a BOOLEAN field, so `1`/`yes`/`true`/`on` all mean "read" — matching
+ * the detail-pane checkbox (`/^(yes|true|1|on)$/i`). The generic tri-state reader
+ * treats `1` as "mixed", which wrongly blanked a `Read = {1}` row in the table.
+ */
+function readStateOf(item: BibItem): -1 | 0 | 1 {
+  const s = item.stringValueOfField('Read', false).trim();
+  if (s === '') return 0;
+  return /^(yes|true|1|on)$/i.test(s) ? 1 : -1;
+}
+
 /** Project a {@link BibItem} into a thin {@link PublicationRow}. */
 export function toPublicationRow(item: BibItem, extraFields?: readonly string[]): PublicationRow {
   // Rating fields hold a small integer (0–5); clamp defensively for display.
@@ -428,7 +440,7 @@ export function toPublicationRow(item: BibItem, extraFields?: readonly string[])
     year: item.stringValueOfField(FieldNames.Year, true),
     hasKeywords: item.stringValueOfField('Keywords', false).trim().length > 0,
     attachmentCount: attachmentCountOf(item),
-    read: item.triStateValueOfField('Read'),
+    read: readStateOf(item),
     rating,
     color: colorFieldToHex(item.stringValueOfField(COLOR_FIELD, false)),
   };

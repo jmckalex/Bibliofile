@@ -13,6 +13,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { splitGroupFieldValue } from '@bibdesk/groups';
 import { filterCiteKeyInput, citeKeyHasFragileChars } from '@bibdesk/formats';
+import { sharedTypeManager } from '@bibdesk/model';
 import { useStore } from './store.js';
 import { useT } from './i18n.js';
 import { Icon, type IconName } from './icons.js';
@@ -25,6 +26,21 @@ const ENTRY_TYPES = [
   'proceedings', 'phdthesis', 'mastersthesis', 'techreport', 'manual', 'misc',
   'unpublished', 'booklet',
 ];
+
+/**
+ * Editor-widget kind for a field by NAME — used for template rows and the add row,
+ * where the saved `ItemField.kind` (computed in the main process) isn't available
+ * yet. Mirrors the main-process `fieldKindOf` for the editor-relevant kinds, so a
+ * boolean field (e.g. `Read`) gets a checkbox the moment its name is known.
+ */
+function fieldEditorKind(name: string): ItemField['kind'] {
+  const n = name.trim();
+  if (n.toLowerCase() === 'keywords') return 'keywords';
+  if (sharedTypeManager.isRatingField(n)) return 'rating';
+  if (sharedTypeManager.isBooleanField(n)) return 'boolean';
+  if (sharedTypeManager.isTriStateField(n)) return 'triState';
+  return undefined;
+}
 
 function fileIcon(kind: ItemFile['kind']): IconName {
   return kind === 'url' ? 'link' : 'file';
@@ -456,10 +472,21 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
   // field exists). The chip tokens live in a ref so committing the row reads them
   // without forcing a re-render on every settle.
   const isKeyword = name.trim().toLowerCase() === 'keywords';
+  // A boolean field (e.g. `Read`) gets a checkbox value control as soon as its
+  // name is recognised — like keywords gets the chip editor — instead of staying
+  // a plain text box.
+  const isBoolean = fieldEditorKind(name) === 'boolean';
+  const [checked, setChecked] = useState(false);
   const keywordsRef = useRef<readonly string[]>([]);
   const commit = (): void => {
     const n = name.trim();
-    const v = isKeyword ? keywordsRef.current.join(', ') : value;
+    const v = isKeyword
+      ? keywordsRef.current.join(', ')
+      : isBoolean
+        ? checked
+          ? 'Yes'
+          : ''
+        : value;
     if (n) void edit({ kind: 'setField', itemId, field: n, value: v });
     onDone();
   };
@@ -494,6 +521,14 @@ function NewFieldRow({ itemId, onDone }: { itemId: string; onDone: () => void })
             onChange={(tokens) => {
               keywordsRef.current = tokens;
             }}
+          />
+        ) : isBoolean ? (
+          <input
+            type="checkbox"
+            className="bd-field__check"
+            checked={checked}
+            onChange={(e) => setChecked(e.target.checked)}
+            onKeyDown={onKey}
           />
         ) : (
           <input
@@ -751,7 +786,7 @@ function Fields({ detail }: { detail: ItemDetail }) {
       const lower = name.toLowerCase();
       if (seen.has(lower)) return;
       seen.add(lower);
-      templateRows.push({ name, value: '', rawValue: '', isInherited: false, required });
+      templateRows.push({ name, value: '', rawValue: '', isInherited: false, required, kind: fieldEditorKind(name) });
     };
     for (const name of info.required) offer(name, true);
     for (const name of info.optional) offer(name, false);
