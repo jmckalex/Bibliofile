@@ -19,6 +19,7 @@ interface Slot {
 
 interface QueueItem {
   path: string;
+  maxPages: number;
   resolve: (text: string) => void;
 }
 
@@ -37,11 +38,11 @@ export class PdfPool {
     this.size = size;
   }
 
-  /** Extract text from one PDF; resolves '' on any failure. */
-  extract(path: string): Promise<string> {
+  /** Extract text from one PDF; resolves '' on any failure. `maxPages <= 0` = all. */
+  extract(path: string, maxPages = 40): Promise<string> {
     if (this.destroyed) return Promise.resolve('');
     return new Promise<string>((resolve) => {
-      this.queue.push({ path, resolve });
+      this.queue.push({ path, maxPages, resolve });
       this.pump();
     });
   }
@@ -59,7 +60,7 @@ export class PdfPool {
       const id = this.nextId++;
       slot.current = id;
       this.pending.set(id, task.resolve);
-      slot.worker.postMessage({ id, path: task.path });
+      slot.worker.postMessage({ id, path: task.path, maxPages: task.maxPages });
     }
   }
 

@@ -503,6 +503,9 @@ function broadcastDocumentChanged(documentId: string, except?: Electron.WebConte
  */
 let pdfPool: PdfPool | undefined;
 let pdfCache: PdfTextCache | undefined;
+/** Pages of each PDF to extract for the full-text index (0 = all). Mirrors the
+ * `ftsPageLimit` setting; updated on startup + when settings change. */
+let ftsPageLimit = 40;
 
 function ensurePdf(): { pool: PdfPool; cache: PdfTextCache } {
   if (!pdfPool) pdfPool = new PdfPool(join(__dirname, 'pdf-worker.js'));
@@ -513,10 +516,10 @@ function ensurePdf(): { pool: PdfPool; cache: PdfTextCache } {
 /** Extract one PDF's text: cache hit, else a worker-thread extraction (then cached). */
 async function pdfExtract(absPath: string): Promise<string> {
   const { pool, cache } = ensurePdf();
-  const cached = cache.get(absPath);
+  const cached = cache.get(absPath, ftsPageLimit);
   if (cached !== undefined) return cached;
-  const text = await pool.extract(absPath);
-  cache.set(absPath, text);
+  const text = await pool.extract(absPath, ftsPageLimit);
+  cache.set(absPath, text, ftsPageLimit);
   return text;
 }
 
@@ -2093,6 +2096,15 @@ function registerIpc(): void {
         detailsTemplate: resolveActivePanelBody(s.detailsForks, s.activeDetailsFork),
         bottomPanelTemplate: resolveActivePanelBody(s.bottomForks, s.activeBottomFork),
       });
+      // Full-text page-limit changed → re-extract + re-index every open document's
+      // PDFs at the new limit (the cache misses on the limit change, so it's a real
+      // re-extraction; runs in the background worker pool).
+      if (s.ftsPageLimit !== ftsPageLimit) {
+        ftsPageLimit = s.ftsPageLimit;
+        for (const id of store.openDocumentIds()) {
+          void store.reindexAttachments(id, pdfExtract).then(() => pdfCache?.flush());
+        }
+      }
       // Re-localize the menu when the UI language changes.
       if (req.patch.locale !== undefined) setMainLocale(s.locale);
       // refresh View→Columns checkmarks, the File→Export template list, or labels
@@ -2707,6 +2719,7 @@ if (!gotLock) {
     app.setAsDefaultProtocolClient('x-bibdesk');
 
     const settings = loadSettings();
+    ftsPageLimit = settings.ftsPageLimit ?? 40; // PDF full-text extraction depth
     loadUserStyles(); // register any user-installed CSL styles before first render
     setMainLocale(settings.locale); // bind the menu translator before buildMenu()
     store.setEditConfig({

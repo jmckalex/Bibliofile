@@ -165,6 +165,8 @@ export const en: Catalog = {
   'prefs.model': 'Model',
   'prefs.saving': 'Saving',
   'prefs.autosave': 'Autosave',
+  'prefs.fullText': 'Full-text search',
+  'prefs.ftsPageLimit': 'PDF pages to index',
   'prefs.newEntries': 'New entries',
   'prefs.defaultType': 'Default type',
   'prefs.entryTypes': 'Entry types',

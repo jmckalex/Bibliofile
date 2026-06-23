@@ -2603,6 +2603,30 @@ export class DocumentStore {
   }
 
   /**
+   * Re-extract + re-index every PDF attachment for a document — used when the
+   * full-text page-limit changes. Drops the previously-indexed PDF text first,
+   * then re-runs {@link indexAttachments}, which re-extracts at the now-current
+   * limit (the injected extractor / cache key on the page limit do the rest).
+   */
+  async reindexAttachments(
+    documentId: string,
+    extract: (absPath: string) => Promise<string> = extractPdfText,
+  ): Promise<void> {
+    const doc = this.docs.get(documentId);
+    if (!doc || !doc.fts.available) return;
+    for (const item of doc.library.items) {
+      if (doc.pdfText.delete(item.id)) this.reindex(doc, item);
+    }
+    doc.attachmentsIndexed = false;
+    await this.indexAttachments(documentId, extract);
+  }
+
+  /** Ids of all currently-open documents. */
+  openDocumentIds(): string[] {
+    return [...this.docs.keys()];
+  }
+
+  /**
    * Set (or, when `rawValue` is empty, remove) a field on an item, mark the
    * document dirty, and return the item's refreshed detail. `rawValue` is the
    * raw BibTeX field text (not the de-TeXified display form); it is stored as a

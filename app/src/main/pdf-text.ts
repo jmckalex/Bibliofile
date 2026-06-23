@@ -31,7 +31,8 @@ function fontDataUrl(pdfMjsPath: string): string {
   return standardFontDataUrl;
 }
 
-/** Extract up to `maxPages` of text from a local PDF. Never throws. */
+/** Extract up to `maxPages` of text from a local PDF (`maxPages <= 0` = all
+ * pages, for full-text indexing of long/scanned PDFs). Never throws. */
 export async function extractPdfText(absPath: string, maxPages = 40): Promise<string> {
   if (!/\.pdf$/i.test(absPath)) return '';
   try {
@@ -45,7 +46,7 @@ export async function extractPdfText(absPath: string, maxPages = 40): Promise<st
       standardFontDataUrl: fontDataUrl(pdfMjsPath),
       verbosity: 0, // errors only — silence pdfjs's per-PDF info/warning chatter
     }).promise;
-    const pages = Math.min(doc.numPages, maxPages);
+    const pages = maxPages > 0 ? Math.min(doc.numPages, maxPages) : doc.numPages;
     let text = '';
     for (let p = 1; p <= pages; p++) {
       const page = await doc.getPage(p);

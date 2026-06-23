@@ -13,6 +13,9 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 interface CacheEntry {
   readonly mtimeMs: number;
   readonly size: number;
+  /** The page limit the text was extracted at (0 = all pages). A different limit
+   * misses, so raising/lowering it re-extracts. Absent on pre-existing entries. */
+  readonly pages?: number;
   readonly text: string;
 }
 
@@ -35,10 +38,12 @@ export class PdfTextCache {
     }
   }
 
-  /** Cached text for `absPath` if the file is unchanged (mtime+size match), else undefined. */
-  get(absPath: string): string | undefined {
+  /** Cached text for `absPath` if the file is unchanged (mtime+size match) AND it
+   * was extracted at the same `maxPages` limit, else undefined. */
+  get(absPath: string, maxPages = 40): string | undefined {
     const entry = this.map.get(absPath);
     if (!entry) return undefined;
+    if ((entry.pages ?? 40) !== maxPages) return undefined; // re-extract at a new limit
     try {
       const st = statSync(absPath);
       if (st.mtimeMs === entry.mtimeMs && st.size === entry.size) return entry.text;
@@ -48,11 +53,11 @@ export class PdfTextCache {
     return undefined;
   }
 
-  /** Record extracted `text` for `absPath`, stamped with its current mtime+size. */
-  set(absPath: string, text: string): void {
+  /** Record extracted `text` for `absPath`, stamped with its mtime+size + page limit. */
+  set(absPath: string, text: string, maxPages = 40): void {
     try {
       const st = statSync(absPath);
-      this.map.set(absPath, { mtimeMs: st.mtimeMs, size: st.size, text });
+      this.map.set(absPath, { mtimeMs: st.mtimeMs, size: st.size, pages: maxPages, text });
       this.dirty = true;
     } catch {
       /* file gone between extract and cache — skip */

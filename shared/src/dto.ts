@@ -1114,6 +1114,9 @@ export interface Settings {
   readonly autosave: boolean;
   /** When true, the filter box also searches extracted PDF body text (full-text). */
   readonly fullTextSearch: boolean;
+  /** Max pages of each PDF to extract for the full-text index. 0 = the whole PDF
+   * (use for long/scanned books); the default 40 keeps indexing fast for articles. */
+  readonly ftsPageLimit: number;
   /** Anthropic model id for the Claude assistant (e.g. `claude-opus-4-8`). */
   readonly agentModel: string;
   /** BibTeX `.bst` style name for the LaTeX preview (e.g. `plain`, `abbrv`, `ieeetr`). */
@@ -1203,6 +1206,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoFileOnAdd: false,
   autosave: false,
   fullTextSearch: false,
+  ftsPageLimit: 40,
   agentModel: 'claude-opus-4-8',
   texBibStyle: 'plain',
   texBinDir: '',

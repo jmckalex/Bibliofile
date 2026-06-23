@@ -42,6 +42,19 @@ describe('PdfTextCache', () => {
     expect(cache.get(pdf)).toBeUndefined();
   });
 
+  it('misses when the requested page limit differs (re-extracts at a new limit)', () => {
+    const dir = tempDir();
+    const pdf = join(dir, 'a.pdf');
+    writeFileSync(pdf, 'hello');
+    const cache = new PdfTextCache(join(dir, 'cache.json'));
+    cache.set(pdf, 'first 40 pages', 40);
+    expect(cache.get(pdf, 40)).toBe('first 40 pages'); // same limit → hit
+    expect(cache.get(pdf, 0)).toBeUndefined(); // "all pages" requested → miss → re-extract
+    cache.set(pdf, 'whole pdf', 0);
+    expect(cache.get(pdf, 0)).toBe('whole pdf');
+    expect(cache.get(pdf, 40)).toBeUndefined(); // back to 40 → miss again
+  });
+
   it('misses for a file that no longer exists', () => {
     const dir = tempDir();
     const cache = new PdfTextCache(join(dir, 'cache.json'));

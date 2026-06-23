@@ -831,6 +831,31 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                     Save automatically a moment after each edit. Undo (⌘Z) / Redo (⇧⌘Z) work regardless.
                   </p>
                 </section>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.fullText')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.ftsPageLimit')}</span>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1}
+                      className="bd-input"
+                      style={{ maxWidth: '6rem' }}
+                      value={settings.ftsPageLimit ?? 40}
+                      onChange={(e) => {
+                        const n = Math.max(0, Math.floor(Number(e.target.value) || 0));
+                        if (n !== (settings.ftsPageLimit ?? 40)) void save({ ftsPageLimit: n });
+                      }}
+                    />
+                  </label>
+                  <p className="bd-prefs__hint">
+                    How many pages of each PDF to scan for the full-text index. The default
+                    <strong> 40</strong> keeps indexing fast for articles; set <strong>0</strong> to
+                    index the <em>whole</em> PDF — useful for long or scanned books, <em>provided
+                    the scan has a searchable text layer (OCR)</em>. Changing this re-indexes any
+                    open libraries.
+                  </p>
+                </section>
               </>
             )}
 
