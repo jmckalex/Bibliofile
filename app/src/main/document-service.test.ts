@@ -578,6 +578,51 @@ describe('document-service: BD test.bib', () => {
     expect(detail.files[0]!.url).toContain(filed[0]!);
   });
 
+  it('autoFileOnAdd files an attachment the moment it is added', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-autofile-onadd-'));
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{euler1748, Author = {Leonhard Euler}, Year = {1748}}',
+      join(dir, 'lib.bib'),
+    );
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const papers = join(dir, 'Papers');
+    store.setEditConfig({ papersFolder: papers, autoFileFormat: '%a1%Y', autoFileOnAdd: true });
+
+    const incoming = join(dir, 'incoming');
+    mkdirSync(incoming);
+    const src = join(incoming, 'euler.pdf');
+    writeFileSync(src, '%PDF-1.4 test');
+
+    // Adding the attachment files it immediately — no separate autoFile() call.
+    store.addAttachments(documentId, itemId, [src]);
+
+    expect(existsSync(src)).toBe(false); // moved out of incoming on add
+    expect(readdirSync(papers).filter((f) => f.endsWith('.pdf'))).toHaveLength(1);
+    expect(store.getItemDetail({ documentId, itemId }).files[0]!.url).toContain(join('Papers'));
+  });
+
+  it('does NOT auto-file on add when autoFileOnAdd is off (default)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-autofile-off-'));
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{euler1748, Author = {Leonhard Euler}, Year = {1748}}',
+      join(dir, 'lib.bib'),
+    );
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const papers = join(dir, 'Papers');
+    store.setEditConfig({ papersFolder: papers, autoFileFormat: '%a1%Y' }); // autoFileOnAdd off by default
+
+    const incoming = join(dir, 'incoming');
+    mkdirSync(incoming);
+    const src = join(incoming, 'euler.pdf');
+    writeFileSync(src, '%PDF-1.4 test');
+    store.addAttachments(documentId, itemId, [src]);
+
+    expect(existsSync(src)).toBe(true); // left in place — not filed
+    expect(existsSync(papers)).toBe(false); // Papers folder never created
+  });
+
   it('consolidateLinkedFiles bulk-files every entry, then is idempotent', () => {
     const dir = mkdtempSync(join(tmpdir(), 'bd-consolidate-'));
     const store = new DocumentStore();

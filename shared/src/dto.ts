@@ -1103,6 +1103,8 @@ export interface Settings {
   readonly papersFolder: string;
   /** AutoFile destination-name format (BDSKFormatParser; default `%p1/%T5`). */
   readonly autoFileFormat: string;
+  /** AutoFile an attachment automatically when it's added (needs a Papers folder). */
+  readonly autoFileOnAdd: boolean;
   /** When true, save automatically a moment after each edit. */
   readonly autosave: boolean;
   /** When true, the filter box also searches extracted PDF body text (full-text). */
@@ -1192,6 +1194,7 @@ export const DEFAULT_SETTINGS: Settings = {
   columnWidths: {},
   papersFolder: '',
   autoFileFormat: '%p1/%T5',
+  autoFileOnAdd: false,
   autosave: false,
   fullTextSearch: false,
   agentModel: 'claude-opus-4-8',

@@ -158,6 +158,7 @@ export const en: Catalog = {
   'prefs.choose': 'Choose…',
   'prefs.clear': 'Clear',
   'prefs.fileName': 'File name',
+  'prefs.autoFileOnAdd': 'AutoFile attachments when added',
   'prefs.assistant': 'Claude Assistant',
   'prefs.model': 'Model',
   'prefs.saving': 'Saving',

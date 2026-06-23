@@ -1005,6 +1005,7 @@ export class DocumentStore {
     defaultEntryType: 'article',
     papersFolder: '',
     autoFileFormat: '%p1/%T5',
+    autoFileOnAdd: false,
     annotationStorage: 'compressed' as AnnotationStorage,
     defaultCiteStyle: 'apa',
     detailsTemplate: undefined as string | undefined,
@@ -1017,6 +1018,7 @@ export class DocumentStore {
     defaultEntryType?: string;
     papersFolder?: string;
     autoFileFormat?: string;
+    autoFileOnAdd?: boolean;
     annotationStorage?: AnnotationStorage;
     defaultCiteStyle?: string;
     detailsTemplate?: string;
@@ -1026,6 +1028,7 @@ export class DocumentStore {
     if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
     if (c.papersFolder !== undefined) this.editConfig.papersFolder = c.papersFolder;
     if (c.autoFileFormat) this.editConfig.autoFileFormat = c.autoFileFormat;
+    if (c.autoFileOnAdd !== undefined) this.editConfig.autoFileOnAdd = c.autoFileOnAdd;
     if (c.annotationStorage) this.editConfig.annotationStorage = c.annotationStorage;
     if (c.defaultCiteStyle) this.editConfig.defaultCiteStyle = c.defaultCiteStyle;
     // Panel templates: '' or absent ⇒ use the built-in default (clear the override).
@@ -1812,6 +1815,12 @@ export class DocumentStore {
       const plist = { relativePath: rel };
       item.setField(field, encodeBdskFile(plist));
       doc.library.bdskFiles.set(bdskFileKey(item.id, field), plist);
+    }
+    // When enabled (and a Papers folder is set), file the just-added files in the
+    // same undo step — so a drop/import both attaches AND files.
+    if (this.editConfig.autoFileOnAdd && this.editConfig.papersFolder) {
+      const { moved } = this.autoFileItemFiles(doc, item, this.editConfig.papersFolder, baseDir);
+      if (moved) this.reindex(doc, item);
     }
     return this.dirtyDetail(doc, item);
   }

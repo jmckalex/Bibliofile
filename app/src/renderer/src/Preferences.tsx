@@ -994,10 +994,21 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                       }}
                     />
                   </label>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.autoFileOnAdd')}</span>
+                    <input
+                      type="checkbox"
+                      checked={settings.autoFileOnAdd}
+                      disabled={!settings.papersFolder}
+                      onChange={(e) => void save({ autoFileOnAdd: e.target.checked })}
+                    />
+                  </label>
                   <p className="bd-prefs__hint">
                     <strong>Publication → AutoFile Linked Files</strong> moves an entry’s attachments into the
                     Papers folder, named by this format (default <code>%p1/%T5</code> = a folder per first
                     author or editor, then the title’s first words; the extension is added automatically).
+                    With <em>AutoFile attachments when added</em> on, files are filed the moment you add them
+                    (drag-and-drop, picker, or import) — requires a Papers folder.
                   </p>
                 </section>
                 <section className="bd-prefs__section">
