@@ -215,7 +215,7 @@ interface ModalSetters {
  */
 async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): Promise<void> {
   const store = getStore().getState();
-  const { documentId, selectedItemId } = store;
+  const { documentId, selectedItemId, selectedIds } = store;
 
   switch (command) {
     case 'newPublication':
@@ -244,9 +244,12 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'addAttachment':
       if (selectedItemId) await store.addAttachment(selectedItemId);
       return;
-    case 'autoFile':
-      if (selectedItemId) await store.autoFile(selectedItemId);
+    case 'autoFile': {
+      // File the whole selection (not just the focused row); confirm if 2+.
+      const ids = selectedIds.length ? selectedIds : selectedItemId ? [selectedItemId] : [];
+      if (ids.length) await store.autoFile(ids);
       return;
+    }
     case 'consolidate':
       await store.consolidateLinkedFiles();
       return;

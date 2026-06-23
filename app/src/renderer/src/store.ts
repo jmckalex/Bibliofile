@@ -236,7 +236,7 @@ export interface ViewerState {
   /** Remove one managed attachment (`Bdsk-File-N`) from an item. */
   removeAttachment: (itemId: string, field: string) => Promise<void>;
   /** AutoFile an item's attachments into the Papers folder; refresh detail. */
-  autoFile: (itemId: string) => Promise<void>;
+  autoFile: (itemIds: readonly string[]) => Promise<void>;
   /** Consolidate linked files for the current selection (2+ rows) or the whole library. */
   consolidateLinkedFiles: () => Promise<void>;
   /** Import an online search result as a new entry; refresh + select it. */
@@ -754,12 +754,20 @@ export function createStore(api: BibDeskApi) {
       }
     },
 
-    autoFile: async (itemId) => {
-      const { documentId } = get();
-      if (!documentId) return;
+    autoFile: async (itemIds) => {
+      const { documentId, selectedItemId } = get();
+      if (!documentId || itemIds.length === 0) return;
       try {
-        const res = await api.autoFile({ documentId, itemId });
-        set({ dirty: res.dirty, detail: res.detail });
+        const res = await api.autoFile({ documentId, itemIds });
+        if (res.detail) {
+          // Single entry: refresh the pane from the returned detail.
+          set({ dirty: res.dirty, detail: res.detail });
+        } else if (res.moved > 0) {
+          // Bulk: reload the table + the open detail to reflect rewritten paths.
+          set({ dirty: res.dirty });
+          await get().loadPublications();
+          if (selectedItemId) await get().loadDetail(selectedItemId);
+        }
         if (res.errors.length) set({ error: res.errors.join('; ') });
       } catch (err) {
         set({ error: errorMessage(err) });

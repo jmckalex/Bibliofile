@@ -2323,9 +2323,61 @@ function registerIpc(): void {
       return { ok: true };
     },
     [IpcChannels.fieldSuggestions]: (req) => store.fieldSuggestions(req.documentId, req.field),
-    [IpcChannels.autoFile]: (req) => {
-      const res = store.autoFile(req.documentId, req.itemId);
-      return { ...res, dirty: store.isDirty(req.documentId) };
+    [IpcChannels.autoFile]: async (req) => {
+      const ids = req.itemIds;
+      if (ids.length === 0) return { moved: 0, errors: [], dirty: store.isDirty(req.documentId) };
+
+      // Single entry: file it directly — quick, no confirm — and return its detail.
+      if (ids.length === 1) {
+        const res = store.autoFile(req.documentId, ids[0]!);
+        return {
+          moved: res.moved,
+          errors: res.errors,
+          dirty: store.isDirty(req.documentId),
+          detail: res.detail,
+        };
+      }
+
+      // Multiple entries: this moves files on disk, so confirm first.
+      const confirmOpts: Electron.MessageBoxOptions = {
+        type: 'warning',
+        buttons: [t('dialog.autoFile'), t('common.cancel')],
+        defaultId: 0,
+        cancelId: 1,
+        message: t('dialog.autoFileConfirm'),
+        detail: t('dialog.autoFileDetail', { count: ids.length }),
+      };
+      const parent = dialogParent();
+      const choice = parent
+        ? await dialog.showMessageBox(parent, confirmOpts)
+        : await dialog.showMessageBox(confirmOpts);
+      if (choice.response !== 0) return { moved: 0, errors: [], dirty: store.isDirty(req.documentId) };
+
+      const res = store.consolidateLinkedFiles(req.documentId, ids);
+      const summaryOpts: Electron.MessageBoxOptions = {
+        type: res.errors.length ? 'warning' : 'info',
+        buttons: [t('dialog.ok')],
+        message:
+          res.moved > 0
+            ? t('dialog.filed', {
+                count: res.moved,
+                fileNoun: t(res.moved === 1 ? 'dialog.file' : 'dialog.files'),
+                entryCount: res.itemsAffected,
+                entryNoun: t(res.itemsAffected === 1 ? 'dialog.entry' : 'dialog.entries'),
+              })
+            : t('dialog.noFilingNeeded'),
+        ...(res.errors.length
+          ? {
+              detail: t(res.errors.length === 1 ? 'dialog.problems' : 'dialog.problemsPlural', {
+                count: res.errors.length,
+                list: `${res.errors.slice(0, 12).join('\n')}${res.errors.length > 12 ? '\n…' : ''}`,
+              }),
+            }
+          : {}),
+      };
+      if (parent) void dialog.showMessageBox(parent, summaryOpts);
+      else void dialog.showMessageBox(summaryOpts);
+      return { moved: res.moved, errors: res.errors, dirty: res.dirty };
     },
     [IpcChannels.consolidateLinkedFiles]: async (req) => {
       const scope =

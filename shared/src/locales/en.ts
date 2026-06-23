@@ -490,6 +490,10 @@ export const en: Catalog = {
   'dialog.approve': 'Approve',
   'dialog.deny': 'Deny',
   'dialog.consolidate': 'Consolidate',
+  'dialog.autoFile': 'AutoFile',
+  'dialog.autoFileConfirm': 'AutoFile linked files?',
+  'dialog.autoFileDetail':
+    'Move the linked files of the {count} selected entries into your Papers folder? The files are moved on disk.',
   'dialog.saveBeforeClose': 'Save changes to “{name}” before closing?',
   'dialog.changesLost': 'Your changes will be lost if you don’t save them.',
   'dialog.couldNotSave': 'Could not save the document',

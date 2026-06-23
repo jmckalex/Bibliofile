@@ -914,18 +914,21 @@ export interface AgentRunResponse {
 
 // --- AutoFile ---------------------------------------------------------------
 
-/** AutoFile an item's managed attachments into the Papers folder. */
+/** AutoFile the managed attachments of one or more items into the Papers folder.
+ * A multi-entry request is confirmed (and summarized) by the main process. */
 export interface AutoFileRequest {
   readonly documentId: DocumentId;
-  readonly itemId: ItemId;
+  readonly itemIds: readonly ItemId[];
 }
 
-/** Result of an AutoFile: how many files moved, per-file errors, refreshed detail. */
+/** Result of an AutoFile: files moved, per-file errors, and (single-entry only)
+ * the refreshed detail so the pane can update without a full reload. */
 export interface AutoFileResult {
   readonly moved: number;
   readonly errors: readonly string[];
   readonly dirty: boolean;
-  readonly detail: ItemDetail;
+  /** Present only for a single-entry AutoFile; bulk runs reload instead. */
+  readonly detail?: ItemDetail;
 }
 
 /** Bulk AutoFile ("Consolidate Linked Files") — file every entry's attachments. */
