@@ -3,9 +3,22 @@ import {
   lossyASCII,
   replaceComposedCharacters,
   removeCurlyBraces,
+  removeTeX,
   acronym,
   collapseWhitespace,
 } from './transforms.js';
+
+describe('removeTeX', () => {
+  it('strips math delimiters, command backslashes, and braces', () => {
+    expect(removeTeX('$O(\\log n)$')).toBe('O(log n)'); // the reported AutoFile case
+    expect(removeTeX('The {DNA} sequence')).toBe('The DNA sequence');
+    expect(removeTeX('$x^2$')).toBe('x^2'); // $ removed; ^ left (valid in a filename)
+  });
+  it('leaves plain text untouched (fast path)', () => {
+    expect(removeTeX('A plain title')).toBe('A plain title');
+    expect(removeTeX('')).toBe('');
+  });
+});
 
 describe('lossyASCII', () => {
   it('leaves pure-ASCII strings unchanged', () => {

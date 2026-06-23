@@ -162,6 +162,21 @@ export function deTeXify(s: string): string {
 }
 
 /**
+ * Strip structural TeX/LaTeX markup so a value is safe + readable in a filename:
+ * math-mode `$…$` delimiters, command backslashes (`\log` → `log`, keeping the
+ * word), and grouping braces. Run AFTER {@link deTeXify} (which turns
+ * `{\'e}`-style accent spans into Unicode), so only plain markup remains here.
+ * Example: `$O(\log n)$` → `O(log n)`. Used for local-file (AutoFile) names,
+ * where macOS otherwise happily keeps `$`/`\` and produces an ugly filename.
+ */
+export function removeTeX(s: string): string {
+  if (!/[$\\{}]/.test(s)) return s; // fast path: nothing TeX-like
+  return s
+    .replace(/\\([a-zA-Z]+)/g, '$1') // \log → log (keep the command word)
+    .replace(/[${}\\]/g, ''); // math delimiters, braces, residual backslash-escapes
+}
+
+/**
  * Acronym value: first letter of each space-separated word longer than
  * `ignoreLength` (a trailing-period word always counts), uppercased and
  * concatenated. Mirrors `acronymValueIgnoringWordLength:`.

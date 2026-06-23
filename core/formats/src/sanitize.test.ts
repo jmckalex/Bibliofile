@@ -91,6 +91,13 @@ describe('cleanForFilename', () => {
       cleanForFilename('a<b>c:d|e', tm, { localFileCleanOption: 3 }),
     ).toBe('abcde');
   });
+  it('strips LaTeX/math markup from a title used in a filename', () => {
+    // Regression: an AutoFile name must not contain raw TeX (e.g. `$O(\log n)$`).
+    expect(strictlySanitize('$O(\\log n)$', LOCAL_FILE_FIELD, tm)).toBe('O(log n)');
+    expect(strictlySanitize('The {Quantum} Theory', LOCAL_FILE_FIELD, tm)).toBe(
+      'The Quantum Theory',
+    );
+  });
 });
 
 describe('fieldKind classification', () => {

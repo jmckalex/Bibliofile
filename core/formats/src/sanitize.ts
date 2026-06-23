@@ -19,6 +19,7 @@ import {
 } from './charsets.js';
 import {
   deTeXify,
+  removeTeX,
   removeCurlyBraces,
   replaceComposedCharacters,
   lossyASCII,
@@ -112,6 +113,7 @@ export function sanitize(
   if (isGeneralLocalFile(fieldName, tm)) {
     if (isEmpty(s)) return '';
     let out = deTeXify(s);
+    out = removeTeX(out); // strip $…$, \commands, braces — never wanted in a filename
     out = stripChars(out, invalidCharsForKind('localFile'));
     return out;
   }
@@ -169,13 +171,11 @@ export function strictlySanitize(
       clean >= 3
         ? veryStrictInvalidCharsForKind('localFile')
         : strictInvalidCharsForKind('localFile');
-    let out = deTeXify(s);
-    if (clean === 1) {
-      out = removeCurlyBraces(out);
-    } else if (clean >= 2) {
-      out = deTeXify(out); // removeTeX
-      if (clean === 4) out = lossyASCII(out);
-    }
+    let out = deTeXify(s); // {\'e} accent spans -> Unicode
+    // Always strip structural TeX markup ($…$, \commands, braces) — a filename
+    // should never contain raw LaTeX (e.g. a title `$O(\log n)$` -> `O(log n)`).
+    out = removeTeX(out);
+    if (clean === 4) out = lossyASCII(out);
     out = stripChars(out, pred);
     return out;
   }
