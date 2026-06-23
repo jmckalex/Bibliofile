@@ -1176,6 +1176,7 @@ export const BUILTIN_COLUMNS = [
   'year',
   'keywords',
   'attachments',
+  'annotation',
   'read',
   'rating',
 ] as const;

@@ -45,8 +45,12 @@ function ColumnsSection({
   const set = (next: string[]): void => void save({ columns: next });
   const remove = (key: string): void => set(columns.filter((c) => c !== key));
   const add = (key: string): void => {
-    const k = key.trim();
-    if (k && !columns.includes(k)) set([...columns, k]);
+    const raw = key.trim();
+    if (!raw) return;
+    // Canonicalize a builtin column typed in any case (e.g. "Annotation" →
+    // "annotation") so it uses the builtin indicator, not an empty field column.
+    const k = BUILTIN_COLUMNS.find((c) => c.toLowerCase() === raw.toLowerCase()) ?? raw;
+    if (!columns.includes(k)) set([...columns, k]);
   };
 
   const availableBuiltins = BUILTIN_COLUMNS.filter((c) => !columns.includes(c));
