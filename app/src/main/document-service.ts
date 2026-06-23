@@ -1004,7 +1004,7 @@ export class DocumentStore {
     citeKeyFormat: DEFAULT_CITE_KEY_FORMAT,
     defaultEntryType: 'article',
     papersFolder: '',
-    autoFileFormat: '%a1/%Y%u0',
+    autoFileFormat: '%p1/%T5',
     annotationStorage: 'compressed' as AnnotationStorage,
     defaultCiteStyle: 'apa',
     detailsTemplate: undefined as string | undefined,

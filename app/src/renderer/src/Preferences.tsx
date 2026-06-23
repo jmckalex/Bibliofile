@@ -996,8 +996,8 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                   </label>
                   <p className="bd-prefs__hint">
                     <strong>Publication → AutoFile Linked Files</strong> moves an entry’s attachments into the
-                    Papers folder, named by this format (e.g. <code>%a1/%Y%u0</code> = first-author folder,
-                    year + disambiguator).
+                    Papers folder, named by this format (default <code>%p1/%T5</code> = a folder per first
+                    author or editor, then the title’s first words; the extension is added automatically).
                   </p>
                 </section>
                 <section className="bd-prefs__section">

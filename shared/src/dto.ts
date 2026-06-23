@@ -1101,7 +1101,7 @@ export interface Settings {
   readonly columnWidths: Record<string, number>;
   /** Absolute path of the AutoFile "Papers" folder (empty = AutoFile disabled). */
   readonly papersFolder: string;
-  /** AutoFile destination-name format (BDSKFormatParser; e.g. `%a1/%Y%u0`). */
+  /** AutoFile destination-name format (BDSKFormatParser; default `%p1/%T5`). */
   readonly autoFileFormat: string;
   /** When true, save automatically a moment after each edit. */
   readonly autosave: boolean;
@@ -1191,7 +1191,7 @@ export const DEFAULT_SETTINGS: Settings = {
   columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],
   columnWidths: {},
   papersFolder: '',
-  autoFileFormat: '%a1/%Y%u0',
+  autoFileFormat: '%p1/%T5',
   autosave: false,
   fullTextSearch: false,
   agentModel: 'claude-opus-4-8',
