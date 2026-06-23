@@ -400,6 +400,8 @@ export interface PublicationRow {
   readonly year: string;
   /** True when the entry has a non-empty `Keywords` field (key-icon column). */
   readonly hasKeywords: boolean;
+  /** True when the entry has a non-empty annotation (`Annote`); note-icon column. */
+  readonly hasAnnotation: boolean;
   /** Number of local file attachments (`Bdsk-File-N` + `Local-Url`); paperclip column. */
   readonly attachmentCount: number;
   /** Tri-state of the `Read` boolean field: 1 on, -1 off, 0 unset (checkbox column). */

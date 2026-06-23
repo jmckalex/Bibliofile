@@ -643,6 +643,19 @@ describe('document-service: BD test.bib', () => {
     expect(read['readnone']).toBe(0); // no Read field → unset/blank
   });
 
+  it('hasAnnotation flags entries that have an annotation (Annote)', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{noted, Title = {A}, Annote = {Some thoughts}}\n\n@article{plain, Title = {B}}',
+      '/tmp/annote.bib',
+    );
+    const has = Object.fromEntries(
+      store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => [r.citeKey, r.hasAnnotation]),
+    );
+    expect(has['noted']).toBe(true);
+    expect(has['plain']).toBe(false);
+  });
+
   it('consolidateLinkedFiles bulk-files every entry, then is idempotent', () => {
     const dir = mkdtempSync(join(tmpdir(), 'bd-consolidate-'));
     const store = new DocumentStore();

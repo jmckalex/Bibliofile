@@ -69,6 +69,7 @@ const sampleRow: PublicationRow = {
   title: 'Literate Programming',
   year: '1984',
   hasKeywords: true,
+  hasAnnotation: false,
   attachmentCount: 1,
   read: 1,
   rating: 0,

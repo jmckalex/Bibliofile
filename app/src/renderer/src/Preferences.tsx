@@ -21,6 +21,7 @@ const COLUMN_LABELS: Record<string, string> = {
   year: 'Year',
   keywords: 'Keywords',
   attachments: 'Attachments',
+  annotation: 'Annotation',
   read: 'Read',
   rating: 'Rating',
 };

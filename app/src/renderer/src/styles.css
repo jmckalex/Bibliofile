@@ -1732,6 +1732,15 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
   overflow: visible;
 }
 
+/* Icon-column headers center their glyph with the same tight inset as the cell,
+   so the header icon lines up exactly above the row icons (the default header
+   label is left-aligned with a wider inset). */
+.bd-th--icon .bd-th__label {
+  justify-content: center;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 /* Rating: left-aligned stars with a tight inset (not the 10px text inset), and no
    clipping so all five stars show at the default column width. */
 .bd-td--rating {
@@ -1831,6 +1840,10 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+}
+
+.bd-icon--note {
+  color: var(--bd-text-muted);
 }
 
 .bd-icon__count {

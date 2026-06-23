@@ -439,6 +439,7 @@ export function toPublicationRow(item: BibItem, extraFields?: readonly string[])
     title: toDisplay(item.stringValueOfField(FieldNames.Title, true)),
     year: item.stringValueOfField(FieldNames.Year, true),
     hasKeywords: item.stringValueOfField('Keywords', false).trim().length > 0,
+    hasAnnotation: readAnnotation(item).trim().length > 0,
     attachmentCount: attachmentCountOf(item),
     read: readStateOf(item),
     rating,

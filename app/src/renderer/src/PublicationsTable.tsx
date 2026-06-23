@@ -99,7 +99,7 @@ function builtinDefs(t: TFunction): Record<string, Col> {
     keywords: col.display({
       id: 'keywords',
       header: () => <HeaderIcon name="keywords" title={t('column.keywords')} />,
-      meta: { width: 34, cellClass: 'bd-td--icon' } satisfies ColMeta,
+      meta: { width: 28, cellClass: 'bd-td--icon' } satisfies ColMeta,
       cell: ({ row }) =>
         row.original.hasKeywords ? (
           <Icon name="keywords" className="bd-icon bd-icon--key" title={t('table.hasKeywords')} />
@@ -108,7 +108,7 @@ function builtinDefs(t: TFunction): Record<string, Col> {
     attachments: col.display({
       id: 'attachments',
       header: () => <HeaderIcon name="attachment" title={t('column.attachments')} />,
-      meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
+      meta: { width: 32, cellClass: 'bd-td--icon' } satisfies ColMeta,
       cell: ({ row }) => {
         const n = row.original.attachmentCount;
         if (n <= 0) return null;
@@ -123,10 +123,19 @@ function builtinDefs(t: TFunction): Record<string, Col> {
         );
       },
     }),
+    annotation: col.display({
+      id: 'annotation',
+      header: () => <HeaderIcon name="annotation" title={t('column.annotation')} />,
+      meta: { width: 28, cellClass: 'bd-td--icon' } satisfies ColMeta,
+      cell: ({ row }) =>
+        row.original.hasAnnotation ? (
+          <Icon name="annotation" className="bd-icon bd-icon--note" title={t('table.hasAnnotation')} />
+        ) : null,
+    }),
     read: col.display({
       id: 'read',
       header: () => <HeaderIcon name="read" title={t('column.read')} />,
-      meta: { width: 40, cellClass: 'bd-td--icon' } satisfies ColMeta,
+      meta: { width: 28, cellClass: 'bd-td--icon' } satisfies ColMeta,
       // 1 = read (checked), -1 = explicitly unread (empty box), 0 = unset (blank).
       cell: ({ row }) => {
         const r = row.original.read;
@@ -496,6 +505,7 @@ export function PublicationsTable() {
         <div className="bd-table__head-inner" style={{ width: layout.total }}>
           {headerGroups[0]?.headers.map((header) => {
             const id = header.column.id;
+            const isIcon = (header.column.columnDef.meta as ColMeta | undefined)?.cellClass === 'bd-td--icon';
             const spec = sort.find((s) => s.key === id);
             // Show a priority number only when more than one column is sorted.
             const rank = spec && sort.length > 1 ? sort.indexOf(spec) + 1 : 0;
@@ -504,7 +514,10 @@ export function PublicationsTable() {
               <div
                 key={header.id}
                 className={
-                  'bd-th' + (dropCol === id ? ' bd-th--drop' : '') + (dragCol === id ? ' bd-th--dragging' : '')
+                  'bd-th' +
+                  (isIcon ? ' bd-th--icon' : '') +
+                  (dropCol === id ? ' bd-th--drop' : '') +
+                  (dragCol === id ? ' bd-th--dragging' : '')
                 }
                 role="columnheader"
                 style={{ flex: `0 0 ${width}px`, width }}

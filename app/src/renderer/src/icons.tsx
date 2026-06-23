@@ -40,6 +40,7 @@ import {
   faCaretDown,
   faKey,
   faPaperclip,
+  faNoteSticky,
   faSquareCheck,
   faStar as faStarSolid,
   faFile,
@@ -94,6 +95,7 @@ export const ICONS = {
   // Table / detail indicators
   keywords: faKey,
   attachment: faPaperclip,
+  annotation: faNoteSticky,
   read: faSquareCheck,
   unread: faSquare,
   starOn: faStarSolid,

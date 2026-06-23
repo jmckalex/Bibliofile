@@ -33,7 +33,7 @@ const GROUPS: GroupNode[] = [
   { id: 'g1', kind: 'static', name: 'Favourites', count: 2 },
 ];
 
-const FLAGS = { hasKeywords: false, attachmentCount: 0, read: 0, rating: 0 } as const;
+const FLAGS = { hasKeywords: false, hasAnnotation: false, attachmentCount: 0, read: 0, rating: 0 } as const;
 const ALL_ROWS: PublicationRow[] = [
   { id: 'i1', citeKey: 'beta2020', type: 'article', authorsDisplay: 'B. Author', title: 'Beta', year: '2020', ...FLAGS },
   { id: 'i2', citeKey: 'alpha2019', type: 'book', authorsDisplay: 'A. Author', title: 'Alpha', year: '2019', ...FLAGS },

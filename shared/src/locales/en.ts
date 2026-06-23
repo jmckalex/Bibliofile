@@ -95,11 +95,13 @@ export const en: Catalog = {
   'column.year': 'Year',
   'column.keywords': 'Keywords',
   'column.attachments': 'Attachments',
+  'column.annotation': 'Annotation',
   'column.read': 'Read',
   'column.rating': 'Rating',
 
   // --- Publications table (tooltips / empty state) ---
   'table.hasKeywords': 'Has keywords',
+  'table.hasAnnotation': 'Has an annotation',
   'table.attachmentTooltip': '{count} attachment',
   'table.attachmentTooltipPlural': '{count} attachments',
   'table.unread': 'Unread',
