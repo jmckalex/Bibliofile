@@ -170,7 +170,7 @@ function FullTextSection({
         </div>
       </div>
       <p className="bd-prefs__hint">
-        How many pages of each PDF to scan for the full-text index. <strong>At most N</strong>
+        How many pages of each PDF to scan for the full-text index. <strong>At most N</strong>{' '}
         keeps indexing fast (40 is plenty for articles); <strong>All</strong> indexes the whole
         PDF — useful for long or scanned books, <em>provided the scan has a searchable text layer
         (OCR)</em>. Changing this re-indexes any open libraries.
