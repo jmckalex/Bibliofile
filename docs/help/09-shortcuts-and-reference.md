@@ -309,7 +309,7 @@ appear.
 | `Read` | Tri-state flag | Drives the **Read** icon column (read / unread / unset). A value such as `1` or `yes` means read; `0` or `no` means explicitly unread. |
 | `Rating` | 0–5 number | Drives the optional **Rating** star column. |
 | `Abstract` | Markdown | Rendered as Markdown (with math) in the preview card. |
-| `Annote` | Markdown notes | Edited/rendered in the **Notes** section (with `[[citeKey]]` links and safe iframes); hidden from the generic field list. |
+| `Annote` | Markdown notes | Edited/rendered in the **Notes** section (with `[[citeKey]]` links and safe iframes); hidden from the generic field list. Drives the optional **Annotation** indicator column (a 📄 icon when the entry has an annotation). |
 | `Crossref` | Inheritance link | Names a parent entry's cite key; the child inherits the parent's fields (shown **(inherited)**). Editing an inherited value creates a local override. |
 
 Everything else (`Publisher`, `Address`, `Edition`, `Series`, `ISBN`, `Note`,
@@ -355,7 +355,8 @@ every library and persist across sessions — none of them is written into your
 | **Cite command (TeX)** | Drag / Copy cite | `\cite{%K}` | The template used by drag-out and **Copy \cite{…}**; `%K` = the cite key |
 | **Columns** | (list + add/remove/reorder) | Cite Key, Type, Authors, Title, Year, Keywords, Attachments, Read | The table columns and their order (see [Browsing & Searching](02-browsing-and-searching.md#226-configuring-the-columns)) |
 | **AutoFile** | Papers folder | *(empty)* | Where [AutoFile](04-attachments.md#autofile-organising-linked-files) moves attachments (AutoFile is off until this is set) |
-| **AutoFile** | File name | `%a1/%Y%u0` | The file-name format AutoFile applies |
+| **AutoFile** | File name | `%p1/%T5` | The file-name format AutoFile applies (first author/editor folder, then the title's first words) |
+| **AutoFile** | AutoFile attachments when added | **off** | When on (and a Papers folder is set), files an attachment as soon as it's added |
 | **Saving** | Autosave | **off** | When on, saves automatically a moment after each edit |
 | **New entries** | Default type | `article` | The entry type the **New** button/command creates |
 | **Field types** | Person / Remote URL / Local file / Rating / Boolean / Tri-state / Citation fields | (sensible defaults) | Which field names the app treats specially — e.g. which fields are people, which are URLs, which is the `Rating` field, which is the `Read` boolean |

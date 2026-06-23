@@ -60,9 +60,12 @@ once; duplicates are collapsed.
 Each chosen file is attached to the entry immediately as a new managed
 `Bdsk-File-N` link, and the document is marked **unsaved**.
 
-> **Tip:** You can also **drag a PDF (or any file) onto the window** to create a
-> new entry with that file already attached — handy for importing a folder of
-> papers in one go. See
+> **Tip:** You can also **drag a file onto the detail (inspector) pane** on the
+> right to attach it to the entry currently shown there — no dialog needed.
+> (Dropping an image onto the journal-cover thumbnail is separate: that sets the
+> cover, not an attachment.) And dropping files onto the **main publications list**
+> still **creates new entries** with the files attached — handy for importing a
+> folder of papers in one go. See
 > [Importing & exporting → Drag and drop](07-importing-and-exporting.md#73-drag-and-drop).
 
 > **Warning:** Adding an attachment is an in-memory edit, like any other. It is
@@ -303,37 +306,66 @@ the same idea as BibDesk's AutoFile.
 ### Setting it up
 
 Before AutoFile can run, tell it where your Papers folder is and how to name
-files, in **Preferences**:
+files, in **Preferences → AutoFile**:
 
-- **AutoFile → Papers folder** — click **Choose…** and pick the folder where
-  filed attachments should live (the **×** clears it). AutoFile is **disabled
-  until this is set**.
-- **AutoFile → File name** — the file-name format. The default is `%a1/%Y%u0`,
-  which files each paper in a *first-author* subfolder and names it by *year*,
-  adding a short disambiguator only when two papers would otherwise collide.
+- **Papers folder** — click **Choose…** and pick the folder where filed
+  attachments should live (the **×** clears it). AutoFile is **disabled until
+  this is set**.
+- **File name** — the file-name format. The default is `%p1/%T5`, which files
+  each paper in a *first-author* subfolder and names it by the first significant
+  words of the *title*.
+- **AutoFile attachments when added** — a checkbox (disabled until a Papers
+  folder is set). When **on**, a newly-added attachment is filed into the Papers
+  folder *immediately* — whether you added it by drag-and-drop, the file picker,
+  or a PDF import. When **off** (the default), attachments stay where they are
+  until you run AutoFile manually.
 
-The file-name format uses the same mini-language as the cite-key format (see
+#### Understanding the default `%p1/%T5`
+
+- **`%p1`** is the first author's last name. Crucially, **`%p` falls back to the
+  first *editor*** when an entry has no author (whereas `%a` would not), so an
+  edited book with no author is filed under its editor.
+- The **`/`** makes a subfolder.
+- **`%T5`** is the title's first significant words — it counts words longer than
+  three letters, keeping short connector words like *the* / *of* along the way.
+  (For the literal first five words, use `%T[0]5`.)
+
+Two niceties are handled for you, so you need not encode them:
+
+- The **file extension is appended automatically** — do **not** put `%e` in the
+  format.
+- **Filename collisions get a numeric suffix automatically** — you don't need
+  `%u` / `%n` to disambiguate.
+
+The destination name also **strips LaTeX and math markup**, so a title like
+`$O(\log n)$` files as `O(log n)`.
+
+The file-name format otherwise uses the same mini-language as the cite-key format
+(see
 [Editing entries → How Generate works](03-editing-entries.md#how-generate-works)).
-Useful specifiers include `%a1` (first author's surname), `%A` (authors with
-initials), `%Y` / `%y` (4- or 2-digit year), `%t` / `%T` (title characters /
-words), `%f{Field}` (any field's value), a literal `/` to create a subfolder, and
-`%u` / `%U` / `%n` (a lowercase / uppercase / numeric disambiguator added only
-when needed to avoid a name clash). The file's original extension is kept
-automatically.
+Useful specifiers include `%p1` / `%a1` (first author's surname, with/without the
+editor fallback), `%A` (authors with initials), `%Y` / `%y` (4- or 2-digit year),
+`%t` / `%T` (title characters / words), `%f{Field}` (any field's value), and a
+literal `/` to create a subfolder.
 
 ### Running it
 
-Select an entry and choose **Publication → AutoFile Linked Files**. For that
-entry, each managed file attachment is:
+Select one or more entries and choose **Publication → AutoFile Linked Files**.
+For each selected entry, every managed file attachment is:
 
 1. **Moved** into the Papers folder, into the subfolder and under the name the
-   format produces (e.g. `Einstein/1905.pdf`). If a file with that name already
-   exists, a disambiguator keeps it unique.
+   format produces (e.g. `Einstein/On the electrodynamics.pdf`). If a file with
+   that name already exists, a numeric suffix keeps it unique.
 2. **Re-linked** — the `Bdsk-File-N` link is rewritten to the file's new location
    (still as a path relative to your `.bib`, so the library stays portable).
 
-AutoFile works on the **selected entry** only, so you can file papers as you add
-them. As with any edit, the change is in memory until you **Save**.
+AutoFile Linked Files works on the **whole selection**. With **two or more**
+entries selected it first shows a **confirmation dialog** (files are moved on
+disk, so this is a real change) and a summary once it finishes. As with any edit,
+the change is in memory until you **Save**.
+
+> **Tip:** To file the *whole library* (or just the selection) in one go, use
+> **Publication → Consolidate Linked Files…** instead.
 
 > **Note:** AutoFile **moves** the actual file on disk (copying then deleting if
 > the destination is on a different drive). The original file leaves its old
@@ -363,12 +395,13 @@ opens, so PDF matches may appear a moment after the first results. See
 | Action | How |
 |--------|-----|
 | Add file attachment(s) | Select entry → **＋ Add** in Attachments (or **Publication → Add File Attachment…**) → pick one or more files |
-| Add via drag-and-drop | Drag a PDF/file onto the window → new entry with the file attached |
+| Attach via drag-and-drop | Drag a file onto the **detail pane** → attaches to the shown entry; drag onto the **publications list** → new entry with the file attached |
 | Open an attachment | Click it → opens in your OS default app (PDFs in your usual reader); or click the **📎 N files** preview chip |
 | Open another file / link | Click it (file → default app; link → browser) |
 | Remove a file attachment | Click **×** beside it |
 | Remove a URL/DOI link | Edit/delete the `Url` or `Doi` field in **Fields** |
-| File attachments into the Papers folder | **Publication → AutoFile Linked Files** (set the Papers folder + format in Preferences) |
+| File selected entries into the Papers folder | **Publication → AutoFile Linked Files** (works on the whole selection; set the Papers folder + format in **Preferences → AutoFile**) |
+| File the whole library into the Papers folder | **Publication → Consolidate Linked Files…** |
 | Reveal the `.bib` in your file manager | **File → Show in Finder** (macOS) / **Show in File Manager** |
 | Persist attachment changes | **Save** (Cmd+S / Ctrl+S) — attachments are in memory until saved |
 
@@ -404,8 +437,8 @@ value in the **Fields** section.
 **"AutoFile says no Papers folder is configured."**
 AutoFile needs a destination folder before it can run. Open **Preferences →
 AutoFile** and choose a **Papers folder** (and, if you like, adjust the **File
-name** format). Then select an entry and run **Publication → AutoFile Linked
-Files** again.
+name** format). Then select one or more entries and run **Publication → AutoFile
+Linked Files** again.
 
 **"An attachment won't open / nothing happens."**
 Opening hands the file to your OS through its attachment link, so the same things

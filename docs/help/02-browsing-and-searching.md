@@ -51,6 +51,7 @@ so you can add, remove, and reorder them; the defaults are:
 | **Keywords** (icon) | A 🔑 key icon when the entry has any keywords. | Non-empty `Keywords` field. |
 | **Attachments** (icon) | A 📎 paperclip (with a small count badge if more than one) when the entry has attached files. | The entry's `Bdsk-File-N` attachments (and a `Local-Url`, if any). |
 | **Read** (icon) | A checked box when the entry is marked read, an empty box when explicitly unread, nothing when unset. | The `Read` field (a tri-state value). |
+| **Annotation** (icon, not shown by default) | A 📄 file icon when the entry has an annotation. | Non-empty notes/`Annote` content (including markdown annotations). |
 
 A few details worth knowing about how the text values are produced:
 
@@ -208,6 +209,11 @@ carry a custom `Funding` or `Project` field, you can surface it as a column.
 (Reordering and resizing happen on the header itself — see above and
 [§2.2.2](#222-column-widths).)
 
+> **Note:** To add the **Annotation** indicator, pick the built-in
+> **"Annotation"** entry from the **Add column…** dropdown — *not* the raw
+> `Annote` field. Typing `Annote` in the field box gives a plain (and empty) text
+> column instead of the 📄 icon indicator.
+
 Your column configuration is saved with the application's other preferences (in
 `settings.json`), so it persists across sessions and applies to every library you
 open. It is *not* stored in any `.bib` file.
@@ -230,6 +236,9 @@ Three of the default columns are compact **icon** columns rather than text:
   header is a checked-box icon.
 - **★ Rating** (not shown by default) — when you add the Rating column, it shows
   the entry's `Rating` field as that many filled stars (out of five).
+- **📄 Annotation** (not shown by default) — when you add the Annotation column, it
+  shows a file glyph in any row whose entry has an annotation — non-empty
+  notes/`Annote` content, including markdown annotations.
 
 > **Note:** The icon columns are **display-only indicators** — they reflect the
 > underlying fields but you do not click them to toggle anything. To mark an entry

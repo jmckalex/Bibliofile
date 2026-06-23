@@ -107,13 +107,33 @@ displayed form looks short.
 > You still edit it as plain text here; see
 > [Notes & Abstracts](05-notes-and-abstracts.md) for the Markdown conventions.
 
+### Special-purpose field editors
+
+A few fields are recognised by name and edited with a purpose-built control
+rather than a text box:
+
+- **`Read`** is a boolean, so it shows a **checkbox** instead of a text box. Tick
+  it to mark the entry as read, untick it to mark it unread. A stored value of
+  `1`, `yes`, `true`, or `on` counts as "read"; anything else (or no field) is
+  unread.
+- **`Keywords`** gives a chip editor for its comma-separated tokens (see
+  [Notes & Abstracts](05-notes-and-abstracts.md) and
+  [Browsing & Searching](02-browsing-and-searching.md)).
+
+These editors also appear when you create the field from the **＋** add-field row:
+the blank row starts as a text box, but the moment you name it `Read` it switches
+to a checkbox (just as naming it `Keywords` gives the chip editor).
+
 ### Field-value autocomplete
 
-When you click into a **single-line** field, the editor offers an autocomplete
-list of values **already used in that same field elsewhere in your library**. As
-you type, the list narrows to matching suggestions; pick one to fill the box. This
-makes consistent data entry effortless — the same journal name, publisher,
-keyword, or series spelled the same way every time.
+Autocomplete is offered only for **shared-vocabulary fields** — the fields whose
+values you tend to reuse verbatim across entries, such as `Journal`, `Publisher`,
+`Series`, `Editor`, `Author`, `Institution`, `Year`, and `Volume`. When you click
+into one of these single-line fields, the editor offers an autocomplete list of
+values **already used in that same field elsewhere in your library**. As you type,
+the list narrows to matching suggestions; pick one to fill the box. This makes
+consistent data entry effortless — the same journal name, publisher, editor, or
+series spelled the same way every time.
 
 - The suggestions are drawn from the **distinct existing values** of that field
   across every entry, gathered the first time you focus the box. So the more
@@ -122,9 +142,10 @@ keyword, or series spelled the same way every time.
 - For **`Keywords`** and other multi-value list fields, the suggestions are the
   individual tokens (split on commas/semicolons), not whole comma-joined strings,
   so you can complete one keyword at a time.
-- Long fields (the `Abstract`, or anything that opens as a multi-line textarea)
-  do **not** offer completions — there is rarely a useful "existing value" to
-  reuse for free prose.
+- Fields whose values are unique to each entry or are free-form prose — `Title`,
+  `Subtitle`, `DOI`, `URL`, `Eprint`, `Pages`, `Note`, `Abstract`, `ISBN` — do
+  **not** offer completions, because there is rarely a useful "existing value" to
+  reuse for them.
 
 > **Tip:** Autocomplete is the easiest way to keep a controlled vocabulary. Reuse
 > an existing keyword from the list rather than retyping it, and your
@@ -722,7 +743,7 @@ including a real BibDesk-authored library.
 
 | Action | How |
 |--------|-----|
-| Edit a field | Click the value, type, press Enter (single-line) or click away (textarea); pick from the autocomplete list of existing values |
+| Edit a field | Click the value, type, press Enter (single-line) or click away (textarea); on shared-vocabulary fields (Journal, Publisher, Editor, …) pick from the autocomplete list of existing values |
 | Add a field | Type name + value in the **New field** row, press Enter or click + |
 | Add a field | Click the green **＋** below the fields, fill name + value, press Enter |
 | Remove a field | Click the red **−** on the field's row (required fields can't be removed), or clear its value and commit |

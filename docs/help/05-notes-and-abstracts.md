@@ -147,6 +147,15 @@ allowed."*
 > (Cmd+S / Ctrl+S), at which point it is written to the `Annote` field in the
 > `.bib` file. See [Editing Entries](03-editing-entries.md).
 
+> **Tip — see which entries have notes at a glance:** Add the **Annotation**
+> indicator column to the publications table (**Preferences → Columns**, then pick
+> **Annotation** from the dropdown). It shows a file icon in any row whose entry
+> carries an annotation. This works for Markdown notes too: notes containing
+> special characters are stored in a `Bdsk-Annotation` field, plain ones in the
+> standard `Annote` field, and the indicator detects both. Choose the builtin
+> **Annotation** column, *not* a raw **Annote** field column — the latter reads the
+> empty plain field and won't show the icon for Markdown notes.
+
 ## Markdown reference
 
 Bibliofile renders Markdown with a standard CommonMark-style parser and
