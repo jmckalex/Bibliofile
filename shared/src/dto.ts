@@ -118,6 +118,7 @@ export type BatchOp =
   | { readonly kind: 'setField'; readonly field: string; readonly value: string }
   | { readonly kind: 'addKeyword'; readonly keyword: string }
   | { readonly kind: 'removeKeyword'; readonly keyword: string }
+  | { readonly kind: 'generateCiteKey' }
   | { readonly kind: 'delete' };
 
 /** Apply a {@link BatchOp} to a set of items. */

@@ -167,6 +167,27 @@ describe('document-service: BD test.bib', () => {
     expect(store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.citeKey)).toEqual(['b']);
   });
 
+  it('batchEdit generateCiteKey regenerates the whole selection, keeping keys unique', () => {
+    const store = new DocumentStore();
+    // Two entries that would derive the same base key (same author + year).
+    const { documentId } = store.openText(
+      '@article{x, Author = {John Smith}, Year = {2020}, Title = {Alpha}}\n' +
+        '@article{y, Author = {John Smith}, Year = {2020}, Title = {Beta}}',
+      '/tmp/keys.bib',
+    );
+    const ids = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    const r = store.batchEdit(documentId, [ids[0]!.id, ids[1]!.id], { kind: 'generateCiteKey' });
+    expect(r.count).toBe(2);
+    const keys = store
+      .listPublications({ documentId, offset: 0, limit: -1 })
+      .rows.map((row) => row.citeKey);
+    // Both regenerated away from x/y, both derive from Smith/2020, and stay distinct.
+    expect(keys).not.toContain('x');
+    expect(keys).not.toContain('y');
+    expect(keys.every((k) => k.toLowerCase().includes('smith') && k.includes('2020'))).toBe(true);
+    expect(new Set(keys).size).toBe(2);
+  });
+
   it('mergeEntries fills missing fields, unions keywords, and deletes the others', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText(

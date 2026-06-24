@@ -1738,10 +1738,26 @@ export class DocumentStore {
   ): { count: number; changes: { from: string; to: string }[]; crossrefUpdated: number } {
     this.snapshot(documentId, 'Regenerate Cite Keys');
     const doc = this.requireDoc(documentId);
+    const { changes, crossrefUpdated } = this.regenerateKeysFor(doc, this.targetItems(doc, citeKeys));
+    if (changes.length) doc.dirty = true;
+    return { count: changes.length, changes, crossrefUpdated };
+  }
+
+  /**
+   * Regenerate cite keys for the given items from the configured format,
+   * maintaining uniqueness across the whole batch (and the rest of the library)
+   * and repointing `Crossref` references to any renamed entry. Pure mechanics —
+   * the caller owns the undo snapshot and the `dirty` flag. Returns the from→to
+   * changes and the crossref-fix count.
+   */
+  private regenerateKeysFor(
+    doc: OpenDoc,
+    items: readonly BibItem[],
+  ): { changes: { from: string; to: string }[]; crossrefUpdated: number } {
     const taken = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
     const changes: { from: string; to: string }[] = [];
     const renames = new Map<string, string>(); // lowercased old key -> new key
-    for (const item of this.targetItems(doc, citeKeys)) {
+    for (const item of items) {
       const from = item.citeKey;
       taken.delete(from.toLowerCase()); // allow reusing the base; avoid the others
       const to = generateCiteKey(this.editConfig.citeKeyFormat, item, taken) || from;
@@ -1754,8 +1770,7 @@ export class DocumentStore {
       taken.add(to.toLowerCase());
     }
     const crossrefUpdated = this.cascadeCrossrefRenames(doc, renames);
-    if (changes.length) doc.dirty = true;
-    return { count: changes.length, changes, crossrefUpdated };
+    return { changes, crossrefUpdated };
   }
 
   /**
@@ -2446,12 +2461,24 @@ export class DocumentStore {
 
   /**
    * Apply a {@link BatchOp} to many items as ONE undo step: set/clear a field,
-   * add/remove a keyword (deduped, case-insensitive), or delete. Returns how many
-   * items actually changed.
+   * add/remove a keyword (deduped, case-insensitive), regenerate cite keys, or
+   * delete. Returns how many items actually changed.
    */
   batchEdit(documentId: string, itemIds: readonly string[], op: BatchOp): BatchEditResult {
-    this.snapshot(documentId);
+    this.snapshot(documentId, op.kind === 'generateCiteKey' ? 'Generate Cite Key' : 'Edit');
     const doc = this.requireDoc(documentId);
+
+    // Cite-key generation must run over the whole batch at once so keys stay
+    // unique across the selection (and crossrefs repoint), not item-by-item.
+    if (op.kind === 'generateCiteKey') {
+      const items = itemIds
+        .map((id) => doc.itemsById.get(id))
+        .filter((i): i is BibItem => i !== undefined);
+      const { changes } = this.regenerateKeysFor(doc, items);
+      if (changes.length) doc.dirty = true;
+      return { dirty: doc.dirty, count: changes.length };
+    }
+
     const splitKw = (s: string): string[] => s.split(/[,;]/).map((k) => k.trim()).filter(Boolean);
     let count = 0;
 

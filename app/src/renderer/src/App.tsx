@@ -239,7 +239,10 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       await store.deleteSelection();
       return;
     case 'generateCiteKey':
-      if (selectedItemId) await store.edit({ kind: 'generateCiteKey', itemId: selectedItemId });
+      // Regenerate keys for the whole selection (one undo step, batch-unique);
+      // fall back to the single-item edit when only one row is selected.
+      if (selectedIds.length >= 2) await store.batchEdit({ kind: 'generateCiteKey' });
+      else if (selectedItemId) await store.edit({ kind: 'generateCiteKey', itemId: selectedItemId });
       return;
     case 'addAttachment':
       if (selectedItemId) await store.addAttachment(selectedItemId);
