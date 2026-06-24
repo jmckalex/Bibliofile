@@ -18,6 +18,7 @@ import {
   toDisplay,
 } from './document-service.js';
 import { FtsIndex } from './fts.js';
+import { renderCite } from './csl-format.js';
 
 /** Whether the native FTS backend loads in this runtime (skips FTS tests if not). */
 const FTS_AVAILABLE = ((): boolean => {
@@ -1453,5 +1454,38 @@ describe('abstract storage modes', () => {
     const bib = store.serializeDocument(documentId);
     expect(bib).not.toMatch(/bdsk-abstract/i);
     expect(bib).toMatch(/Abstract\s*=\s*\{now plain\}/i);
+  });
+});
+
+describe('\\cite commands in annotations', () => {
+  // The real injected engine (csl-format), wired exactly as the electron layer does.
+  const BIB =
+    '@article{other2020, author = {Smith, Jane}, title = {A Title}, year = {2020}, journal = {J}}\n' +
+    '@article{main2021, author = {Doe, John}, title = {Main}, year = {2021}, Annote = {See \\citep{other2020} and \\citet{other2020}; also \\citep{ghost1999}.}}';
+
+  const detailOf = (inject: boolean): string => {
+    const store = new DocumentStore();
+    if (inject) store.setEditConfig({ renderCite });
+    const { documentId } = store.openText(BIB, '/tmp/cite.bib');
+    const id = store
+      .listPublications({ documentId, offset: 0, limit: -1 })
+      .rows.find((r) => r.citeKey === 'main2021')!.id;
+    return store.getItemDetail({ documentId, itemId: id }).notesHtml;
+  };
+
+  it('renders \\cite commands as formatted, clickable citations', () => {
+    const html = detailOf(true);
+    expect(html).toContain('class="bd-cite"');
+    expect(html).toContain('data-cite="other2020"');
+    expect(html).toContain('(Smith, 2020)'); // \citep → parenthetical
+    expect(html).toContain('Smith (2020)'); // \citet → textual
+    expect(html).toContain('bd-cite--missing'); // \citep{ghost1999} flagged
+    expect(html).not.toContain('\\citep{other2020}'); // command text consumed
+  });
+
+  it('leaves \\cite commands literal when no engine is injected', () => {
+    const html = detailOf(false);
+    expect(html).toContain('\\citep{other2020}');
+    expect(html).not.toContain('bd-cite');
   });
 });

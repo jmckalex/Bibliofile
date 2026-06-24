@@ -1,9 +1,10 @@
 /**
- * CSL formatted-citation rendering via citation-js (citeproc-js engine + bundled
- * CSL styles + en-US locale, all offline). Runs in the MAIN process. The
- * BibItem→CSL-JSON mapping lives in document-service (pure/testable); this module
- * turns CSL-JSON into a styled HTML string and manages user-installed `.csl`
- * styles (registered as extra citeproc templates).
+ * CSL user-style management (the **electron-coupled** half): loads, validates,
+ * registers, and persists user-installed `.csl` files under `userData`, sharing
+ * citation-js's one global template registry with the formatter in
+ * `csl-format.ts`. The actual citeproc formatting (bibliography entries + inline
+ * `\cite{…}` commands) lives in `csl-format.ts` so it stays electron-free and
+ * testable; `formatCitation` is re-exported here for existing importers.
  *
  * NOTE: citation-js bundles citeproc-js, which is AGPL/CPAL — accepted by the
  * user as the single non-permissive dependency (see BUILD-LOG "Stage 7").
@@ -23,15 +24,7 @@ import {
 import { basename, join } from 'node:path';
 import { CITATION_STYLES, type CitationStyle } from '@bibdesk/shared';
 
-/** Format one CSL-JSON item as an HTML bibliography entry in the given style. */
-export function formatCitation(cslItem: Record<string, unknown>, styleId: string): string {
-  const cite = new Cite([cslItem]);
-  return cite.format('bibliography', {
-    format: 'html',
-    template: styleId || 'apa',
-    lang: 'en-US',
-  }) as string;
-}
+export { formatCitation } from './csl-format.js';
 
 // --- user-installed CSL styles ---------------------------------------------
 

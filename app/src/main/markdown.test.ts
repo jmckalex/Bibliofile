@@ -98,4 +98,21 @@ describe('renderNotes', () => {
     expect(h).toContain('$x_1$');
     expect(h).toContain('data-cite="k"');
   });
+
+  it('renders \\cite{…} commands via the supplied formatter (trusted HTML past sanitize)', () => {
+    const renderCite = (raw: string): string =>
+      `<span class="bd-cite" data-cite="k">[${raw}]</span>`;
+    const h = renderNotes('As **shown** by \\citep{k_2020}, this holds.', () => true, renderCite);
+    // the whole command was tokenized (its `_` was NOT turned into emphasis)…
+    expect(h).toContain('<span class="bd-cite" data-cite="k">[\\citep{k_2020}]</span>');
+    expect(h).not.toContain('<em>');
+    // …and the surrounding markdown still rendered
+    expect(h).toContain('<strong>shown</strong>');
+  });
+
+  it('leaves \\cite{…} literal when no formatter is supplied (e.g. abstracts)', () => {
+    expect(renderMarkdown('see \\citep{k}')).not.toContain('bd-cite');
+    const h = renderNotes('see \\citep{k}', () => true); // notes, but no formatter
+    expect(h).not.toContain('bd-cite');
+  });
 });

@@ -2275,6 +2275,28 @@ button.bd-chip {
   border-bottom-style: dotted;
 }
 
+/* Formatted \cite{…} citations rendered in notes (citeproc output). Clickable
+   (jumps to the entry) but visually quiet — it reads as part of the prose. */
+.bd-cite {
+  cursor: pointer;
+  border-bottom: 1px solid color-mix(in srgb, var(--bd-accent) 28%, transparent);
+}
+.bd-cite:hover {
+  border-bottom-color: var(--bd-accent);
+}
+.bd-cite--missing {
+  color: var(--bd-warning);
+  cursor: help;
+  border-bottom: 1px dotted var(--bd-warning);
+  font-family: var(--bd-mono);
+  font-size: var(--bd-fs-sm);
+}
+/* A \fullcite renders a whole reference entry inline — let it breathe. */
+.bd-cite--full {
+  display: block;
+  margin: 4px 0;
+}
+
 .bd-card__citekey {
   font-family: var(--bd-mono);
   font-size: var(--bd-fs-sm);

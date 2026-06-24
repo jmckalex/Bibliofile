@@ -72,6 +72,7 @@ import {
   installCslFile,
   removeCslStyle,
 } from './csl.js';
+import { renderCite } from './csl-format.js';
 import { findTexBin, renderTexPreview, renderTexPreviewSvg, SVG_MAX_KEYS } from './tex-preview.js';
 import { searchOnline, extractDoi } from './online.js';
 import { extractPdfText } from './pdf-text.js';
@@ -2142,6 +2143,7 @@ function registerIpc(): void {
         autoFileOnAdd: s.autoFileOnAdd,
         annotationStorage: s.annotationStorage,
         abstractStorage: s.abstractStorage,
+        renderCite,
         defaultCiteStyle: s.defaultCiteStyle,
         detailsTemplate: resolveActivePanelBody(s.detailsForks, s.activeDetailsFork),
         bottomPanelTemplate: resolveActivePanelBody(s.bottomForks, s.activeBottomFork),
@@ -2787,6 +2789,7 @@ if (!gotLock) {
       autoFileOnAdd: settings.autoFileOnAdd,
       annotationStorage: settings.annotationStorage,
       abstractStorage: settings.abstractStorage,
+      renderCite,
       defaultCiteStyle: settings.defaultCiteStyle,
       detailsTemplate: resolveActivePanelBody(settings.detailsForks, settings.activeDetailsFork),
       bottomPanelTemplate: resolveActivePanelBody(settings.bottomForks, settings.activeBottomFork),

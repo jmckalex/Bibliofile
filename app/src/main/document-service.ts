@@ -719,6 +719,7 @@ export function toItemDetail(
   item: BibItem,
   files: ItemFile[],
   citeKeyExists: (key: string) => boolean,
+  renderCite?: (rawCommand: string) => string,
 ): ItemDetail {
   const fields: ItemField[] = [];
   const emitted = new Set<string>();
@@ -813,7 +814,7 @@ export function toItemDetail(
     // Url/Doi links have their own chips and must not be counted as files.
     previewHtml: buildPreviewHtml(item, files.filter((f) => f.kind === 'file').length),
     notesRaw,
-    notesHtml: renderNotes(notesRaw, citeKeyExists),
+    notesHtml: renderNotes(notesRaw, citeKeyExists, renderCite),
     abstractRaw,
     // Same rendering as the preview card's abstract, so tabbed/custom panels match.
     abstractHtml: renderMarkdown(abstractRaw),
@@ -1070,6 +1071,16 @@ let __tmpSeq = 0;
  * contract exposes. Pure (no Electron): the shell instantiates one of these and
  * forwards `ipcMain.handle` calls into it.
  */
+
+/** Inline `\cite{…}` renderer injected from the electron layer (csl-format) so
+ *  document-service stays free of the citeproc/electron citation engine. Given a
+ *  raw command, a key→CSL-item resolver, and the active style, returns HTML. */
+export type RenderCiteFn = (
+  rawCommand: string,
+  resolve: (key: string) => Record<string, unknown> | null,
+  styleId: string,
+) => string;
+
 export class DocumentStore {
   private readonly docs = new Map<string, OpenDoc>();
 
@@ -1085,6 +1096,9 @@ export class DocumentStore {
     defaultCiteStyle: 'apa',
     detailsTemplate: undefined as string | undefined,
     bottomPanelTemplate: undefined as string | undefined,
+    // Injected from the electron layer (csl-format.renderCite) so the pure
+    // document-service stays free of the citeproc/electron citation engine.
+    renderCite: undefined as RenderCiteFn | undefined,
   };
 
   /** Apply preference-driven editing defaults. */
@@ -1099,7 +1113,9 @@ export class DocumentStore {
     defaultCiteStyle?: string;
     detailsTemplate?: string;
     bottomPanelTemplate?: string;
+    renderCite?: RenderCiteFn;
   }): void {
+    if (c.renderCite) this.editConfig.renderCite = c.renderCite;
     if (c.citeKeyFormat) this.editConfig.citeKeyFormat = c.citeKeyFormat;
     if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
     if (c.papersFolder !== undefined) this.editConfig.papersFolder = c.papersFolder;
@@ -3073,8 +3089,24 @@ export class DocumentStore {
   /** Document-aware item detail (resolves managed attachments + notes cross-refs). */
   private detailFor(doc: OpenDoc, item: BibItem): ItemDetail {
     const keys = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
-    const detail = toItemDetail(item, itemFiles(item, doc.library, doc.path), (k) =>
-      keys.has(k.toLowerCase()),
+    // `\cite{…}` commands in notes → formatted citations, resolving each key to a
+    // CSL item from this document and formatting via the injected engine.
+    const renderCite = this.editConfig.renderCite
+      ? (raw: string): string =>
+          this.editConfig.renderCite!(
+            raw,
+            (key) => {
+              const id = this.itemIdForCiteKey(doc.documentId, key);
+              return id ? this.cslItemFor(doc.documentId, id) : null;
+            },
+            this.editConfig.defaultCiteStyle,
+          )
+      : undefined;
+    const detail = toItemDetail(
+      item,
+      itemFiles(item, doc.library, doc.path),
+      (k) => keys.has(k.toLowerCase()),
+      renderCite,
     );
     // Render the configurable detail + bottom panels (default templates reproduce
     // ViewPane / the annotation reader); the renderer hydrates them, falling back

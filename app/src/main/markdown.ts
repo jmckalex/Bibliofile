@@ -13,6 +13,7 @@
 
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
+import { CITE_PATTERN_ANCHORED, CITE_START_RE } from './cite-command.js';
 
 // Math spans protected from Markdown before parsing: `$$…$$` / `$…$`, plus the
 // LaTeX `\[…\]` (display) and `\(…\)` (inline) delimiters — otherwise `marked`
@@ -64,8 +65,45 @@ function escapeAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-/** Protect math, run Markdown, sanitise with `opts`, then restore math text. */
+// --- inline \cite{…} commands (a marked extension) --------------------------
+//
+// A marked INLINE extension that fires on the natbib `\cite…{…}` family and
+// renders each command to a formatted citation via the per-render `citeRenderer`
+// (set by renderNotes from the document's CSL resolver). The trusted citeproc
+// HTML is deferred behind an `@@XCITE@@` placeholder and restored AFTER sanitise
+// (citeproc output is library-derived, not user markup). The extension is inert
+// for abstracts / when no resolver is set, so `\cite{…}` then stays literal text.
+let citeRenderer: ((rawCommand: string) => string) | null = null;
+const citeStore: string[] = [];
+
+marked.use({
+  extensions: [
+    {
+      name: 'cite',
+      level: 'inline',
+      start(src: string): number | undefined {
+        if (!citeRenderer) return undefined;
+        const m = CITE_START_RE.exec(src);
+        return m ? m.index : undefined;
+      },
+      tokenizer(src: string) {
+        if (!citeRenderer) return undefined;
+        const m = CITE_PATTERN_ANCHORED.exec(src);
+        if (!m) return undefined;
+        return { type: 'cite', raw: m[0] };
+      },
+      renderer(token): string {
+        const raw = (token as { raw: string }).raw;
+        citeStore.push(citeRenderer ? citeRenderer(raw) : raw);
+        return `@@XCITE${citeStore.length - 1}@@`;
+      },
+    },
+  ],
+});
+
+/** Protect math, run Markdown, sanitise with `opts`, then restore math + cite text. */
 function renderWith(md: string, opts: sanitizeHtml.IOptions): string {
+  citeStore.length = 0;
   const math: string[] = [];
   const protectedMd = md.replace(MATH_RE, (m) => {
     math.push(m);
@@ -73,7 +111,9 @@ function renderWith(md: string, opts: sanitizeHtml.IOptions): string {
   });
   const rawHtml = marked.parse(protectedMd, { async: false }) as string;
   const clean = sanitizeHtml(rawHtml, opts);
-  return clean.replace(/@@MATH(\d+)@@/g, (_m, i) => math[Number(i)] ?? '');
+  return clean
+    .replace(/@@MATH(\d+)@@/g, (_m, i) => math[Number(i)] ?? '')
+    .replace(/@@XCITE(\d+)@@/g, (_m, i) => citeStore[Number(i)] ?? '');
 }
 
 /** Render abstract-style Markdown (strict tag set) to sanitised HTML. */
@@ -84,12 +124,18 @@ export function renderMarkdown(md: string): string {
 const WIKILINK_RE = /\[\[([^\]]+)\]\]/g;
 
 /**
- * Render NOTES markdown: supports inlined `<iframe>` embeds plus `[[citeKey]]`
- * cross-references → internal links (`<a class="bd-citelink" data-cite="…">`),
- * styled `--missing` when the cite key isn't in the document. Wiki-links are
- * protected before Markdown parsing and restored afterwards.
+ * Render NOTES markdown: supports inlined `<iframe>` embeds, `[[citeKey]]`
+ * cross-references → internal links (`<a class="bd-citelink" data-cite="…">`,
+ * styled `--missing` when the key isn't in the document), and — when a
+ * `renderCite` formatter is supplied — natbib `\cite{…}` commands rendered to
+ * formatted citations (see the marked extension above). Wiki-links are protected
+ * before Markdown parsing and restored afterwards.
  */
-export function renderNotes(md: string, citeKeyExists: (key: string) => boolean): string {
+export function renderNotes(
+  md: string,
+  citeKeyExists: (key: string) => boolean,
+  renderCite?: (rawCommand: string) => string,
+): string {
   if (!md.trim()) return '';
   const links: string[] = [];
   const pre = md.replace(WIKILINK_RE, (_m, key: string) => {
@@ -100,5 +146,10 @@ export function renderNotes(md: string, citeKeyExists: (key: string) => boolean)
     );
     return `@@CITE${links.length - 1}@@`;
   });
-  return renderWith(pre, NOTES_OPTS).replace(/@@CITE(\d+)@@/g, (_m, i) => links[Number(i)] ?? '');
+  citeRenderer = renderCite ?? null;
+  try {
+    return renderWith(pre, NOTES_OPTS).replace(/@@CITE(\d+)@@/g, (_m, i) => links[Number(i)] ?? '');
+  } finally {
+    citeRenderer = null;
+  }
 }

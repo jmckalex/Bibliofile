@@ -65,6 +65,9 @@ supports, Notes additionally allow:
 
 - **Cross-references** written `[[citeKey]]`, which become clickable links that
   select the referenced entry — the foundation of a linked knowledge base.
+- **Formatted citations** written `\cite{…}` / `\citep{…}` / `\citet{…}` / … —
+  LaTeX-style commands that render a styled citation of an entry (see
+  [Formatted citations](#formatted-citations--cite--notes-only)).
 - **Inline embeds** via an `<iframe>` (restricted to `http`/`https`), so you can
   drop in a video, a slide deck, or an interactive widget.
 
@@ -79,6 +82,7 @@ supports, Notes additionally allow:
 | Maths (`$…$`, `$$…$$`) | Yes | Yes |
 | Links (`[text](url)`) | Yes (open externally) | Yes (open externally) |
 | `[[citeKey]]` cross-refs | No | Yes |
+| `\cite{…}` formatted citations | No | Yes |
 | Inline `<iframe>` embeds | No | Yes (`http`/`https` only) |
 | Fed to CSL citation engine | Yes (as `abstract`) | No |
 
@@ -457,6 +461,38 @@ threads through many papers.
 > **Note:** `[[citeKey]]` cross-references are recognised in **Notes only**.
 > They are not interpreted in the Abstract, where the text would simply show the
 > literal brackets.
+
+## Formatted citations — `\cite{…}` *(Notes only)*
+
+Where `[[citeKey]]` gives you a bare link, the LaTeX/natbib-style `\cite`
+commands render a **properly formatted citation** of an entry in your library,
+in your **default citation style** (Preferences → Citations). They're handy for
+writing a literature note that reads like prose:
+
+| You write | It renders as |
+| --- | --- |
+| `\citet{einstein1905}` (or bare `\cite{…}`) | Einstein (1905) — *textual* |
+| `\citep{einstein1905}` | (Einstein, 1905) — *parenthetical* |
+| `\citeauthor{einstein1905}` | Einstein — *authors only* (`\citeauthor*` lists all, no "et al.") |
+| `\fullcite{einstein1905}` | the full reference entry, inline |
+| `\nocite{einstein1905}` | nothing (a silent reference) |
+
+- **Optional arguments** work on every variant — one is a post-note, two are a
+  pre-note then post-note: `\citep[see][p. 5]{einstein1905}` → *(see Einstein,
+  1905, p. 5)*; `\citet[ch. 2]{einstein1905}` → *Einstein (1905, ch. 2)*.
+- **Several keys** in one command share the citation: `\citep{a, b}` →
+  *(A, 2019; B, 2020)*.
+- Each rendered citation is **clickable** — it jumps to the cited entry (like a
+  cross-reference). An **unknown key** shows a muted `?key` marker so typos stand
+  out.
+
+> **Tip:** The style is whatever you've set as the default in **Preferences →
+> Citations** — switch it (APA, Vancouver, an installed `.csl`…) and every
+> `\cite` in your notes re-renders in that style. Citations are powered by the
+> same citeproc engine as the detail pane's citation block.
+
+> **Note:** Like `[[citeKey]]` links, `\cite{…}` commands are interpreted in
+> **Notes only**, not in the Abstract.
 
 ## Inline embeds *(Notes only)*
 
