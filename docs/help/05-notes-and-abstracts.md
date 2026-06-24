@@ -52,10 +52,13 @@ are reserved for Notes.
 
 **Notes** are *your* commentary — what you thought about the paper, how it
 connects to your own work, the page where the key result lives, a reminder to
-follow up a reference. Notes are stored in the BibTeX `Annote` field (BibDesk's
-long-standing convention for annotations) and are edited through the dedicated
-**Notes** section near the bottom of the detail pane, using an **Edit / Done**
-toggle.
+follow up a reference. Notes correspond to BibDesk's long-standing `Annote`
+annotation field, but — because Markdown notes routinely contain braces and other
+BibTeX-unsafe characters — they are stored **encoded** rather than as raw text (by
+default, compressed in a private `Bdsk-Annotation` field; see
+[How the fields are stored](#how-the-fields-are-stored)). You edit them through
+the dedicated **Notes** section near the bottom of the detail pane (an **Edit /
+Done** toggle), or in the [standalone annotation editor](#the-annotation-editor-window).
 
 Notes use the **richer** Markdown profile. On top of everything the Abstract
 supports, Notes additionally allow:
@@ -69,7 +72,7 @@ supports, Notes additionally allow:
 
 | Aspect | Abstract | Notes |
 | --- | --- | --- |
-| Stored in BibTeX field | `Abstract` | `Annote` |
+| Stored in BibTeX field | `Abstract` (plain text) | `Bdsk-Annotation` (encoded; or `Annote` in Readable mode) |
 | Where it appears | Preview card (top of detail pane) | Notes section (lower in detail pane) |
 | How you edit it | As a normal field in the **Fields** list | Dedicated **Edit / Done** editor |
 | Markdown | Yes (strict profile) | Yes (richer profile) |
@@ -144,17 +147,20 @@ allowed."*
 
 > **Note:** Editing notes marks the document as having unsaved changes, exactly
 > like editing any other field. Your text is held in memory until you **Save**
-> (Cmd+S / Ctrl+S), at which point it is written to the `Annote` field in the
-> `.bib` file. See [Editing Entries](03-editing-entries.md).
+> (Cmd+S / Ctrl+S), at which point it is written to the entry's annotation field
+> in the `.bib` file — encoded for safety (the private `Bdsk-Annotation` field by
+> default; see [How the fields are stored](#how-the-fields-are-stored) below). See
+> [Editing Entries](03-editing-entries.md).
 
 > **Tip — see which entries have notes at a glance:** Add the **Annotation**
 > indicator column to the publications table (**Preferences → Columns**, then pick
 > **Annotation** from the dropdown). It shows a file icon in any row whose entry
-> carries an annotation. This works for Markdown notes too: notes containing
-> special characters are stored in a `Bdsk-Annotation` field, plain ones in the
-> standard `Annote` field, and the indicator detects both. Choose the builtin
-> **Annotation** column, *not* a raw **Annote** field column — the latter reads the
-> empty plain field and won't show the icon for Markdown notes.
+> carries an annotation. This works for Markdown notes too: by default notes are
+> stored encoded in a private `Bdsk-Annotation` field (in *Readable* mode they
+> live in the standard `Annote` field), and the indicator detects both. Choose the
+> builtin **Annotation** column, *not* a raw **Annote** field column — the latter
+> reads the (usually empty) plain field and won't show the icon for the default
+> encoded notes.
 
 ## The annotation editor window
 
@@ -491,9 +497,14 @@ The sanitizer is strict about iframes:
 > Notes-only feature for this reason — Abstracts keep the simpler, stricter
 > profile with no embedding at all.
 
-## Plain text under the hood
+## How the fields are stored
 
-Both fields are stored as **plain text** in your `.bib` file:
+The two fields are stored **differently**, and the difference matters.
+
+### The Abstract — a plain field
+
+The **Abstract** is an ordinary BibTeX field, stored as **plain text** exactly as
+you typed it:
 
 ```bibtex
 @article{einstein1916,
@@ -504,18 +515,46 @@ Both fields are stored as **plain text** in your `.bib` file:
   Abstract = {We derive the field equations from the equivalence principle.
 
 $$G_{\mu\nu} = 8\pi T_{\mu\nu}.$$},
-  Annote   = {Builds on [[einstein1905]]; see the lecture
-<iframe src="https://example.org/embed/lecture"></iframe>},
 }
 ```
 
-The Markdown, the maths, the `[[citeKey]]` references, and the iframe text all
-sit in the file as ordinary characters. The app renders them when it displays
-the entry, but it adds nothing to the file beyond what you typed. This is what
-keeps your library **portable**: it round-trips cleanly through classic BibDesk
-and the wider TeX/LaTeX ecosystem, and the same text is perfectly readable in a
-plain editor. (Naturally, *other* tools won't render the Markdown — they'll show
-the raw text — but nothing is lost or mangled.)
+The Markdown and the maths sit in the file as ordinary characters; the app renders
+them on display but adds nothing beyond what you typed, so the abstract is readable
+in any editor and round-trips through classic BibDesk and the TeX/LaTeX ecosystem.
+(Like any BibTeX field, the value's braces must balance — an unbalanced `}` in an
+abstract is a hazard there as in any tool.)
+
+### The Annotation — encoded for safety
+
+Notes are **not** stored as raw text by default. Markdown notes routinely contain
+characters that are unsafe in a BibTeX value — above all an **unbalanced `}`**,
+which would terminate the field early and corrupt the `.bib` (and BibTeX has no
+way to store an unbalanced brace; even `\}` still counts toward brace depth). So
+the app **encodes** the annotation. There are two modes, chosen in **Preferences →
+Files → Annotation storage** ("Write notes as"):
+
+- **Compressed (the default)** — the note is `lz-string`-compressed and
+  **base64-encoded** (alphabet `A–Za-z0-9+/=`, so brace-safe by construction) onto
+  a single line in a private **`Bdsk-Annotation`** field; the standard `Annote`
+  field is left out. It's safe and compact (Markdown compresses well, often
+  *smaller* than the raw text), but opaque to other tools:
+
+  ```bibtex
+    Bdsk-Annotation = {N4Igxg9gJgpiBcIAuBnApgQwDYHMQF8g==…},
+  ```
+
+- **Readable (opt-in)** — kept in the standard **`Annote`** field with only the
+  three unsafe characters `%`, `{`, `}` percent-escaped (`%25`/`%7B`/`%7D`).
+  Human-readable and portable, but the flakier path, so not the default:
+
+  ```bibtex
+    Annote = {Builds on [[einstein1905]]; see %7Bthe lecture%7D.},
+  ```
+
+Reading is **format-agnostic** regardless of the active mode: the compressed blob,
+the readable `Annote`, and a plain or BibDesk-written `Annote` all decode
+correctly — so switching modes (or opening someone else's file) never loses notes.
+Existing entries convert to the active mode the next time you edit them.
 
 ## Edge cases and troubleshooting
 
@@ -561,9 +600,13 @@ characters are protected automatically and need no escaping.
 
 ### My formatting doesn't show in another tool
 
-Other BibTeX tools don't render Markdown — they show the raw `Abstract`/`Annote`
-text. That's expected and harmless: the field content is unchanged, just
-unformatted elsewhere.
+Other BibTeX tools don't render Markdown — they show the raw field text. For the
+**Abstract** that's the plain Markdown, just unformatted. For **Notes**, what they
+show depends on the storage mode (see
+[How the fields are stored](#how-the-fields-are-stored)): in *Readable* mode the
+`Annote` text appears (lightly percent-escaped); in the default *Compressed* mode
+they'll see an opaque `Bdsk-Annotation` blob. Either way nothing is lost — the app
+always decodes it back.
 
 ## See also
 

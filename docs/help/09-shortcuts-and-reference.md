@@ -272,8 +272,8 @@ file.
 | Entries (type, cite key, fields) | The `.bib` file | Yes |
 | Static/Smart/URL/Script groups | Group `@comment` blocks in the file | Yes |
 | `@string` macros | `@string{…}` lines in the file | Yes |
-| Per-entry **notes** | The `Annote` field | Yes |
-| **Abstracts** | The `Abstract` field | Yes |
+| Per-entry **notes** | Encoded in `Bdsk-Annotation` by default (or `Annote` in *Readable* mode) — see [Notes & Abstracts](05-notes-and-abstracts.md#how-the-fields-are-stored) | Yes |
+| **Abstracts** | The `Abstract` field (plain text) | Yes |
 | **Keywords** (the tag categories) | The `Keywords` field | Yes |
 | File **attachments** | `Bdsk-File-N` fields (relative paths) | Yes (move the files too — see [Attachments](04-attachments.md)) |
 | Document window/display state | The `@bibdesk_info` block | Yes |
@@ -310,7 +310,8 @@ appear.
 | `Read` | Tri-state flag | Drives the **Read** icon column (read / unread / unset). A value such as `1` or `yes` means read; `0` or `no` means explicitly unread. |
 | `Rating` | 0–5 number | Drives the optional **Rating** star column. |
 | `Abstract` | Markdown | Rendered as Markdown (with math) in the preview card. |
-| `Annote` | Markdown notes | Edited/rendered in the **Notes** section (with `[[citeKey]]` links and safe iframes); hidden from the generic field list. Drives the optional **Annotation** indicator column (a 📄 icon when the entry has an annotation). |
+| `Annote` | Markdown notes | Edited/rendered in the **Notes** section (with `[[citeKey]]` links and safe iframes); hidden from the generic field list. Holds the notes only in *Readable* storage mode — by default they live in `Bdsk-Annotation` instead. Drives the optional **Annotation** indicator column (a 📄 icon when the entry has an annotation). |
+| `Bdsk-Annotation` | Encoded notes (default) | The lz-string-compressed, base64-encoded annotation written by the default *Compressed* storage mode (brace-safe; keeps `Annote` clean). Decoded transparently on read. See [Notes & Abstracts](05-notes-and-abstracts.md#how-the-fields-are-stored). |
 | `Crossref` | Inheritance link | Names a parent entry's cite key; the child inherits the parent's fields (shown **(inherited)**). Editing an inherited value creates a local override. |
 
 Everything else (`Publisher`, `Address`, `Edition`, `Series`, `ISBN`, `Note`,
