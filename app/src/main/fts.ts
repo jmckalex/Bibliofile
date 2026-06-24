@@ -12,6 +12,7 @@
  */
 
 import { createRequire } from 'node:module';
+import { parseSearchQuery } from '@bibdesk/shared';
 
 const require = createRequire(import.meta.url);
 
@@ -38,18 +39,21 @@ export interface FtsRecord {
 }
 
 /**
- * Turn a user query into a safe FTS5 MATCH expression: split on whitespace,
- * strip FTS5 operators, quote each term and append `*` for prefix matching,
- * AND them together. Returns '' for an empty/space-only query.
+ * Turn a user query into a safe FTS5 MATCH expression. Bare words become quoted
+ * prefix terms (`"word"*`); a double-quoted run becomes an exact FTS5 phrase
+ * (`"those words"` — the tokens must appear adjacent and in order). Everything is
+ * AND-ed together. Returns '' for an empty/space-only query.
+ *
+ * Quoting each term/phrase makes the input inert to FTS5's own query operators,
+ * and the shared parser has already stripped `* ( )` from words — so the result
+ * is always a safe MATCH expression. See {@link parseSearchQuery}.
  */
 export function toMatchQuery(input: string): string {
-  const terms = input
-    .toLowerCase()
-    .split(/\s+/)
-    .map((t) => t.replace(/["*()]/g, '').trim())
-    .filter((t) => t.length > 0);
-  if (terms.length === 0) return '';
-  return terms.map((t) => `"${t}"*`).join(' ');
+  const tokens = parseSearchQuery(input);
+  if (tokens.length === 0) return '';
+  return tokens
+    .map((tk) => (tk.phrase ? `"${tk.words.join(' ')}"` : `"${tk.words[0]}"*`))
+    .join(' ');
 }
 
 /** In-memory FTS5 index. No-ops (and `search` returns []) when unavailable. */

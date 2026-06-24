@@ -6,7 +6,20 @@ describe('toMatchQuery', () => {
     expect(toMatchQuery('brown fox')).toBe('"brown"* "fox"*');
     expect(toMatchQuery('  Quick  ')).toBe('"quick"*');
     expect(toMatchQuery('')).toBe('');
-    expect(toMatchQuery('a"b*(c)')).toBe('"abc"*'); // operators stripped
+    expect(toMatchQuery('   ')).toBe('');
+    expect(toMatchQuery('a*(b)c')).toBe('"abc"*'); // operators stripped
+  });
+
+  it('turns a double-quoted run into an exact FTS5 phrase (no prefix)', () => {
+    expect(toMatchQuery('"brown fox"')).toBe('"brown fox"');
+    // phrase + trailing bare word: phrase exact, word prefix-matched
+    expect(toMatchQuery('"machine learning" neural')).toBe('"machine learning" "neural"*');
+    // leading bare word + phrase
+    expect(toMatchQuery('survey "game theory"')).toBe('"survey"* "game theory"');
+  });
+
+  it('handles an unterminated quote as a phrase to end-of-input', () => {
+    expect(toMatchQuery('"brown fox')).toBe('"brown fox"');
   });
 });
 
@@ -28,6 +41,19 @@ describe.runIf(idx.available)('FtsIndex (better-sqlite3 / FTS5)', () => {
     expect(fts.search('barg').sort()).toEqual(['a', 'c']);
     // multi-term AND
     expect(fts.search('bargaining fairness')).toEqual(['c']);
+    fts.close();
+  });
+
+  it('quoted phrases require adjacent words in order', () => {
+    const fts = new FtsIndex();
+    fts.rebuild([
+      { id: 'a', text: 'the theory of games and bargaining' },
+      { id: 'b', text: 'evolutionary game theory and dynamics' },
+    ]);
+    // both contain "game" and "theory" as words → bare AND matches both
+    expect(fts.search('game theory').sort()).toEqual(['a', 'b']);
+    // only b has the contiguous phrase "game theory" (a has "theory ... games")
+    expect(fts.search('"game theory"')).toEqual(['b']);
     fts.close();
   });
 

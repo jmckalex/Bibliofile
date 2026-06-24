@@ -34,7 +34,13 @@ import type {
   TemplateExportScope,
   CitationStyle,
 } from '@bibdesk/shared';
-import { DEFAULT_SETTINGS, BUILTIN_COLUMNS, CITATION_STYLES } from '@bibdesk/shared';
+import {
+  DEFAULT_SETTINGS,
+  BUILTIN_COLUMNS,
+  CITATION_STYLES,
+  parseSearchQuery,
+  searchTokensMatch,
+} from '@bibdesk/shared';
 
 /** Apply the chosen theme to the document root (`system` follows the OS). */
 export function applyTheme(theme: Settings['theme']): void {
@@ -53,19 +59,23 @@ function findDefaultGroupId(groups: readonly GroupNode[]): string | undefined {
 }
 
 /**
- * Case-insensitive substring filter across a row's display columns. Pure +
- * exported for unit testing. An empty/whitespace query returns all rows.
+ * Case-insensitive filter across a row's display columns. Each bare word must
+ * appear (AND); a "double-quoted run" must appear as a contiguous phrase — the
+ * same quote semantics as the full-text index, so results stay consistent while
+ * FTS loads or when it's unavailable. Pure + exported for unit testing. An
+ * empty/whitespace query returns all rows.
  */
 export function filterRows(
   rows: readonly PublicationRow[],
   query: string,
 ): PublicationRow[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return [...rows];
+  const tokens = parseSearchQuery(query);
+  if (tokens.length === 0) return [...rows];
   return rows.filter((r) =>
-    `${r.citeKey} ${r.type} ${r.authorsDisplay} ${r.title} ${r.year}`
-      .toLowerCase()
-      .includes(q),
+    searchTokensMatch(
+      `${r.citeKey} ${r.type} ${r.authorsDisplay} ${r.title} ${r.year}`,
+      tokens,
+    ),
   );
 }
 

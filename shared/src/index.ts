@@ -205,6 +205,11 @@ export { isPublicationRow, isGroupNode } from './guards.js';
 // --- Cite-command formatting ------------------------------------------------
 export { formatCiteCommand } from './cite.js';
 
+// --- Search-query parsing ---------------------------------------------------
+/** Pure parser for the search box: quoted phrases vs. bare words, shared by the
+ *  main-process FTS5 query builder and the renderer's substring fallback. */
+export { parseSearchQuery, searchTokensMatch, type SearchToken } from './search.js';
+
 // --- Built-in panel template bodies -----------------------------------------
 /** The built-in detail/bottom Handlebars bodies, shared by the renderer (seed a
  *  fork) and main (render the panel). */
