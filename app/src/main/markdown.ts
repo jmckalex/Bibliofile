@@ -17,7 +17,14 @@ import sanitizeHtml from 'sanitize-html';
 // Math spans protected from Markdown before parsing: `$$…$$` / `$…$`, plus the
 // LaTeX `\[…\]` (display) and `\(…\)` (inline) delimiters — otherwise `marked`
 // treats `\[` as an escaped bracket and the math never reaches MathJax.
-const MATH_RE = /\$\$[\s\S]+?\$\$|\$[^$\n]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)/g;
+//
+// Inline `$…$` may span **soft** line breaks (so a long expression can wrap
+// across source lines) but not a blank line: `\n(?![ \t]*\n)` lets a single
+// newline through while stopping at a paragraph break, which caps a stray/
+// currency `$` from running away across paragraphs (the reason the inline form
+// was originally one-line-only). Display `$$…$$` / `\[…\]` / `\(…\)` already span.
+const MATH_RE =
+  /\$\$[\s\S]+?\$\$|\$(?:[^$\n]|\n(?![ \t]*\n))+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)/g;
 
 const BASE_TAGS = [
   'p', 'br', 'em', 'strong', 'b', 'i', 'code', 'pre', 'ul', 'ol', 'li',

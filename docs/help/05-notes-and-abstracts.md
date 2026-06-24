@@ -405,11 +405,13 @@ don't:
 
 Two consequences worth knowing:
 
-- **Inline maths must stay on one line.** The pattern that recognises inline
-  `$…$` does not allow a newline inside it (display `$$…$$` may span lines). If
-  you split an inline expression across two lines, the dollar signs won't pair
-  up and the maths won't be protected. Keep each inline expression on a single
-  line, or use a display block.
+- **Inline maths may wrap across lines, but not across a blank line.** A long
+  inline `$…$` expression can break across **soft** line breaks within a
+  paragraph, so you can wrap it for readability. It must not span a **blank
+  line** (a paragraph break), which is also what stops a stray `$` — a price like
+  `$5` — from accidentally pairing with a later one across paragraphs. (For a real
+  dollar sign next to digits, write `\$` to be safe.) Display `$$…$$` spans lines
+  too.
 - **Braces inside maths are preserved.** Elsewhere the app strips BibTeX
   case-protection braces for display (so `{C}alabi-{Y}au` shows as
   *Calabi-Yau*), but it is **maths-aware**: braces inside a `$…$`/`$$…$$` span
@@ -577,9 +579,10 @@ Existing entries convert to the active mode the next time you edit them.
 
 - **Check your dollar-sign pairing.** Every `$` must be matched. An odd number
   of `$` on a line leaves the maths span open and it won't be recognised.
-- **Keep inline maths on one line.** Inline `$…$` may not contain a newline.
-  Split expressions either belong on one line or in a `$$…$$` display block
-  (which *may* span lines).
+- **A blank line ends an inline span.** Inline `$…$` may wrap across soft line
+  breaks, but not across a blank line — if an expression looks unrecognised,
+  check there's no empty line inside it (use a `$$…$$` display block for
+  anything that long).
 - **Escape literal dollars.** If you meant a real `$` (a price, say), write `\$`
   so it isn't read as the start of a maths span.
 - If maths is genuinely failing to typeset (raw TeX everywhere), MathJax may

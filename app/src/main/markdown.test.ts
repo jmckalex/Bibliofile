@@ -22,6 +22,23 @@ describe('renderMarkdown', () => {
     expect(h).not.toContain('<em>');
   });
 
+  it('protects inline $…$ that spans soft line breaks (multi-line inline math)', () => {
+    const h = renderMarkdown('the sum\n$\\sum_{n=1}^{\\infty}\n\\frac{1}{n^2}\n= \\frac{\\pi^2}{6}$\nconverges');
+    // the whole expression (newlines and all) reaches the HTML intact for MathJax
+    expect(h).toContain('$\\sum_{n=1}^{\\infty}\n\\frac{1}{n^2}\n= \\frac{\\pi^2}{6}$');
+    // `_`/`{` inside never became emphasis/markup
+    expect(h).not.toContain('<em>');
+  });
+
+  it('does NOT let inline $…$ run across a blank line (stray-$ safety)', () => {
+    const h = renderMarkdown('it cost $5\n\nand also $10 later');
+    // the two paragraphs survive as literal text — no span swallowed the gap
+    expect(h).toContain('$5');
+    expect(h).toContain('$10 later');
+    // a single protected math span would have hidden one of these dollar signs
+    expect((h.match(/\$/g) ?? []).length).toBe(2);
+  });
+
   it('protects LaTeX \\[…\\] / \\(…\\) delimiters (not eaten as escaped brackets)', () => {
     const display = renderMarkdown('Einstein: \\[ E = mc^2 \\] is famous.');
     expect(display).toContain('\\[ E = mc^2 \\]'); // delimiters reach the HTML for MathJax
