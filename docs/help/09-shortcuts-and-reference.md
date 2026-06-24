@@ -75,7 +75,7 @@ Every item needs an open library.
 | Edit Publication… | ⌘E | Ctrl+E | Open the selected entry in a separate editor window (also: ✎ Edit… / double-click a row) |
 | Duplicate | ⇧⌘D | Shift+Ctrl+D | Copy the selected entry under a new cite key |
 | Delete Publication | — | — | Delete the selected entry |
-| Generate Cite Key | ⌘K | Ctrl+K | Generate a cite key for the selected entry |
+| Generate Cite Key | ⌘K | Ctrl+K | Generate a cite key for the selection (regenerates **all** selected entries in one undo step, kept unique across the batch) |
 | Find Duplicates… | — | — | Open [Find Duplicates](02-browsing-and-searching.md#26-finding-duplicates) |
 | Add File Attachment… | — | — | Attach a file to the selected entry |
 | AutoFile Linked Files | — | — | [AutoFile](04-attachments.md#autofile-organising-linked-files) the selected entry's attachments |
@@ -91,7 +91,8 @@ Every item needs an open library.
 | Side Panel → Details | ⌘⌥1 | Ctrl+Alt+1 | Show the read-only detail view in the side pane |
 | Side Panel → Claude | ⌘⌥2 | Ctrl+Alt+2 | Show the 🤖 Claude assistant in the side pane |
 | Bottom Panel → Annotation | ⌘⌥3 | Ctrl+Alt+3 | Show the annotation reader in the bottom panel |
-| Bottom Panel → LaTeX Preview | ⌘⌥4 | Ctrl+Alt+4 | Show the [LaTeX preview](10-panels.md#latex-preview) in the bottom panel |
+| Bottom Panel → Tabbed | ⌘⌥4 | Ctrl+Alt+4 | Show the [Annotation · Abstract · Attachments tabs](10-panels.md#the-tabbed-view) in the bottom panel |
+| Bottom Panel → LaTeX Preview | ⌘⌥5 | Ctrl+Alt+5 | Show the [LaTeX preview](10-panels.md#latex-preview) in the bottom panel |
 | Columns → (submenu of checkboxes) | — | — | Show/hide table columns (see [Configuring the columns](02-browsing-and-searching.md#226-configuring-the-columns)) |
 | Toggle Light / Dark Theme | ⌘⇧L | Ctrl+Shift+L | Switch between light and dark appearance |
 | Actual Size / Zoom In / Zoom Out | ⌘0 / ⌘+ / ⌘− | Ctrl+0 / Ctrl+ / Ctrl− | Standard zoom roles |
@@ -143,7 +144,7 @@ Linux ⌘ is Ctrl, ⌥ is Alt):
 | ⌘⌥S | Toggle Side Panel |
 | ⌘⌥B | Toggle Bottom Panel |
 | ⌘⌥1 / ⌘⌥2 | Side panel content: Details / Claude |
-| ⌘⌥3 / ⌘⌥4 | Bottom panel content: Annotation / LaTeX Preview |
+| ⌘⌥3 / ⌘⌥4 / ⌘⌥5 | Bottom panel content: Annotation / Tabbed / LaTeX Preview |
 | ⌘J | Claude Assistant (in the side pane) |
 | ⌘, | Preferences… |
 | Enter | Commit a single-line field edit / the cite key / the *New field* row; run an online search; run a Find preview |
@@ -161,7 +162,7 @@ useful ones:
 | --- | --- |
 | **Select an entry** | Click its row in the publications table; the detail pane updates |
 | **Extend the selection** | **Cmd/Ctrl-click** a row to add/remove it; **Shift-click** for a range; **⌘A** / **Ctrl+A** for all. 2+ rows switch both panels to the [multi-select view](10-panels.md#working-with-multiple-selected-entries) |
-| **Right-click a row** | Open the row [context menu](10-panels.md#the-row-context-menu): a strip of **colour-label** dots (and a **✕** to clear) plus **Delete entry** / **Delete N entries**. A right-click outside the selection selects just that row first |
+| **Right-click a row** | Open the row [context menu](10-panels.md#the-row-context-menu): **Edit Annotation…** (opens the [standalone annotation editor](05-notes-and-abstracts.md#the-annotation-editor-window)), a strip of **colour-label** dots (and a **✕** to clear), and **Delete entry** / **Delete N entries**. A right-click outside the selection selects just that row first |
 | **Delete the selection** | Press **Delete** / **Backspace** (table focused), or use the right-click **Delete** item; undoable |
 | **Sort the table** | Click a **column header**; click the same header again to flip ascending/descending (a ▲/▼ marks the active column) |
 | **Drag out a citation** | Drag a row into a TeX editor (or any text field) to insert a `\cite{…}` |

@@ -156,6 +156,44 @@ allowed."*
 > **Annotation** column, *not* a raw **Annote** field column — the latter reads the
 > empty plain field and won't show the icon for Markdown notes.
 
+## The annotation editor window
+
+When you want to write a longer annotation without the detail pane feeling
+cramped, open a **dedicated editor window** for one entry.
+
+> **Procedure — open the annotation editor**
+>
+> 1. **Right-click** the entry in the publications table.
+> 2. Choose **Edit Annotation…** from the context menu.
+
+A separate, **top-level window** opens — it is **non-blocking**, so the main
+window stays fully usable behind it (keep browsing, search, or open editors for
+other entries side by side). The window has two parts:
+
+- **A pretty-printed summary at the top** — the same card the detail pane shows,
+  including the **journal thumbnail / book cover** when one exists. It's a quick
+  reminder of *which* entry you're annotating.
+- **A full-height Markdown editor below** — the same editor as the Notes section,
+  with Markdown, maths, `[[citeKey]]` links, and `<iframe>` embeds all allowed.
+
+The window's **title bar shows the entry's cite key**, so several open at once
+stay easy to tell apart.
+
+### Auto-save
+
+You don't click Save or Done in this window. Your text is **auto-saved to the
+entry on a short debounce** — about a second after you stop typing — and also
+when the editor loses focus and when you close the window. A small **"Saving… /
+Saved"** indicator in the title bar confirms it. The main window's detail pane
+(and the Annotation column) update automatically.
+
+> **Note:** "Saved to the entry" means the annotation is written into the open
+> document in memory, marking it as having unsaved changes — exactly like any
+> other edit. It is written to the `.bib` file on disk by the normal **Save**
+> (**⌘S** / **Ctrl+S**) or autosave, just like editing a field. Opening **Edit
+> Annotation…** again for the same entry simply focuses the window that's already
+> open rather than making a second one.
+
 ## Markdown reference
 
 Bibliofile renders Markdown with a standard CommonMark-style parser and

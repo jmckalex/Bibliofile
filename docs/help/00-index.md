@@ -20,12 +20,14 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
 2. **[Browsing & Searching](02-browsing-and-searching.md)** — Reading and
    sorting the publications table, the configurable columns (the **View →
    Columns** menu and the Preferences manager, including the keyword/attachment/
-   Read icon columns), filtering with the live search box, **Find Duplicates**,
+   Read icon columns), filtering with the live search box (**quoted phrases** and
+   full-text PDF search, with a configurable page limit), **Find Duplicates**,
    and narrowing your view with the groups sidebar (Library, Static/Smart groups,
    and dynamic Author/Keyword categories).
 3. **[Editing Entries](03-editing-entries.md)** — The detail pane as a full
    editor: changing fields (with field-value autocomplete), cite keys, and entry
-   types; adding, duplicating, and deleting entries; **Generate cite key**;
+   types; adding, duplicating, and deleting entries; **Generate cite key** (for one
+   entry or a whole selection);
    **Find & Replace** across fields; the **Copy** clipboard commands and cite
    drag-out; `Crossref` inheritance; the `@string` macro editor; and explicit
    save.
@@ -35,7 +37,8 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
    macOS BibDesk compatibility.
 5. **[Notes & Abstracts](05-notes-and-abstracts.md)** — Writing abstracts and
    per-entry notes in Markdown (with math), plus notes-only extras: `[[citeKey]]`
-   cross-references between entries and inline iframe embeds.
+   cross-references between entries and inline iframe embeds; and the **standalone
+   annotation editor** window (right-click → **Edit Annotation…**) with auto-save.
 6. **[Preview & Citations](06-preview-and-citations.md)** — The typeset preview
    card (title, venue, chips, keyword tags, rendered abstract) and the live,
    formatted CSL citation block (APA / Vancouver / Harvard), in light or dark
@@ -54,9 +57,10 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
    troubleshooting.
 10. **[Configurable Panels](10-panels.md)** — Resizing, hiding, and switching the
     panels: the detail pane's content dropdown plus the **🤖 Claude** toggle, the
-    bottom panel's **Annotation ↔ LaTeX Preview** (true BibTeX/`.bst` typesetting
-    of the selection), the **View → Side/Bottom Panel** shortcuts, the multi-select
-    view, the floating batch-edit bar, and the row context menu.
+    bottom panel's **Annotation · Tabbed · LaTeX Preview** modes (the Tabbed view's
+    Annotation/Abstract/Attachment-thumbnail tabs, and true BibTeX/`.bst`
+    typesetting of the selection), the **View → Side/Bottom Panel** shortcuts, the
+    multi-select view, the floating batch-edit bar, and the row context menu.
 11. **[Customizing Panels & Outputs](11-customizing-panels.md)** — Designing your
     own panel and output templates with Handlebars: the context fields, helpers,
     live widgets, interactive hooks, and worked examples.

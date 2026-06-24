@@ -275,6 +275,25 @@ equivalent), results are **ranked by relevance** (best matches first), and terms
 match by **word prefix**, so `bargain` finds *bargaining*. The index is an
 in-memory, rebuildable cache (your `.bib` file stays the source of truth).
 
+#### Multiple words and quoted phrases
+
+Typing several words finds entries that contain **all** of them, in any order
+and anywhere in the indexed text (`game theory` matches an entry whose title has
+"theory" and whose abstract has "game").
+
+To require an **exact phrase** — those words, adjacent and in that order — wrap
+them in **double quotes**:
+
+| You type | What it matches |
+| --- | --- |
+| `game theory` | entries containing *game* **and** *theory* (any order, anywhere) |
+| `"game theory"` | only entries where *game theory* appears as a contiguous phrase |
+| `survey "machine learning"` | *survey* anywhere **and** the phrase *machine learning* |
+
+You can mix quoted phrases and bare words freely. An unclosed quote is treated as
+a phrase running to the end of what you've typed, so results still make sense
+mid-keystroke.
+
 #### Including PDF contents (the PDF toggle)
 
 By default the search looks only at the bibliographic **fields** above — *not*
@@ -290,6 +309,14 @@ it on when you're hunting for something you know is *inside* a paper; leave it o
 for ordinary "find this reference" filtering. Your choice is remembered. (PDF text
 is indexed in the background shortly after a library opens, so newly-opened
 libraries gain PDF matches a moment later.)
+
+> **How many PDF pages are indexed.** By default only the **first 40 pages** of
+> each PDF are scanned — plenty for articles, and it keeps indexing fast. For long
+> or scanned books you can raise or remove that limit in **Preferences → General →
+> Full-text search**: choose **At most _N_ pages** (and set _N_), or **All** to
+> index the whole document. Indexing all pages of large scanned books is slower
+> and only finds text if the scan has a searchable text layer (OCR). Changing the
+> setting re-indexes any open libraries.
 
 > **Note (the substring fallback):** Full-text search relies on a native
 > component. If it isn't available for your build, the box automatically falls

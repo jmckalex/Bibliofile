@@ -30,15 +30,36 @@ All of this is remembered across launches.
 
 Open it with **View → Toggle Bottom Panel** (**⌘⌥B** / **Ctrl+Alt+B**). The
 bottom panel is a wide, selection-driven reader whose content you pick from the
-**content dropdown** in its header. It offers two views:
+**content dropdown** in its header. It offers three views:
 
 - **Annotation** (the default) — the selected entry's annotation in a wide,
   comfortable-to-read format (handy for long notes that feel cramped in the
   narrow side pane). Nothing selected shows a short hint.
+- **Tabbed** — a tabbed reader for the selected entry with **Annotation**,
+  **Abstract**, and **Attachments** tabs (see [The Tabbed view](#the-tabbed-view)
+  below).
 - **LaTeX Preview** — a true BibTeX/`.bst` typesetting of the selected entries'
   bibliography (see [LaTeX preview](#latex-preview) below).
 
 Drag its top edge to resize, and click **×** to hide.
+
+### The Tabbed view
+
+Switch the bottom panel to **Tabbed** (from the content dropdown, or **View →
+Bottom Panel → Tabbed**, **⌘⌥4**) for a compact three-tab reader of the selected
+entry:
+
+- **Annotation** — the entry's annotation, rendered from Markdown.
+- **Abstract** — the entry's `Abstract` field, rendered from Markdown.
+- **Attachments** — a grid of **large thumbnails**, one per attached file. PDFs
+  show their first page; image files (PNG, JPG, …) show the picture; other file
+  types show a generic file icon. **Double-click a thumbnail to open the file**
+  in the native application for its type.
+
+Click a tab to switch; the view always opens on **Annotation**. The same tabbed
+layout is also available as a starting point for a
+[custom panel template](11-customizing-panels.md) (the `bd-tabs` / `data-thumb`
+conventions).
 
 ## Switching panel content
 
@@ -46,9 +67,9 @@ There are two ways to choose what each pane shows.
 
 **The in-pane dropdowns.** Both pane headers carry a small **Panel content**
 dropdown (a `<select>`): the side pane's lists **Details**, and the bottom
-pane's switches between **Annotation** and **LaTeX Preview**. Use these when you
-want to flip content without leaving the mouse. The side pane additionally has
-the standalone **🤖 Claude** button described above.
+pane's switches between **Annotation**, **Tabbed**, and **LaTeX Preview**. Use
+these when you want to flip content without leaving the mouse. The side pane
+additionally has the standalone **🤖 Claude** button described above.
 
 **The View menu.** The same switches live in the menu bar, each with a keyboard
 shortcut:
@@ -58,7 +79,8 @@ shortcut:
 | **View → Side Panel → Details** | **⌘⌥1** / **Ctrl+Alt+1** | The read-only detail view in the side pane |
 | **View → Side Panel → Claude** | **⌘⌥2** / **Ctrl+Alt+2** | The 🤖 Claude assistant in the side pane |
 | **View → Bottom Panel → Annotation** | **⌘⌥3** / **Ctrl+Alt+3** | The annotation reader in the bottom panel |
-| **View → Bottom Panel → LaTeX Preview** | **⌘⌥4** / **Ctrl+Alt+4** | The LaTeX preview in the bottom panel |
+| **View → Bottom Panel → Tabbed** | **⌘⌥4** / **Ctrl+Alt+4** | The Annotation · Abstract · Attachments tabs in the bottom panel |
+| **View → Bottom Panel → LaTeX Preview** | **⌘⌥5** / **Ctrl+Alt+5** | The LaTeX preview in the bottom panel |
 
 Choosing any of these also **reveals** the relevant panel if it was hidden, so a
 single shortcut both shows the panel and selects its content.
@@ -77,7 +99,7 @@ copy-ready CSL rendering, the LaTeX preview is what `bibtex` itself produces for
 the `.bst` you cite with in your paper.
 
 Show it from the bottom-pane dropdown, from **View → Bottom Panel → LaTeX
-Preview** (**⌘⌥4** / **Ctrl+Alt+4**), or from **Tools → LaTeX Preview** (which
+Preview** (**⌘⌥5** / **Ctrl+Alt+5**), or from **Tools → LaTeX Preview** (which
 opens the bottom panel and switches it to the preview).
 
 ### What it renders, and how
@@ -173,6 +195,10 @@ saving is recoverable by reverting (**File → Revert to Saved**). See
 Right-clicking a row in the publications table opens a compact **context menu**
 with:
 
+- **Edit Annotation…** — opens the [standalone annotation
+  editor](05-notes-and-abstracts.md#the-annotation-editor-window) for the
+  right-clicked entry: a separate window with the entry's preview card above a
+  Markdown editor that auto-saves.
 - A horizontal row of **colour-label dots** (plus a **✕** that clears the
   label) — picking one applies that colour to the selection, mirroring the
   **Publication → Color Label** submenu.

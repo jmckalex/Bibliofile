@@ -293,6 +293,16 @@ uniquifier).
 > fill). Fill in `Author` and `Year` first, then click **Generate**, for a
 > meaningful key.
 
+#### Generating keys for several entries at once
+
+**Generate Cite Key** acts on the **whole selection**. Select one entry and it
+regenerates that key; select many (Shift-click a range, ⌘-click to add, or
+**Select All**) and **Publication → Generate Cite Key** (**⌘K**) regenerates
+**all** of them in a single undo step. Keys stay unique *across the batch* — if
+two selected entries would derive the same base key, they're disambiguated
+against each other (and the rest of the library) — and any `Crossref` references
+to a renamed entry are updated so they don't dangle.
+
 #### Uniqueness
 
 Cite-key comparison throughout the app is **case-insensitive** (matching

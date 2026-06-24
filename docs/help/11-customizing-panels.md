@@ -130,6 +130,8 @@ of values available to it:
 | `citeStyle` | string | The id of your default CSL citation style (e.g. `apa`). Pass it to `<bd-citation>` as `cite-style`. |
 | `previewHtml` | string (HTML) | The pre-rendered preview-card HTML (the typeset abstract card you see in the default pane). May be absent. Use the **triple-stache** `{{{previewHtml}}}` — see [§11.4](#114-escaping-double-vs-triple-stache). |
 | `notesHtml` | string (HTML) | The entry's annotation rendered to HTML (Markdown + `[[citeKey]]` cross-references + math). Empty string when there is no annotation. Use `{{{notesHtml}}}`. |
+| `abstractHtml` | string (HTML) | The entry's `Abstract` field rendered from Markdown (sanitized; same rendering as the preview card). Empty string when there is no abstract. Use `{{{abstractHtml}}}`. |
+| `abstractRaw` | string | The raw Markdown source of the `Abstract` field, for templates that process it themselves. |
 | `fields` | array | Every display field row of the entry (see below). |
 | `attachments` | array | The entry's **local file** attachments (see below). |
 | `links` | array | The entry's **remote URL** links — `Url`/`Doi`/etc. (see below). |
@@ -306,6 +308,52 @@ triggers the action — you do not write any JavaScript:
 > **Note:** The click handler reads the attribute that's closest to where you
 > clicked, so it's fine to wrap an icon and a label inside one button — a click
 > anywhere in the button still fires the action.
+
+### Tabs
+
+Wrap content in a `bd-tabs` block to get a **tabbed view**: a row of tab buttons
+over swappable panels. The renderer wires the switching — you only supply the
+markup. A button `data-tab="key"` shows the panel whose `data-tabpanel="key"`
+matches; mark the initially-open tab with the `bd-tab--active` class (otherwise
+the first tab opens).
+
+```handlebars
+<div class="bd-tabs">
+  <div class="bd-tabs__bar">
+    <button type="button" class="bd-tab bd-tab--active" data-tab="notes">Annotation</button>
+    <button type="button" class="bd-tab" data-tab="abstract">Abstract</button>
+  </div>
+  <div class="bd-tab__panel" data-tabpanel="notes">{{{notesHtml}}}</div>
+  <div class="bd-tab__panel" data-tabpanel="abstract">{{{abstractHtml}}}</div>
+</div>
+```
+
+Tab groups are independent, so you can nest more than one set in a template.
+
+### Attachment thumbnails
+
+Give an attachment a `data-thumb` element with a `data-file="{{url}}"` and a
+`.bd-thumb__img` slot, and the renderer replaces the slot with a **live preview**:
+the first page for PDFs, the picture for image files, and the icon you put in the
+slot for everything else. **Double-clicking the thumbnail opens the file** in its
+native app.
+
+```handlebars
+{{#if attachments}}
+<div class="bd-thumbs">
+  {{#each attachments}}
+  <figure class="bd-thumb" data-thumb data-file="{{url}}" title="Double-click to open {{displayName}}">
+    <div class="bd-thumb__img">{{icon "file"}}</div>
+    <figcaption class="bd-thumb__name">{{displayName}}</figcaption>
+  </figure>
+  {{/each}}
+</div>
+{{/if}}
+```
+
+> **Tip:** The built-in **Tabbed** bottom-panel mode (chapter 10) is exactly an
+> Annotation · Abstract · Attachments layout built from these two conventions —
+> a ready-made example to read and copy.
 
 ## 11.8 Worked example: the built-in layouts
 
