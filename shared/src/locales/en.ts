@@ -276,6 +276,7 @@ export const en: Catalog = {
   // --- Row context menu ---
   'context.delete': 'Delete entry',
   'context.deleteEntries': 'Delete {count} entries',
+  'context.editAnnotation': 'Edit Annotation…',
 
   // --- Find Duplicates ---
   'dup.ariaLabel': 'Find duplicates',
@@ -409,6 +410,13 @@ export const en: Catalog = {
   'editor.docTitle': 'Edit · {key} — Bibliofile',
   'editor.docTitleEmpty': 'Edit Publication — Bibliofile',
   'editor.editing': 'Editing',
+
+  // --- Annotation editor window ---
+  'annotation.windowTitle': 'Annotation · {key} — Bibliofile',
+  'annotation.windowTitleEmpty': 'Annotation — Bibliofile',
+  'annotation.editing': 'Annotation',
+  'annotation.saving': 'Saving…',
+  'annotation.saved': 'Saved',
 
   // --- Broken links ---
   'broken.ariaLabel': 'Find broken links',

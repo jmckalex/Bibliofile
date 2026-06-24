@@ -287,6 +287,69 @@ body {
   overflow: auto;
 }
 
+/* ---- Standalone annotation editor window ------------------------------ */
+.bd-annowin {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bd-surface);
+}
+.bd-annowin__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--bd-border-strong);
+  background: var(--bd-surface-alt);
+  -webkit-app-region: drag;
+}
+.bd-annowin__bar .bd-btn {
+  -webkit-app-region: no-drag;
+}
+.bd-annowin__title {
+  font-weight: 600;
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+}
+.bd-annowin__status {
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-faint);
+}
+.bd-annowin__spacer {
+  flex: 1;
+}
+.bd-annowin__error {
+  padding: 6px 10px;
+  color: var(--bd-danger, #c0392b);
+  font-size: var(--bd-fs-sm);
+}
+/* Card on top (fixed), editor fills the rest and scrolls internally. */
+.bd-annowin__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.bd-annowin__card {
+  padding: 12px 14px 4px;
+  overflow: auto;
+  max-height: 45%;
+  flex: 0 0 auto;
+}
+.bd-annowin__editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 14px 14px;
+  border-top: 1px solid var(--bd-border);
+}
+/* Let the CodeMirror editor grow to fill the remaining height. */
+.bd-annowin__editor bd-code-editor {
+  flex: 1;
+  min-height: 0;
+}
+
 /* ---- Read-only view pane (main window) -------------------------------- */
 .bd-view__actions {
   display: flex;

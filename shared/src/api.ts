@@ -277,6 +277,9 @@ export interface BibDeskApi {
   /** Open the standalone editor window for one item. */
   openEditor(request: OpenEditorRequest): Promise<{ ok: true }>;
 
+  /** Open the standalone annotation-editor window for one item. */
+  openAnnotation(request: OpenEditorRequest): Promise<{ ok: true }>;
+
   /** Show the native Open-file dialog (welcome screen). Opens the chosen `.bib`. */
   openDialog(): Promise<{ ok: true }>;
 

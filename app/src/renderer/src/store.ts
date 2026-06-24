@@ -187,6 +187,8 @@ export interface ViewerState {
   reloadAfterExternalChange: () => Promise<void>;
   /** Open the standalone editor window for an item (BibDesk-style separate editor). */
   openEditor: (itemId: string) => void;
+  /** Open the standalone annotation-editor window for an item. */
+  openAnnotation: (itemId: string) => void;
   /** (Re)load the groups sidebar for the active document. */
   loadGroups: () => Promise<void>;
   /** (Re)load publications for the current group + sort (limit -1 = all). */
@@ -392,6 +394,11 @@ export function createStore(api: BibDeskApi) {
     openEditor: (itemId) => {
       const { documentId } = get();
       if (documentId && itemId) void api.openEditor({ documentId, itemId });
+    },
+
+    openAnnotation: (itemId) => {
+      const { documentId } = get();
+      if (documentId && itemId) void api.openAnnotation({ documentId, itemId });
     },
 
     reloadAfterExternalChange: async () => {

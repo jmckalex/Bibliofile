@@ -269,6 +269,7 @@ export function PublicationsTable() {
   const selectAll = useStore((s) => s.selectAll);
   const setSort = useStore((s) => s.setSort);
   const openEditor = useStore((s) => s.openEditor);
+  const openAnnotation = useStore((s) => s.openAnnotation);
   const deleteSelection = useStore((s) => s.deleteSelection);
   const loading = useStore((s) => s.loading);
   const citeTemplate = useStore((s) => s.settings.citeCommandTemplate);
@@ -279,7 +280,7 @@ export function PublicationsTable() {
 
   // Right-click color picker: cursor position + the clicked row's current color.
   const [colorMenu, setColorMenu] = useState<
-    { x: number; y: number; current?: string; count: number } | undefined
+    { x: number; y: number; current?: string; count: number; itemId: string } | undefined
   >();
 
   // Live width of the column being drag-resized (persisted to settings on mouseup).
@@ -621,7 +622,13 @@ export function PublicationsTable() {
                     // Right-click outside the selection acts on just this row;
                     // inside it acts on the whole selection.
                     const count = selected ? Math.max(1, selectedIds.length) : 1;
-                    setColorMenu({ x: e.clientX, y: e.clientY, current: row.original.color, count });
+                    setColorMenu({
+                      x: e.clientX,
+                      y: e.clientY,
+                      current: row.original.color,
+                      count,
+                      itemId: row.original.id,
+                    });
                   }}
                   onDoubleClick={() => openEditor(row.original.id)}
                   onDragStart={(e) => {
@@ -669,6 +676,7 @@ export function PublicationsTable() {
         current={colorMenu.current}
         count={colorMenu.count}
         onPick={(idx) => void setColor(idx)}
+        onEditAnnotation={() => openAnnotation(colorMenu.itemId)}
         onDelete={() => void deleteSelection()}
         onClose={() => setColorMenu(undefined)}
       />

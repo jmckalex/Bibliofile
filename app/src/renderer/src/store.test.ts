@@ -151,6 +151,7 @@ function makeFakeApi() {
       calls.openEditor.push(r.itemId);
       return { ok: true as const };
     },
+    openAnnotation: async () => ({ ok: true as const }),
     openDialog: async () => ({ ok: true as const }),
     newDocument: async () => ({ ok: true as const }),
     fieldSuggestions: async () => ({ values: [] }),

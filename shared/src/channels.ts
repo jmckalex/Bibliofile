@@ -124,6 +124,8 @@ export const IpcChannels = {
   renameAuthor: 'bibdesk:renameAuthor',
   /** Open the standalone editor window for one item. */
   openEditor: 'bibdesk:openEditor',
+  /** Open the standalone annotation-editor window for one item. */
+  openAnnotation: 'bibdesk:openAnnotation',
   /** Show the native Open-file dialog (used by the welcome screen's Open button). */
   openDialog: 'bibdesk:openDialog',
   /** Create a new empty bibliography (prompts for a save location, then opens it). */

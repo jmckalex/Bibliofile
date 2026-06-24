@@ -15,6 +15,7 @@ export function ColorContextMenu({
   current,
   count,
   onPick,
+  onEditAnnotation,
   onDelete,
   onClose,
 }: {
@@ -26,6 +27,8 @@ export function ColorContextMenu({
   count: number;
   /** 1-based palette index, or null to clear. */
   onPick: (colorIndex: number | null) => void;
+  /** Open the standalone annotation editor for the right-clicked entry. */
+  onEditAnnotation: () => void;
   /** Delete the current selection. */
   onDelete: () => void;
   onClose: () => void;
@@ -52,6 +55,19 @@ export function ColorContextMenu({
       // Keep clicks inside from bubbling to the window dismiss handler.
       onMouseDown={(e) => e.stopPropagation()}
     >
+      <button
+        type="button"
+        role="menuitem"
+        className="bd-colormenu__item"
+        onClick={() => {
+          onEditAnnotation();
+          onClose();
+        }}
+      >
+        <Icon name="annotation" />
+        {t('context.editAnnotation')}
+      </button>
+      <div className="bd-colormenu__sep" />
       <div className="bd-colormenu__colors">
         {LABEL_COLORS.map((c, i) => (
           <button

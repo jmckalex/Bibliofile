@@ -282,6 +282,9 @@ const api: BibDeskApi = {
   openEditor(request: OpenEditorRequest): Promise<{ ok: true }> {
     return ipcRenderer.invoke(IpcChannels.openEditor, request);
   },
+  openAnnotation(request: OpenEditorRequest): Promise<{ ok: true }> {
+    return ipcRenderer.invoke(IpcChannels.openAnnotation, request);
+  },
   openDialog(): Promise<{ ok: true }> {
     return ipcRenderer.invoke(IpcChannels.openDialog, {});
   },

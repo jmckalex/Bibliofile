@@ -153,6 +153,7 @@ function reusableWelcomeWindow(): BrowserWindow | undefined {
   if (!f || f.isDestroyed() || f === helpWindow) return undefined;
   if (docIdForWindow(f)) return undefined; // already shows a library
   for (const w of editorWindows.values()) if (w === f) return undefined; // a per-entry editor
+  for (const w of annotationWindows.values()) if (w === f) return undefined; // an annotation editor
   return f;
 }
 
@@ -470,6 +471,49 @@ function createEditorWindow(documentId: string, itemId: string): void {
   }
   editorWindows.set(key, win);
   win.on('closed', () => editorWindows.delete(key));
+}
+
+/** Open windows for the standalone annotation editor, keyed by `<doc>::<item>`. */
+const annotationWindows = new Map<string, BrowserWindow>();
+
+/**
+ * Open (or focus) the standalone annotation editor for one item: a top-level,
+ * non-blocking window with the entry's pretty-printed preview card above a
+ * markdown editor that debounce-saves the annotation back to the shared document
+ * (the main window refreshes via the documentChanged broadcast). Loads the same
+ * renderer with an `#annotation=<doc>::<item>` hash.
+ */
+function createAnnotationWindow(documentId: string, itemId: string): void {
+  const key = `${documentId}::${itemId}`;
+  const existing = annotationWindows.get(key);
+  if (existing && !existing.isDestroyed()) {
+    existing.focus();
+    return;
+  }
+  const win = new BrowserWindow({
+    width: 640,
+    height: 780,
+    minWidth: 460,
+    minHeight: 420,
+    show: false,
+    title: t('annotation.windowTitleEmpty'),
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.mjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+    },
+  });
+  win.once('ready-to-show', () => win.show());
+  const hash = `annotation=${encodeURIComponent(documentId)}::${encodeURIComponent(itemId)}`;
+  const devUrl = process.env.ELECTRON_RENDERER_URL;
+  if (devUrl) {
+    void win.loadURL(`${devUrl}#${hash}`);
+  } else {
+    void win.loadFile(join(__dirname, '../renderer/index.html'), { hash });
+  }
+  annotationWindows.set(key, win);
+  win.on('closed', () => annotationWindows.delete(key));
 }
 
 /**
@@ -2331,6 +2375,10 @@ function registerIpc(): void {
       createEditorWindow(req.documentId, req.itemId);
       return { ok: true };
     },
+    [IpcChannels.openAnnotation]: (req) => {
+      createAnnotationWindow(req.documentId, req.itemId);
+      return { ok: true };
+    },
     [IpcChannels.openDialog]: () => {
       void showOpenDialog();
       return { ok: true };
@@ -2627,6 +2675,9 @@ function registerIpc(): void {
   mutating(IpcChannels.renameAuthor);
   ipcMain.handle(IpcChannels.openEditor, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.openEditor](req),
+  );
+  ipcMain.handle(IpcChannels.openAnnotation, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.openAnnotation](req),
   );
   ipcMain.handle(IpcChannels.openDialog, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.openDialog](req),

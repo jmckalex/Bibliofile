@@ -10,6 +10,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App.js';
 import { EditorWindow } from './EditorWindow.js';
+import { AnnotationWindow } from './AnnotationWindow.js';
 import { registerBdElements } from './bd-elements.js';
 import './styles.css';
 
@@ -22,15 +23,24 @@ if (!container) {
   throw new Error('#root element not found');
 }
 
-/** Parse a `#editor=<documentId>::<itemId>` launch hash, if present. */
-function editorTarget(): { documentId: string; itemId: string } | null {
-  const m = /^#editor=([^:]+)::(.+)$/.exec(window.location.hash);
+/** Parse a `#<kind>=<documentId>::<itemId>` launch hash for a per-item window. */
+function windowTarget(kind: string): { documentId: string; itemId: string } | null {
+  const m = new RegExp(`^#${kind}=([^:]+)::(.+)$`).exec(window.location.hash);
   if (!m) return null;
   return { documentId: decodeURIComponent(m[1]!), itemId: decodeURIComponent(m[2]!) };
 }
 
-const target = editorTarget();
+const editor = windowTarget('editor');
+const annotation = windowTarget('annotation');
 
 createRoot(container).render(
-  <StrictMode>{target ? <EditorWindow {...target} /> : <App />}</StrictMode>,
+  <StrictMode>
+    {editor ? (
+      <EditorWindow {...editor} />
+    ) : annotation ? (
+      <AnnotationWindow {...annotation} />
+    ) : (
+      <App />
+    )}
+  </StrictMode>,
 );
