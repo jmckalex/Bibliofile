@@ -1118,6 +1118,30 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                     flakier path. Existing entries convert on next edit; either form always reads back.
                   </p>
                 </section>
+                <section className="bd-prefs__section">
+                  <h3>{t('prefs.abstractStorage')}</h3>
+                  <label className="bd-prefs__row">
+                    <span>{t('prefs.writeAbstractAs')}</span>
+                    <select
+                      className="bd-input bd-select"
+                      value={settings.abstractStorage}
+                      onChange={(e) => void save({ abstractStorage: e.target.value as Settings['abstractStorage'] })}
+                    >
+                      <option value="plain">{t('prefs.abstract.plain')}</option>
+                      <option value="readable">{t('prefs.abstract.readable')}</option>
+                      <option value="compressed">{t('prefs.abstract.compressed')}</option>
+                    </select>
+                  </label>
+                  <p className="bd-prefs__hint">
+                    The abstract is a normal field, so <strong>Plain</strong> (the default) stores it
+                    verbatim — portable and fed to citation styles, but a stray unbalanced{' '}
+                    <code>{'}'}</code> could corrupt the <code>.bib</code>. <strong>Readable</strong> and{' '}
+                    <strong>Compressed</strong> apply the same brace-safe encodings as annotations (in the
+                    standard <code>Abstract</code> field, or a private <code>Bdsk-Abstract</code> blob) —
+                    safe against bad braces, but less portable (other tools and CSL won’t see a compressed
+                    abstract). Existing entries convert on next edit; all forms always read back.
+                  </p>
+                </section>
               </>
             )}
 

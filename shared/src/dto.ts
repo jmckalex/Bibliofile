@@ -1086,6 +1086,14 @@ export interface Settings {
    * human-readable, but the flakier path. Reading handles both regardless.
    */
   readonly annotationStorage: 'compressed' | 'readable';
+  /**
+   * How the `Abstract` field is stored. `plain` (default) keeps it verbatim in the
+   * standard `Abstract` field (portable, fed to CSL). `readable` / `compressed`
+   * apply the same brace-safe encodings as {@link annotationStorage} (so a stray
+   * `}` can't corrupt the `.bib`), at the cost of portability. Reading handles all
+   * three regardless.
+   */
+  readonly abstractStorage: 'plain' | 'readable' | 'compressed';
   /** Entry type used by the toolbar **New** button. */
   readonly defaultEntryType: string;
   /**
@@ -1198,6 +1206,7 @@ export const DEFAULT_SETTINGS: Settings = {
   // always appends two. See core/formats/src/author-count-format.test.ts.
   citeKeyFormat: '%p[/][/etal1]2:%Y%u0',
   annotationStorage: 'compressed',
+  abstractStorage: 'plain',
   defaultEntryType: 'article',
   citeCommandTemplate: '\\cite{%K}',
   columns: ['citeKey', 'type', 'authors', 'title', 'year', 'keywords', 'attachments', 'read'],

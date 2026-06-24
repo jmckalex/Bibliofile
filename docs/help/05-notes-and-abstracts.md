@@ -501,10 +501,10 @@ The sanitizer is strict about iframes:
 
 The two fields are stored **differently**, and the difference matters.
 
-### The Abstract — a plain field
+### The Abstract — a plain field (by default)
 
-The **Abstract** is an ordinary BibTeX field, stored as **plain text** exactly as
-you typed it:
+The **Abstract** is an ordinary BibTeX field, and by default it's stored as
+**plain text** exactly as you typed it:
 
 ```bibtex
 @article{einstein1916,
@@ -521,8 +521,23 @@ $$G_{\mu\nu} = 8\pi T_{\mu\nu}.$$},
 The Markdown and the maths sit in the file as ordinary characters; the app renders
 them on display but adds nothing beyond what you typed, so the abstract is readable
 in any editor and round-trips through classic BibDesk and the TeX/LaTeX ecosystem.
-(Like any BibTeX field, the value's braces must balance — an unbalanced `}` in an
-abstract is a hazard there as in any tool.)
+
+The trade-off is the same brace hazard as notes: an **unbalanced `}`** pasted into
+an abstract could terminate the field early and corrupt the `.bib`. If that worries
+you, **Preferences → Files → Abstract storage** ("Write abstracts as") offers the
+same opt-in encodings as the annotation:
+
+- **Plain text** (the default) — verbatim, fully portable, fed to citation styles.
+- **Readable** — only `% { }` percent-escaped, kept in the standard `Abstract`
+  field: brace-safe and still readable, at the cost of `%7B`/`%7D` in other tools.
+- **Compressed** — an lz-string + base64 blob in a private `Bdsk-Abstract` field:
+  brace-safe and compact, but opaque to other tools and **invisible to citation
+  styles** (which read the standard `Abstract` field). The app still shows and
+  edits it normally, decoding on the fly.
+
+Leave it on **Plain** unless you specifically need the protection — the abstract
+is part of the citation record, so most libraries are best served keeping it
+portable. Existing entries convert on next edit; all three forms always read back.
 
 ### The Annotation — encoded for safety
 

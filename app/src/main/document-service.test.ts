@@ -1394,3 +1394,64 @@ describe('document-service: BD test.bib', () => {
     expect(formatAuthorsDisplay(chen)).toContain('Chen');
   });
 });
+
+describe('abstract storage modes', () => {
+  // An abstract with a stray unbalanced `}` — the footgun that can corrupt a .bib.
+  const ABS = 'Euler shows $\\sum 1/n^2 = \\pi^2/6$ — with a stray } brace.';
+  const setup = (mode: 'plain' | 'readable' | 'compressed') => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {T}}', '/tmp/abs.bib');
+    store.setEditConfig({ abstractStorage: mode });
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    store.applyEdit({ documentId, command: { kind: 'setField', itemId, field: 'Abstract', value: ABS } });
+    return { store, documentId, itemId };
+  };
+  const abstractRow = (store: DocumentStore, documentId: string, itemId: string) =>
+    store.getItemDetail({ documentId, itemId }).fields.find((f) => f.name.toLowerCase() === 'abstract');
+  // Re-parse a serialized library and read its first entry's decoded abstract.
+  const reopenAbstract = (bib: string): string => {
+    const re = new DocumentStore();
+    const { documentId } = re.openText(bib, '/tmp/abs-reopen.bib');
+    const id = re.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    return re.getItemDetail({ documentId, itemId: id }).abstractRaw ?? '';
+  };
+
+  it('plain (default) stores the abstract verbatim in the Abstract field', () => {
+    const { store, documentId, itemId } = setup('plain');
+    const bib = store.serializeDocument(documentId);
+    expect(bib).not.toMatch(/bdsk-abstract/i);
+    expect(bib).toMatch(/Abstract\s*=/i);
+    expect(abstractRow(store, documentId, itemId)?.rawValue).toBe(ABS);
+  });
+
+  it('compressed encodes the abstract into a brace-safe Bdsk-Abstract blob and round-trips', () => {
+    const { store, documentId, itemId } = setup('compressed');
+    const bib = store.serializeDocument(documentId);
+    expect(bib).toMatch(/bdsk-abstract/i);
+    // The raw text (with its stray brace) is NOT written verbatim — it's encoded.
+    expect(bib).not.toContain('stray } brace');
+    // Surfaced as a normal, decoded, editable Abstract row (no raw blob shown).
+    expect(abstractRow(store, documentId, itemId)?.rawValue).toBe(ABS);
+    // Survives a save → reopen losslessly (the .bib stays valid).
+    expect(reopenAbstract(bib)).toBe(ABS);
+  });
+
+  it('readable escapes the brace in the standard Abstract field and round-trips', () => {
+    const { store, documentId } = setup('readable');
+    const bib = store.serializeDocument(documentId);
+    expect(bib).not.toMatch(/bdsk-abstract/i);
+    expect(bib).toContain('%7D'); // the stray } is percent-escaped — can't end the field early
+    expect(bib).not.toContain('stray } brace');
+    expect(reopenAbstract(bib)).toBe(ABS);
+  });
+
+  it('switching modes converts the storage on the next edit', () => {
+    const { store, documentId, itemId } = setup('compressed');
+    expect(store.serializeDocument(documentId)).toMatch(/bdsk-abstract/i);
+    store.setEditConfig({ abstractStorage: 'plain' });
+    store.applyEdit({ documentId, command: { kind: 'setField', itemId, field: 'Abstract', value: 'now plain' } });
+    const bib = store.serializeDocument(documentId);
+    expect(bib).not.toMatch(/bdsk-abstract/i);
+    expect(bib).toMatch(/Abstract\s*=\s*\{now plain\}/i);
+  });
+});

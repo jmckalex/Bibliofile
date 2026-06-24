@@ -71,6 +71,13 @@ import {
   type AnnotationStorage,
 } from './annotation.js';
 import {
+  readAbstract,
+  writeAbstract,
+  ABSTRACT_FIELD,
+  ABSTRACT_COMPRESSED_FIELD,
+  type AbstractStorage,
+} from './abstract.js';
+import {
   renderDetailsPanel,
   renderBottomPanel,
   renderTabbedPanel,
@@ -725,16 +732,42 @@ export function toItemDetail(
   const annotationFields = new Set([ANNOTATION_FIELD.toLowerCase(), COMPRESSED_FIELD.toLowerCase()]);
   // The color label is set via the palette UI, not edited as a raw field row.
   const hiddenFields = new Set([...annotationFields, COLOR_FIELD.toLowerCase()]);
+  // The abstract may be stored plain, readable-escaped, or compressed in
+  // `Bdsk-Abstract`. Surface exactly ONE decoded, editable `Abstract` row
+  // (whichever storage is in use) and never show the raw compressed blob.
+  const abstractLower = ABSTRACT_FIELD.toLowerCase();
+  const abstractCompressedLower = ABSTRACT_COMPRESSED_FIELD.toLowerCase();
+  let abstractEmitted = false;
+  const pushAbstractRow = (value: string, isInherited: boolean): void => {
+    fields.push({
+      name: ABSTRACT_FIELD,
+      value: fieldDisplayValue(ABSTRACT_FIELD, value),
+      rawValue: value,
+      isInherited,
+      kind: fieldKindOf(ABSTRACT_FIELD),
+      required: required.has(abstractLower),
+    });
+  };
   for (const name of item.fieldNames()) {
-    emitted.add(name.toLowerCase());
-    if (BDSK_FILE_RE.test(name) || hiddenFields.has(name.toLowerCase())) continue;
+    const lower = name.toLowerCase();
+    emitted.add(lower);
+    if (BDSK_FILE_RE.test(name) || hiddenFields.has(lower)) continue;
+    if (lower === abstractLower || lower === abstractCompressedLower) {
+      emitted.add(abstractLower);
+      emitted.add(abstractCompressedLower);
+      if (!abstractEmitted) {
+        abstractEmitted = true;
+        pushAbstractRow(readAbstract(item, false), false);
+      }
+      continue;
+    }
     fields.push({
       name,
       value: fieldDisplayValue(name, item.stringValueOfField(name, false)),
       rawValue: rawFieldText(item, name),
       isInherited: false,
       kind: fieldKindOf(name),
-      required: required.has(name.toLowerCase()),
+      required: required.has(lower),
     });
   }
 
@@ -747,6 +780,16 @@ export function toItemDetail(
       if (emitted.has(lower)) continue;
       if (!item.isFieldInherited(name)) continue;
       emitted.add(lower);
+      if (lower === abstractLower || lower === abstractCompressedLower) {
+        emitted.add(abstractLower);
+        emitted.add(abstractCompressedLower);
+        if (!abstractEmitted) {
+          abstractEmitted = true;
+          const inherited = readAbstract(item, true);
+          if (inherited) pushAbstractRow(inherited, true);
+        }
+        continue;
+      }
       fields.push({
         name,
         value: fieldDisplayValue(name, item.stringValueOfField(name, true)),
@@ -759,7 +802,7 @@ export function toItemDetail(
   }
 
   const notesRaw = readAnnotation(item);
-  const abstractRaw = item.stringValueOfField('Abstract', true); // markdown source
+  const abstractRaw = readAbstract(item); // markdown source (decoded for any storage mode)
   return {
     id: item.id,
     citeKey: item.citeKey,
@@ -803,7 +846,7 @@ export function buildPreviewHtml(item: BibItem, fileCount: number): string | und
   const pages = toDisplay(item.stringValueOfField('Pages', true));
   const doi = item.stringValueOfField('Doi', true).trim();
   const url = item.stringValueOfField('Url', true).trim();
-  const abstractMd = item.stringValueOfField('Abstract', true); // markdown source
+  const abstractMd = readAbstract(item); // markdown source (decoded for any storage mode)
   const keywords = splitKeywords(item.stringValueOfField('Keywords', true));
 
   if (!title && !authors && !journal && !year) return undefined;
@@ -998,10 +1041,23 @@ interface OpenDoc {
 /** Concatenated searchable text for an item (field text + any indexed PDF text). */
 function itemSearchText(item: BibItem, pdfText: string): string {
   const parts: string[] = [item.citeKey, item.type];
+  const skip = new Set([
+    COMPRESSED_FIELD.toLowerCase(),
+    ANNOTATION_FIELD.toLowerCase(),
+    ABSTRACT_COMPRESSED_FIELD.toLowerCase(),
+    ABSTRACT_FIELD.toLowerCase(),
+  ]);
   for (const name of item.fieldNames()) {
     if (BDSK_FILE_RE.test(name)) continue; // skip base64 attachment blobs
+    // Skip the annotation/abstract fields here; index their DECODED text below so
+    // search works regardless of storage mode (a compressed blob is unsearchable).
+    if (skip.has(name.toLowerCase())) continue;
     parts.push(detexify(item.stringValueOfField(name, false)));
   }
+  const notes = readAnnotation(item);
+  if (notes) parts.push(detexify(notes));
+  const abstract = readAbstract(item, false);
+  if (abstract) parts.push(detexify(abstract));
   if (pdfText) parts.push(pdfText);
   return parts.join(' \n ');
 }
@@ -1025,6 +1081,7 @@ export class DocumentStore {
     autoFileFormat: '%p1/%T5',
     autoFileOnAdd: false,
     annotationStorage: 'compressed' as AnnotationStorage,
+    abstractStorage: 'plain' as AbstractStorage,
     defaultCiteStyle: 'apa',
     detailsTemplate: undefined as string | undefined,
     bottomPanelTemplate: undefined as string | undefined,
@@ -1038,6 +1095,7 @@ export class DocumentStore {
     autoFileFormat?: string;
     autoFileOnAdd?: boolean;
     annotationStorage?: AnnotationStorage;
+    abstractStorage?: AbstractStorage;
     defaultCiteStyle?: string;
     detailsTemplate?: string;
     bottomPanelTemplate?: string;
@@ -1048,6 +1106,7 @@ export class DocumentStore {
     if (c.autoFileFormat) this.editConfig.autoFileFormat = c.autoFileFormat;
     if (c.autoFileOnAdd !== undefined) this.editConfig.autoFileOnAdd = c.autoFileOnAdd;
     if (c.annotationStorage) this.editConfig.annotationStorage = c.annotationStorage;
+    if (c.abstractStorage) this.editConfig.abstractStorage = c.abstractStorage;
     if (c.defaultCiteStyle) this.editConfig.defaultCiteStyle = c.defaultCiteStyle;
     // Panel templates: '' or absent ⇒ use the built-in default (clear the override).
     if ('detailsTemplate' in c) this.editConfig.detailsTemplate = c.detailsTemplate || undefined;
@@ -1795,6 +1854,8 @@ export class DocumentStore {
     for (const item of targets) {
       if (field.toLowerCase() === ANNOTATION_FIELD.toLowerCase()) {
         writeAnnotation(item, value, this.editConfig.annotationStorage);
+      } else if (field.toLowerCase() === ABSTRACT_FIELD.toLowerCase()) {
+        writeAbstract(item, value, this.editConfig.abstractStorage);
       } else if (value === '') {
         item.removeField(field);
       } else {
@@ -2697,13 +2758,21 @@ export class DocumentStore {
         // an escaped readable form) rather than wrapping raw braces into the .bib.
         if (cmd.field.toLowerCase() === ANNOTATION_FIELD.toLowerCase()) {
           writeAnnotation(item, cmd.value, this.editConfig.annotationStorage);
+        } else if (cmd.field.toLowerCase() === ABSTRACT_FIELD.toLowerCase()) {
+          // Optionally apply the same brace-safe encoding to the abstract.
+          writeAbstract(item, cmd.value, this.editConfig.abstractStorage);
         } else if (cmd.value === '') item.removeField(cmd.field);
         else item.setField(cmd.field, cmd.value);
         return this.dirtyDetail(doc, item);
       }
       case 'removeField': {
         const item = this.itemOf(doc, cmd.itemId);
-        item.removeField(cmd.field);
+        // Clearing the Abstract row must drop whichever field holds it (the plain
+        // `Abstract` or the compressed `Bdsk-Abstract` blob).
+        if (cmd.field.toLowerCase() === ABSTRACT_FIELD.toLowerCase()) {
+          item.removeField(ABSTRACT_FIELD);
+          item.removeField(ABSTRACT_COMPRESSED_FIELD);
+        } else item.removeField(cmd.field);
         return this.dirtyDetail(doc, item);
       }
       case 'setCiteKey': {
@@ -2813,7 +2882,7 @@ export class DocumentStore {
     set('publisher-place', disp('Address'));
     set('DOI', raw('Doi'));
     set('URL', raw('Url'));
-    set('abstract', disp('Abstract'));
+    set('abstract', toDisplay(readAbstract(item))); // decoded for any storage mode
 
     const authors = item.authors().map(toCslName);
     if (authors.length) csl.author = authors;
