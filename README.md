@@ -25,14 +25,15 @@ BibDesk and your TeX workflow.
 
 ## Highlights
 
-- 📚 **Byte-faithful BibTeX** round-trip — your file, your format, preserved exactly.
-- 🔎 Fast **virtualized table** with configurable columns, live filter, and SQLite **full-text search** (incl. PDF text).
+- 📚 **Byte-faithful BibTeX** round-trip — your file, your format, preserved exactly (verified byte-for-byte on a 1,300+ entry library).
+- 🔎 Fast **virtualized table** with configurable columns, live filter, and SQLite **full-text search** — **quoted phrases** and PDF text, with a configurable page limit.
 - 🗂️ **Groups**: Library, Static, Smart (condition builder), nestable **Folders**, and dynamic **Author / Keyword** categories.
-- ✍️ Inline **editing** with field autocomplete, cite-key generation, `@string` macros, **Find & Replace**, and full **undo/redo**.
+- ✍️ Inline **editing** with field autocomplete, cite-key generation (single entry or a whole selection), `@string` macros, **Find & Replace**, and full **undo/redo**.
+- 📝 **Markdown notes & abstracts** with math, **brace-safe storage**, and a standalone **annotation-editor window** that auto-saves.
 - 🎨 Themed **preview** with MathJax math, chips, keyword tags, journal covers, and **light / dark** modes.
 - 📑 Formatted **CSL citations** (APA / Vancouver / Harvard, offline) — install your own `.csl` styles.
 - 🧮 **LaTeX preview** — typeset the selection's bibliography with your own TeX + `.bst` style (crisp SVG or PDF).
-- 🪟 **Configurable panels** you can resize, hide, swap, and redesign with **Handlebars templates**.
+- 🪟 **Configurable panels** you can resize, hide, swap, and redesign with **Handlebars templates** — including a **tabbed** bottom panel (Annotation · Abstract · Attachments, with PDF/image thumbnails).
 - 📥 **Import / export** — paste BibTeX, drag-and-drop `.bib`/PDFs, RIS import; export BibTeX / RIS / CSV / styled HTML.
 - 🌐 **Online search** of CrossRef and arXiv, importing results as new entries.
 - 🤖 An optional **Claude assistant** in the side pane (bring your own API key).
@@ -48,7 +49,9 @@ BibDesk and your TeX workflow.
   sortable, **configurable columns** (any field, plus the keyword / attachment /
   Read / rating icon columns).
 - **Live search** as you type, backed by an optional **SQLite FTS5 full-text index**
-  that also searches extracted **PDF text**.
+  that also searches extracted **PDF text**. Bare words match by prefix (AND);
+  wrap a **"quoted phrase"** to require those words adjacent and in order. How many
+  PDF pages are indexed is configurable (a page cap, or *all* pages for scanned books).
 - A **groups sidebar**: the whole **Library**, **Static** groups, **Smart** groups
   (a condition builder over the entry fields), nestable **Folders**, and dynamic
   **Author** and **Keyword** category groups that build themselves from your data.
@@ -64,7 +67,8 @@ BibDesk and your TeX workflow.
 - Edit fields **inline** in the detail pane, with **autocomplete** from existing
   values (keywords, journals, crossref keys).
 - Change **cite keys** (with one-click **Generate** from a configurable format
-  language) and **entry types**; add, duplicate, and delete entries.
+  language — for a single entry or a **whole selection** in one undo step, kept
+  unique across the batch) and **entry types**; add, duplicate, and delete entries.
 - `Crossref` **inheritance**, the `@string` **macro editor**, and **Find & Replace**
   across fields.
 - A real **undo / redo** stack (per document) and an optional **autosave**; otherwise
@@ -85,9 +89,25 @@ BibDesk and your TeX workflow.
 
 ### 📝 Notes & abstracts
 
-- Write abstracts and per-entry notes in **Markdown** (with math), rendered live.
+- Write abstracts and per-entry notes in **Markdown** (with **MathJax** math),
+  rendered live — headings, lists, emphasis, blockquotes, and display equations.
 - Notes support **`[[citeKey]]` cross-references** between entries and inline
   `<iframe>` embeds (e.g. a lecture video).
+- A standalone, non-blocking **annotation-editor window** (right-click an entry →
+  **Edit Annotation…**): the entry's pretty-printed preview card above a Markdown
+  editor, the cite key in the title bar, and **debounced auto-save**.
+- **Brace-safe storage.** Markdown routinely contains an unbalanced `}` that would
+  corrupt a `.bib`, so annotations are stored encoded by default (compressed in a
+  private `Bdsk-Annotation` field, or a readable percent-escaped form) — and the
+  same protection is available for the **Abstract** field (Preferences → Files).
+
+<table>
+  <tr>
+    <td><img src="docs/viewer-annotation-math.png" alt="Markdown notes with rendered MathJax in the tabbed bottom panel"></td>
+    <td><img src="docs/viewer-annotation-editor.png" alt="The standalone annotation-editor window"></td>
+  </tr>
+  <tr><td align="center"><em>Markdown + MathJax notes (tabbed panel)</em></td><td align="center"><em>Standalone annotation editor</em></td></tr>
+</table>
 
 ### 🎨 Preview & citations
 
@@ -116,9 +136,12 @@ BibDesk and your TeX workflow.
 - **Resize, hide, and swap** the side detail pane and the bottom panel; the layout is
   remembered across launches.
 - **Switch what each pane shows** — the side pane between the **Details** view and the
-  **Claude** assistant, the bottom pane between the **Annotation** reader and the
-  **LaTeX Preview** — from in-pane dropdowns or **View → Side/Bottom Panel** (with
-  shortcuts).
+  **Claude** assistant, and the bottom pane between the **Annotation** reader, a
+  **Tabbed** view, and the **LaTeX Preview** — from in-pane dropdowns or
+  **View → Side/Bottom Panel** (with shortcuts).
+- The **Tabbed** bottom-panel mode gives one entry three tabs — **Annotation** and
+  **Abstract** (both Markdown), and **Attachments** as a grid of **thumbnails** (PDF
+  first pages / image previews) that open in their native app on double-click.
 - Selecting **two or more** entries switches both panes to a **multi-select view**: a
   "Multiple entries selected (N)" indicator over a scrollable list of each entry's
   preview / annotation.
@@ -126,6 +149,8 @@ BibDesk and your TeX workflow.
   [Customizing panels & outputs](docs/help/11-customizing-panels.md) for the full
   reference (template context, helpers, live widgets, interactive hooks, and worked
   examples), plus user-editable **export templates**.
+
+![The Tabbed bottom panel — the Attachments tab showing a PDF first-page thumbnail](docs/viewer-tabbed-attachments.png)
 
 ### 📥 Import & export
 
