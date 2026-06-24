@@ -20,7 +20,8 @@
     "rebuild:electron": "node scripts/rebuild-native.mjs electron",
     "pack:dir": "pnpm rebuild:electron && pnpm build:app && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --dir",
     "dist": "pnpm rebuild:electron && pnpm build:app && electron-builder",
-    "dist:mac": "pnpm rebuild:electron && pnpm build:app && electron-builder --mac"
+    "dist:mac": "pnpm rebuild:electron && pnpm build:app && electron-builder --mac",
+    "dist:mac:x64": "pnpm build:app && node scripts/rebuild-native.mjs electron x64 && electron-builder --mac --x64"
   },
   "devDependencies": {
     "@electron/notarize": "^3.1.1",

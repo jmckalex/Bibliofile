@@ -3,8 +3,15 @@
  * test` can run the SQLite FTS5 tests) or the Electron ABI (so the packaged /
  * `pnpm dev` app can use full-text search). One binary, two ABIs — switch with:
  *
- *   node scripts/rebuild-native.mjs node       # for tests / CI
- *   node scripts/rebuild-native.mjs electron    # for the app (default)
+ *   node scripts/rebuild-native.mjs node            # for tests / CI
+ *   node scripts/rebuild-native.mjs electron         # for the app (default, host arch)
+ *   node scripts/rebuild-native.mjs electron x64     # cross-compile for Intel
+ *   node scripts/rebuild-native.mjs electron arm64   # cross-compile for Apple Silicon
+ *
+ * The optional 3rd arg cross-compiles the addon for a non-host arch (used by the
+ * `dist:mac:x64` script to ship an Intel build from an Apple Silicon machine).
+ * It leaves node_modules holding that arch's binary, so re-run for the host arch
+ * (`electron` / `node`) afterwards before `pnpm dev`/`pnpm test`.
  *
  * Notes:
  * - On a clean machine, `npx @electron/rebuild -w better-sqlite3` is the
@@ -20,6 +27,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = dirname(fileURLToPath(import.meta.url)) + '/..';
 const target = (process.argv[2] ?? 'electron').toLowerCase();
+// Optional cross-compile arch (defaults to the host); only meaningful for `electron`.
+const arch = (process.argv[3] ?? process.arch).toLowerCase();
 const require = createRequire(resolve(root, 'app/index.js'));
 
 const bsDir = dirname(require.resolve('better-sqlite3/package.json'));
@@ -51,10 +60,11 @@ if (target === 'electron') {
   const electronVersion = require('electron/package.json').version;
   args.push(
     `--target=${electronVersion}`,
-    `--arch=${process.arch}`,
+    `--arch=${arch}`,
     '--dist-url=https://electronjs.org/headers',
   );
-  console.log(`Rebuilding better-sqlite3 for Electron ${electronVersion} (${process.arch})…`);
+  const cross = arch !== process.arch ? ` [cross-compiling from ${process.arch}]` : '';
+  console.log(`Rebuilding better-sqlite3 for Electron ${electronVersion} (${arch})${cross}…`);
 } else {
   console.log(`Rebuilding better-sqlite3 for Node ${process.versions.node}…`);
 }

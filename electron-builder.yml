@@ -46,6 +46,11 @@ afterSign: scripts/notarize.cjs
 # are unset.
 afterAllArtifactBuild: scripts/notarize-dmg.cjs
 
+# Always tag the dmg with its arch, so the Intel (x64) and Apple-Silicon (arm64)
+# disk images have distinct names side by side in ./release.
+dmg:
+  artifactName: ${productName}-${version}-${arch}.${ext}
+
 mac:
   target:
     - dmg
