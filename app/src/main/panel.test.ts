@@ -6,9 +6,11 @@
  */
 import { describe, it, expect } from 'vitest';
 import type { ItemDetail } from '@bibdesk/shared';
+import { DEFAULT_TABBED_BOTTOM_TEMPLATE } from '@bibdesk/shared';
 import {
   renderDetailsPanel,
   renderBottomPanel,
+  renderTabbedPanel,
   renderPanelPreview,
   resolveActivePanelBody,
   renderMultiPanels,
@@ -162,8 +164,8 @@ describe('showcase presets', () => {
     expect(html).toContain('data-open-file="/a.pdf"');
   });
 
-  it('tabbed preset emits the three tabs, panels, and a thumbnail tile', () => {
-    const body = PANEL_PRESETS.find((p) => p.name.startsWith('Tabbed'))!.body;
+  it('built-in tabbed template emits the three tabs, panels, and a thumbnail tile', () => {
+    const body = DEFAULT_TABBED_BOTTOM_TEMPLATE;
     const withAbstract = detail({
       ...sample,
       abstractHtml: '<p>An abstract.</p>',
@@ -180,6 +182,14 @@ describe('showcase presets', () => {
     // content: annotation + abstract rendered, attachment becomes a thumb tile
     expect(html).toContain('<p>note</p>');
     expect(html).toContain('<p>An abstract.</p>');
+    expect(html).toContain('data-thumb data-file="/a.pdf"');
+  });
+
+  it('renderTabbedPanel renders the built-in tabbed view (fixed mode, no fork)', () => {
+    const html = renderTabbedPanel(detail({ ...sample, abstractHtml: '<p>Abs.</p>' }), 'd1', 'apa')!;
+    expect(html).toContain('class="bd-tabs"');
+    expect(html).toContain('data-tabpanel="attachments"');
+    expect(html).toContain('<p>Abs.</p>');
     expect(html).toContain('data-thumb data-file="/a.pdf"');
   });
 });

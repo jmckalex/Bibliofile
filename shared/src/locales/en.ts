@@ -298,6 +298,7 @@ export const en: Catalog = {
   'panel.claude': 'Claude',
   'panel.hide': 'Hide panel',
   'panel.annotation': 'Annotation',
+  'panel.tabbed': 'Tabbed',
   'panel.texPreview': 'LaTeX Preview',
   'panel.content': 'Panel content',
   'panel.texPreviewHint': 'Select one or more publications to preview their LaTeX bibliography.',

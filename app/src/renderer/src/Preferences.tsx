@@ -772,8 +772,8 @@ function PanelsSection({
         matching <code>{'[data-tabpanel="key"]'}</code> panels for a tabbed view. An attachment tile{' '}
         <code>{'<figure class="bd-thumb" data-thumb data-file="{{url}}">'}</code> (with a{' '}
         <code>{'.bd-thumb__img'}</code> slot) gets a live PDF/image preview and opens natively on
-        double-click. The <strong>Tabbed — Annotation · Abstract · Attachments</strong> preset (Load
-        preset…) is a ready-made example.
+        double-click. The built-in <strong>Tabbed</strong> bottom-panel mode (the bottom-panel switch,
+        or View ▸ Bottom Panel ▸ Tabbed) is a ready-made example of both.
       </p>
       <PanelForkManager
         which="details"

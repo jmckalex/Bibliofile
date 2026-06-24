@@ -1168,7 +1168,7 @@ export interface LayoutSettings {
   /** Whether the bottom panel is shown. */
   readonly bottomPanelVisible: boolean;
   /** What the bottom panel shows: the entry annotation, or the LaTeX preview. */
-  readonly bottomPaneContent: 'annotation' | 'texPreview';
+  readonly bottomPaneContent: 'annotation' | 'tabbed' | 'texPreview';
 }
 
 /** Builtin (non-field) table column keys. */
@@ -1391,6 +1391,9 @@ export interface ItemDetail {
   readonly detailsPanelHtml?: string;
   /** The bottom panel rendered as HTML (default = the annotation reader). */
   readonly bottomPanelHtml?: string;
+  /** The built-in tabbed bottom-panel view (Annotation · Abstract · Attachments),
+   *  shown when the bottom-panel mode is `tabbed`. */
+  readonly bottomPanelTabbedHtml?: string;
 }
 
 // --- Menu commands ----------------------------------------------------------
@@ -1445,6 +1448,7 @@ export type MenuCommand =
   | 'sidePaneDetails'
   | 'sidePaneAssistant'
   | 'bottomPaneAnnotation'
+  | 'bottomPaneTabbed'
   | 'bottomPaneTexPreview'
   // App
   | 'save'

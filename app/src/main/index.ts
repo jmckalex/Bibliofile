@@ -1574,8 +1574,13 @@ function buildMenu(): void {
             click: () => sendMenuCommand('bottomPaneAnnotation'),
           },
           {
-            label: t('panel.texPreview'),
+            label: t('panel.tabbed'),
             accelerator: 'CmdOrCtrl+Alt+4',
+            click: () => sendMenuCommand('bottomPaneTabbed'),
+          },
+          {
+            label: t('panel.texPreview'),
+            accelerator: 'CmdOrCtrl+Alt+5',
             click: () => sendMenuCommand('bottomPaneTexPreview'),
           },
         ],

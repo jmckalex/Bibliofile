@@ -73,6 +73,7 @@ import {
 import {
   renderDetailsPanel,
   renderBottomPanel,
+  renderTabbedPanel,
   renderPanelPreview,
   DEFAULT_DETAILS_TEMPLATE,
   DEFAULT_BOTTOM_TEMPLATE,
@@ -3014,6 +3015,7 @@ export class DocumentStore {
       ...detail,
       detailsPanelHtml: renderDetailsPanel(detail, doc.documentId, citeStyle, this.editConfig.detailsTemplate),
       bottomPanelHtml: renderBottomPanel(detail, doc.documentId, citeStyle, this.editConfig.bottomPanelTemplate),
+      bottomPanelTabbedHtml: renderTabbedPanel(detail, doc.documentId, citeStyle),
     };
   }
 

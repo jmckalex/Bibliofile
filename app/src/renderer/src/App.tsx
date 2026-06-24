@@ -319,6 +319,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'bottomPaneAnnotation':
       store.setLayout({ bottomPanelVisible: true, bottomPaneContent: 'annotation' });
       return;
+    case 'bottomPaneTabbed':
+      store.setLayout({ bottomPanelVisible: true, bottomPaneContent: 'tabbed' });
+      return;
     case 'bottomPaneTexPreview':
       store.setLayout({ bottomPanelVisible: true, bottomPaneContent: 'texPreview' });
       return;

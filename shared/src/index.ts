@@ -216,6 +216,7 @@ export { parseSearchQuery, searchTokensMatch, type SearchToken } from './search.
 export {
   DEFAULT_DETAILS_TEMPLATE,
   DEFAULT_BOTTOM_TEMPLATE,
+  DEFAULT_TABBED_BOTTOM_TEMPLATE,
   DEFAULT_MULTI_DETAILS_TEMPLATE,
   DEFAULT_MULTI_BOTTOM_TEMPLATE,
   defaultPanelBody,

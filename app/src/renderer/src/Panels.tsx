@@ -138,7 +138,7 @@ export function RightPane() {
  * The annotation reader: the current entry's annotation, full-width. Renders
  * main-built HTML (a Handlebars template) and hydrates it like the detail pane.
  */
-function AnnotationBody() {
+function AnnotationBody({ tabbed = false }: { tabbed?: boolean }) {
   const t = useT();
   const detail = useStore((s) => s.detail);
   const selectedItemId = useStore((s) => s.selectedItemId);
@@ -147,12 +147,14 @@ function AnnotationBody() {
   const hostRef = useRef<HTMLDivElement>(null);
 
   // 2+ rows selected → the multi-select annotation list (one entry per item);
-  // otherwise the single selected entry's annotation.
+  // otherwise the single selected entry's annotation (or the tabbed view).
   const multi = selectedIds.length >= 2;
   const html = multi
     ? multiPanel?.bottomHtml
     : detail && detail.id === selectedItemId
-      ? detail.bottomPanelHtml
+      ? tabbed
+        ? detail.bottomPanelTabbedHtml
+        : detail.bottomPanelHtml
       : undefined;
 
   useEffect(() => {
@@ -197,9 +199,12 @@ export function BottomPanel() {
           value={content}
           options={[
             ['annotation', t('panel.annotation')],
+            ['tabbed', t('panel.tabbed')],
             ['texPreview', t('panel.texPreview')],
           ]}
-          onChange={(v) => setLayout({ bottomPaneContent: v as 'annotation' | 'texPreview' })}
+          onChange={(v) =>
+            setLayout({ bottomPaneContent: v as 'annotation' | 'tabbed' | 'texPreview' })
+          }
         />
         <span className="bd-toolbar__spacer" />
         <button
@@ -212,7 +217,13 @@ export function BottomPanel() {
           <Icon name="close" />
         </button>
       </div>
-      {content === 'texPreview' ? <TexPreviewPane /> : <AnnotationBody />}
+      {content === 'texPreview' ? (
+        <TexPreviewPane />
+      ) : content === 'tabbed' ? (
+        <AnnotationBody tabbed />
+      ) : (
+        <AnnotationBody />
+      )}
     </div>
   );
 }

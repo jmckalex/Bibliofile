@@ -16,6 +16,7 @@ import type { ItemDetail, PanelTemplate } from '@bibdesk/shared';
 import {
   DEFAULT_DETAILS_TEMPLATE,
   DEFAULT_BOTTOM_TEMPLATE,
+  DEFAULT_TABBED_BOTTOM_TEMPLATE,
   DEFAULT_MULTI_DETAILS_TEMPLATE,
   DEFAULT_MULTI_BOTTOM_TEMPLATE,
 } from '@bibdesk/shared';
@@ -140,6 +141,16 @@ export function renderBottomPanel(
   templateBody?: string,
 ): string | undefined {
   return renderPanel(detail, documentId, citeStyle, templateBody || DEFAULT_BOTTOM_TEMPLATE);
+}
+
+/** Render the built-in TABBED bottom-panel view (Annotation · Abstract ·
+ *  Attachments) — a fixed mode, so no fork override. Undefined on a template error. */
+export function renderTabbedPanel(
+  detail: ItemDetail,
+  documentId: string,
+  citeStyle: string,
+): string | undefined {
+  return renderPanel(detail, documentId, citeStyle, DEFAULT_TABBED_BOTTOM_TEMPLATE);
 }
 
 /** Render a panel body for the Preferences live preview — returns the error text. */

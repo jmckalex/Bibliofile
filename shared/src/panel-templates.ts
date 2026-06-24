@@ -68,6 +68,31 @@ export const DEFAULT_BOTTOM_TEMPLATE = `<div class="bd-detail__section">Annotati
 {{#if notesHtml}}<div class="bd-notes bd-notes--wide">{{{notesHtml}}}</div>{{else}}<div class="bd-notes__empty">No annotation for this entry.</div>{{/if}}`;
 
 /**
+ * The built-in TABBED bottom-panel template (the "Tabbed" bottom-panel mode): a
+ * tab bar over Annotation · Abstract (both markdown) · Attachments (a grid of
+ * thumbnails that open natively on double-click). Tabs and thumbnails are
+ * hydrated in the renderer from the `bd-tabs` / `data-thumb` conventions (see
+ * `panel-hydrate.ts`), which any custom template can also use. Same per-item
+ * context as the other panel templates, plus `{{{abstractHtml}}}`.
+ */
+export const DEFAULT_TABBED_BOTTOM_TEMPLATE = `<div class="bd-tabs">
+  <div class="bd-tabs__bar" role="tablist">
+    <button type="button" class="bd-tab bd-tab--active" data-tab="annotation" role="tab">Annotation</button>
+    <button type="button" class="bd-tab" data-tab="abstract" role="tab">Abstract</button>
+    <button type="button" class="bd-tab" data-tab="attachments" role="tab">Attachments</button>
+  </div>
+  <div class="bd-tab__panel" data-tabpanel="annotation" role="tabpanel">
+    {{#if notesHtml}}<div class="bd-notes bd-notes--wide">{{{notesHtml}}}</div>{{else}}<p class="bd-notes__empty">No annotation for this entry.</p>{{/if}}
+  </div>
+  <div class="bd-tab__panel" data-tabpanel="abstract" role="tabpanel">
+    {{#if abstractHtml}}<div class="bd-notes bd-notes--wide">{{{abstractHtml}}}</div>{{else}}<p class="bd-notes__empty">No abstract for this entry.</p>{{/if}}
+  </div>
+  <div class="bd-tab__panel" data-tabpanel="attachments" role="tabpanel">
+    {{#if attachments}}<div class="bd-thumbs">{{#each attachments}}<figure class="bd-thumb" data-thumb data-file="{{url}}" title="Double-click to open {{displayName}}"><div class="bd-thumb__img">{{icon "file"}}</div><figcaption class="bd-thumb__name">{{displayName}}</figcaption></figure>{{/each}}</div>{{else}}<p class="bd-notes__empty">No attachments for this entry.</p>{{/if}}
+  </div>
+</div>`;
+
+/**
  * The built-in MULTI-SELECT details template, shown in place of the single-item
  * detail when 2+ rows are selected. A sticky header ("Multiple entries selected")
  * sits above a scrollable list of each entry's pretty-printed BibTeX preview (no
