@@ -58,3 +58,35 @@ export async function renderPdfToCanvases(
     await doc.destroy();
   }
 }
+
+/**
+ * Render just the FIRST page of a PDF (raw bytes) to a canvas roughly `cssWidth`
+ * CSS-pixels wide, for an attachment thumbnail. Device-pixel-ratio aware so it
+ * stays crisp. Returns null if the PDF has no pages / fails to render.
+ */
+export async function renderPdfThumbnail(
+  bytes: Uint8Array,
+  cssWidth = 320,
+): Promise<HTMLCanvasElement | null> {
+  const pdfjs = await ensurePdfjs();
+  const dpr = window.devicePixelRatio || 1;
+  // slice(): getDocument detaches the buffer; keep the caller's bytes intact.
+  const doc = await pdfjs.getDocument({ data: bytes.slice() }).promise;
+  try {
+    if (doc.numPages < 1) return null;
+    const page = await doc.getPage(1);
+    const base = page.getViewport({ scale: 1 });
+    const viewport = page.getViewport({ scale: (cssWidth / base.width) * dpr });
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    canvas.style.width = `${Math.ceil(viewport.width / dpr)}px`;
+    canvas.style.height = `${Math.ceil(viewport.height / dpr)}px`;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    return canvas;
+  } finally {
+    await doc.destroy();
+  }
+}

@@ -123,6 +123,14 @@ describe('custom template overrides + preview', () => {
     const html = renderDetailsPanel(detail(), 'd', 'apa', 'T:{{title}}|A:{{authors}}|V:{{venue}}')!;
     expect(html).toBe('T:A Title|A:|V:Nature'); // Journal=Nature (the inherited field); Author unset
   });
+
+  it('exposes the abstract (raw + rendered) in the template context', () => {
+    const d = detail({ abstractRaw: 'see **bold**', abstractHtml: '<p>see <strong>bold</strong></p>' });
+    expect(renderBottomPanel(d, 'd', 'apa', 'R:{{abstractRaw}}')).toBe('R:see **bold**');
+    expect(renderBottomPanel(d, 'd', 'apa', 'H:{{{abstractHtml}}}')).toBe('H:<p>see <strong>bold</strong></p>');
+    // absent abstract → empty string (so {{#if abstractHtml}} drops the section)
+    expect(renderBottomPanel(detail(), 'd', 'apa', '[{{abstractHtml}}]')).toBe('[]');
+  });
 });
 
 describe('showcase presets', () => {
@@ -152,6 +160,27 @@ describe('showcase presets', () => {
     expect(html).toContain('A. Smith');
     expect(html).toContain('<bd-citation doc-id="d1" item-id="i1"');
     expect(html).toContain('data-open-file="/a.pdf"');
+  });
+
+  it('tabbed preset emits the three tabs, panels, and a thumbnail tile', () => {
+    const body = PANEL_PRESETS.find((p) => p.name.startsWith('Tabbed'))!.body;
+    const withAbstract = detail({
+      ...sample,
+      abstractHtml: '<p>An abstract.</p>',
+    });
+    const html = renderPanelPreview(withAbstract, 'd1', 'apa', body).html!;
+    // tab buttons (annotation pre-selected) + matching panels
+    expect(html).toContain('data-tab="annotation"');
+    expect(html).toContain('data-tab="abstract"');
+    expect(html).toContain('data-tab="attachments"');
+    expect(html).toContain('data-tabpanel="annotation"');
+    expect(html).toContain('data-tabpanel="abstract"');
+    expect(html).toContain('data-tabpanel="attachments"');
+    expect(html).toContain('bd-tab--active');
+    // content: annotation + abstract rendered, attachment becomes a thumb tile
+    expect(html).toContain('<p>note</p>');
+    expect(html).toContain('<p>An abstract.</p>');
+    expect(html).toContain('data-thumb data-file="/a.pdf"');
   });
 });
 

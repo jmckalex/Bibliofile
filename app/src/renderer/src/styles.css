@@ -527,6 +527,96 @@ body.bd-resizing {
   max-width: 80ch;
 }
 
+/* Tabbed panel (generic template-engine support): a tab bar over swappable
+   panels. The renderer's hydration toggles the --active classes (panel-hydrate). */
+.bd-tabs {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.bd-tabs__bar {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--bd-border);
+  margin-bottom: 10px;
+}
+.bd-tab {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 6px 12px;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--bd-text-muted);
+  font: inherit;
+  font-size: var(--bd-fs-sm);
+  cursor: pointer;
+}
+.bd-tab:hover {
+  color: var(--bd-text);
+}
+.bd-tab--active {
+  color: var(--bd-text);
+  border-bottom-color: var(--bd-accent);
+}
+/* Panels are hidden unless active; the active one flows in the scroll area. */
+.bd-tab__panel {
+  display: none;
+}
+.bd-tab__panel--active {
+  display: block;
+}
+
+/* Attachment thumbnails grid (Attachments tab). Big tiles; double-click opens. */
+.bd-thumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+.bd-thumb {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+.bd-thumb__img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  background: var(--bd-surface-2, var(--bd-surface));
+  border: 1px solid var(--bd-border);
+  border-radius: var(--bd-radius);
+  overflow: hidden;
+}
+/* The fallback FontAwesome icon shown until (or instead of) a real preview. */
+.bd-thumb__img svg {
+  width: 38%;
+  height: 38%;
+  color: var(--bd-text-faint);
+}
+.bd-thumb__pic {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+.bd-thumb:hover .bd-thumb__img {
+  border-color: var(--bd-accent);
+}
+.bd-thumb__name {
+  font-size: var(--bd-fs-sm);
+  color: var(--bd-text-muted);
+  text-align: center;
+  word-break: break-word;
+  max-width: 100%;
+}
+
 /* LaTeX preview pane (bottom panel): a scrolling page area that auto-refreshes. */
 .bd-texpreview__body {
   flex: 1;

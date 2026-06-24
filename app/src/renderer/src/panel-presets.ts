@@ -44,8 +44,29 @@ const READING = `<article class="bd-reading">
   {{#if notesHtml}}<div class="bd-notes bd-notes--wide">{{{notesHtml}}}</div>{{else}}{{#if previewHtml}}<div class="bd-preview">{{{previewHtml}}}</div>{{else}}<p class="bd-notes__empty">No annotation or abstract for this entry.</p>{{/if}}{{/if}}
 </article>`;
 
+/** A tabbed reader: Annotation · Abstract (markdown) + an Attachments grid whose
+ *  thumbnails open natively on double-click. Tabs/thumbnails are hydrated by the
+ *  renderer from the `bd-tabs` / `data-thumb` conventions (see panel-hydrate.ts). */
+const TABBED = `<div class="bd-tabs">
+  <div class="bd-tabs__bar" role="tablist">
+    <button type="button" class="bd-tab bd-tab--active" data-tab="annotation" role="tab">Annotation</button>
+    <button type="button" class="bd-tab" data-tab="abstract" role="tab">Abstract</button>
+    <button type="button" class="bd-tab" data-tab="attachments" role="tab">Attachments</button>
+  </div>
+  <div class="bd-tab__panel" data-tabpanel="annotation" role="tabpanel">
+    {{#if notesHtml}}<div class="bd-notes bd-notes--wide">{{{notesHtml}}}</div>{{else}}<p class="bd-notes__empty">No annotation for this entry.</p>{{/if}}
+  </div>
+  <div class="bd-tab__panel" data-tabpanel="abstract" role="tabpanel">
+    {{#if abstractHtml}}<div class="bd-notes bd-notes--wide">{{{abstractHtml}}}</div>{{else}}<p class="bd-notes__empty">No abstract for this entry.</p>{{/if}}
+  </div>
+  <div class="bd-tab__panel" data-tabpanel="attachments" role="tabpanel">
+    {{#if attachments}}<div class="bd-thumbs">{{#each attachments}}<figure class="bd-thumb" data-thumb data-file="{{url}}" title="Double-click to open {{displayName}}"><div class="bd-thumb__img">{{icon "file"}}</div><figcaption class="bd-thumb__name">{{displayName}}</figcaption></figure>{{/each}}</div>{{else}}<p class="bd-notes__empty">No attachments for this entry.</p>{{/if}}
+  </div>
+</div>`;
+
 export const PANEL_PRESETS: readonly PanelPreset[] = [
   { name: 'Horizontal card (wide)', for: 'bottom', body: HORIZONTAL_CARD },
   { name: 'Compact summary', for: 'both', body: COMPACT },
   { name: 'Reading view', for: 'bottom', body: READING },
+  { name: 'Tabbed — Annotation · Abstract · Attachments', for: 'bottom', body: TABBED },
 ];

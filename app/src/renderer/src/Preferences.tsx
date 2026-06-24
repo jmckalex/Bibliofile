@@ -760,10 +760,20 @@ function PanelsSection({
         Fork the right detail pane and the bottom panel to customize them with Handlebars, then pick
         which fork is active (or keep the built-in default). Per-item context: <code>citeKey</code>,{' '}
         <code>type</code>, <code>fields</code> (<code>name</code>/<code>value</code>/
-        <code>isInherited</code>), <code>{'{{{notesHtml}}}'}</code>, <code>attachments</code> /{' '}
-        <code>links</code> (<code>displayName</code>/<code>url</code>), <code>{'{{{previewHtml}}}'}</code>.
-        Live widgets: <code>{'<bd-journal-cover>'}</code>, <code>{'<bd-citation>'}</code> (these don’t
-        render in the sandboxed HTML preview, but do in the live panel).
+        <code>isInherited</code>), <code>{'{{{notesHtml}}}'}</code>, <code>{'{{{abstractHtml}}}'}</code>,{' '}
+        <code>attachments</code> / <code>links</code> (<code>displayName</code>/<code>url</code>),{' '}
+        <code>{'{{{previewHtml}}}'}</code>. Live widgets: <code>{'<bd-journal-cover>'}</code>,{' '}
+        <code>{'<bd-citation>'}</code> (these don’t render in the sandboxed HTML preview, but do in the
+        live panel).
+      </p>
+      <p className="bd-prefs__hint">
+        <strong>Tabs &amp; thumbnails.</strong> Wrap content in{' '}
+        <code>{'<div class="bd-tabs">'}</code> with <code>{'.bd-tab[data-tab="key"]'}</code> buttons and
+        matching <code>{'[data-tabpanel="key"]'}</code> panels for a tabbed view. An attachment tile{' '}
+        <code>{'<figure class="bd-thumb" data-thumb data-file="{{url}}">'}</code> (with a{' '}
+        <code>{'.bd-thumb__img'}</code> slot) gets a live PDF/image preview and opens natively on
+        double-click. The <strong>Tabbed — Annotation · Abstract · Attachments</strong> preset (Load
+        preset…) is a ready-made example.
       </p>
       <PanelForkManager
         which="details"

@@ -758,6 +758,7 @@ export function toItemDetail(
   }
 
   const notesRaw = readAnnotation(item);
+  const abstractRaw = item.stringValueOfField('Abstract', true); // markdown source
   return {
     id: item.id,
     citeKey: item.citeKey,
@@ -769,6 +770,9 @@ export function toItemDetail(
     previewHtml: buildPreviewHtml(item, files.filter((f) => f.kind === 'file').length),
     notesRaw,
     notesHtml: renderNotes(notesRaw, citeKeyExists),
+    abstractRaw,
+    // Same rendering as the preview card's abstract, so tabbed/custom panels match.
+    abstractHtml: renderMarkdown(abstractRaw),
   };
 }
 

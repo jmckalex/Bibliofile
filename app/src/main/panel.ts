@@ -49,6 +49,10 @@ export interface DetailPanelContext {
   readonly previewHtml?: string;
   readonly fields: ItemDetail['fields'];
   readonly notesHtml: string;
+  /** Rendered abstract HTML (markdown), '' when the entry has no abstract. */
+  readonly abstractHtml: string;
+  /** Raw abstract markdown, for templates that want to process it themselves. */
+  readonly abstractRaw: string;
   readonly attachments: ItemDetail['files'];
   readonly links: ItemDetail['files'];
   // Convenience fields (derived from `fields`) so templates needn't loop to get
@@ -76,6 +80,8 @@ export function buildDetailContext(
     previewHtml: detail.previewHtml,
     fields: f,
     notesHtml: detail.notesHtml,
+    abstractHtml: detail.abstractHtml ?? '',
+    abstractRaw: detail.abstractRaw ?? '',
     attachments: detail.files.filter((file) => file.kind === 'file'),
     links: detail.files.filter((file) => file.kind === 'url'),
     title: fieldValue(f, 'Title'),

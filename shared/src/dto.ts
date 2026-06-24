@@ -1379,6 +1379,10 @@ export interface ItemDetail {
   readonly notesRaw: string;
   /** Rendered notes HTML (markdown + `[[citeKey]]` cross-references). */
   readonly notesHtml: string;
+  /** Raw markdown of the `Abstract` field (crossref-inherited), or '' if none. */
+  readonly abstractRaw?: string;
+  /** Rendered abstract HTML (markdown, sanitized), or '' if none. */
+  readonly abstractHtml?: string;
   /**
    * The detail pane rendered as HTML from the (default or user) Handlebars
    * template + `bd-*` web components. The renderer drops this into the pane and
