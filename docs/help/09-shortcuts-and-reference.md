@@ -109,7 +109,9 @@ Every item needs an open library.
 | Item | macOS | Win/Linux | What it does |
 | --- | --- | --- | --- |
 | Claude Assistant… | ⌘J | Ctrl+J | Open the 🤖 Claude assistant in the side pane |
-| Scan for Journal Covers… | — | — | Look up missing journal/book cover images online |
+| Script Console… | ⌘⌥J | Ctrl+Alt+J | Open the [JavaScript Script Console](12-scripting.md) to automate the library |
+| Scripts ▸ | — | — | Your saved scripts, plus **New Script…** and **Open Scripts Folder** — see [Scripting](12-scripting.md#running-scripts) |
+| Download Missing Journal Covers… | — | — | Look up missing journal/book cover images online |
 | LaTeX Preview | — | — | Open the bottom panel's [LaTeX preview](10-panels.md#latex-preview) (true BibTeX/`.bst` typesetting of the selection) |
 
 ### Window and Help menus
@@ -146,6 +148,7 @@ Linux ⌘ is Ctrl, ⌥ is Alt):
 | ⌘⌥1 / ⌘⌥2 | Side panel content: Details / Claude |
 | ⌘⌥3 / ⌘⌥4 / ⌘⌥5 | Bottom panel content: Annotation / Tabbed / LaTeX Preview |
 | ⌘J | Claude Assistant (in the side pane) |
+| ⌘⌥J | Script Console… (JavaScript automation) |
 | ⌘, | Preferences… |
 | Enter | Commit a single-line field edit / the cite key / the *New field* row; run an online search; run a Find preview |
 
@@ -398,9 +401,13 @@ your `.bib` file; they're missing conveniences, not data hazards.
   appear in the sidebar, but in this app they have no live membership (URL
   groups don't fetch; Script groups don't execute), and there is no in-app
   editor for creating or editing groups (you manage group definitions in BibDesk
-  or by hand).
-- **Only three citation styles.** APA, Vancouver, and Harvard. There is no
-  arbitrary-CSL import or style browser beyond those yet.
+  or by hand). (These BibDesk *Script group* definitions are unrelated to
+  [Scripting with JavaScript](12-scripting.md), which is fully supported.)
+- **Citation styles are added by file.** Three styles ship built in (APA,
+  Vancouver, Harvard); you can install any other by adding its **CSL** (`.csl`)
+  file in **Preferences → Citations**, but there is no in-app browser of the CSL
+  style repository — you download the file yourself. See
+  [Preview & Citations](06-preview-and-citations.md#installing--managing-your-own-styles).
 - **Full-text search needs the native component.** Search uses a SQLite FTS5
   index (field text + PDF text). It relies on a native module that must be built
   for the app's runtime; if a build doesn't include it, search silently falls back
@@ -408,7 +415,6 @@ your `.bib` file; they're missing conveniences, not data hazards.
   --filter @bibdesk/app rebuild:electron`.
 - **Find Duplicates is review-only.** It finds and navigates to duplicates but
   does not merge or delete them for you; clean them up by hand.
-- **A scriptable plugin API** is on the roadmap but not in this build.
 
 ## Glossary
 

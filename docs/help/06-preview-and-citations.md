@@ -364,5 +364,8 @@ there. If nothing opens, the field may be empty or hold a malformed address.
   produces a styled bibliography; **Copy as BibTeX** copies one entry's source.
 - [Configurable Panels](10-panels.md#latex-preview) — the **LaTeX Preview** in the
   bottom panel: true BibTeX/`.bst` typesetting of the selected entries.
+- [Scripting with JavaScript](12-scripting.md#citations-csl--citationjs) — produce
+  the same formatted citations and reference lists in bulk from a script
+  (`doc.cite`, `doc.bibliography`, `entry.citation`).
 - [Getting Started](01-getting-started.md) — the window layout and the theme
   toggle.

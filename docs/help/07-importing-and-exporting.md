@@ -455,5 +455,8 @@ markup. Your `.bib` library itself is untouched by exporting.
 - [Editing entries](03-editing-entries.md) — clean up an imported entry, and the
   **Copy as BibTeX** / **Copy Citation** clipboard commands.
 - [Attachments](04-attachments.md) — how dropped PDFs are stored, and **AutoFile**.
+- [Scripting with JavaScript](12-scripting.md) — import, export, and transform
+  entries programmatically (`doc.import`, `doc.export`, `doc.save`) when the menu
+  commands aren't enough.
 - [Shortcuts & reference](09-shortcuts-and-reference.md) — the full menu and
   keyboard reference.
