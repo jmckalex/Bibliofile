@@ -2789,6 +2789,86 @@ button.bd-chip {
   width: 620px;
 }
 
+/* Drop-a-PDF review dialog: a PDF list (left) beside the entry editor (right),
+   with Discard/Accept below. The editor pane scrolls; the tab bar/list stay put. */
+.bd-modal--pdfreview {
+  width: 900px;
+  max-width: 92vw;
+  height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+.bd-pdfreview__hint {
+  margin: 0;
+  padding: 8px 14px;
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+  border-bottom: 1px solid var(--bd-border);
+}
+.bd-pdfreview {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.bd-pdfreview__list {
+  flex: 0 0 240px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  overflow-y: auto;
+  border-right: 1px solid var(--bd-border);
+}
+.bd-pdfreview__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  background: none;
+  border-radius: 6px;
+  text-align: left;
+  cursor: pointer;
+  color: var(--bd-text);
+  font: inherit;
+  font-size: var(--bd-fs-sm);
+}
+/* Exclude the selected item so hover can't override its accent background while
+   leaving the white text in place (which made it unreadable in light mode). */
+.bd-pdfreview__item:not(.bd-pdfreview__item--on):hover {
+  background: var(--bd-surface-alt);
+}
+.bd-pdfreview__item--on {
+  background: var(--bd-accent);
+  color: #fff;
+}
+.bd-pdfreview__icon {
+  flex: none;
+  opacity: 0.8;
+}
+.bd-pdfreview__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bd-pdfreview__editor {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 0 14px;
+}
+.bd-pdfreview__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--bd-border);
+}
+.bd-pdfreview__count {
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+}
+
 .bd-online__bar {
   display: flex;
   gap: 8px;

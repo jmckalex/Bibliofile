@@ -24,6 +24,7 @@ import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
 import { BrokenLinks } from './BrokenLinks.js';
 import { JournalCoverScan } from './JournalCoverScan.js';
+import { PdfReviewDialog } from './PdfReviewDialog.js';
 import { BatchBar } from './BatchBar.js';
 
 function ThemeToggle() {
@@ -134,12 +135,13 @@ function Footer() {
       ? t(total === 1 ? 'footer.row' : 'footer.rows', { count: total })
       : t('footer.rowsOf', { filtered, total });
 
-  // Summarize the last drop-import (created via lookup / linked to existing / added as stub).
+  // Summarize the last drop-import (created via lookup / linked to existing). PDFs
+  // with no identifier (`review`) open the review dialog instead of landing here.
   const summaryParts: string[] = [];
   if (importSummary) {
     if (importSummary.created) summaryParts.push(t('footer.importCreated', { count: importSummary.created }));
     if (importSummary.linked) summaryParts.push(t('footer.importLinked', { count: importSummary.linked }));
-    if (importSummary.stub) summaryParts.push(t('footer.importStub', { count: importSummary.stub }));
+    if (importSummary.review) summaryParts.push(t('footer.importReview', { count: importSummary.review }));
   }
 
   return (
@@ -449,6 +451,7 @@ export function App() {
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [brokenLinksOpen, setBrokenLinksOpen] = useState(false);
   const [coverScanOpen, setCoverScanOpen] = useState(false);
+  const pdfReviewOpen = useStore((s) => s.pdfReview != null);
   const [dragging, setDragging] = useState(false);
   const layout = useStore((s) => s.settings.layout);
   const setLayout = useStore((s) => s.setLayout);
@@ -673,6 +676,7 @@ export function App() {
       {duplicatesOpen && <FindDuplicates onClose={() => setDuplicatesOpen(false)} />}
       {brokenLinksOpen && <BrokenLinks onClose={() => setBrokenLinksOpen(false)} />}
       {coverScanOpen && <JournalCoverScan onClose={() => setCoverScanOpen(false)} />}
+      {pdfReviewOpen && <PdfReviewDialog />}
     </div>
   );
 }

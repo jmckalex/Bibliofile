@@ -8,6 +8,7 @@
  * live app.
  */
 
+import { createContext, useContext } from 'react';
 import { createStore as createZustandStore, useStore as useZustandStore } from 'zustand';
 import type {
   AgentRunResponse,
@@ -184,6 +185,17 @@ export interface ViewerState {
   importing: boolean;
   /** Outcome counts of the last drop-import (for the footer notice); null when none. */
   importSummary?: ImportResult['summary'] | null;
+  /**
+   * No-identifier dropped PDFs awaiting review in the modal — the off-library
+   * staging document, the draft entries (one per PDF), and the real-doc ids
+   * accepted so far (to select the last one when the dialog closes). Null when
+   * there's nothing to review.
+   */
+  pdfReview?: {
+    stagingDocId: string;
+    items: { itemId: string; pdf: string; name: string }[];
+    accepted: string[];
+  } | null;
   error?: string;
   /** True in the standalone editor window: skip table/group reloads on edits. */
   editorMode: boolean;
@@ -277,6 +289,12 @@ export interface ViewerState {
   importFromDialog: () => Promise<void>;
   /** Internal: refresh groups/rows + select the first added item after an import. */
   afterImport: (res: ImportResult) => Promise<void>;
+  /** Accept a staged drop-PDF draft: commit it to the library + attach its PDF, then drop it from the queue. */
+  acceptStagedPdf: (itemId: string) => Promise<void>;
+  /** Discard a staged drop-PDF draft (create nothing); drop it from the queue. */
+  discardStagedPdf: (itemId: string) => void;
+  /** Finish the review: discard the staging doc + any remaining drafts; select the last accepted entry. */
+  finishPdfReview: () => Promise<void>;
   /** Find/replace over field values (scoped to the current group); refresh on apply. */
   findReplace: (opts: Omit<FindReplaceRequest, 'documentId' | 'groupId'>) => Promise<FindReplaceResult>;
   /** Scan the document for duplicate entries. */
@@ -371,6 +389,7 @@ export function createStore(api: BibDeskApi) {
     detailLoading: false,
     importing: false,
     importSummary: null,
+    pdfReview: null,
     editorMode: false,
     texPreviewState: { loading: false },
 
@@ -947,6 +966,57 @@ export function createStore(api: BibDeskApi) {
       const first = res.addedIds[0];
       if (first) await get().selectItem(first);
       if (res.warnings.length) set({ error: res.warnings.join('; ') });
+      // No-identifier PDFs → open the review dialog over the staged drafts.
+      if (res.review && res.review.items.length > 0) {
+        set({ pdfReview: { stagingDocId: res.review.stagingDocId, items: [...res.review.items], accepted: [] } });
+      }
+    },
+
+    acceptStagedPdf: async (itemId) => {
+      const { documentId, pdfReview } = get();
+      if (!documentId || !pdfReview) return;
+      const it = pdfReview.items.find((x) => x.itemId === itemId);
+      if (!it) return;
+      try {
+        const res = await api.commitStagedEntry({
+          documentId,
+          stagingDocId: pdfReview.stagingDocId,
+          itemId,
+          attachPath: it.pdf,
+        });
+        if (res.error || !res.itemId) {
+          set({ error: res.error ?? 'Could not create the entry.' });
+          return;
+        }
+        const items = pdfReview.items.filter((x) => x.itemId !== itemId);
+        set({
+          dirty: true,
+          pdfReview: { ...pdfReview, items, accepted: [...pdfReview.accepted, res.itemId] },
+        });
+        await get().loadGroups();
+        await get().loadPublications();
+        if (items.length === 0) await get().finishPdfReview();
+      } catch (err) {
+        set({ error: errorMessage(err) });
+      }
+    },
+
+    discardStagedPdf: (itemId) => {
+      const { pdfReview } = get();
+      if (!pdfReview) return;
+      const items = pdfReview.items.filter((x) => x.itemId !== itemId);
+      set({ pdfReview: { ...pdfReview, items } });
+      if (items.length === 0) void get().finishPdfReview();
+    },
+
+    finishPdfReview: async () => {
+      const { pdfReview } = get();
+      if (!pdfReview) return;
+      // Drop the off-library staging doc (and any remaining, un-accepted drafts).
+      void api.discardStagingDoc({ stagingDocId: pdfReview.stagingDocId }).catch(() => undefined);
+      const lastAccepted = pdfReview.accepted[pdfReview.accepted.length - 1];
+      set({ pdfReview: null });
+      if (lastAccepted) await get().selectItem(lastAccepted);
     },
 
     findReplace: async (opts) => {
@@ -1280,7 +1350,16 @@ export function getStore(): ViewerStore {
   return liveStore;
 }
 
-/** React hook selecting from the live store. */
+/**
+ * Lets a subtree run against a different {@link ViewerStore} than the live
+ * singleton — used by the drop-a-PDF review dialog, which drives the entry editor
+ * against an off-library *staging* store while the rest of the app stays on the
+ * real library. Defaults to null → {@link useStore} falls back to {@link getStore}.
+ */
+export const StoreContext = createContext<ViewerStore | null>(null);
+
+/** React hook selecting from the contextual store (or the live singleton). */
 export function useStore<T>(selector: (state: ViewerState) => T): T {
-  return useZustandStore(getStore(), selector);
+  const store = useContext(StoreContext) ?? getStore();
+  return useZustandStore(store, selector);
 }

@@ -94,6 +94,10 @@ import type {
   ImportFilesRequest,
   ImportDialogRequest,
   ImportResult,
+  CommitStagedEntryRequest,
+  CommitStagedEntryResult,
+  DiscardStagingDocRequest,
+  DiscardStagingDocResult,
   FindReplaceRequest,
   FindReplaceResult,
   FindDuplicatesRequest,
@@ -257,6 +261,12 @@ const api: BibDeskApi = {
   },
   importDialog(request: ImportDialogRequest): Promise<ImportResult> {
     return ipcRenderer.invoke(IpcChannels.importDialog, request);
+  },
+  commitStagedEntry(request: CommitStagedEntryRequest): Promise<CommitStagedEntryResult> {
+    return ipcRenderer.invoke(IpcChannels.commitStagedEntry, request);
+  },
+  discardStagingDoc(request: DiscardStagingDocRequest): Promise<DiscardStagingDocResult> {
+    return ipcRenderer.invoke(IpcChannels.discardStagingDoc, request);
   },
   findReplace(request: FindReplaceRequest): Promise<FindReplaceResult> {
     return ipcRenderer.invoke(IpcChannels.findReplace, request);

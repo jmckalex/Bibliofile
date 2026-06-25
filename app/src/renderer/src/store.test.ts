@@ -140,6 +140,8 @@ function makeFakeApi() {
     pasteEntries: async () => ({ dirty: true, addedIds: [], warnings: [] }),
     importFiles: async () => ({ dirty: true, addedIds: [], warnings: [] }),
     importDialog: async () => ({ dirty: false, addedIds: [], warnings: [] }),
+    commitStagedEntry: async () => ({ itemId: 'committed' }),
+    discardStagingDoc: async () => ({ ok: true }),
     findReplace: async () => ({ matches: [], total: 0, applied: false, dirty: false }),
     findDuplicates: async () => ({ groups: [], total: 0 }),
     findBrokenLinks: async () => ({ links: [] }),
@@ -472,5 +474,52 @@ describe('citeStyleLabel', () => {
   it('falls back to the raw id for an unknown / not-yet-loaded style', () => {
     expect(citeStyleLabel(styles, 'user-not-loaded')).toBe('user-not-loaded');
     expect(citeStyleLabel([], 'apa')).toBe('apa');
+  });
+});
+
+describe('pdf review queue (drop-a-PDF)', () => {
+  const batch = (n: number) => ({
+    dirty: true,
+    addedIds: [] as string[],
+    warnings: [] as string[],
+    summary: { created: 0, linked: 0, review: n },
+    review: {
+      stagingDocId: 'stage-1',
+      items: Array.from({ length: n }, (_, i) => ({ itemId: `s${i}`, pdf: `/p/${i}.pdf`, name: `${i}.pdf` })),
+    },
+  });
+
+  it('afterImport opens the review with the staged items', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().afterImport(batch(2));
+    const r = store.getState().pdfReview!;
+    expect(r.stagingDocId).toBe('stage-1');
+    expect(r.items.map((i) => i.itemId)).toEqual(['s0', 's1']);
+    expect(r.accepted).toEqual([]);
+  });
+
+  it('discardStagedPdf drops one; discarding the last finishes the review', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().afterImport(batch(2));
+    store.getState().discardStagedPdf('s0');
+    expect(store.getState().pdfReview!.items.map((i) => i.itemId)).toEqual(['s1']);
+    store.getState().discardStagedPdf('s1');
+    await Promise.resolve();
+    expect(store.getState().pdfReview).toBeNull(); // queue empty → review closed
+  });
+
+  it('acceptStagedPdf commits the draft and records the created id', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().afterImport(batch(2));
+    await store.getState().acceptStagedPdf('s0');
+    const r = store.getState().pdfReview!;
+    expect(r.items.map((i) => i.itemId)).toEqual(['s1']); // accepted one removed
+    expect(r.accepted).toEqual(['committed']); // fake commitStagedEntry returns this id
   });
 });

@@ -75,6 +75,10 @@ import type {
   ImportFilesRequest,
   ImportDialogRequest,
   ImportResult,
+  CommitStagedEntryRequest,
+  CommitStagedEntryResult,
+  DiscardStagingDocRequest,
+  DiscardStagingDocResult,
   FindReplaceRequest,
   FindReplaceResult,
   FindDuplicatesRequest,
@@ -174,6 +178,8 @@ export interface IpcContract {
   [IpcChannels.pasteEntries]: IpcEntry<PasteEntriesRequest, ImportResult>;
   [IpcChannels.importFiles]: IpcEntry<ImportFilesRequest, ImportResult>;
   [IpcChannels.importDialog]: IpcEntry<ImportDialogRequest, ImportResult>;
+  [IpcChannels.commitStagedEntry]: IpcEntry<CommitStagedEntryRequest, CommitStagedEntryResult>;
+  [IpcChannels.discardStagingDoc]: IpcEntry<DiscardStagingDocRequest, DiscardStagingDocResult>;
   [IpcChannels.findReplace]: IpcEntry<FindReplaceRequest, FindReplaceResult>;
   [IpcChannels.findDuplicates]: IpcEntry<FindDuplicatesRequest, FindDuplicatesResult>;
   [IpcChannels.findBrokenLinks]: IpcEntry<FindBrokenLinksRequest, FindBrokenLinksResponse>;

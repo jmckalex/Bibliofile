@@ -2367,6 +2367,45 @@ export class DocumentStore {
   }
 
   /**
+   * Commit a staged draft entry (from the drop-a-PDF review dialog's Accept) into
+   * a target document: copy its type + field values into a new entry there, carry
+   * over a cite key the user set in the editor (uniquified; a default stub key is
+   * regenerated from the committed fields instead), attach `attachPath`, and return
+   * the new id. The staging doc is left untouched (discarded wholesale at the end).
+   */
+  commitStagedEntry(
+    stagingDocId: string,
+    itemId: string,
+    targetDocId: string,
+    attachPath?: string,
+  ): { itemId?: string; error?: string } {
+    const staging = this.docs.get(stagingDocId);
+    const staged = staging?.itemsById.get(itemId);
+    if (!staging || !staged) return { error: 'Staged entry not found.' };
+    const fields: Record<string, string> = {};
+    for (const name of staged.fieldNames()) {
+      const v = staged.stringValueOfField(name, false); // the editor's literal value
+      if (v) fields[name] = v;
+    }
+    const res = this.importEntry(targetDocId, staged.type, fields);
+    const newId = res.affectedItemId;
+    if (!newId) return { error: 'Could not create the entry.' };
+    // Honor an explicit cite key set in the editor; a default `imported…` stub key
+    // is left as importEntry's regeneration from the now-filled fields.
+    const desired = staged.citeKey.trim();
+    if (desired && !/^imported/i.test(desired)) {
+      const target = this.requireDoc(targetDocId);
+      const newItem = target.itemsById.get(newId);
+      if (newItem && newItem.citeKey !== desired) {
+        newItem.setCiteKey(this.uniqueCiteKey(target, desired));
+        this.reindex(target, newItem);
+      }
+    }
+    if (attachPath) this.addAttachments(targetDocId, newId, [attachPath]);
+    return { itemId: newId };
+  }
+
+  /**
    * Find (and optionally replace) text across field values. With `apply: false`
    * it only reports matches (a preview); with `apply: true` it performs the
    * replacement, marks the document dirty, and reindexes affected items. Managed

@@ -737,6 +737,23 @@ export interface ImportDialogRequest {
   readonly documentId: DocumentId;
 }
 
+/** One staged PDF awaiting review: a draft entry id in the staging document + its
+ *  source PDF (the file that will be attached if the draft is Accepted). */
+export interface StagedPdf {
+  readonly itemId: ItemId;
+  /** Absolute path of the dropped PDF. */
+  readonly pdf: string;
+  /** Display name (the PDF's basename) for the review list. */
+  readonly name: string;
+}
+
+/** A batch of no-identifier PDFs staged for review in an off-library scratch doc. */
+export interface PdfReviewBatch {
+  /** The off-library staging document holding the draft entries (one per PDF). */
+  readonly stagingDocId: DocumentId;
+  readonly items: readonly StagedPdf[];
+}
+
 /** Outcome of a paste/file import: the new item ids and any non-fatal warnings. */
 export interface ImportResult {
   readonly dirty: boolean;
@@ -747,10 +764,42 @@ export interface ImportResult {
   /**
    * Per-PDF outcomes of a drop-import (drag-and-drop / file picker), for the
    * renderer's result notice: `created` = looked up by DOI/arXiv id and added;
-   * `linked` = attached to an existing matching entry; `stub` = no identifier /
-   * lookup miss, added as a filename stub. Absent for non-drop imports.
+   * `linked` = attached to an existing matching entry; `review` = no identifier /
+   * lookup miss, staged for the review dialog. Absent for non-drop imports.
    */
-  readonly summary?: { readonly created: number; readonly linked: number; readonly stub: number };
+  readonly summary?: { readonly created: number; readonly linked: number; readonly review: number };
+  /**
+   * No-identifier PDFs staged for the review dialog (the user Accepts/Discards
+   * each). Present only when a drop produced some; absent otherwise.
+   */
+  readonly review?: PdfReviewBatch;
+}
+
+/** Accept one staged draft: copy it into the target document + attach its PDF. */
+export interface CommitStagedEntryRequest {
+  /** The real (target) document the new entry is created in. */
+  readonly documentId: DocumentId;
+  /** The off-library staging document holding the draft. */
+  readonly stagingDocId: DocumentId;
+  /** The draft entry's id within the staging document. */
+  readonly itemId: ItemId;
+  /** Absolute path of the PDF to attach to the new entry. */
+  readonly attachPath?: string;
+}
+
+export interface CommitStagedEntryResult {
+  /** The new entry's id in the target document, when created. */
+  readonly itemId?: ItemId;
+  readonly error?: string;
+}
+
+/** Discard a staging document (drop all its remaining drafts; nothing is created). */
+export interface DiscardStagingDocRequest {
+  readonly stagingDocId: DocumentId;
+}
+
+export interface DiscardStagingDocResult {
+  readonly ok: boolean;
 }
 
 // --- Find & Replace ---------------------------------------------------------

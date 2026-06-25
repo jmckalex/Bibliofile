@@ -7,7 +7,8 @@
  *                existing entry (deduped by basename), don't duplicate it;
  *   - `created`: look the identifier up (CrossRef for a DOI, arXiv for an arXiv id),
  *                import the real metadata, and attach the PDF;
- *   - `stub`:    no identifier, or the lookup missed → fall back to a filename stub.
+ *   - `review`:  no identifier, or the lookup missed → set aside for the review
+ *                dialog (the caller stages these as editable drafts), NOT auto-created.
  *
  * All electron / network / store coupling is injected via {@link SmartPdfDeps}, so
  * the branch logic + the `summary` counts can be unit-tested with fakes. The thin
@@ -35,17 +36,15 @@ export interface SmartPdfDeps {
   lookupArxiv(id: string): Promise<OnlineResult[]>;
   /** Create an entry from looked-up metadata; returns the new item id, or null. */
   importEntry(entryType: string, fields: Record<string, string>): string | null;
-  /** Fallback: import `pdf` as a filename-stub entry. */
-  importStub(pdf: string): { addedIds: string[]; warnings: string[] };
 }
 
 export interface SmartPdfResult {
   /** Newly added / linked item ids (for selection). */
   addedIds: string[];
-  /** Non-fatal messages from stub fallbacks. */
-  warnings: string[];
+  /** PDFs with no identifier (or a lookup miss) — for the review dialog, in order. */
+  review: string[];
   /** Per-PDF outcome counts, for the renderer's result notice. */
-  summary: { created: number; linked: number; stub: number };
+  summary: { created: number; linked: number; review: number };
 }
 
 /** Lower-cased basename of a path (handles `/` and `\`). */
@@ -59,10 +58,9 @@ export async function importPdfsSmart(
   deps: SmartPdfDeps,
 ): Promise<SmartPdfResult> {
   const addedIds: string[] = [];
-  const warnings: string[] = [];
+  const review: string[] = [];
   let created = 0;
   let linked = 0;
-  let stub = 0;
 
   for (const pdf of pdfs) {
     let handled = false;
@@ -94,15 +92,10 @@ export async function importPdfsSmart(
         }
       }
     } catch {
-      /* fall through to the stub import below */
+      /* fall through to review below */
     }
-    if (!handled) {
-      const r = deps.importStub(pdf);
-      addedIds.push(...r.addedIds);
-      warnings.push(...r.warnings);
-      if (r.addedIds.length) stub++;
-    }
+    if (!handled) review.push(pdf); // no identifier / lookup miss → review dialog
   }
 
-  return { addedIds, warnings, summary: { created, linked, stub } };
+  return { addedIds, review, summary: { created, linked, review: review.length } };
 }

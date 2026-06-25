@@ -1577,3 +1577,34 @@ describe('findItemByIdentifier (drop-a-PDF dedup)', () => {
     expect(store.itemAttachmentNames(documentId, idOf('plain'))).toEqual([]);
   });
 });
+
+describe('commitStagedEntry (drop-PDF review Accept)', () => {
+  it('copies the staged draft into the target doc, carries the cite key, and attaches the PDF', () => {
+    const store = new DocumentStore();
+    const target = store.openText('', '/tmp/lib.bib').documentId;
+    const staging = store.openText('', '').documentId; // off-library scratch doc
+    // A staged draft (as importFilesSmart would create), then "edited" with fields.
+    const stub = store.importEntry(staging, 'article', {
+      Title: 'A Dropped Paper',
+      Author: 'Roe, Jane',
+      Year: '2024',
+    }).affectedItemId!;
+    store.applyEdit({ documentId: staging, command: { kind: 'setCiteKey', itemId: stub, citeKey: 'Roe:2024' } });
+
+    const res = store.commitStagedEntry(staging, stub, target, '/papers/dropped.pdf');
+    expect(res.error).toBeUndefined();
+    const detail = store.getItemDetail({ documentId: target, itemId: res.itemId! });
+    expect(detail.citeKey).toBe('Roe:2024'); // explicit key carried over
+    expect(detail.fields.find((f) => f.name === 'Title')?.value).toContain('A Dropped Paper');
+    expect(detail.files.some((f) => f.kind === 'file' && f.displayName === 'dropped.pdf')).toBe(true);
+    // Exactly one entry created in the real doc; the staging doc isn't merged in.
+    expect(store.listPublications({ documentId: target, offset: 0, limit: -1 }).total).toBe(1);
+  });
+
+  it('returns an error for an unknown staged item', () => {
+    const store = new DocumentStore();
+    const target = store.openText('', '/tmp/lib.bib').documentId;
+    const staging = store.openText('', '').documentId;
+    expect(store.commitStagedEntry(staging, 'nope', target, undefined).error).toBeTruthy();
+  });
+});

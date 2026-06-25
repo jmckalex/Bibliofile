@@ -45,6 +45,8 @@ import {
   type EntryTypeInfo,
   type TemplateExportScope,
   type JournalCoverProposal,
+  type ImportResult,
+  type PdfReviewBatch,
 } from '@bibdesk/shared';
 import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 
@@ -684,19 +686,15 @@ function htmlToPlain(html: string): string {
  *     (deduped by basename) rather than creating a duplicate — `linked`;
  *   - else look the identifier up (CrossRef for DOI, arXiv API for an arXiv id),
  *     import the real metadata, and attach the PDF — `created`;
- *   - else (no identifier / lookup miss) fall back to the filename-stub entry — `stub`.
+ *   - else (no identifier / lookup miss) stage it as an editable draft for the
+ *     review dialog — `review` — instead of littering the library with an empty stub.
  * Non-PDFs go through the store's plain import. The `summary` counts feed the
- * renderer's result notice.
+ * renderer's result notice; `review` carries the staged drafts.
  */
 async function importFilesSmart(
   documentId: string,
   paths: readonly string[],
-): Promise<{
-  dirty: boolean;
-  addedIds: string[];
-  warnings: string[];
-  summary: { created: number; linked: number; stub: number };
-}> {
+): Promise<ImportResult> {
   const isPdf = (p: string): boolean => /\.pdf$/i.test(p);
   // PDFs go through the testable DOI/arXiv → entry pipeline (deps injected here).
   const r = await importPdfsSmart(paths.filter(isPdf), {
@@ -711,13 +709,9 @@ async function importFilesSmart(
     lookupDoi: (doi) => searchOnline('doi', doi),
     lookupArxiv: (id) => searchArxivById(id),
     importEntry: (type, fields) => store.importEntry(documentId, type, fields).affectedItemId ?? null,
-    importStub: (pdf) => {
-      const res = store.importFiles(documentId, [pdf]);
-      return { addedIds: [...res.addedIds], warnings: [...res.warnings] };
-    },
   });
   const addedIds = [...r.addedIds];
-  const warnings = [...r.warnings];
+  const warnings: string[] = [];
 
   // Non-PDFs (e.g. a dropped .bib to merge) take the store's plain import path.
   const others = paths.filter((p) => !isPdf(p));
@@ -726,7 +720,36 @@ async function importFilesSmart(
     addedIds.push(...o.addedIds);
     warnings.push(...o.warnings);
   }
-  return { dirty: store.isDirty(documentId), addedIds, warnings, summary: r.summary };
+
+  // No-identifier PDFs are NOT auto-created (that would litter a large library with
+  // empty entries). Stage each as an editable draft in an off-library scratch doc;
+  // the renderer opens the review dialog. Nothing touches the real library until
+  // the user Accepts a draft (see the commitStagedEntry handler).
+  let review: PdfReviewBatch | undefined;
+  if (r.review.length) {
+    const stagingDocId = store.openText('', '').documentId;
+    const items = r.review
+      .map((pdf) => {
+        const title = basename(pdf).replace(/\.[^.]+$/, '');
+        const res = store.importEntry(
+          stagingDocId,
+          getSettings().defaultEntryType || 'misc',
+          title ? { Title: title } : {},
+        );
+        return res.affectedItemId ? { itemId: res.affectedItemId, pdf, name: basename(pdf) } : null;
+      })
+      .filter((x): x is { itemId: string; pdf: string; name: string } => x !== null);
+    if (items.length) review = { stagingDocId, items };
+    else store.closeDocument({ documentId: stagingDocId });
+  }
+
+  return {
+    dirty: store.isDirty(documentId),
+    addedIds,
+    warnings,
+    summary: r.summary,
+    ...(review ? { review } : {}),
+  };
 }
 
 /** Build a complete RTF bibliography document for the whole library (CSL-formatted). */
@@ -2380,6 +2403,16 @@ function registerIpc(): void {
       }
       return importFilesSmart(req.documentId, result.filePaths);
     },
+    [IpcChannels.commitStagedEntry]: (req) =>
+      store.commitStagedEntry(req.stagingDocId, req.itemId, req.documentId, req.attachPath),
+    [IpcChannels.discardStagingDoc]: (req) => {
+      try {
+        store.closeDocument({ documentId: req.stagingDocId });
+      } catch {
+        /* already gone — fine */
+      }
+      return { ok: true };
+    },
     [IpcChannels.findReplace]: (req) => store.findReplace(req),
     [IpcChannels.findDuplicates]: (req) => store.findDuplicates(req.documentId),
     [IpcChannels.groupEdit]: (req) => store.groupEdit(req),
@@ -2674,6 +2707,10 @@ function registerIpc(): void {
   mutating(IpcChannels.pasteEntries);
   mutating(IpcChannels.importFiles);
   mutating(IpcChannels.importDialog);
+  mutating(IpcChannels.commitStagedEntry); // creates the entry in `documentId` (target)
+  ipcMain.handle(IpcChannels.discardStagingDoc, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.discardStagingDoc](req),
+  );
   mutating(IpcChannels.findReplace);
   ipcMain.handle(IpcChannels.findDuplicates, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.findDuplicates](req),

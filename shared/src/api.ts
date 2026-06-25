@@ -76,6 +76,10 @@ import type {
   ImportFilesRequest,
   ImportDialogRequest,
   ImportResult,
+  CommitStagedEntryRequest,
+  CommitStagedEntryResult,
+  DiscardStagingDocRequest,
+  DiscardStagingDocResult,
   FindReplaceRequest,
   FindReplaceResult,
   FindDuplicatesRequest,
@@ -252,6 +256,12 @@ export interface BibDeskApi {
 
   /** Open a file picker (in main) and import the chosen `.bib`/`.ris`/other files. */
   importDialog(request: ImportDialogRequest): Promise<ImportResult>;
+
+  /** Accept a staged drop-PDF draft: create it in the target doc + attach the PDF. */
+  commitStagedEntry(request: CommitStagedEntryRequest): Promise<CommitStagedEntryResult>;
+
+  /** Discard a staging document (drop its remaining drop-PDF drafts). */
+  discardStagingDoc(request: DiscardStagingDocRequest): Promise<DiscardStagingDocResult>;
 
   /** Find/replace over field values; preview (apply=false) or perform (apply=true). */
   findReplace(request: FindReplaceRequest): Promise<FindReplaceResult>;

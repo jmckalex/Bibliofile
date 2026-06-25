@@ -108,6 +108,10 @@ export const IpcChannels = {
   importFiles: 'bibdesk:importFiles',
   /** Open a file picker (main) and import the chosen `.bib`/`.ris`/other files. */
   importDialog: 'bibdesk:importDialog',
+  /** Accept a staged drop-PDF draft: create it in the target doc + attach the PDF. */
+  commitStagedEntry: 'bibdesk:commitStagedEntry',
+  /** Discard a staging document (drop its remaining drop-PDF drafts). */
+  discardStagingDoc: 'bibdesk:discardStagingDoc',
   /** Find/replace over field values (preview or apply). */
   findReplace: 'bibdesk:findReplace',
   /** Scan a document for duplicate entries (cite-key + equivalent content). */
