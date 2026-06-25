@@ -76,23 +76,46 @@ export function cslBibliography(
   }) as string;
 }
 
+/** Options for {@link cslCitation}. */
+export interface CslCitationOptions {
+  /** `'parenthetical'` (default) `(Author, Year)`, `'textual'` `Author (Year)`, or `'author'` (names only). */
+  mode?: 'parenthetical' | 'textual' | 'author';
+  /** Back-compat shorthand for `mode: 'textual'`. */
+  textual?: boolean;
+  /** In `author` mode, list every author (natbib `\citeauthor*`) rather than "et al.". */
+  allAuthors?: boolean;
+  /** Text inserted before the citation, e.g. `'see'` → `(see Smith, 2020)`. */
+  prenote?: string;
+  /** Text inserted after, e.g. `'p. 4'` → `(Smith, 2020, p. 4)`. */
+  postnote?: string;
+  format?: 'text' | 'html';
+}
+
 /**
- * Format CSL-JSON items as an inline citation: parenthetical `(Author, Year)` or,
- * with `textual`, `Author (Year)` (natbib `\citet`-style). `format` defaults to
- * `'text'`. Clean output for the scripting API. Empty input → ''.
+ * Format CSL-JSON items as an inline citation — the formatted equivalent of natbib
+ * `\citep` / `\citet` / `\citeauthor`, with optional pre/post-notes. `format`
+ * defaults to `'text'`. Clean output for the scripting API. Empty input → ''.
  */
 export function cslCitation(
   items: readonly Record<string, unknown>[],
   styleId: string,
-  opts: { textual?: boolean; format?: 'text' | 'html' } = {},
+  opts: CslCitationOptions = {},
 ): string {
   if (items.length === 0) return '';
+  const pre = opts.prenote ?? '';
+  const post = opts.postnote ?? '';
+  const mode = opts.mode ?? (opts.textual ? 'textual' : 'parenthetical');
+  if (mode === 'author') {
+    const names = items.map((it) => authorNames(it, !!opts.allAuthors)).filter(Boolean).join('; ');
+    const body = (pre ? `${pre} ` : '') + names + (post ? `, ${post}` : '');
+    return opts.format === 'html' ? escapeHtml(body) : body;
+  }
   const paren = new Cite(items as Record<string, unknown>[]).format('citation', {
     template: styleId || 'apa',
     lang: 'en-US',
     format: opts.format ?? 'text',
   }) as string;
-  return opts.textual ? toTextual(paren, '', '') : paren;
+  return mode === 'textual' ? toTextual(paren, pre, post) : withParenNotes(paren, pre, post);
 }
 
 // --- inline \cite{…} commands (annotations) ---------------------------------

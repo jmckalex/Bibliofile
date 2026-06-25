@@ -310,13 +310,30 @@ class ScriptDocument {
   }
 
   /**
-   * An inline citation for the given cite keys — `(Author, Year)`, or `Author
-   * (Year)` with `textual: true`. The formatted equivalent of `\citep{…}` /
-   * `\citet{…}`. `style`/`format` as above.
+   * An inline citation for the given cite keys — the formatted equivalent of
+   * natbib `\citep` / `\citet` / `\citeauthor`:
+   *   - default → parenthetical `(Author, Year)`
+   *   - `{ textual: true }` or `{ mode: 'textual' }` → `Author (Year)`
+   *   - `{ mode: 'author' }` → author names only (`{ allAuthors: true }` lists all)
+   * Plus optional `prenote` / `postnote` (e.g. `(see Smith, 2020, p. 4)`).
+   * `style`/`format` as above.
    */
-  cite(citeKeys: readonly string[], opts: CiteOptions & { textual?: boolean } = {}): string {
+  cite(
+    citeKeys: readonly string[],
+    opts: CiteOptions & {
+      textual?: boolean;
+      mode?: 'parenthetical' | 'textual' | 'author';
+      allAuthors?: boolean;
+      prenote?: string;
+      postnote?: string;
+    } = {},
+  ): string {
     return cslCitation(this.cslItemsFor(citeKeys), opts.style ?? this.caps.defaultCiteStyle ?? 'apa', {
+      mode: opts.mode,
       textual: opts.textual,
+      allAuthors: opts.allAuthors,
+      prenote: opts.prenote,
+      postnote: opts.postnote,
       format: opts.format,
     });
   }

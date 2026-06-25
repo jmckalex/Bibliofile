@@ -102,8 +102,23 @@ export interface Document {
   transaction<T>(label: string, fn: (doc: Document) => T): T;
   /** A formatted CSL bibliography (reference list) for the given cite keys, or all. */
   bibliography(citeKeys?: readonly string[], opts?: CiteOptions): string;
-  /** An inline citation: `(Author, Year)`, or `Author (Year)` with `textual: true`. */
-  cite(citeKeys: readonly string[], opts?: CiteOptions & { textual?: boolean }): string;
+  /**
+   * An inline citation — the formatted equivalent of `\citep` / `\citet` /
+   * `\citeauthor`: parenthetical `(Author, Year)` by default; `Author (Year)` with
+   * `textual: true` (or `mode: 'textual'`); author names only with `mode: 'author'`
+   * (`allAuthors: true` lists every author). Optional `prenote` / `postnote`
+   * insert text, e.g. `(see Smith, 2020, p. 4)`.
+   */
+  cite(
+    citeKeys: readonly string[],
+    opts?: CiteOptions & {
+      textual?: boolean;
+      mode?: 'parenthetical' | 'textual' | 'author';
+      allAuthors?: boolean;
+      prenote?: string;
+      postnote?: string;
+    },
+  ): string;
 }
 
 /** Host-mediated file I/O (synchronous, raw paths). */

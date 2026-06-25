@@ -294,9 +294,19 @@ override with any id from `bibliofile.citationStyles()`.
 | `entry.citation(opts?)` | `string` | This entry as a formatted bibliography reference. |
 | `entry.cslItem()` | `object` | The entry's raw CSL‑JSON (feed it to your own tooling). |
 | `doc.bibliography(citeKeys?, opts?)` | `string` | A reference list for the given keys (or all entries). |
-| `doc.cite(citeKeys, opts?)` | `string` | An inline citation — `(Author, Year)`, or `Author (Year)` with `{textual: true}`. |
+| `doc.cite(citeKeys, opts?)` | `string` | An inline citation (see below). |
 
-`opts` is `{style?, format?}` (and `doc.cite` also takes `{textual?}`).
+`opts` is `{style?, format?}` for all of them. `entry.citation` and
+`doc.bibliography` produce **reference list** entries; `doc.cite` produces an
+**inline** citation and takes extra options that mirror natbib's `\cite` family:
+
+| `doc.cite` option | Effect |
+| --- | --- |
+| *(default)* | parenthetical — `(Author, Year)` (`\citep`) |
+| `{ textual: true }` or `{ mode: 'textual' }` | `Author (Year)` (`\citet`) |
+| `{ mode: 'author' }` | author names only — `Einstein` (`\citeauthor`) |
+| `{ mode: 'author', allAuthors: true }` | every author, no "et al." (`\citeauthor*`) |
+| `{ prenote, postnote }` | inserted text — `(see Einstein, 1905, p. 4)` |
 
 ```javascript
 const doc = bibliofile.activeDocument;
@@ -306,9 +316,16 @@ console.log(doc.get('einstein1905').citation());
 // → "Einstein, A. (1905). On the electrodynamics of moving bodies. …"
 
 // inline citations
-console.log(doc.cite(['einstein1905']));               // → "(Einstein, 1905)"
-console.log(doc.cite(['einstein1905'], { textual: true })); // → "Einstein (1905)"
-console.log(doc.cite(['a', 'b'], { style: 'vancouver' }));  // → "(1,2)"
+console.log(doc.cite(['einstein1905']));                       // → "(Einstein, 1905)"
+console.log(doc.cite(['einstein1905'], { textual: true }));    // → "Einstein (1905)"
+console.log(doc.cite(['einstein1905'], { mode: 'author' }));   // → "Einstein"
+console.log(doc.cite(['a', 'b'], { style: 'vancouver' }));     // → "(1,2)"
+
+// pre/post-notes (natbib-style)
+console.log(doc.cite(['einstein1905'], { prenote: 'see', postnote: 'p. 4' }));
+// → "(see Einstein, 1905, p. 4)"
+console.log(doc.cite(['darwin1859'], { textual: true, postnote: 'ch. 2' }));
+// → "Darwin (1859, ch. 2)"
 
 // a full bibliography of the 1905 papers, as HTML
 return doc.bibliography(

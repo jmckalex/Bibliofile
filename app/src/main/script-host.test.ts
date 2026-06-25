@@ -193,6 +193,21 @@ describe('script-host: citations (CSL)', () => {
     expect(runScript(store, documentId, `return bibliofile.activeDocument.cite(['a'], { textual: true });`, apa).result).toContain('Smith (2020)');
   });
 
+  it('doc.cite supports author mode (et al. / all) and pre/post-notes', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{m, author = {One, A. and Two, B. and Three, C.}, title = {M}, year = {2019}}\n' +
+        '@article{s, author = {Smith, Jane}, title = {Alpha}, year = {2020}}',
+      '/tmp/cite.bib',
+    );
+    const go = (code: string): unknown => runScript(store, documentId, code, apa).result;
+    expect(go(`return bibliofile.activeDocument.cite(['s'], { mode: 'author' });`)).toBe('Smith');
+    expect(go(`return bibliofile.activeDocument.cite(['m'], { mode: 'author' });`)).toBe('One et al.');
+    expect(go(`return bibliofile.activeDocument.cite(['m'], { mode: 'author', allAuthors: true });`)).toBe('One, Two, and Three');
+    expect(go(`return bibliofile.activeDocument.cite(['s'], { prenote: 'see', postnote: 'p. 4' });`)).toContain('(see Smith, 2020, p. 4)');
+    expect(go(`return bibliofile.activeDocument.cite(['s'], { textual: true, postnote: 'ch. 2' });`)).toContain('Smith (2020, ch. 2)');
+  });
+
   it('doc.bibliography lists multiple entries; entry.cslItem returns CSL-JSON', () => {
     const { store, documentId } = fresh();
     const bib = String(runScript(store, documentId, `return bibliofile.activeDocument.bibliography(['a','c']);`, apa).result);
