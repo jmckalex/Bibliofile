@@ -31,7 +31,7 @@ BibDesk and your TeX workflow.
 - ✍️ Inline **editing** with field autocomplete, cite-key generation (single entry or a whole selection), `@string` macros, **Find & Replace**, and full **undo/redo**.
 - 📝 **Markdown notes & abstracts** with math, **brace-safe storage**, and a standalone **annotation-editor window** that auto-saves.
 - 🎨 Themed **preview** with MathJax math, chips, keyword tags, journal covers, and **light / dark** modes.
-- 📑 Formatted **CSL citations** (APA / Vancouver / Harvard, offline) — install your own `.csl` styles.
+- 📑 Formatted **CSL citations** (APA / Vancouver / Harvard, offline) — install & manage your own `.csl` styles, cite in notes with `\cite{…}` / `@references`, and optionally make URLs/DOIs clickable.
 - 🧮 **LaTeX preview** — typeset the selection's bibliography with your own TeX + `.bst` style (crisp SVG or PDF).
 - 🪟 **Configurable panels** you can resize, hide, swap, and redesign with **Handlebars templates** — including a **tabbed** bottom panel (Annotation · Abstract · Attachments, with PDF/image thumbnails).
 - 📥 **Import / export** — paste BibTeX, drag-and-drop `.bib`/PDFs, RIS import; export BibTeX / RIS / CSV / styled HTML.
@@ -93,6 +93,11 @@ BibDesk and your TeX workflow.
   rendered live — headings, lists, emphasis, blockquotes, and display equations.
 - Notes support **`[[citeKey]]` cross-references** between entries and inline
   `<iframe>` embeds (e.g. a lecture video).
+- **Formatted citations in notes** — `\cite` / `\citep` / `\citet` / `\citeauthor`
+  / `\fullcite` / `\nocite` (with optional pre/post-notes and multiple keys) render
+  through the CSL engine, and **`@references`** expands to a formatted bibliography
+  of the works you cited in that note. Each citation is clickable (jumps to the
+  entry) and uses your chosen **inline citation style**.
 - A standalone, non-blocking **annotation-editor window** (right-click an entry →
   **Edit Annotation…**): the entry's pretty-printed preview card above a Markdown
   editor, the cite key in the title bar, and **debounced auto-save**.
@@ -116,7 +121,11 @@ BibDesk and your TeX workflow.
   with entry-type accent colours, in **light or dark** mode.
 - A live, formatted **CSL citation** block (APA / Vancouver / Harvard, fully offline)
   and **Copy Citation** / **Copy as BibTeX** / **Copy `\cite{…}`** clipboard commands.
-- **Install your own `.csl` styles** (Preferences → Citations) to cite in any style.
+- **Install & manage your own `.csl` styles** (Preferences → Citations) — add any
+  Citation Style Language file and delete the ones you don't need, to cite in any of
+  thousands of styles. A separate **inline citation style** can be used for notes.
+- **Link URLs & DOIs** — optionally run citations through **Autolinker** so URLs and
+  DOIs become clickable links that open in your browser (in the detail pane and notes).
 - **LaTeX preview** — for true BibTeX output, typeset the selected entries'
   bibliography with your **local TeX** install and a chosen `.bst` style: a small
   selection renders as crisp, theme-aware **inline SVG** (via `dvisvgm`); the whole
@@ -172,9 +181,10 @@ BibDesk and your TeX workflow.
 
 ### ⚙️ Preferences, themes, languages & help
 
-- A **Preferences** window for appearance, the default citation style, the cite-key
-  format, default entry type, field-type classification, custom entry types, CSL
-  styles, panel & export templates, and the TeX `.bst` style / bin directory.
+- A **Preferences** window for appearance, the default & inline **citation styles**,
+  installing/removing your own **CSL** styles, clickable citation URLs/DOIs, the
+  cite-key format, default entry type, field-type classification, custom entry types,
+  panel & export templates, and the TeX `.bst` style / bin directory.
 - System-aware **light / dark** theming throughout.
 - UI localization scaffolding for **30 languages** (English complete; the others are
   machine-seeded and pending native review).

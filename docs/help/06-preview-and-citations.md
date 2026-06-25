@@ -175,7 +175,29 @@ Three styles are bundled:
 Change the **Default style** in Preferences and every citation block — in the
 view pane and in any open editor window — re-renders in that format. (Earlier
 versions had a per-block dropdown; it moved to Preferences so the style is
-consistent everywhere and doesn't crowd the narrow pane.)
+consistent everywhere and doesn't crowd the narrow pane.) The **Default style**
+also drives **printing** and **Copy Citation** (RTF).
+
+### Installing & managing your own styles
+
+You're not limited to the three bundled styles. The **Citation styles** section
+of **Preferences → Citations** lets you add and remove **CSL** (`.csl`) styles:
+
+- **Install CSL file…** validates and installs any Citation Style Language file —
+  for example one downloaded from the [Zotero / CSL style
+  repository](https://www.zotero.org/styles) — so you can cite in thousands of
+  journal and discipline styles.
+- Installed styles appear in both style menus, marked with a **★**, and are listed
+  in the **Citation styles** section with a **×** to **delete** any you no longer
+  want. Deleting the style currently in use falls back to APA.
+
+### A separate style for notes
+
+Citations inside **notes** — `\cite{…}` commands and the `@references`
+bibliography (see [Notes & abstracts](05-notes-and-abstracts.md)) — have their
+own **Inline citation style**, so you can, say, keep the detail pane in *APA*
+while your notes read in a numbered style. Leave it on **Same as default style**
+to follow the Default style. Both menus list every bundled and installed style.
 
 ### Clickable URLs & DOIs
 
