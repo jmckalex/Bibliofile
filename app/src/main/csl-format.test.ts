@@ -48,9 +48,10 @@ describe('renderCite (inline \\cite commands)', () => {
     expect(text('\\citeauthor*{jones1999}')).toBe('Jones, Baker, and Williams');
   });
 
-  it('renders \\fullcite as a full reference entry', () => {
+  it('renders \\fullcite as a full reference entry, inline (no block div)', () => {
     const out = render('\\fullcite{smith2020}');
-    expect(out).toContain('bd-cite--full');
+    expect(out).toContain('class="bd-icite"');
+    expect(out).not.toContain('<div'); // flows inline — citeproc's block div is unwrapped
     expect(text('\\fullcite{smith2020}')).toContain('On things');
     expect(text('\\fullcite{smith2020}')).toContain('Journal of Things');
   });
@@ -66,7 +67,7 @@ describe('renderCite (inline \\cite commands)', () => {
   });
 
   it('marks an unknown key without throwing', () => {
-    expect(render('\\citep{ghost2001}')).toContain('bd-cite--missing');
+    expect(render('\\citep{ghost2001}')).toContain('bd-icite--missing');
     expect(text('\\citep{ghost2001}')).toBe('?ghost2001');
   });
 

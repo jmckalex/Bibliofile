@@ -72,7 +72,7 @@ function toTextual(paren: string, pre: string, post: string): string {
 
 /** A muted marker for a cite key that isn't in the library. */
 function missingMarker(key: string): string {
-  return `<span class="bd-cite bd-cite--missing" title="No entry for this cite key">?${escapeHtml(key)}</span>`;
+  return `<span class="bd-icite bd-icite--missing" title="No entry for this cite key">?${escapeHtml(key)}</span>`;
 }
 
 /**
@@ -97,12 +97,18 @@ export function formatInlineCitation(cmd: ParsedCite, resolve: CiteResolver, sty
 
   const template = styleId || 'apa';
   const firstKey = escapeHtml(cmd.keys.find((k) => resolve(k)) ?? cmd.keys[0] ?? '');
-  const wrap = (inner: string, cls = 'bd-cite'): string =>
-    `<span class="${cls}" data-cite="${firstKey}">${inner}</span>${tail ? ` ${tail}` : ''}`;
+  const wrap = (inner: string): string =>
+    `<span class="bd-icite" data-cite="${firstKey}">${inner}</span>${tail ? ` ${tail}` : ''}`;
 
   if (cmd.kind === 'full') {
+    // citeproc wraps each reference in a block `<div class="csl-entry">`; pull the
+    // inner HTML so the full reference flows INLINE (a block <div> inside our
+    // inline <span> would otherwise be split out onto its own line by the browser).
     const html = new Cite(items).format('bibliography', { format: 'html', template, lang: 'en-US' }) as string;
-    return wrap(html, 'bd-cite bd-cite--full');
+    const entries = [...html.matchAll(/<div[^>]*class="csl-entry"[^>]*>([\s\S]*?)<\/div>/gi)].map(
+      (m) => m[1]!.trim(),
+    );
+    return wrap(entries.length ? entries.join('; ') : html.replace(/<\/?div[^>]*>/gi, '').trim());
   }
 
   if (cmd.kind === 'author') {

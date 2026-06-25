@@ -1475,17 +1475,17 @@ describe('\\cite commands in annotations', () => {
 
   it('renders \\cite commands as formatted, clickable citations', () => {
     const html = detailOf(true);
-    expect(html).toContain('class="bd-cite"');
+    expect(html).toContain('class="bd-icite"');
     expect(html).toContain('data-cite="other2020"');
     expect(html).toContain('(Smith, 2020)'); // \citep → parenthetical
     expect(html).toContain('Smith (2020)'); // \citet → textual
-    expect(html).toContain('bd-cite--missing'); // \citep{ghost1999} flagged
+    expect(html).toContain('bd-icite--missing'); // \citep{ghost1999} flagged
     expect(html).not.toContain('\\citep{other2020}'); // command text consumed
   });
 
   it('leaves \\cite commands literal when no engine is injected', () => {
     const html = detailOf(false);
     expect(html).toContain('\\citep{other2020}');
-    expect(html).not.toContain('bd-cite');
+    expect(html).not.toContain('bd-icite');
   });
 });

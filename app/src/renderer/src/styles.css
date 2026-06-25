@@ -2275,26 +2275,27 @@ button.bd-chip {
   border-bottom-style: dotted;
 }
 
-/* Formatted \cite{…} citations rendered in notes (citeproc output). Clickable
-   (jumps to the entry) but visually quiet — it reads as part of the prose. */
-.bd-cite {
+/* Formatted \cite{…} citations rendered in notes (citeproc output). Inline and
+   clickable (jumps to the entry); a light dashed underline that turns solid on
+   hover — it reads as part of the prose, not a chip. (Distinct from the
+   detail-pane `.bd-cite` citation block below.) */
+.bd-icite {
   cursor: pointer;
-  border-bottom: 1px solid color-mix(in srgb, var(--bd-accent) 28%, transparent);
+  text-decoration: underline dashed;
+  text-decoration-color: color-mix(in srgb, var(--bd-accent) 55%, transparent);
+  text-underline-offset: 2px;
 }
-.bd-cite:hover {
-  border-bottom-color: var(--bd-accent);
+.bd-icite:hover {
+  text-decoration-style: solid;
+  text-decoration-color: var(--bd-accent);
 }
-.bd-cite--missing {
+.bd-icite--missing {
   color: var(--bd-warning);
   cursor: help;
-  border-bottom: 1px dotted var(--bd-warning);
+  text-decoration: underline dotted var(--bd-warning);
+  text-underline-offset: 2px;
   font-family: var(--bd-mono);
   font-size: var(--bd-fs-sm);
-}
-/* A \fullcite renders a whole reference entry inline — let it breathe. */
-.bd-cite--full {
-  display: block;
-  margin: 4px 0;
 }
 
 .bd-card__citekey {
