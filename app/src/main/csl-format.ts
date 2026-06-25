@@ -96,9 +96,11 @@ export function formatInlineCitation(cmd: ParsedCite, resolve: CiteResolver, sty
   if (items.length === 0) return tail || missingMarker(cmd.keyString);
 
   const template = styleId || 'apa';
-  const firstKey = escapeHtml(cmd.keys.find((k) => resolve(k)) ?? cmd.keys[0] ?? '');
+  // Carry ALL resolved keys on data-cite so a multi-entry citation selects them
+  // all on click (the renderer's handler splits on commas).
+  const dataCite = escapeHtml(cmd.keys.filter((k) => resolve(k)).join(',') || cmd.keys[0] || '');
   const wrap = (inner: string): string =>
-    `<span class="bd-icite" data-cite="${firstKey}">${inner}</span>${tail ? ` ${tail}` : ''}`;
+    `<span class="bd-icite" data-cite="${dataCite}">${inner}</span>${tail ? ` ${tail}` : ''}`;
 
   if (cmd.kind === 'full') {
     // citeproc wraps each reference in a block `<div class="csl-entry">`; pull the
@@ -133,4 +135,29 @@ export function formatInlineCitation(cmd: ParsedCite, resolve: CiteResolver, sty
 export function renderCite(raw: string, resolve: CiteResolver, styleId: string): string {
   const cmd = parseCite(raw);
   return cmd ? formatInlineCitation(cmd, resolve, styleId) : escapeHtml(raw);
+}
+
+/**
+ * Render a formatted bibliography (HTML, citeproc's `csl-bib-body`) for the given
+ * cite keys in the chosen style — the `@references` block in an annotation. Keys
+ * are de-duplicated (preserving first appearance; citeproc orders per the style);
+ * unknown keys are skipped. Returns '' when nothing resolves.
+ */
+export function renderBibliography(keys: readonly string[], resolve: CiteResolver, styleId: string): string {
+  const seen = new Set<string>();
+  const items: Record<string, unknown>[] = [];
+  for (const key of keys) {
+    const lc = key.toLowerCase();
+    if (seen.has(lc)) continue;
+    seen.add(lc);
+    const item = resolve(key);
+    if (item) items.push(item);
+  }
+  if (items.length === 0) return '';
+  const html = new Cite(items).format('bibliography', {
+    format: 'html',
+    template: styleId || 'apa',
+    lang: 'en-US',
+  }) as string;
+  return `<div class="bd-references">${html}</div>`;
 }

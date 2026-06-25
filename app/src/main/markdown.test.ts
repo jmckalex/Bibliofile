@@ -115,4 +115,18 @@ describe('renderNotes', () => {
     const h = renderNotes('see \\citep{k}', () => true); // notes, but no formatter
     expect(h).not.toContain('bd-icite');
   });
+
+  it('expands @references to a bibliography of the cited keys (its own paragraph)', () => {
+    const renderCite = (raw: string): string => `<cite>${raw}</cite>`;
+    const renderBib = (keys: readonly string[]): string => `<div class="bd-references">[${keys.join('|')}]</div>`;
+    const h = renderNotes('Cited \\citep{a} and \\citet{b}.\n\n@references', () => true, renderCite, renderBib);
+    expect(h).toContain('<div class="bd-references">[a|b]</div>'); // both cited keys, in order
+    expect(h).not.toContain('@references'); // marker consumed
+    expect(h).not.toContain('@@REFS@@'); // placeholder restored
+    expect(h).not.toMatch(/<p>\s*<div class="bd-references"/); // not nested inside a <p>
+  });
+
+  it('leaves @references literal when no bibliography renderer is supplied', () => {
+    expect(renderNotes('text\n\n@references', () => true)).toContain('@references');
+  });
 });

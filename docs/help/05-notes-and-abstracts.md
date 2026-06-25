@@ -483,16 +483,33 @@ writing a literature note that reads like prose:
 - **Several keys** in one command share the citation: `\citep{a, b}` →
   *(A, 2019; B, 2020)*.
 - Each rendered citation is **clickable** — it jumps to the cited entry (like a
-  cross-reference). An **unknown key** shows a muted `?key` marker so typos stand
+  cross-reference). A citation of **several** works (`\citep{a, b}`) selects **all**
+  of them at once. An **unknown key** shows a muted `?key` marker so typos stand
   out.
+
+### A bibliography of the cited works — `@references`
+
+Put **`@references`** on its own line anywhere in a note and it expands to a
+**formatted bibliography** of the works you cited in that note (with `\cite`,
+`\nocite`, etc.), in your default style. Each work appears once, however many
+times you cited it. `\nocite{…}` is handy here: it adds a work to the
+bibliography without printing an inline citation.
+
+```markdown
+The result follows from \citet{einstein1905} and the pair \citep{bohr1913, dirac1928}.
+
+## References
+
+@references
+```
 
 > **Tip:** The style is whatever you've set as the default in **Preferences →
 > Citations** — switch it (APA, Vancouver, an installed `.csl`…) and every
-> `\cite` in your notes re-renders in that style. Citations are powered by the
-> same citeproc engine as the detail pane's citation block.
+> `\cite` and the `@references` bibliography re-render in that style. Citations
+> are powered by the same citeproc engine as the detail pane's citation block.
 
-> **Note:** Like `[[citeKey]]` links, `\cite{…}` commands are interpreted in
-> **Notes only**, not in the Abstract.
+> **Note:** Like `[[citeKey]]` links, `\cite{…}` commands and `@references` are
+> interpreted in **Notes only**, not in the Abstract.
 
 ## Inline embeds *(Notes only)*
 

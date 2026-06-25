@@ -218,6 +218,8 @@ export interface ViewerState {
   deleteSelection: () => Promise<void>;
   /** Select an entry by cite key (used by notes `[[citeKey]]` cross-references). */
   selectByCiteKey: (citeKey: string) => Promise<void>;
+  /** Select all entries for the given cite keys (a multi-entry `\cite{a,b}` click). */
+  selectByCiteKeys: (citeKeys: readonly string[]) => Promise<void>;
   /** Pick a `.aux` file (main opens the dialog) and select the publications it cites. */
   selectFromAux: () => Promise<void>;
   /** Export a folder's group→PDF directory tree (main picks the destination). */
@@ -574,6 +576,29 @@ export function createStore(api: BibDeskApi) {
         row = get().rows.find((r) => r.citeKey.toLowerCase() === lc);
       }
       if (row) await get().selectItem(row.id);
+    },
+
+    selectByCiteKeys: async (citeKeys) => {
+      const keys = citeKeys.map((k) => k.trim().toLowerCase()).filter(Boolean);
+      if (keys.length <= 1) {
+        if (keys[0]) await get().selectByCiteKey(keys[0]);
+        return;
+      }
+      const idsFor = (): string[] => {
+        const byKey = new Map(get().rows.map((r) => [r.citeKey.toLowerCase(), r.id]));
+        return keys.map((k) => byKey.get(k)).filter((id): id is string => !!id);
+      };
+      let ids = idsFor();
+      if (ids.length < keys.length) {
+        // some keys aren't in the current group view → widen to the full library
+        const lib = get().groups.find((g) => g.kind === 'library');
+        set({ selectedGroupId: lib?.id });
+        await get().loadPublications();
+        ids = idsFor();
+      }
+      if (ids.length === 0) return;
+      set({ selectedIds: ids, selectionAnchor: ids[0] });
+      await get().loadDetail(ids[0]!); // sets selectedItemId; the multi-panel effect picks up 2+
     },
 
     selectFromAux: async () => {

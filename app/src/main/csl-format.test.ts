@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderCite } from './csl-format.js';
+import { renderCite, renderBibliography } from './csl-format.js';
 
 const DB: Record<string, Record<string, unknown>> = {
   smith2020: {
@@ -73,5 +73,30 @@ describe('renderCite (inline \\cite commands)', () => {
 
   it('wraps a resolved citation in a clickable data-cite span', () => {
     expect(render('\\citet{smith2020}')).toContain('data-cite="smith2020"');
+  });
+
+  it('carries ALL resolved keys on data-cite (multi-entry click selects them all)', () => {
+    expect(render('\\citep{smith2020,jones1999}')).toContain('data-cite="smith2020,jones1999"');
+  });
+});
+
+describe('renderBibliography (@references)', () => {
+  const bib = (keys: string[]): string => renderBibliography(keys, resolve, 'apa');
+
+  it('formats a bibliography of the cited works', () => {
+    const out = bib(['smith2020', 'jones1999']);
+    expect(out).toContain('bd-references');
+    expect(out).toContain('On things'); // smith2020
+    expect(out).toContain('A Book'); // jones1999
+  });
+
+  it('de-duplicates repeated keys', () => {
+    const out = bib(['smith2020', 'smith2020']);
+    expect(out.match(/On things/g)?.length).toBe(1);
+  });
+
+  it('skips unknown keys and returns empty when nothing resolves', () => {
+    expect(bib(['ghost'])).toBe('');
+    expect(bib([])).toBe('');
   });
 });

@@ -13,7 +13,7 @@
 
 import { marked } from 'marked';
 import sanitizeHtml from 'sanitize-html';
-import { CITE_PATTERN_ANCHORED, CITE_START_RE } from './cite-command.js';
+import { CITE_PATTERN_ANCHORED, CITE_START_RE, parseCite } from './cite-command.js';
 
 // Math spans protected from Markdown before parsing: `$$…$$` / `$…$`, plus the
 // LaTeX `\[…\]` (display) and `\(…\)` (inline) delimiters — otherwise `marked`
@@ -75,6 +75,9 @@ function escapeAttr(s: string): string {
 // for abstracts / when no resolver is set, so `\cite{…}` then stays literal text.
 let citeRenderer: ((rawCommand: string) => string) | null = null;
 const citeStore: string[] = [];
+// Keys cited in the current note (in appearance order, incl. \nocite) — collected
+// during the cite pass so a trailing `@references` block can list them.
+const citedKeys: string[] = [];
 
 marked.use({
   extensions: [
@@ -94,6 +97,8 @@ marked.use({
       },
       renderer(token): string {
         const raw = (token as { raw: string }).raw;
+        const cmd = parseCite(raw);
+        if (cmd) citedKeys.push(...cmd.keys); // feed the @references bibliography
         citeStore.push(citeRenderer ? citeRenderer(raw) : raw);
         return `@@XCITE${citeStore.length - 1}@@`;
       },
@@ -104,6 +109,7 @@ marked.use({
 /** Protect math, run Markdown, sanitise with `opts`, then restore math + cite text. */
 function renderWith(md: string, opts: sanitizeHtml.IOptions): string {
   citeStore.length = 0;
+  citedKeys.length = 0;
   const math: string[] = [];
   const protectedMd = md.replace(MATH_RE, (m) => {
     math.push(m);
@@ -122,23 +128,28 @@ export function renderMarkdown(md: string): string {
 }
 
 const WIKILINK_RE = /\[\[([^\]]+)\]\]/g;
+// `@references` (on its own line / wherever) expands to a formatted bibliography
+// of the works cited in the note. Protected before Markdown so it isn't mangled.
+const REFERENCES_RE = /(^|[^\w@])@references\b/gi;
 
 /**
  * Render NOTES markdown: supports inlined `<iframe>` embeds, `[[citeKey]]`
  * cross-references → internal links (`<a class="bd-citelink" data-cite="…">`,
- * styled `--missing` when the key isn't in the document), and — when a
- * `renderCite` formatter is supplied — natbib `\cite{…}` commands rendered to
- * formatted citations (see the marked extension above). Wiki-links are protected
- * before Markdown parsing and restored afterwards.
+ * styled `--missing` when the key isn't in the document), natbib `\cite{…}`
+ * commands rendered to formatted citations (when a `renderCite` formatter is
+ * supplied), and an `@references` marker that expands to the formatted
+ * bibliography of the cited works (via `renderBibliography`). Wiki-links and
+ * `@references` are protected before Markdown parsing and restored afterwards.
  */
 export function renderNotes(
   md: string,
   citeKeyExists: (key: string) => boolean,
   renderCite?: (rawCommand: string) => string,
+  renderBibliography?: (keys: readonly string[]) => string,
 ): string {
   if (!md.trim()) return '';
   const links: string[] = [];
-  const pre = md.replace(WIKILINK_RE, (_m, key: string) => {
+  let pre = md.replace(WIKILINK_RE, (_m, key: string) => {
     const k = key.trim();
     const missing = !citeKeyExists(k);
     links.push(
@@ -146,9 +157,17 @@ export function renderNotes(
     );
     return `@@CITE${links.length - 1}@@`;
   });
+  if (renderBibliography) pre = pre.replace(REFERENCES_RE, (_m, lead: string) => `${lead}@@REFS@@`);
   citeRenderer = renderCite ?? null;
   try {
-    return renderWith(pre, NOTES_OPTS).replace(/@@CITE(\d+)@@/g, (_m, i) => links[Number(i)] ?? '');
+    let html = renderWith(pre, NOTES_OPTS);
+    if (renderBibliography) {
+      const bib = html.includes('@@REFS@@') ? renderBibliography(citedKeys) : '';
+      // Drop the placeholder's wrapping <p> when it's on its own line, so the
+      // bibliography's block markup isn't nested inside a paragraph.
+      html = html.replace(/<p>\s*@@REFS@@\s*<\/p>/g, bib).replace(/@@REFS@@/g, bib);
+    }
+    return html.replace(/@@CITE(\d+)@@/g, (_m, i) => links[Number(i)] ?? '');
   } finally {
     citeRenderer = null;
   }

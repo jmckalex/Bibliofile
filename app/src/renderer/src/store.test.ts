@@ -268,6 +268,20 @@ describe('viewer store', () => {
     expect(s.detailLoading).toBe(false);
   });
 
+  it('selectByCiteKeys selects every cited entry (multi-entry \\cite click)', async () => {
+    const { api } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    await store.getState().selectByCiteKeys(['beta2020', 'gamma2021']); // → i1, i3
+    expect(store.getState().selectedIds.sort()).toEqual(['i1', 'i3']);
+
+    // a single key falls back to the single-select path
+    await store.getState().selectByCiteKeys(['alpha2019']); // → i2
+    expect(store.getState().selectedIds).toEqual(['i2']);
+    expect(store.getState().selectedItemId).toBe('i2');
+  });
+
   it('setSort flips direction on repeated calls to the same key', async () => {
     const { api, calls } = makeFakeApi();
     const store = createStore(api);

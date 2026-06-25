@@ -2298,6 +2298,20 @@ button.bd-chip {
   font-size: var(--bd-fs-sm);
 }
 
+/* The `@references` block: a formatted bibliography of the note's cited works,
+   set off with a rule and a hanging indent per entry. */
+.bd-references {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--bd-border);
+  font-size: var(--bd-fs-sm);
+}
+.bd-references .csl-entry {
+  margin: 0 0 6px;
+  padding-left: 1.5em;
+  text-indent: -1.5em;
+}
+
 .bd-card__citekey {
   font-family: var(--bd-mono);
   font-size: var(--bd-fs-sm);

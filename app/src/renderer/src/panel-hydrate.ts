@@ -170,7 +170,9 @@ export function hydratePanel(root: HTMLElement): () => void {
     const cite = t.closest<HTMLElement>('[data-cite]');
     if (cite?.dataset.cite) {
       e.preventDefault();
-      void getStore().getState().selectByCiteKey(cite.dataset.cite);
+      // data-cite may carry several keys (a `\cite{a,b}`): select them all.
+      const keys = cite.dataset.cite.split(',').map((k) => k.trim()).filter(Boolean);
+      void getStore().getState().selectByCiteKeys(keys);
       return;
     }
     const files = t.closest<HTMLElement>('[data-open-files]');

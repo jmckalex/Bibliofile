@@ -720,6 +720,7 @@ export function toItemDetail(
   files: ItemFile[],
   citeKeyExists: (key: string) => boolean,
   renderCite?: (rawCommand: string) => string,
+  renderBibliography?: (keys: readonly string[]) => string,
 ): ItemDetail {
   const fields: ItemField[] = [];
   const emitted = new Set<string>();
@@ -814,7 +815,7 @@ export function toItemDetail(
     // Url/Doi links have their own chips and must not be counted as files.
     previewHtml: buildPreviewHtml(item, files.filter((f) => f.kind === 'file').length),
     notesRaw,
-    notesHtml: renderNotes(notesRaw, citeKeyExists, renderCite),
+    notesHtml: renderNotes(notesRaw, citeKeyExists, renderCite, renderBibliography),
     abstractRaw,
     // Same rendering as the preview card's abstract, so tabbed/custom panels match.
     abstractHtml: renderMarkdown(abstractRaw),
@@ -1081,6 +1082,14 @@ export type RenderCiteFn = (
   styleId: string,
 ) => string;
 
+/** Inline `@references` bibliography renderer (csl-format), injected like
+ *  {@link RenderCiteFn}: given the cited keys, a resolver, and the style → HTML. */
+export type RenderBibFn = (
+  keys: readonly string[],
+  resolve: (key: string) => Record<string, unknown> | null,
+  styleId: string,
+) => string;
+
 export class DocumentStore {
   private readonly docs = new Map<string, OpenDoc>();
 
@@ -1096,9 +1105,10 @@ export class DocumentStore {
     defaultCiteStyle: 'apa',
     detailsTemplate: undefined as string | undefined,
     bottomPanelTemplate: undefined as string | undefined,
-    // Injected from the electron layer (csl-format.renderCite) so the pure
-    // document-service stays free of the citeproc/electron citation engine.
+    // Injected from the electron layer (csl-format) so the pure document-service
+    // stays free of the citeproc/electron citation engine.
     renderCite: undefined as RenderCiteFn | undefined,
+    renderBibliography: undefined as RenderBibFn | undefined,
   };
 
   /** Apply preference-driven editing defaults. */
@@ -1114,8 +1124,10 @@ export class DocumentStore {
     detailsTemplate?: string;
     bottomPanelTemplate?: string;
     renderCite?: RenderCiteFn;
+    renderBibliography?: RenderBibFn;
   }): void {
     if (c.renderCite) this.editConfig.renderCite = c.renderCite;
+    if (c.renderBibliography) this.editConfig.renderBibliography = c.renderBibliography;
     if (c.citeKeyFormat) this.editConfig.citeKeyFormat = c.citeKeyFormat;
     if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
     if (c.papersFolder !== undefined) this.editConfig.papersFolder = c.papersFolder;
@@ -3089,24 +3101,25 @@ export class DocumentStore {
   /** Document-aware item detail (resolves managed attachments + notes cross-refs). */
   private detailFor(doc: OpenDoc, item: BibItem): ItemDetail {
     const keys = new Set(doc.library.items.map((i) => i.citeKey.toLowerCase()));
-    // `\cite{…}` commands in notes → formatted citations, resolving each key to a
-    // CSL item from this document and formatting via the injected engine.
+    // `\cite{…}` commands and the `@references` bibliography in notes resolve each
+    // key to a CSL item from THIS document and format via the injected engine.
+    const resolve = (key: string): Record<string, unknown> | null => {
+      const id = this.itemIdForCiteKey(doc.documentId, key);
+      return id ? this.cslItemFor(doc.documentId, id) : null;
+    };
+    const style = this.editConfig.defaultCiteStyle;
     const renderCite = this.editConfig.renderCite
-      ? (raw: string): string =>
-          this.editConfig.renderCite!(
-            raw,
-            (key) => {
-              const id = this.itemIdForCiteKey(doc.documentId, key);
-              return id ? this.cslItemFor(doc.documentId, id) : null;
-            },
-            this.editConfig.defaultCiteStyle,
-          )
+      ? (raw: string): string => this.editConfig.renderCite!(raw, resolve, style)
+      : undefined;
+    const renderBibliography = this.editConfig.renderBibliography
+      ? (cited: readonly string[]): string => this.editConfig.renderBibliography!(cited, resolve, style)
       : undefined;
     const detail = toItemDetail(
       item,
       itemFiles(item, doc.library, doc.path),
       (k) => keys.has(k.toLowerCase()),
       renderCite,
+      renderBibliography,
     );
     // Render the configurable detail + bottom panels (default templates reproduce
     // ViewPane / the annotation reader); the renderer hydrates them, falling back

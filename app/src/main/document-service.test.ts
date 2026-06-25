@@ -18,7 +18,7 @@ import {
   toDisplay,
 } from './document-service.js';
 import { FtsIndex } from './fts.js';
-import { renderCite } from './csl-format.js';
+import { renderCite, renderBibliography } from './csl-format.js';
 
 /** Whether the native FTS backend loads in this runtime (skips FTS tests if not). */
 const FTS_AVAILABLE = ((): boolean => {
@@ -1463,10 +1463,10 @@ describe('\\cite commands in annotations', () => {
     '@article{other2020, author = {Smith, Jane}, title = {A Title}, year = {2020}, journal = {J}}\n' +
     '@article{main2021, author = {Doe, John}, title = {Main}, year = {2021}, Annote = {See \\citep{other2020} and \\citet{other2020}; also \\citep{ghost1999}.}}';
 
-  const detailOf = (inject: boolean): string => {
+  const notesFor = (bib: string, inject = true): string => {
     const store = new DocumentStore();
-    if (inject) store.setEditConfig({ renderCite });
-    const { documentId } = store.openText(BIB, '/tmp/cite.bib');
+    if (inject) store.setEditConfig({ renderCite, renderBibliography });
+    const { documentId } = store.openText(bib, '/tmp/cite.bib');
     const id = store
       .listPublications({ documentId, offset: 0, limit: -1 })
       .rows.find((r) => r.citeKey === 'main2021')!.id;
@@ -1474,7 +1474,7 @@ describe('\\cite commands in annotations', () => {
   };
 
   it('renders \\cite commands as formatted, clickable citations', () => {
-    const html = detailOf(true);
+    const html = notesFor(BIB);
     expect(html).toContain('class="bd-icite"');
     expect(html).toContain('data-cite="other2020"');
     expect(html).toContain('(Smith, 2020)'); // \citep → parenthetical
@@ -1484,8 +1484,18 @@ describe('\\cite commands in annotations', () => {
   });
 
   it('leaves \\cite commands literal when no engine is injected', () => {
-    const html = detailOf(false);
+    const html = notesFor(BIB, false);
     expect(html).toContain('\\citep{other2020}');
     expect(html).not.toContain('bd-icite');
+  });
+
+  it('expands @references to the formatted bibliography of the cited works', () => {
+    const bib =
+      '@article{other2020, author = {Smith, Jane}, title = {On things}, year = {2020}, journal = {J}}\n' +
+      '@article{main2021, author = {Doe, John}, title = {Main}, year = {2021}, Annote = {Per \\citet{other2020}.\n\n@references}}';
+    const html = notesFor(bib);
+    expect(html).toContain('bd-references'); // the bibliography block rendered
+    expect(html).toContain('On things'); // the cited work's full reference
+    expect(html).not.toContain('@references'); // marker consumed
   });
 });
