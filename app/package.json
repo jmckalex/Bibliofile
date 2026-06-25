@@ -1,6 +1,6 @@
 {
   "name": "@bibdesk/app",
-  "version": "0.1.0",
+  "version": "0.11.0",
   "private": true,
   "type": "module",
   "description": "Bibliofile — cross-platform BibTeX bibliography manager (Electron shell: main + preload + renderer).",
