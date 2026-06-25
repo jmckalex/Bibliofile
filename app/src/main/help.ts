@@ -9,8 +9,42 @@
 
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, basename, resolve } from 'node:path';
-import { marked } from 'marked';
+import { Marked } from 'marked';
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import typescript from 'highlight.js/lib/languages/typescript';
+import json from 'highlight.js/lib/languages/json';
+import bash from 'highlight.js/lib/languages/bash';
+import xml from 'highlight.js/lib/languages/xml';
+import css from 'highlight.js/lib/languages/css';
 import sanitizeHtml from 'sanitize-html';
+
+// Only the languages used in the manual's fenced code blocks (keeps it lean).
+hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('typescript', typescript);
+hljs.registerLanguage('json', json);
+hljs.registerLanguage('bash', bash);
+hljs.registerLanguage('xml', xml); // also covers HTML
+hljs.registerLanguage('css', css);
+
+function escapeCode(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * A dedicated marked instance for the manual (separate from the notes pipeline's
+ * global `marked`), with a code renderer that syntax-highlights fenced blocks via
+ * highlight.js. Unknown / no language falls back to escaped plain text.
+ */
+const helpMarked = new Marked({
+  renderer: {
+    code({ text, lang }: { text: string; lang?: string }): string {
+      const language = lang && hljs.getLanguage(lang) ? lang : '';
+      const body = language ? hljs.highlight(text, { language }).value : escapeCode(text);
+      return `<pre><code class="hljs${language ? ` language-${language}` : ''}">${body}</code></pre>`;
+    },
+  },
+});
 
 const HELP_SANITIZE: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -24,6 +58,10 @@ const HELP_SANITIZE: sanitizeHtml.IOptions = {
     img: ['src', 'alt', 'title'],
     th: ['align'],
     td: ['align'],
+    // highlight.js emits <span class="hljs-…"> tokens inside <pre><code class="hljs language-…">.
+    code: ['class'],
+    span: ['class'],
+    pre: ['class'],
   },
   allowedSchemes: ['http', 'https', 'file', 'data', 'mailto'],
 };
@@ -48,7 +86,7 @@ function renderChapter(helpDir: string, file: string): Chapter {
   const id = basename(file, '.md');
   const md = readFileSync(join(helpDir, file), 'utf8');
   const title = /^#\s+(.+)$/m.exec(md)?.[1]?.trim() ?? id;
-  let html = marked.parse(md, { async: false }) as string;
+  let html = helpMarked.parse(md, { async: false }) as string;
   // ../image.png  ->  file:///abs/docs/image.png
   html = html.replace(/(\.\.\/)+([^"')\s]+\.(?:png|jpe?g|gif|svg|webp))/gi, (_m, _dots, p) =>
     `file://${join(helpDir, '..', p)}`,
@@ -75,6 +113,25 @@ table{border-collapse:collapse;margin:1em 0;font-size:.94em}th,td{border:1px sol
 blockquote{margin:1em 0;padding:.4em 1em;border-left:3px solid var(--accent);background:var(--alt);border-radius:0 6px 6px 0}
 img{max-width:100%;border:1px solid var(--border);border-radius:8px;margin:.5em 0}
 hr{border:none;border-top:1px solid var(--border);margin:2.4em 0}
+/* highlight.js — a compact Atom One Light/Dark palette keyed to the manual theme. */
+.hljs{color:var(--fg);background:none}
+.hljs-comment,.hljs-quote{color:var(--muted);font-style:italic}
+.hljs-keyword,.hljs-selector-tag,.hljs-literal,.hljs-built_in,.hljs-name{color:#a626a4}
+.hljs-string,.hljs-regexp,.hljs-attr,.hljs-addition{color:#50a14f}
+.hljs-number,.hljs-bullet{color:#986801}
+.hljs-title,.hljs-title.function_,.hljs-section{color:#4078f2}
+.hljs-attribute,.hljs-property,.hljs-variable,.hljs-template-variable{color:#e45649}
+.hljs-type,.hljs-class .hljs-title,.hljs-tag,.hljs-doctag{color:#c18401}
+.hljs-meta,.hljs-deletion{color:var(--muted)}
+.hljs-emphasis{font-style:italic}.hljs-strong{font-weight:600}
+@media(prefers-color-scheme:dark){
+.hljs-keyword,.hljs-selector-tag,.hljs-literal,.hljs-built_in,.hljs-name{color:#c678dd}
+.hljs-string,.hljs-regexp,.hljs-attr,.hljs-addition{color:#98c379}
+.hljs-number,.hljs-bullet{color:#d19a66}
+.hljs-title,.hljs-title.function_,.hljs-section{color:#61afef}
+.hljs-attribute,.hljs-property,.hljs-variable,.hljs-template-variable{color:#e06c75}
+.hljs-type,.hljs-class .hljs-title,.hljs-tag,.hljs-doctag{color:#e5c07b}
+}
 `;
 
 /** Render the whole manual as one self-contained HTML page. */

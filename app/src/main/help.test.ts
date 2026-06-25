@@ -29,5 +29,9 @@ describe('help manual', () => {
     expect(html).toMatch(/href="#0\d-[a-z-]+"/);
     // sanitized: no scripts
     expect(html).not.toContain('<script');
+    // the scripting chapter is present and its JS code blocks are highlighted
+    expect(html).toMatch(/id="\d\d-scripting"/);
+    expect(html).toContain('class="hljs language-javascript"');
+    expect(html).toContain('hljs-keyword'); // token spans survived sanitize
   });
 });
