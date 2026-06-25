@@ -98,6 +98,16 @@ export function visibleRows(
   return filterRows(rows, query);
 }
 
+/**
+ * Human-readable label for a CSL style id, resolved against the loaded style
+ * list (bundled + user-installed). Falls back to the raw id when the id is
+ * unknown or the list hasn't loaded yet — so an installed style shows its
+ * `.csl` title (e.g. "Phil. Sci."), not the internal id (`user-phil-sci`).
+ */
+export function citeStyleLabel(styles: readonly CitationStyle[], styleId: string): string {
+  return styles.find((s) => s.id === styleId)?.label ?? styleId;
+}
+
 /** The LaTeX-preview artifact + status shown in the bottom panel's preview pane. */
 export interface TexPreviewState {
   /** True while the TeX toolchain is running. */
@@ -283,9 +293,9 @@ export interface ViewerState {
   loadEntryTypes: () => Promise<void>;
   /** Load the available CSL styles (bundled + installed) from main. */
   loadCitationStyles: () => Promise<void>;
-  /** Pick + install a `.csl` file, then select it as the default style. */
+  /** Pick + install a `.csl` file and refresh the style list (selection unchanged). */
   installCitationStyle: () => Promise<void>;
-  /** Remove a user-installed CSL style by id. */
+  /** Remove a user-installed CSL style by id; reset any style setting that used it. */
   removeCitationStyle: (id: string) => Promise<void>;
   /**
    * Render a LaTeX/BibTeX preview of the current selection (SVG) or the whole
@@ -1001,10 +1011,9 @@ export function createStore(api: BibDeskApi) {
           set({ error: res.error });
           return;
         }
-        if (res.style) {
-          await get().loadCitationStyles();
-          await get().saveSettings({ defaultCiteStyle: res.style.id }); // select the new style
-        }
+        // Just add it to the manageable list; the user selects it explicitly via
+        // the style menus (installing shouldn't silently change their chosen styles).
+        if (res.style) await get().loadCitationStyles();
       } catch (err) {
         set({ error: errorMessage(err) });
       }
@@ -1013,7 +1022,13 @@ export function createStore(api: BibDeskApi) {
     removeCitationStyle: async (id) => {
       try {
         await api.removeCitationStyle({ id });
-        if (get().settings.defaultCiteStyle === id) await get().saveSettings({ defaultCiteStyle: 'apa' });
+        // A removed style can't stay selected: fall back to APA for the default and
+        // to "follow default" ('') for the inline style.
+        const { defaultCiteStyle, inlineCiteStyle } = get().settings;
+        const patch: { defaultCiteStyle?: string; inlineCiteStyle?: string } = {};
+        if (defaultCiteStyle === id) patch.defaultCiteStyle = 'apa';
+        if (inlineCiteStyle === id) patch.inlineCiteStyle = '';
+        if (Object.keys(patch).length > 0) await get().saveSettings(patch);
         await get().loadCitationStyles();
       } catch (err) {
         set({ error: errorMessage(err) });

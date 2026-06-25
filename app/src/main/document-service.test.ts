@@ -1498,4 +1498,23 @@ describe('\\cite commands in annotations', () => {
     expect(html).toContain('On things'); // the cited work's full reference
     expect(html).not.toContain('@references'); // marker consumed
   });
+
+  it('renders inline citations in the configured inlineCiteStyle', () => {
+    // A numeric style (Vancouver) makes the inline form unmistakably different
+    // from the default author-date (APA): "(1)" vs "(Smith, 2020)".
+    const store = new DocumentStore();
+    store.setEditConfig({ renderCite, renderBibliography, inlineCiteStyle: 'vancouver' });
+    const { documentId } = store.openText(BIB, '/tmp/cite-style.bib');
+    const id = store
+      .listPublications({ documentId, offset: 0, limit: -1 })
+      .rows.find((r) => r.citeKey === 'main2021')!.id;
+    const html = store.getItemDetail({ documentId, itemId: id }).notesHtml;
+    expect(html).toContain('(1)'); // Vancouver numeric inline citation
+    expect(html).not.toContain('(Smith, 2020)'); // not the APA author-date form
+  });
+
+  it('inline style falls back to the default style when unset', () => {
+    // inlineCiteStyle defaults to '' → follow defaultCiteStyle (APA).
+    expect(notesFor(BIB)).toContain('(Smith, 2020)');
+  });
 });

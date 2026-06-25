@@ -1074,8 +1074,16 @@ export interface Settings {
   readonly locale: string;
   /** UI theme. `system` follows the OS appearance. */
   readonly theme: 'light' | 'dark' | 'system';
-  /** Default CSL style id for the citation preview (from {@link CITATION_STYLES}). */
+  /**
+   * Default CSL style id for the detail-pane Citation block, printing, and RTF
+   * copy (from {@link CITATION_STYLES} or an installed user style).
+   */
   readonly defaultCiteStyle: string;
+  /**
+   * CSL style id used to render inline `\cite{…}` commands and the `@references`
+   * bibliography inside notes. Empty string ⇒ follow {@link defaultCiteStyle}.
+   */
+  readonly inlineCiteStyle: string;
   /** Cite-key generation format (BDSKFormatParser mini-language, e.g. `%a1:%Y%u0`). */
   readonly citeKeyFormat: string;
   /**
@@ -1198,6 +1206,8 @@ export const DEFAULT_SETTINGS: Settings = {
   locale: 'system',
   theme: 'system',
   defaultCiteStyle: 'apa',
+  inlineCiteStyle: '', // empty ⇒ follow defaultCiteStyle
+
   // Author-count-aware: Surname:Year (1 person), Surname1/Surname2:Year (2),
   // Surname1/etal:Year (3+). `%p` = authors, falling back to editors for entries
   // with no author (e.g. edited books). The `[/etal1]` trailing "1" caps shown

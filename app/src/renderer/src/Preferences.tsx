@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { BUILTIN_COLUMNS, LOCALES, defaultPanelBody, type Settings, type EntryTypeInfo, type ExportTemplate, type PanelTemplate, type PanelWhich } from '@bibdesk/shared';
+import { BUILTIN_COLUMNS, LOCALES, defaultPanelBody, type Settings, type EntryTypeInfo, type ExportTemplate, type PanelTemplate, type PanelWhich, type CitationStyle } from '@bibdesk/shared';
 import { useT } from './i18n.js';
 import { CodeEditor } from './CodeEditor.js';
 import { Icon, type IconName } from './icons.js';
@@ -799,6 +799,104 @@ function PanelsSection({
   );
 }
 
+/**
+ * Citation styles: pick the **default** style (detail-pane Citation block,
+ * printing, RTF copy) and, separately, the **inline** style used to render
+ * `\cite{…}` commands + the `@references` bibliography in notes (an empty inline
+ * style follows the default). Below, install your own `.csl` files and delete
+ * the ones you no longer want — both menus list bundled + installed styles.
+ */
+function CitationStylesSection({
+  settings,
+  styles,
+  install,
+  remove,
+  save,
+}: {
+  settings: Settings;
+  styles: readonly CitationStyle[];
+  install: () => Promise<void>;
+  remove: (id: string) => Promise<void>;
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const t = useT();
+  const custom = styles.filter((s) => s.custom);
+  const optionsFor = () =>
+    styles.map((s) => (
+      <option key={s.id} value={s.id}>
+        {s.label}
+        {s.custom ? ' ★' : ''}
+      </option>
+    ));
+
+  return (
+    <>
+      <section className="bd-prefs__section">
+        <h3>{t('prefs.citations')}</h3>
+        <label className="bd-prefs__row">
+          <span>{t('prefs.defaultStyle')}</span>
+          <select
+            className="bd-input bd-select"
+            value={settings.defaultCiteStyle}
+            onChange={(e) => void save({ defaultCiteStyle: e.target.value })}
+          >
+            {optionsFor()}
+          </select>
+        </label>
+        <p className="bd-prefs__hint">{t('prefs.defaultStyleHint')}</p>
+        <label className="bd-prefs__row">
+          <span>{t('prefs.inlineStyle')}</span>
+          <select
+            className="bd-input bd-select"
+            value={settings.inlineCiteStyle}
+            onChange={(e) => void save({ inlineCiteStyle: e.target.value })}
+          >
+            <option value="">{t('prefs.inlineStyleSameAsDefault')}</option>
+            {optionsFor()}
+          </select>
+        </label>
+        <p className="bd-prefs__hint">{t('prefs.inlineStyleHint')}</p>
+      </section>
+      <section className="bd-prefs__section">
+        <h3>{t('prefs.manageStyles')}</h3>
+        {custom.length === 0 ? (
+          <p className="bd-prefs__hint">{t('prefs.noCustomStyles')}</p>
+        ) : (
+          <ul className="bd-cols">
+            {custom.map((s) => (
+              <li className="bd-cols__row" key={s.id}>
+                <span className="bd-cols__name">{s.label}</span>
+                <span className="bd-cols__btns">
+                  <button
+                    type="button"
+                    className="bd-field__del"
+                    title={t('prefs.removeStyle')}
+                    aria-label={t('prefs.removeStyle')}
+                    onClick={() => void remove(s.id)}
+                  >
+                    <Icon name="close" />
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="bd-cols__add">
+          <button
+            type="button"
+            className="bd-btn bd-btn--small"
+            title={t('prefs.installStyleTitle')}
+            onClick={() => void install()}
+          >
+            {t('prefs.installStyle')}
+          </button>
+        </div>
+        <p className="bd-prefs__hint">{t('prefs.installStyleHint')}</p>
+      </section>
+    </>
+  );
+}
+
 type PrefSection =
   | 'general'
   | 'display'
@@ -919,46 +1017,13 @@ export function Preferences({ onClose }: { onClose: () => void }) {
 
             {section === 'citation' && (
               <>
-                <section className="bd-prefs__section">
-                  <h3>{t('prefs.citations')}</h3>
-                  <label className="bd-prefs__row">
-                    <span>{t('prefs.defaultStyle')}</span>
-                    <select
-                      className="bd-input bd-select"
-                      value={settings.defaultCiteStyle}
-                      onChange={(e) => void save({ defaultCiteStyle: e.target.value })}
-                    >
-                      {citationStyles.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.label}
-                          {s.custom ? ' ★' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="bd-prefs__row">
-                    <span />
-                    <span className="bd-prefs__btnrow">
-                      <button
-                        type="button"
-                        className="bd-btn bd-btn--small"
-                        onClick={() => void installCitationStyle()}
-                      >
-                        {t('prefs.installStyle')}
-                      </button>
-                      {citationStyles.find((s) => s.id === settings.defaultCiteStyle)?.custom && (
-                        <button
-                          type="button"
-                          className="bd-btn bd-btn--small bd-btn--danger"
-                          onClick={() => void removeCitationStyle(settings.defaultCiteStyle)}
-                        >
-                          {t('prefs.removeStyle')}
-                        </button>
-                      )}
-                    </span>
-                  </div>
-                  <p className="bd-prefs__hint">{t('prefs.installStyleHint')}</p>
-                </section>
+                <CitationStylesSection
+                  settings={settings}
+                  styles={citationStyles}
+                  install={installCitationStyle}
+                  remove={removeCitationStyle}
+                  save={save}
+                />
                 <section className="bd-prefs__section">
                   <h3>{t('prefs.citeCommand')}</h3>
                   <label className="bd-prefs__row">

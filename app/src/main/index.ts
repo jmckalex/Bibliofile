@@ -2146,6 +2146,7 @@ function registerIpc(): void {
         renderCite,
         renderBibliography,
         defaultCiteStyle: s.defaultCiteStyle,
+        inlineCiteStyle: s.inlineCiteStyle,
         detailsTemplate: resolveActivePanelBody(s.detailsForks, s.activeDetailsFork),
         bottomPanelTemplate: resolveActivePanelBody(s.bottomForks, s.activeBottomFork),
       });
@@ -2793,6 +2794,7 @@ if (!gotLock) {
       renderCite,
       renderBibliography,
       defaultCiteStyle: settings.defaultCiteStyle,
+      inlineCiteStyle: settings.inlineCiteStyle,
       detailsTemplate: resolveActivePanelBody(settings.detailsForks, settings.activeDetailsFork),
       bottomPanelTemplate: resolveActivePanelBody(settings.bottomForks, settings.activeBottomFork),
     });

@@ -17,7 +17,7 @@ import type {
   Unsubscribe,
 } from '@bibdesk/shared';
 import { DEFAULT_SETTINGS } from '@bibdesk/shared';
-import { createStore, filterRows, visibleRows } from './store.js';
+import { createStore, filterRows, visibleRows, citeStyleLabel } from './store.js';
 
 const DOC: OpenedDocument = {
   documentId: 'doc-1',
@@ -452,5 +452,25 @@ describe('visibleRows', () => {
   it('orders by FTS relevance and drops non-matches when ftsIds present', () => {
     const out = visibleRows(ALL_ROWS, 'anything', ['i3', 'i1']);
     expect(out.map((r) => r.id)).toEqual(['i3', 'i1']); // i2 excluded; order = ftsIds
+  });
+});
+
+describe('citeStyleLabel', () => {
+  const styles = [
+    { id: 'apa', label: 'APA' },
+    { id: 'user-phil-sci', label: 'Phil. Sci.', custom: true },
+  ];
+
+  it('resolves a bundled style id to its label', () => {
+    expect(citeStyleLabel(styles, 'apa')).toBe('APA');
+  });
+
+  it('resolves an installed style id to its .csl title, not the raw id', () => {
+    expect(citeStyleLabel(styles, 'user-phil-sci')).toBe('Phil. Sci.');
+  });
+
+  it('falls back to the raw id for an unknown / not-yet-loaded style', () => {
+    expect(citeStyleLabel(styles, 'user-not-loaded')).toBe('user-not-loaded');
+    expect(citeStyleLabel([], 'apa')).toBe('apa');
   });
 });

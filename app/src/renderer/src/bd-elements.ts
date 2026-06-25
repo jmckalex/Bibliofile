@@ -14,8 +14,8 @@
  *
  * Importing this module for its side effect registers the elements once.
  */
-import { CITATION_STYLES } from '@bibdesk/shared';
 import { typesetMath, hasMath } from './mathjax.js';
+import { getStore, citeStyleLabel } from './store.js';
 
 const escapeHtml = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -197,7 +197,7 @@ class BdCitation extends HTMLElement {
     if (key === this.lastKey) return; // same entry/style already rendered — nothing to do
     this.lastKey = key;
     const token = ++this.token;
-    const styleLabel = CITATION_STYLES.find((s) => s.id === styleId)?.label ?? styleId;
+    const styleLabel = citeStyleLabel(getStore().getState().citationStyles, styleId);
     // Header renders immediately; the body fills in after the async format.
     this.innerHTML = `<div class="bd-cite"><div class="bd-cite__head"><span class="bd-detail__section bd-detail__section--inline">Citation</span><span class="bd-cite__stylename" title="Set the citation style in Preferences">${escapeHtml(
       styleLabel,

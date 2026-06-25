@@ -466,7 +466,7 @@ threads through many papers.
 
 Where `[[citeKey]]` gives you a bare link, the LaTeX/natbib-style `\cite`
 commands render a **properly formatted citation** of an entry in your library,
-in your **default citation style** (Preferences → Citations). They're handy for
+in your **inline citation style** (Preferences → Citations). They're handy for
 writing a literature note that reads like prose:
 
 | You write | It renders as |
@@ -491,8 +491,8 @@ writing a literature note that reads like prose:
 
 Put **`@references`** on its own line anywhere in a note and it expands to a
 **formatted bibliography** of the works you cited in that note (with `\cite`,
-`\nocite`, etc.), in your default style. Each work appears once, however many
-times you cited it. `\nocite{…}` is handy here: it adds a work to the
+`\nocite`, etc.), in your inline citation style. Each work appears once, however
+many times you cited it. `\nocite{…}` is handy here: it adds a work to the
 bibliography without printing an inline citation.
 
 ```markdown
@@ -503,10 +503,14 @@ The result follows from \citet{einstein1905} and the pair \citep{bohr1913, dirac
 @references
 ```
 
-> **Tip:** The style is whatever you've set as the default in **Preferences →
-> Citations** — switch it (APA, Vancouver, an installed `.csl`…) and every
-> `\cite` and the `@references` bibliography re-render in that style. Citations
-> are powered by the same citeproc engine as the detail pane's citation block.
+> **Tip:** Set the style under **Preferences → Citations → Inline citation
+> style** — switch it (APA, Vancouver, an installed `.csl`…) and every `\cite`
+> and the `@references` bibliography re-render in that style. Leave it on *Same
+> as default style* to follow the **Default style** (which also drives the detail
+> pane's citation block, printing, and RTF copy). Both menus list every bundled
+> and installed style; the **Citation styles** section just below lets you
+> install your own `.csl` files and delete ones you no longer want. Citations are
+> powered by the same citeproc engine as the detail pane's citation block.
 
 > **Note:** Like `[[citeKey]]` links, `\cite{…}` commands and `@references` are
 > interpreted in **Notes only**, not in the Abstract.

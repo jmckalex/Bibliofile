@@ -132,11 +132,19 @@ export const en: Catalog = {
   'prefs.theme.dark': 'Dark',
   'prefs.citations': 'Citations',
   'prefs.defaultStyle': 'Default style',
+  'prefs.defaultStyleHint':
+    'Used for the Citation block in the detail pane, printing, and Copy as Citation (RTF).',
+  'prefs.inlineStyle': 'Inline citation style',
+  'prefs.inlineStyleSameAsDefault': 'Same as default style',
+  'prefs.inlineStyleHint':
+    'Used to render \\cite{…} commands and the @references bibliography inside notes. Leave on “Same as default style” to follow the default.',
+  'prefs.manageStyles': 'Citation styles',
+  'prefs.noCustomStyles': 'No styles installed yet — install a .csl file to add your own.',
   'prefs.installStyle': 'Install CSL file…',
   'prefs.removeStyle': 'Remove',
   'prefs.installStyleTitle': 'Install a CSL style',
   'prefs.installStyleHint':
-    'Install any Citation Style Language (.csl) file — e.g. from the Zotero / CSL style repository — then pick it above. ★ marks an installed style.',
+    'Install any Citation Style Language (.csl) file — e.g. from the Zotero / CSL style repository — then pick it from the menus above. ★ marks an installed style.',
   'prefs.texPreview': 'LaTeX preview',
   'prefs.texBibStyle': 'BibTeX style (.bst)',
   'prefs.texBinDir': 'TeX bin directory',

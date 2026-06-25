@@ -18,15 +18,18 @@ export function EditorWindow({ documentId, itemId }: { documentId: string; itemI
   const initEditor = useStore((s) => s.initEditor);
   const reloadAfterExternalChange = useStore((s) => s.reloadAfterExternalChange);
   const loadEntryTypes = useStore((s) => s.loadEntryTypes);
+  const loadCitationStyles = useStore((s) => s.loadCitationStyles);
   const detail = useStore((s) => s.detail);
   const error = useStore((s) => s.error);
 
   useEffect(() => {
     void initEditor(documentId, itemId);
     // This window runs its own store; load the type list so the type picker
-    // (DetailPane → Identity) includes custom entry types.
+    // (DetailPane → Identity) includes custom entry types, and the CSL style list
+    // so the Citation block labels an installed style by its title, not its id.
     void loadEntryTypes();
-  }, [initEditor, loadEntryTypes, documentId, itemId]);
+    void loadCitationStyles();
+  }, [initEditor, loadEntryTypes, loadCitationStyles, documentId, itemId]);
 
   // If the main window mutates this item (rename author, find/replace, …), refresh
   // — but only for this editor's own document, not some other open library.

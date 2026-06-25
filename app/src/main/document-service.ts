@@ -1103,6 +1103,8 @@ export class DocumentStore {
     annotationStorage: 'compressed' as AnnotationStorage,
     abstractStorage: 'plain' as AbstractStorage,
     defaultCiteStyle: 'apa',
+    // Style for inline `\cite{…}` + `@references` in notes; '' ⇒ defaultCiteStyle.
+    inlineCiteStyle: '',
     detailsTemplate: undefined as string | undefined,
     bottomPanelTemplate: undefined as string | undefined,
     // Injected from the electron layer (csl-format) so the pure document-service
@@ -1121,6 +1123,7 @@ export class DocumentStore {
     annotationStorage?: AnnotationStorage;
     abstractStorage?: AbstractStorage;
     defaultCiteStyle?: string;
+    inlineCiteStyle?: string;
     detailsTemplate?: string;
     bottomPanelTemplate?: string;
     renderCite?: RenderCiteFn;
@@ -1136,6 +1139,8 @@ export class DocumentStore {
     if (c.annotationStorage) this.editConfig.annotationStorage = c.annotationStorage;
     if (c.abstractStorage) this.editConfig.abstractStorage = c.abstractStorage;
     if (c.defaultCiteStyle) this.editConfig.defaultCiteStyle = c.defaultCiteStyle;
+    // '' is a meaningful value (follow defaultCiteStyle), so accept it explicitly.
+    if (c.inlineCiteStyle !== undefined) this.editConfig.inlineCiteStyle = c.inlineCiteStyle;
     // Panel templates: '' or absent ⇒ use the built-in default (clear the override).
     if ('detailsTemplate' in c) this.editConfig.detailsTemplate = c.detailsTemplate || undefined;
     if ('bottomPanelTemplate' in c) this.editConfig.bottomPanelTemplate = c.bottomPanelTemplate || undefined;
@@ -3107,7 +3112,9 @@ export class DocumentStore {
       const id = this.itemIdForCiteKey(doc.documentId, key);
       return id ? this.cslItemFor(doc.documentId, id) : null;
     };
-    const style = this.editConfig.defaultCiteStyle;
+    // Inline `\cite{…}` + `@references` use the dedicated inline style; an empty
+    // setting falls back to the default (detail-pane) style.
+    const style = this.editConfig.inlineCiteStyle || this.editConfig.defaultCiteStyle;
     const renderCite = this.editConfig.renderCite
       ? (raw: string): string => this.editConfig.renderCite!(raw, resolve, style)
       : undefined;

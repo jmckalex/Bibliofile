@@ -10,11 +10,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CITATION_STYLES, type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
+import { type ItemDetail, type ItemField, type ItemFile } from '@bibdesk/shared';
 import { splitGroupFieldValue } from '@bibdesk/groups';
 import { filterCiteKeyInput, citeKeyHasFragileChars } from '@bibdesk/formats';
 import { sharedTypeManager } from '@bibdesk/model';
-import { useStore } from './store.js';
+import { useStore, citeStyleLabel } from './store.js';
 import { useT } from './i18n.js';
 import { Icon, type IconName } from './icons.js';
 import { CodeEditor } from './CodeEditor.js';
@@ -563,9 +563,10 @@ export function CitationBlock({ detail }: { detail: ItemDetail }) {
   const t = useT();
   const documentId = useStore((s) => s.documentId);
   const styleId = useStore((s) => s.settings.defaultCiteStyle);
+  const citationStyles = useStore((s) => s.citationStyles);
   const [html, setHtml] = useState('');
   const bodyRef = useRef<HTMLDivElement>(null);
-  const styleLabel = CITATION_STYLES.find((s) => s.id === styleId)?.label ?? styleId;
+  const styleLabel = citeStyleLabel(citationStyles, styleId);
 
   useEffect(() => {
     if (!documentId) return;
