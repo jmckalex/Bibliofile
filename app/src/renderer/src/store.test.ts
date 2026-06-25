@@ -115,6 +115,7 @@ function makeFakeApi() {
     agentKeyStatus: async () => ({ hasKey: false, encryptionAvailable: true }),
     agentSetKey: async () => ({ hasKey: true, encryptionAvailable: true }),
     agentRun: async () => ({ reply: '', toolLog: [], mutated: false }),
+    runScript: async () => ({ output: [], mutated: false }),
     agentReset: async () => ({ ok: true as const }),
     searchOnline: async () => ({ results: [] }),
     importOnline: async () => ({ dirty: true }),

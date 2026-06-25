@@ -38,7 +38,7 @@ export interface CodeEditorProps {
   onChange: (value: string) => void;
   /** Fires when the editor loses focus (good for commit-on-blur). */
   onBlur?: () => void;
-  language?: 'markdown' | 'html';
+  language?: 'markdown' | 'html' | 'javascript';
   placeholder?: string;
   readOnly?: boolean;
   /** CSS min-height for the editor (default 180px). */

@@ -1,0 +1,148 @@
+import { describe, it, expect } from 'vitest';
+import { DocumentStore } from './document-service.js';
+import { runScript } from './script-host.js';
+
+const BIB =
+  '@article{a, author = {Smith, Jane}, title = {Alpha}, year = {2020}}\n' +
+  '@book{b, author = {G{\\"o}del, Kurt}, title = {Beta}, year = {1931}}\n' +
+  '@article{c, author = {Roe, Sam}, title = {Gamma}, year = {2021}}';
+
+function fresh() {
+  const store = new DocumentStore();
+  const { documentId } = store.openText(BIB, '/tmp/script.bib');
+  return { store, documentId };
+}
+/** Run a script body (auto-`return`s the last expression-less form via explicit return in tests). */
+const run = (store: DocumentStore, documentId: string, code: string, timeoutMs = 2000) =>
+  runScript(store, documentId, code, { timeoutMs });
+
+describe('script-host: reads', () => {
+  it('lists entries and reads fields', () => {
+    const { store, documentId } = fresh();
+    const r = run(store, documentId, `return bibliofile.activeDocument.entries().map(e => e.citeKey);`);
+    expect(r.error).toBeUndefined();
+    expect(r.result).toEqual(['a', 'b', 'c']);
+    expect(r.mutated).toBe(false);
+  });
+
+  it('get() reads a field; displayField de-TeXifies', () => {
+    const { store, documentId } = fresh();
+    expect(run(store, documentId, `return bibliofile.activeDocument.get('a').field('Title');`).result).toBe('Alpha');
+    expect(run(store, documentId, `return bibliofile.activeDocument.get('b').displayField('Author');`).result).toBe(
+      'Gödel, Kurt',
+    );
+  });
+
+  it('search and authors work', () => {
+    const { store, documentId } = fresh();
+    expect(run(store, documentId, `return bibliofile.activeDocument.search('beta').map(e=>e.citeKey);`).result).toEqual(['b']);
+    expect(run(store, documentId, `return bibliofile.activeDocument.get('a').authors()[0].last;`).result).toBe('Smith');
+  });
+
+  it('count + filter', () => {
+    const { store, documentId } = fresh();
+    expect(run(store, documentId, `return bibliofile.activeDocument.count();`).result).toBe(3);
+    expect(
+      run(store, documentId, `return bibliofile.activeDocument.filter(e => Number(e.field('Year')) > 2000).map(e=>e.citeKey);`).result,
+    ).toEqual(['a', 'c']);
+  });
+});
+
+describe('script-host: mutations route through the store', () => {
+  it('setField is visible via the store and flags mutated', () => {
+    const { store, documentId } = fresh();
+    const r = run(store, documentId, `bibliofile.activeDocument.get('a').setField('Keywords', 'todo');`);
+    expect(r.error).toBeUndefined();
+    expect(r.mutated).toBe(true);
+    const id = store.itemIdForCiteKey(documentId, 'a')!;
+    expect(store.getItemDetail({ documentId, itemId: id }).fields.find((f) => f.name === 'Keywords')?.value).toBe('todo');
+  });
+
+  it('addEntry and import add entries', () => {
+    const { store, documentId } = fresh();
+    run(store, documentId, `bibliofile.activeDocument.addEntry({ type:'misc', fields:{ Title:'New' }, citeKey:'newkey' });`);
+    expect(store.itemIdForCiteKey(documentId, 'newkey')).toBeTruthy();
+    run(store, documentId, `bibliofile.activeDocument.import('@book{z, title={Zed}}');`);
+    expect(store.itemIdForCiteKey(documentId, 'z')).toBeTruthy();
+  });
+
+  it('setMacro / removeMacro reflected in listMacros', () => {
+    const { store, documentId } = fresh();
+    run(store, documentId, `bibliofile.activeDocument.setMacro('pnas', 'Proc. Natl. Acad. Sci.');`);
+    expect(store.listMacros({ documentId }).macros.some((m) => m.name === 'pnas')).toBe(true);
+    run(store, documentId, `bibliofile.activeDocument.removeMacro('pnas');`);
+    expect(store.listMacros({ documentId }).macros.some((m) => m.name === 'pnas')).toBe(false);
+  });
+});
+
+describe('script-host: one undo step per run', () => {
+  it('a bulk edit over every entry is a single undo', () => {
+    const { store, documentId } = fresh();
+    run(store, documentId, `for (const e of bibliofile.activeDocument.entries()) e.setField('Note', 'x');`);
+    const noteCount = () =>
+      store
+        .listPublications({ documentId, offset: 0, limit: -1 })
+        .rows.map((r) => store.getItemDetail({ documentId, itemId: r.id }).fields.find((f) => f.name === 'Note')?.value)
+        .filter((v) => v === 'x').length;
+    expect(noteCount()).toBe(3);
+    expect(store.undo(documentId)).toBe(true); // ONE undo
+    expect(noteCount()).toBe(0); // …reverts all three
+    expect(store.undoState(documentId).canUndo).toBe(false);
+  });
+
+  it('a read-only run adds no undo step', () => {
+    const { store, documentId } = fresh();
+    run(store, documentId, `return bibliofile.activeDocument.count();`);
+    expect(store.undoState(documentId).canUndo).toBe(false);
+  });
+
+  it('nested transaction() still collapses to one undo step', () => {
+    const { store, documentId } = fresh();
+    run(
+      store,
+      documentId,
+      `bibliofile.activeDocument.transaction('batch', d => { for (const e of d.entries()) e.setField('Note','y'); });`,
+    );
+    expect(store.undo(documentId)).toBe(true);
+    expect(store.undoState(documentId).canUndo).toBe(false);
+  });
+});
+
+describe('script-host: sandbox + errors', () => {
+  it('reports a runtime error with the source line', () => {
+    const { store, documentId } = fresh();
+    const r = run(store, documentId, `const x = 1;\nthrow new Error('boom');`);
+    expect(r.error?.message).toContain('boom');
+    expect(r.error?.line).toBe(2);
+    expect(r.result).toBeUndefined();
+  });
+
+  it('a syntax error is reported, not thrown', () => {
+    const { store, documentId } = fresh();
+    expect(run(store, documentId, `this is not js (((`).error?.message).toBeTruthy();
+  });
+
+  it('captures console output in order', () => {
+    const { store, documentId } = fresh();
+    const r = run(store, documentId, `console.log('one', 1); console.warn('two');`);
+    expect(r.output).toEqual(['one 1', 'two']);
+  });
+
+  it('does not expose require / process', () => {
+    const { store, documentId } = fresh();
+    expect(run(store, documentId, `return typeof require + ',' + typeof process;`).result).toBe('undefined,undefined');
+  });
+
+  it('aborts a runaway loop via the timeout', () => {
+    const { store, documentId } = fresh();
+    const r = run(store, documentId, `while (true) {}`, 200);
+    expect(r.error?.message).toMatch(/timed out/i);
+  });
+
+  it('returns a clone-safe value for an entry', () => {
+    const { store, documentId } = fresh();
+    const r = run(store, documentId, `return bibliofile.activeDocument.get('a');`);
+    expect(r.result).toMatchObject({ citeKey: 'a', type: 'article' });
+    expect(JSON.parse(JSON.stringify(r.result))).toBeTruthy(); // clone-safe
+  });
+});

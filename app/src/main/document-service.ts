@@ -1160,6 +1160,13 @@ export class DocumentStore {
   private history = new Map<string, { undo: UndoStep[]; redo: UndoStep[] }>();
   private static readonly UNDO_LIMIT = 100;
 
+  /**
+   * Document ids whose per-operation snapshotting is suspended — set while a
+   * {@link runInUndoGroup} body runs so the many nested `applyEdit`/`importEntry`
+   * calls inside it collapse to the single up-front snapshot (one undo step).
+   */
+  private undoSuspended = new Set<string>();
+
   private historyFor(documentId: string): { undo: UndoStep[]; redo: UndoStep[] } {
     let h = this.history.get(documentId);
     if (!h) {
@@ -1177,6 +1184,9 @@ export class DocumentStore {
    * per real change (the first/outer label wins). Clears the redo stack.
    */
   private snapshot(documentId: string, label = 'Edit'): void {
+    // Inside a runInUndoGroup body, the one up-front snapshot already covers the
+    // whole batch — skip the nested per-operation snapshots.
+    if (this.undoSuspended.has(documentId)) return;
     const doc = this.docs.get(documentId);
     if (!doc) return;
     const h = this.historyFor(documentId);
@@ -1185,6 +1195,40 @@ export class DocumentStore {
     h.undo.push({ snap, label });
     if (h.undo.length > DocumentStore.UNDO_LIMIT) h.undo.shift();
     h.redo.length = 0;
+  }
+
+  /**
+   * Run `fn` as a SINGLE undo step: take one labeled snapshot up front, then
+   * suspend the per-operation snapshots that nested `applyEdit`/`importEntry`
+   * calls would otherwise push, so an arbitrary batch of edits (e.g. a whole
+   * script run, or `bibliofile.transaction(…)`) collapses to one "Undo <label>".
+   * Mutations inside still run normally (reindex, dirty flag, crossref cascade).
+   * Nested calls are safe (the inner one is a no-op for the suspend flag). If the
+   * up-front snapshot is a no-op (no change yet), it dedups away — a read-only
+   * body adds no undo step. Used by the JavaScript scripting host.
+   */
+  runInUndoGroup<T>(documentId: string, label: string, fn: () => T): T {
+    this.requireDoc(documentId);
+    const h = this.historyFor(documentId);
+    const before = this.serializeDocument(documentId);
+    const redoBefore = h.redo.slice();
+    const undoLen = h.undo.length;
+    this.snapshot(documentId, label); // the single undo point for the whole group
+    const pushed = h.undo.length > undoLen;
+    const wasSuspended = this.undoSuspended.has(documentId);
+    this.undoSuspended.add(documentId);
+    try {
+      return fn();
+    } finally {
+      if (!wasSuspended) this.undoSuspended.delete(documentId);
+      // A read-only / no-op body should leave undo+redo untouched: drop the
+      // snapshot we took up front and restore the redo stack `snapshot()` cleared.
+      if (this.serializeDocument(documentId) === before) {
+        if (pushed) h.undo.pop();
+        h.redo.length = 0;
+        h.redo.push(...redoBefore);
+      }
+    }
   }
 
   /** Whether undo/redo are available + the next action labels (for the Edit menu). */

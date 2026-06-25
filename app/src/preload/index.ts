@@ -124,6 +124,8 @@ import type {
   AgentSetKeyRequest,
   AgentRunRequest,
   AgentRunResponse,
+  RunScriptRequest,
+  RunScriptResponse,
   MenuCommand,
 } from '@bibdesk/shared';
 
@@ -321,6 +323,9 @@ const api: BibDeskApi = {
   },
   agentRun(request: AgentRunRequest): Promise<AgentRunResponse> {
     return ipcRenderer.invoke(IpcChannels.agentRun, request);
+  },
+  runScript(request: RunScriptRequest): Promise<RunScriptResponse> {
+    return ipcRenderer.invoke(IpcChannels.runScript, request);
   },
   agentReset(request: { documentId: string }): Promise<{ ok: true }> {
     return ipcRenderer.invoke(IpcChannels.agentReset, request);

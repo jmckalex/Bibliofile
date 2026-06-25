@@ -971,6 +971,28 @@ export interface AgentRunResponse {
   readonly error?: string;
 }
 
+// --- JavaScript scripting host ---------------------------------------------
+
+/** Run a user JavaScript script against a document's library. */
+export interface RunScriptRequest {
+  readonly documentId: DocumentId;
+  readonly code: string;
+}
+
+/** The result of one script run, for the Script Console. */
+export interface RunScriptResponse {
+  /** Captured `console.*` output lines, in order. */
+  readonly output: readonly string[];
+  /** The script's return value, formatted for display (JSON for objects). */
+  readonly result?: string;
+  /** True if the run changed the document (the renderer should reload). */
+  readonly mutated: boolean;
+  /** A runtime/syntax error message, when the run failed. */
+  readonly error?: string;
+  /** The 1-based source line of the error, when known. */
+  readonly errorLine?: number;
+}
+
 // --- AutoFile ---------------------------------------------------------------
 
 /** AutoFile the managed attachments of one or more items into the Papers folder.
@@ -1509,6 +1531,7 @@ export type MenuCommand =
   | 'findDuplicates'
   | 'findBrokenLinks'
   | 'scanJournalCovers'
+  | 'scriptConsole'
   | 'texPreview'
   | 'assistant'
   // Edit / clipboard (operate on the selection)

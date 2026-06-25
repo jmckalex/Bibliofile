@@ -2869,6 +2869,64 @@ button.bd-chip {
   font-size: var(--bd-fs-sm);
 }
 
+/* Script Console: a JavaScript editor (top) over a console output pane (bottom). */
+.bd-modal--script {
+  width: 760px;
+  max-width: 92vw;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+.bd-script__hint {
+  margin: 0;
+  padding: 8px 14px;
+  color: var(--bd-text-muted);
+  font-size: var(--bd-fs-sm);
+  border-bottom: 1px solid var(--bd-border);
+}
+.bd-script__editor {
+  flex: 1 1 55%;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 12px;
+}
+.bd-script__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--bd-border);
+}
+.bd-script__runhint {
+  color: var(--bd-text-faint);
+  font-size: var(--bd-fs-sm);
+}
+.bd-script__output {
+  flex: 1 1 45%;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 12px;
+  border-top: 1px solid var(--bd-border);
+  background: var(--bd-surface-alt);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--bd-fs-sm);
+}
+.bd-script__empty {
+  color: var(--bd-text-faint);
+  margin: 0;
+}
+.bd-script__line {
+  margin: 0 0 2px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.bd-script__line--result {
+  color: var(--bd-accent);
+}
+.bd-script__line--err {
+  color: #b91c1c;
+}
+
 .bd-online__bar {
   display: flex;
   gap: 8px;

@@ -77,6 +77,7 @@ export const en: Catalog = {
 
   // --- Tools / View / Help menus ---
   'menu.tools.assistant': 'Claude Assistant…',
+  'menu.tools.scriptConsole': 'Script Console…',
   'menu.tools.journalCovers': 'Download Missing Journal Covers…',
   'menu.tools.texPreview': 'LaTeX Preview',
   'menu.view.toggleSide': 'Toggle Side Panel',
@@ -485,6 +486,18 @@ export const en: Catalog = {
   'assistant.composePlaceholder': 'Message the assistant…',
   'assistant.send': 'Send',
   'assistant.noReply': '(no reply)',
+
+  // --- Script Console (JavaScript scripting) ---
+  'scripting.title': 'Script Console',
+  'scripting.hint':
+    'Write JavaScript to automate this library — the bibliofile API is available. Scripts run with the app’s full access; one run is a single Undo. Only run scripts you trust.',
+  'scripting.run': 'Run',
+  'scripting.running': 'Running…',
+  'scripting.runHint': 'Run with ⌘↵ / Ctrl+↵',
+  'scripting.output': 'Output',
+  'scripting.outputEmpty': 'Run a script to see its output here.',
+  'scripting.ranNoOutput': 'Script ran (no output).',
+  'scripting.errorAt': 'Error (line {line}): {error}',
 
   // --- Smart group dialog ---
   'smart.editTitle': 'Edit Smart Group',

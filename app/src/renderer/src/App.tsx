@@ -25,6 +25,7 @@ import { FindDuplicates } from './FindDuplicates.js';
 import { BrokenLinks } from './BrokenLinks.js';
 import { JournalCoverScan } from './JournalCoverScan.js';
 import { PdfReviewDialog } from './PdfReviewDialog.js';
+import { ScriptConsole } from './ScriptConsole.js';
 import { BatchBar } from './BatchBar.js';
 
 function ThemeToggle() {
@@ -222,6 +223,7 @@ interface ModalSetters {
   setDuplicatesOpen: (v: boolean) => void;
   setBrokenLinksOpen: (v: boolean) => void;
   setCoverScanOpen: (v: boolean) => void;
+  setScriptConsoleOpen: (v: boolean) => void;
 }
 
 /**
@@ -310,6 +312,9 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       return;
     case 'scanJournalCovers':
       modals.setCoverScanOpen(true);
+      return;
+    case 'scriptConsole':
+      modals.setScriptConsoleOpen(true);
       return;
     case 'texPreview':
       // Reveal the preview pane; it renders the current selection on open and
@@ -451,6 +456,7 @@ export function App() {
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const [brokenLinksOpen, setBrokenLinksOpen] = useState(false);
   const [coverScanOpen, setCoverScanOpen] = useState(false);
+  const [scriptConsoleOpen, setScriptConsoleOpen] = useState(false);
   const pdfReviewOpen = useStore((s) => s.pdfReview != null);
   const [dragging, setDragging] = useState(false);
   const layout = useStore((s) => s.settings.layout);
@@ -569,6 +575,7 @@ export function App() {
         setDuplicatesOpen,
         setBrokenLinksOpen,
         setCoverScanOpen,
+        setScriptConsoleOpen,
       });
     });
     const unsubCols = api.onMenuToggleColumn((key) => void getStore().getState().toggleColumn(key));
@@ -676,6 +683,7 @@ export function App() {
       {duplicatesOpen && <FindDuplicates onClose={() => setDuplicatesOpen(false)} />}
       {brokenLinksOpen && <BrokenLinks onClose={() => setBrokenLinksOpen(false)} />}
       {coverScanOpen && <JournalCoverScan onClose={() => setCoverScanOpen(false)} />}
+      {scriptConsoleOpen && <ScriptConsole onClose={() => setScriptConsoleOpen(false)} />}
       {pdfReviewOpen && <PdfReviewDialog />}
     </div>
   );

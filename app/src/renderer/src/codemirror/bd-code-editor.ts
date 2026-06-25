@@ -49,6 +49,7 @@ import {
 import { tags } from '@lezer/highlight';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { html } from '@codemirror/lang-html';
+import { javascript } from '@codemirror/lang-javascript';
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { oneDarkTheme } from '@codemirror/theme-one-dark';
@@ -437,13 +438,15 @@ const handlebarsPlugin = ViewPlugin.fromClass(
 //  Language extensions
 // ---------------------------------------------------------------------------
 
-type EditorLanguage = 'markdown' | 'html';
+type EditorLanguage = 'markdown' | 'html' | 'javascript';
 
 /** The language parser + language-specific extras (markdown gets the table/math
- *  plugins + native spellcheck; HTML gets the Handlebars mustache overlay and
- *  stays plain otherwise so tags aren't flagged as misspellings). */
+ *  plugins + native spellcheck; HTML gets the Handlebars mustache overlay;
+ *  JavaScript gets the JS parser; each stays plain otherwise so tokens aren't
+ *  flagged as misspellings). */
 function languageExtension(language: EditorLanguage): Extension {
   if (language === 'html') return [html(), handlebarsPlugin, handlebarsTheme];
+  if (language === 'javascript') return [javascript()];
   return [
     markdown({ base: markdownLanguage }),
     pipeTablePlugin,
@@ -480,7 +483,8 @@ export class BdCodeEditor extends HTMLElement {
   }
 
   private get language(): EditorLanguage {
-    return this.getAttribute('language') === 'html' ? 'html' : 'markdown';
+    const v = this.getAttribute('language');
+    return v === 'html' || v === 'javascript' ? v : 'markdown';
   }
 
   /** Dark unless theme="light"; defaults to the document's data-theme. */

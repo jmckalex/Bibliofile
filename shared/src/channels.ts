@@ -108,6 +108,8 @@ export const IpcChannels = {
   importFiles: 'bibdesk:importFiles',
   /** Open a file picker (main) and import the chosen `.bib`/`.ris`/other files. */
   importDialog: 'bibdesk:importDialog',
+  /** Run a user JavaScript script against a document (the scripting host). */
+  runScript: 'bibdesk:runScript',
   /** Accept a staged drop-PDF draft: create it in the target doc + attach the PDF. */
   commitStagedEntry: 'bibdesk:commitStagedEntry',
   /** Discard a staging document (drop its remaining drop-PDF drafts). */

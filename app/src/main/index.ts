@@ -53,6 +53,7 @@ import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 import { DocumentStore } from './document-service.js';
 import { resolveActivePanelBody, renderMultiPanels, MULTI_LIST_CAP } from './panel.js';
 import { runAgentTurn } from './agent.js';
+import { runScript } from './script-host.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
 import { initScripting } from './scripting-bridge.js';
@@ -1593,6 +1594,12 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('assistant'),
       },
+      {
+        label: t('menu.tools.scriptConsole'),
+        accelerator: 'CmdOrCtrl+Alt+J',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('scriptConsole'),
+      },
       { type: 'separator' },
       {
         label: t('menu.tools.journalCovers'),
@@ -2581,6 +2588,24 @@ function registerIpc(): void {
       agentHistories.set(req.documentId, history);
       return result;
     },
+    [IpcChannels.runScript]: (req) => {
+      const r = runScript(store, req.documentId, req.code, {
+        timeoutMs: 5000,
+        version: app.getVersion(),
+      });
+      return {
+        output: r.output,
+        result:
+          r.result === undefined
+            ? undefined
+            : typeof r.result === 'string'
+              ? r.result
+              : JSON.stringify(r.result, null, 2),
+        mutated: r.mutated,
+        error: r.error?.message,
+        errorLine: r.error?.line,
+      };
+    },
   };
 
   // ipcMain.handle prepends the IpcMainInvokeEvent; the contract handlers ignore it.
@@ -2754,6 +2779,7 @@ function registerIpc(): void {
     handlers[IpcChannels.agentReset](req),
   );
   mutating(IpcChannels.agentRun);
+  mutating(IpcChannels.runScript);
 }
 
 // ---------------------------------------------------------------------------

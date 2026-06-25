@@ -106,6 +106,8 @@ import type {
   AgentSetKeyRequest,
   AgentRunRequest,
   AgentRunResponse,
+  RunScriptRequest,
+  RunScriptResponse,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -316,6 +318,9 @@ export interface BibDeskApi {
 
   /** Send one message to the assistant for the open document. */
   agentRun(request: AgentRunRequest): Promise<AgentRunResponse>;
+
+  /** Run a user JavaScript script against a document (the scripting host). */
+  runScript(request: RunScriptRequest): Promise<RunScriptResponse>;
 
   /** Reset the assistant conversation for a document. */
   agentReset(request: { documentId: string }): Promise<{ ok: true }>;

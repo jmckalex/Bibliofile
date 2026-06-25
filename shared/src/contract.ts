@@ -105,6 +105,8 @@ import type {
   AgentSetKeyRequest,
   AgentRunRequest,
   AgentRunResponse,
+  RunScriptRequest,
+  RunScriptResponse,
   MenuCommand,
   ListGroupsRequest,
   ListGroupsResponse,
@@ -198,6 +200,7 @@ export interface IpcContract {
   [IpcChannels.agentKeyStatus]: IpcEntry<Record<string, never>, AgentKeyStatus>;
   [IpcChannels.agentSetKey]: IpcEntry<AgentSetKeyRequest, AgentKeyStatus>;
   [IpcChannels.agentRun]: IpcEntry<AgentRunRequest, AgentRunResponse>;
+  [IpcChannels.runScript]: IpcEntry<RunScriptRequest, RunScriptResponse>;
   [IpcChannels.agentReset]: IpcEntry<{ documentId: string }, { ok: true }>;
 }
 

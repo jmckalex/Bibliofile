@@ -197,6 +197,8 @@ export {
   type AgentSetKeyRequest,
   type AgentRunRequest,
   type AgentRunResponse,
+  type RunScriptRequest,
+  type RunScriptResponse,
   type MenuCommand,
 } from './dto.js';
 
