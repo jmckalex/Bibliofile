@@ -45,6 +45,10 @@ export interface Entry {
   attachments(): AttachmentInfo[];
   toBibTeX(): string;
   toJSON(): { id: string; citeKey: string; type: string; fields: Record<string, string> };
+  /** This entry's CSL-JSON object (what the citation engine consumes). */
+  cslItem(): Record<string, unknown>;
+  /** A formatted bibliography reference (CSL / citation.js), in `style`/`format`. */
+  citation(opts?: CiteOptions): string;
   setField(name: string, value: string): Entry;
   removeField(name: string): Entry;
   setType(type: string): Entry;
@@ -58,6 +62,14 @@ export interface Entry {
 }
 
 export type ExportFormat = 'bibtex' | 'bibtex-minimal' | 'ris' | 'csv' | 'html' | 'rtf';
+
+/** Options for CSL-formatted citation output. */
+export interface CiteOptions {
+  /** A CSL style id ('apa', 'vancouver', an installed style); default = the document's. */
+  style?: string;
+  /** `'text'` (default) or `'html'`. */
+  format?: 'text' | 'html';
+}
 
 /** One open library document. */
 export interface Document {
@@ -88,6 +100,10 @@ export interface Document {
   save(targetPath?: string): void;
   /** Run `fn` as one named undo step. */
   transaction<T>(label: string, fn: (doc: Document) => T): T;
+  /** A formatted CSL bibliography (reference list) for the given cite keys, or all. */
+  bibliography(citeKeys?: readonly string[], opts?: CiteOptions): string;
+  /** An inline citation: `(Author, Year)`, or `Author (Year)` with `textual: true`. */
+  cite(citeKeys: readonly string[], opts?: CiteOptions & { textual?: boolean }): string;
 }
 
 /** Host-mediated file I/O (synchronous, raw paths). */
@@ -104,6 +120,8 @@ export interface Bibliofile {
   readonly activeDocument: Document;
   documents(): Document[];
   document(documentId: string): Document;
+  /** Available CSL style ids (bundled + installed) for citation calls. */
+  citationStyles(): string[];
   /** Read/write files (synchronous). Scripts run with the app's file access. */
   readonly io: ScriptIO;
   /**

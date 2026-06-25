@@ -23,6 +23,15 @@ import { createContext, Script } from 'node:vm';
 import { detexify } from '@bibdesk/tex';
 import type { ExportFormat } from '@bibdesk/shared';
 import type { DocumentStore } from './document-service.js';
+import { cslBibliography, cslCitation } from './csl-format.js';
+
+/** Options for CSL-formatted citation output. */
+interface CiteOptions {
+  /** A CSL style id (e.g. 'apa', 'vancouver', an installed style); default = the document's. */
+  readonly style?: string;
+  /** `'text'` (default) or `'html'`. */
+  readonly format?: 'text' | 'html';
+}
 
 // --- onChange hooks ---------------------------------------------------------
 // Scripts can register `bibliofile.onChange(fn)` handlers that persist past the
@@ -77,6 +86,7 @@ class ScriptEntry {
     private readonly store: DocumentStore,
     private readonly documentId: string,
     readonly id: string,
+    private readonly caps: ScriptCapabilities = {},
   ) {}
 
   private item() {
@@ -127,6 +137,15 @@ class ScriptEntry {
     return { id: this.id, citeKey: this.citeKey, type: this.type, fields: this.fields() };
   }
 
+  /** This entry's CSL-JSON object (what the citation engine consumes). */
+  cslItem(): Record<string, unknown> {
+    return this.store.cslItemFor(this.documentId, this.id);
+  }
+  /** This entry as a formatted bibliography reference (CSL), in `style`/`format`. */
+  citation(opts: CiteOptions = {}): string {
+    return cslBibliography([this.cslItem()], opts.style ?? this.caps.defaultCiteStyle ?? 'apa', opts.format ?? 'text');
+  }
+
   // --- mutators (route through DocumentStore → undo/reindex preserved) ---
   setField(name: string, value: string): this {
     this.store.applyEdit({ documentId: this.documentId, command: { kind: 'setField', itemId: this.id, field: name, value: String(value ?? '') } });
@@ -166,10 +185,19 @@ class ScriptDocument {
   constructor(
     private readonly store: DocumentStore,
     readonly id: string,
+    private readonly caps: ScriptCapabilities = {},
   ) {}
 
   private wrap(itemId: string): ScriptEntry {
-    return new ScriptEntry(this.store, this.id, itemId);
+    return new ScriptEntry(this.store, this.id, itemId, this.caps);
+  }
+
+  /** CSL-JSON items for the given cite keys (all entries if omitted), unknown keys skipped. */
+  private cslItemsFor(citeKeys?: readonly string[]): Record<string, unknown>[] {
+    const ids = citeKeys
+      ? citeKeys.map((k) => this.store.itemIdForCiteKey(this.id, k)).filter((x): x is string => !!x)
+      : this.store.itemsOf(this.id).map((it) => it.id);
+    return ids.map((id) => this.store.cslItemFor(this.id, id));
   }
 
   get name(): string {
@@ -272,6 +300,27 @@ class ScriptDocument {
     this.store.saveDocument(this.id, targetPath);
   }
 
+  /**
+   * A formatted CSL bibliography (reference list) for the given cite keys — or the
+   * whole library if omitted — in `style` (default: the document's) / `format`
+   * (default `'text'`). This is "citation.js formatted output".
+   */
+  bibliography(citeKeys?: readonly string[], opts: CiteOptions = {}): string {
+    return cslBibliography(this.cslItemsFor(citeKeys), opts.style ?? this.caps.defaultCiteStyle ?? 'apa', opts.format ?? 'text');
+  }
+
+  /**
+   * An inline citation for the given cite keys — `(Author, Year)`, or `Author
+   * (Year)` with `textual: true`. The formatted equivalent of `\citep{…}` /
+   * `\citet{…}`. `style`/`format` as above.
+   */
+  cite(citeKeys: readonly string[], opts: CiteOptions & { textual?: boolean } = {}): string {
+    return cslCitation(this.cslItemsFor(citeKeys), opts.style ?? this.caps.defaultCiteStyle ?? 'apa', {
+      textual: opts.textual,
+      format: opts.format,
+    });
+  }
+
   /** Run `fn` as one undo step (a named sub-group within the script run). */
   transaction<T>(label: string, fn: (doc: ScriptDocument) => T): T {
     return this.store.runInUndoGroup(this.id, label || 'Script', () => fn(this));
@@ -291,6 +340,10 @@ export interface ScriptCapabilities {
     url: string,
     opts?: { method?: string; headers?: Record<string, string>; body?: string },
   ): { status: number; headers: Record<string, string>; text: string };
+  /** The document's default CSL style id (used when a citation call omits `style`). */
+  defaultCiteStyle?: string;
+  /** Available CSL style ids (bundled + installed), for `bibliofile.citationStyles()`. */
+  citationStyles?(): string[];
 }
 
 /** The `bibliofile` global. */
@@ -303,13 +356,18 @@ class ScriptApp {
   ) {}
   readonly name = 'Bibliofile';
   get activeDocument(): ScriptDocument {
-    return new ScriptDocument(this.store, this.defaultDocumentId);
+    return new ScriptDocument(this.store, this.defaultDocumentId, this.caps);
   }
   documents(): ScriptDocument[] {
-    return this.store.openDocumentIds().map((id) => new ScriptDocument(this.store, id));
+    return this.store.openDocumentIds().map((id) => new ScriptDocument(this.store, id, this.caps));
   }
   document(documentId: string): ScriptDocument {
-    return new ScriptDocument(this.store, documentId);
+    return new ScriptDocument(this.store, documentId, this.caps);
+  }
+
+  /** Available CSL style ids (bundled + installed) for citation calls. */
+  citationStyles(): string[] {
+    return this.caps.citationStyles ? this.caps.citationStyles() : [];
   }
 
   /** Host-mediated file I/O; throws if a capability wasn't provided. */

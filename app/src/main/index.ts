@@ -656,6 +656,8 @@ function openPreferences(): void {
 function makeScriptCapabilities(win: BrowserWindow | undefined): ScriptCapabilities {
   let networkAllowed: boolean | null = null; // unasked → asked once per run
   return {
+    defaultCiteStyle: getSettings().defaultCiteStyle,
+    citationStyles: () => listStyles().map((s) => s.id),
     readText: (p) => readFileSync(p, 'utf8'),
     writeText: (p, text) => writeFileSync(p, text),
     exists: (p) => existsSync(p),

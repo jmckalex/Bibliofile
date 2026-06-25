@@ -80,6 +80,7 @@ Everything starts from the global **`bibliofile`**.
 | `bibliofile.activeDocument` | `Document` | The library the script runs against. |
 | `bibliofile.documents()` | `Document[]` | Every open document. |
 | `bibliofile.document(id)` | `Document` | A document by its id. |
+| `bibliofile.citationStyles()` | `string[]` | Available CSL styles — see [Citations](#citations-csl--citationjs). |
 | `bibliofile.io` | `object` | File access — see [Files](#files). |
 | `bibliofile.fetch(url, opts?)` | `object` | A synchronous HTTP request — see [Network](#network). |
 | `bibliofile.onChange(fn)` | `() => void` | React to later edits — see [onChange](#reacting-to-changes-onchange). |
@@ -278,6 +279,56 @@ if (res.status === 200) {
   console.log('Title: ' + title);
 }
 ```
+
+### Citations (CSL / citation.js)
+
+Get **formatted citations** in any CSL style — the same engine that powers the
+detail pane's Citation block and `\cite{…}` in notes. Output is clean text by
+default (pass `{format: 'html'}` for HTML). The style defaults to the document's
+**default citation style** (Preferences ▸ Citations); pass `{style: '…'}` to
+override with any id from `bibliofile.citationStyles()`.
+
+| Method | Returns | Description |
+| --- | --- | --- |
+| `bibliofile.citationStyles()` | `string[]` | Available style ids (bundled + installed). |
+| `entry.citation(opts?)` | `string` | This entry as a formatted bibliography reference. |
+| `entry.cslItem()` | `object` | The entry's raw CSL‑JSON (feed it to your own tooling). |
+| `doc.bibliography(citeKeys?, opts?)` | `string` | A reference list for the given keys (or all entries). |
+| `doc.cite(citeKeys, opts?)` | `string` | An inline citation — `(Author, Year)`, or `Author (Year)` with `{textual: true}`. |
+
+`opts` is `{style?, format?}` (and `doc.cite` also takes `{textual?}`).
+
+```javascript
+const doc = bibliofile.activeDocument;
+
+// one reference, APA
+console.log(doc.get('einstein1905').citation());
+// → "Einstein, A. (1905). On the electrodynamics of moving bodies. …"
+
+// inline citations
+console.log(doc.cite(['einstein1905']));               // → "(Einstein, 1905)"
+console.log(doc.cite(['einstein1905'], { textual: true })); // → "Einstein (1905)"
+console.log(doc.cite(['a', 'b'], { style: 'vancouver' }));  // → "(1,2)"
+
+// a full bibliography of the 1905 papers, as HTML
+return doc.bibliography(
+  doc.filter((e) => e.field('Year') === '1905').map((e) => e.citeKey),
+  { style: 'apa', format: 'html' },
+);
+```
+
+```javascript
+// build a Markdown reading list, each item formatted in the current style
+const lines = bibliofile.activeDocument
+  .entries()
+  .map((e) => '- ' + e.citation());
+bibliofile.io.writeText('/Users/me/reading-list.md', lines.join('\n'));
+return lines.length + ' references written';
+```
+
+> **Tip:** `bibliofile.citationStyles()` lists every style you can pass as
+> `{style: …}` — the bundled ones (`apa`, `vancouver`, `harvard1`, …) plus any
+> `.csl` files you've installed in Preferences ▸ Citations.
 
 ### Reacting to changes — `onChange`
 

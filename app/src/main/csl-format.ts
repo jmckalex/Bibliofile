@@ -58,6 +58,43 @@ export function formatCitation(
   return autolink ? autolinkCitationHtml(html) : html;
 }
 
+/**
+ * Format CSL-JSON items as a bibliography (reference list) in the given style.
+ * `format` is `'text'` (plain, script-friendly default) or `'html'`. Clean output
+ * — no app-specific wrappers — for the scripting API. Empty input → ''.
+ */
+export function cslBibliography(
+  items: readonly Record<string, unknown>[],
+  styleId: string,
+  format: 'text' | 'html' = 'text',
+): string {
+  if (items.length === 0) return '';
+  return new Cite(items as Record<string, unknown>[]).format('bibliography', {
+    format,
+    template: styleId || 'apa',
+    lang: 'en-US',
+  }) as string;
+}
+
+/**
+ * Format CSL-JSON items as an inline citation: parenthetical `(Author, Year)` or,
+ * with `textual`, `Author (Year)` (natbib `\citet`-style). `format` defaults to
+ * `'text'`. Clean output for the scripting API. Empty input → ''.
+ */
+export function cslCitation(
+  items: readonly Record<string, unknown>[],
+  styleId: string,
+  opts: { textual?: boolean; format?: 'text' | 'html' } = {},
+): string {
+  if (items.length === 0) return '';
+  const paren = new Cite(items as Record<string, unknown>[]).format('citation', {
+    template: styleId || 'apa',
+    lang: 'en-US',
+    format: opts.format ?? 'text',
+  }) as string;
+  return opts.textual ? toTextual(paren, '', '') : paren;
+}
+
 // --- inline \cite{…} commands (annotations) ---------------------------------
 
 /** Resolve a cite key to its CSL-JSON item, or null when it isn't in the library. */

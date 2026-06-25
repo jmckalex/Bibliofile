@@ -177,6 +177,39 @@ describe('script-host: controlled I/O (injected capabilities)', () => {
   });
 });
 
+describe('script-host: citations (CSL)', () => {
+  const apa = { capabilities: { defaultCiteStyle: 'apa' } };
+
+  it('entry.citation formats a bibliography reference', () => {
+    const { store, documentId } = fresh();
+    const r = runScript(store, documentId, `return bibliofile.activeDocument.get('a').citation();`, apa);
+    expect(r.error).toBeUndefined();
+    expect(String(r.result)).toMatch(/Smith.*2020.*Alpha/);
+  });
+
+  it('doc.cite produces parenthetical and textual inline citations', () => {
+    const { store, documentId } = fresh();
+    expect(runScript(store, documentId, `return bibliofile.activeDocument.cite(['a']);`, apa).result).toContain('(Smith, 2020)');
+    expect(runScript(store, documentId, `return bibliofile.activeDocument.cite(['a'], { textual: true });`, apa).result).toContain('Smith (2020)');
+  });
+
+  it('doc.bibliography lists multiple entries; entry.cslItem returns CSL-JSON', () => {
+    const { store, documentId } = fresh();
+    const bib = String(runScript(store, documentId, `return bibliofile.activeDocument.bibliography(['a','c']);`, apa).result);
+    expect(bib).toMatch(/Alpha/);
+    expect(bib).toMatch(/Gamma/);
+    expect(runScript(store, documentId, `return bibliofile.activeDocument.get('a').cslItem().title;`).result).toBe('Alpha');
+  });
+
+  it('bibliofile.citationStyles returns the injected list', () => {
+    const { store, documentId } = fresh();
+    const r = runScript(store, documentId, `return bibliofile.citationStyles();`, {
+      capabilities: { citationStyles: () => ['apa', 'vancouver'] },
+    });
+    expect(r.result).toEqual(['apa', 'vancouver']);
+  });
+});
+
 describe('script-host: onChange hooks', () => {
   const noteOf = (store: DocumentStore, documentId: string, key: string): string | undefined => {
     const id = store.itemIdForCiteKey(documentId, key)!;
