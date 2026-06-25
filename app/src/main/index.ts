@@ -1922,7 +1922,11 @@ function registerIpc(): void {
       saveWithEncodingGuard(req.documentId, req.targetPath, windowForDoc(req.documentId)),
     [IpcChannels.formatCitation]: (req) => {
       try {
-        const html = formatCitation(store.cslItemFor(req.documentId, req.itemId), req.styleId);
+        const html = formatCitation(
+          store.cslItemFor(req.documentId, req.itemId),
+          req.styleId,
+          getSettings().citationAutolink,
+        );
         return { styleId: req.styleId, html };
       } catch (e) {
         return { styleId: req.styleId, html: '', error: e instanceof Error ? e.message : String(e) };
@@ -2147,6 +2151,7 @@ function registerIpc(): void {
         renderBibliography,
         defaultCiteStyle: s.defaultCiteStyle,
         inlineCiteStyle: s.inlineCiteStyle,
+        citationAutolink: s.citationAutolink,
         detailsTemplate: resolveActivePanelBody(s.detailsForks, s.activeDetailsFork),
         bottomPanelTemplate: resolveActivePanelBody(s.bottomForks, s.activeBottomFork),
       });
@@ -2795,6 +2800,7 @@ if (!gotLock) {
       renderBibliography,
       defaultCiteStyle: settings.defaultCiteStyle,
       inlineCiteStyle: settings.inlineCiteStyle,
+      citationAutolink: settings.citationAutolink,
       detailsTemplate: resolveActivePanelBody(settings.detailsForks, settings.activeDetailsFork),
       bottomPanelTemplate: resolveActivePanelBody(settings.bottomForks, settings.activeBottomFork),
     });

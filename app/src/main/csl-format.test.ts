@@ -100,3 +100,47 @@ describe('renderBibliography (@references)', () => {
     expect(bib([])).toBe('');
   });
 });
+
+describe('citation autolinking (URLs/DOIs)', () => {
+  // APA renders a DOI as a full https://doi.org/… URL, which Autolinker can link.
+  const withDoi: Record<string, Record<string, unknown>> = {
+    paper2021: {
+      id: 'paper2021',
+      type: 'article-journal',
+      title: 'A Linked Paper',
+      author: [{ family: 'Ada', given: 'Lin' }],
+      issued: { 'date-parts': [[2021]] },
+      'container-title': 'J',
+      DOI: '10.1017/cbo9780511550997',
+    },
+  };
+  const res = (k: string): Record<string, unknown> | null => withDoi[k] ?? null;
+
+  it('wraps a DOI URL in a clickable data-open-url link when autolink is on', () => {
+    const on = renderBibliography(['paper2021'], res, 'apa', true);
+    expect(on).toContain('<a class="bd-mdlink" data-open-url="https://doi.org/10.1017/cbo9780511550997"');
+    // The link text is still the URL, and no href (the app opens it externally).
+    expect(on).toContain('>https://doi.org/10.1017/cbo9780511550997</a>');
+    expect(on).not.toContain('href=');
+  });
+
+  it('leaves the citation HTML untouched when autolink is off (default)', () => {
+    const off = renderBibliography(['paper2021'], res, 'apa', false);
+    expect(off).not.toContain('data-open-url');
+    expect(off).not.toContain('bd-mdlink');
+    expect(off).toContain('https://doi.org/10.1017/cbo9780511550997'); // present as plain text
+    // Default (no flag) matches autolink off.
+    expect(renderBibliography(['paper2021'], res, 'apa')).toBe(off);
+  });
+
+  it('autolinks the full reference of an inline \\fullcite too', () => {
+    const full = renderCite('\\fullcite{paper2021}', res, 'apa', true);
+    expect(full).toContain('data-open-url="https://doi.org/10.1017/cbo9780511550997"');
+    expect(full).toContain('class="bd-icite"'); // still wrapped + clickable for selection
+  });
+
+  it('does not autolink a citation with no URL/DOI', () => {
+    const plain = renderBibliography(['smith2020'], resolve, 'apa', true);
+    expect(plain).not.toContain('data-open-url');
+  });
+});

@@ -1080,14 +1080,17 @@ export type RenderCiteFn = (
   rawCommand: string,
   resolve: (key: string) => Record<string, unknown> | null,
   styleId: string,
+  autolink: boolean,
 ) => string;
 
 /** Inline `@references` bibliography renderer (csl-format), injected like
- *  {@link RenderCiteFn}: given the cited keys, a resolver, and the style → HTML. */
+ *  {@link RenderCiteFn}: given the cited keys, a resolver, the style, and whether
+ *  to autolink URLs/DOIs → HTML. */
 export type RenderBibFn = (
   keys: readonly string[],
   resolve: (key: string) => Record<string, unknown> | null,
   styleId: string,
+  autolink: boolean,
 ) => string;
 
 export class DocumentStore {
@@ -1105,6 +1108,9 @@ export class DocumentStore {
     defaultCiteStyle: 'apa',
     // Style for inline `\cite{…}` + `@references` in notes; '' ⇒ defaultCiteStyle.
     inlineCiteStyle: '',
+    // Run citation HTML through Autolinker (URLs/DOIs → links). Off here; the
+    // electron layer sets it from settings (default on) via setEditConfig.
+    citationAutolink: false,
     detailsTemplate: undefined as string | undefined,
     bottomPanelTemplate: undefined as string | undefined,
     // Injected from the electron layer (csl-format) so the pure document-service
@@ -1124,6 +1130,7 @@ export class DocumentStore {
     abstractStorage?: AbstractStorage;
     defaultCiteStyle?: string;
     inlineCiteStyle?: string;
+    citationAutolink?: boolean;
     detailsTemplate?: string;
     bottomPanelTemplate?: string;
     renderCite?: RenderCiteFn;
@@ -1141,6 +1148,7 @@ export class DocumentStore {
     if (c.defaultCiteStyle) this.editConfig.defaultCiteStyle = c.defaultCiteStyle;
     // '' is a meaningful value (follow defaultCiteStyle), so accept it explicitly.
     if (c.inlineCiteStyle !== undefined) this.editConfig.inlineCiteStyle = c.inlineCiteStyle;
+    if (c.citationAutolink !== undefined) this.editConfig.citationAutolink = c.citationAutolink;
     // Panel templates: '' or absent ⇒ use the built-in default (clear the override).
     if ('detailsTemplate' in c) this.editConfig.detailsTemplate = c.detailsTemplate || undefined;
     if ('bottomPanelTemplate' in c) this.editConfig.bottomPanelTemplate = c.bottomPanelTemplate || undefined;
@@ -3115,11 +3123,12 @@ export class DocumentStore {
     // Inline `\cite{…}` + `@references` use the dedicated inline style; an empty
     // setting falls back to the default (detail-pane) style.
     const style = this.editConfig.inlineCiteStyle || this.editConfig.defaultCiteStyle;
+    const autolink = this.editConfig.citationAutolink;
     const renderCite = this.editConfig.renderCite
-      ? (raw: string): string => this.editConfig.renderCite!(raw, resolve, style)
+      ? (raw: string): string => this.editConfig.renderCite!(raw, resolve, style, autolink)
       : undefined;
     const renderBibliography = this.editConfig.renderBibliography
-      ? (cited: readonly string[]): string => this.editConfig.renderBibliography!(cited, resolve, style)
+      ? (cited: readonly string[]): string => this.editConfig.renderBibliography!(cited, resolve, style, autolink)
       : undefined;
     const detail = toItemDetail(
       item,

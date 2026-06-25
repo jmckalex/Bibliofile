@@ -856,6 +856,15 @@ function CitationStylesSection({
           </select>
         </label>
         <p className="bd-prefs__hint">{t('prefs.inlineStyleHint')}</p>
+        <label className="bd-prefs__row">
+          <span>{t('prefs.citationAutolink')}</span>
+          <input
+            type="checkbox"
+            checked={settings.citationAutolink}
+            onChange={(e) => void save({ citationAutolink: e.target.checked })}
+          />
+        </label>
+        <p className="bd-prefs__hint">{t('prefs.citationAutolinkHint')}</p>
       </section>
       <section className="bd-prefs__section">
         <h3>{t('prefs.manageStyles')}</h3>

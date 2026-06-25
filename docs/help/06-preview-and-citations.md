@@ -177,6 +177,14 @@ view pane and in any open editor window — re-renders in that format. (Earlier
 versions had a per-block dropdown; it moved to Preferences so the style is
 consistent everywhere and doesn't crowd the narrow pane.)
 
+### Clickable URLs & DOIs
+
+**Preferences → Citations → Link URLs & DOIs** (on by default) runs the
+formatted citation through **Autolinker**, so any URL — and a DOI rendered as a
+`https://doi.org/…` link — becomes a clickable link that opens in your external
+browser. The same applies to `\cite`/`\fullcite`/`@references` output in notes.
+Turn it off to keep citations as plain, unlinked text.
+
 ### Copying a citation or the BibTeX
 
 The Citation block is for reading, but two **Edit**-menu commands put the entry

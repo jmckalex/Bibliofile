@@ -1084,6 +1084,11 @@ export interface Settings {
    * bibliography inside notes. Empty string ⇒ follow {@link defaultCiteStyle}.
    */
   readonly inlineCiteStyle: string;
+  /**
+   * Run formatted citations (citation.js output) through Autolinker so URLs and
+   * DOIs (rendered as `https://doi.org/…` URLs) become clickable links.
+   */
+  readonly citationAutolink: boolean;
   /** Cite-key generation format (BDSKFormatParser mini-language, e.g. `%a1:%Y%u0`). */
   readonly citeKeyFormat: string;
   /**
@@ -1207,6 +1212,8 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   defaultCiteStyle: 'apa',
   inlineCiteStyle: '', // empty ⇒ follow defaultCiteStyle
+  citationAutolink: true, // make URLs/DOIs in citations clickable
+
 
   // Author-count-aware: Surname:Year (1 person), Surname1/Surname2:Year (2),
   // Surname1/etal:Year (3+). `%p` = authors, falling back to editors for entries

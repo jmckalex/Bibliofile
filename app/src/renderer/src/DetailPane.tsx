@@ -594,7 +594,19 @@ export function CitationBlock({ detail }: { detail: ItemDetail }) {
         </span>
       </div>
       {html && (
-        <div className="bd-cite__body" ref={bodyRef} dangerouslySetInnerHTML={{ __html: html }} />
+        <div
+          className="bd-cite__body"
+          ref={bodyRef}
+          onClick={(e) => {
+            // Open an autolinked URL/DOI (data-open-url) externally.
+            const link = (e.target as HTMLElement).closest<HTMLElement>('[data-open-url]');
+            if (link?.dataset.openUrl) {
+              e.preventDefault();
+              openExternal(link.dataset.openUrl, 'url');
+            }
+          }}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
       )}
     </div>
   );

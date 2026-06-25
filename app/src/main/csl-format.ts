@@ -12,15 +12,50 @@
 
 import { Cite } from '@citation-js/core';
 import '@citation-js/plugin-csl';
+import Autolinker from 'autolinker';
 import { parseCite, type ParsedCite } from './cite-command.js';
 
-/** Format one CSL-JSON item as an HTML bibliography entry in the given style. */
-export function formatCitation(cslItem: Record<string, unknown>, styleId: string): string {
-  return new Cite([cslItem]).format('bibliography', {
+// --- optional URL/DOI autolinking -------------------------------------------
+// When enabled (Preferences → Citations), citeproc's HTML output is run through
+// Autolinker so bare URLs (and DOIs rendered as https://doi.org/… URLs) become
+// clickable links. We emit the app's link form — `<a class="bd-mdlink"
+// data-open-url=…>` (no href) — so the existing delegated click handler opens
+// them externally, matching how Markdown links in notes behave. Autolinker skips
+// text inside existing tags/anchors, so running it over citeproc HTML is safe.
+const autolinker = new Autolinker({
+  urls: { schemeMatches: true, tldMatches: false, ipV4Matches: false },
+  email: false,
+  phone: false,
+  hashtag: false,
+  mention: false,
+  stripPrefix: false,
+  stripTrailingSlash: false,
+  replaceFn: (match) => {
+    const href = match.getAnchorHref();
+    return `<a class="bd-mdlink" data-open-url="${escapeHtml(href)}" title="${escapeHtml(href)}">${escapeHtml(
+      match.getAnchorText(),
+    )}</a>`;
+  },
+});
+
+/** Turn URLs/DOIs in trusted citeproc HTML into clickable `data-open-url` links. */
+export function autolinkCitationHtml(html: string): string {
+  return autolinker.link(html);
+}
+
+/** Format one CSL-JSON item as an HTML bibliography entry in the given style.
+ *  With `autolink`, URLs/DOIs in the output become clickable links. */
+export function formatCitation(
+  cslItem: Record<string, unknown>,
+  styleId: string,
+  autolink = false,
+): string {
+  const html = new Cite([cslItem]).format('bibliography', {
     format: 'html',
     template: styleId || 'apa',
     lang: 'en-US',
   }) as string;
+  return autolink ? autolinkCitationHtml(html) : html;
 }
 
 // --- inline \cite{…} commands (annotations) ---------------------------------
@@ -132,9 +167,15 @@ export function formatInlineCitation(cmd: ParsedCite, resolve: CiteResolver, sty
  * text if it doesn't parse as a citation (shouldn't happen — the marked
  * tokenizer only hands us matches). This is the entry point the renderer injects.
  */
-export function renderCite(raw: string, resolve: CiteResolver, styleId: string): string {
+export function renderCite(
+  raw: string,
+  resolve: CiteResolver,
+  styleId: string,
+  autolink = false,
+): string {
   const cmd = parseCite(raw);
-  return cmd ? formatInlineCitation(cmd, resolve, styleId) : escapeHtml(raw);
+  const html = cmd ? formatInlineCitation(cmd, resolve, styleId) : escapeHtml(raw);
+  return autolink ? autolinkCitationHtml(html) : html;
 }
 
 /**
@@ -143,7 +184,12 @@ export function renderCite(raw: string, resolve: CiteResolver, styleId: string):
  * are de-duplicated (preserving first appearance; citeproc orders per the style);
  * unknown keys are skipped. Returns '' when nothing resolves.
  */
-export function renderBibliography(keys: readonly string[], resolve: CiteResolver, styleId: string): string {
+export function renderBibliography(
+  keys: readonly string[],
+  resolve: CiteResolver,
+  styleId: string,
+  autolink = false,
+): string {
   const seen = new Set<string>();
   const items: Record<string, unknown>[] = [];
   for (const key of keys) {
@@ -159,5 +205,5 @@ export function renderBibliography(keys: readonly string[], resolve: CiteResolve
     template: styleId || 'apa',
     lang: 'en-US',
   }) as string;
-  return `<div class="bd-references">${html}</div>`;
+  return `<div class="bd-references">${autolink ? autolinkCitationHtml(html) : html}</div>`;
 }

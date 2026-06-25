@@ -138,6 +138,9 @@ export const en: Catalog = {
   'prefs.inlineStyleSameAsDefault': 'Same as default style',
   'prefs.inlineStyleHint':
     'Used to render \\cite{…} commands and the @references bibliography inside notes. Leave on “Same as default style” to follow the default.',
+  'prefs.citationAutolink': 'Link URLs & DOIs',
+  'prefs.citationAutolinkHint':
+    'Run formatted citations through Autolinker so URLs (and DOIs shown as https://doi.org/… links) become clickable and open in your browser.',
   'prefs.manageStyles': 'Citation styles',
   'prefs.noCustomStyles': 'No styles installed yet — install a .csl file to add your own.',
   'prefs.installStyle': 'Install CSL file…',

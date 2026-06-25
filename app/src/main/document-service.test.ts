@@ -1517,4 +1517,21 @@ describe('\\cite commands in annotations', () => {
     // inlineCiteStyle defaults to '' → follow defaultCiteStyle (APA).
     expect(notesFor(BIB)).toContain('(Smith, 2020)');
   });
+
+  it('autolinks URLs/DOIs in notes when citationAutolink is on', () => {
+    const bib =
+      '@article{doi2020, author = {Smith, Jane}, title = {On Things}, year = {2020}, journal = {J}, doi = {10.1017/cbo9780511550997}}\n' +
+      '@article{main2021, author = {Doe, John}, title = {Main}, year = {2021}, Annote = {Full: \\fullcite{doi2020}}}';
+    const notes = (autolink: boolean): string => {
+      const store = new DocumentStore();
+      store.setEditConfig({ renderCite, renderBibliography, citationAutolink: autolink });
+      const { documentId } = store.openText(bib, '/tmp/cite-autolink.bib');
+      const id = store
+        .listPublications({ documentId, offset: 0, limit: -1 })
+        .rows.find((r) => r.citeKey === 'main2021')!.id;
+      return store.getItemDetail({ documentId, itemId: id }).notesHtml;
+    };
+    expect(notes(true)).toContain('data-open-url="https://doi.org/10.1017/cbo9780511550997"');
+    expect(notes(false)).not.toContain('data-open-url');
+  });
 });
