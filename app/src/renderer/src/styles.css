@@ -630,6 +630,23 @@ body.bd-resizing {
   display: block;
 }
 
+/* Bottom-panel tabbed view: pin the tab bar and scroll only the active panel,
+   so the tabs stay in sight no matter how long the annotation/abstract is. The
+   tabs fill the (padded) body, the bar holds its height, and the active panel
+   takes the rest and scrolls on its own. Scoped to the bottom panel so generic
+   `.bd-tabs` used in custom detail-pane forks keeps its in-flow behaviour. */
+.bd-bottompanel__body > .bd-tabs {
+  height: 100%;
+}
+.bd-bottompanel__body > .bd-tabs > .bd-tabs__bar {
+  flex: 0 0 auto;
+}
+.bd-bottompanel__body > .bd-tabs > .bd-tab__panel--active {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 /* Attachment thumbnails grid (Attachments tab). Big tiles; double-click opens. */
 .bd-thumbs {
   display: grid;
