@@ -1535,3 +1535,45 @@ describe('\\cite commands in annotations', () => {
     expect(notes(false)).not.toContain('data-open-url');
   });
 });
+
+describe('findItemByIdentifier (drop-a-PDF dedup)', () => {
+  const BIB =
+    '@article{withdoi, author = {Smith, J}, title = {A}, year = {2020}, Doi = {10.1/abc.XYZ}}\n' +
+    '@article{witharxiv, author = {Doe, J}, title = {B}, year = {2021}, Eprint = {2301.01234}, Archiveprefix = {arXiv}}\n' +
+    '@article{plain, author = {Roe, J}, title = {C}, year = {2022}}';
+  const open = () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(BIB, '/tmp/dedup.bib');
+    const idOf = (key: string): string =>
+      store.listPublications({ documentId, offset: 0, limit: -1 }).rows.find((r) => r.citeKey === key)!.id;
+    return { store, documentId, idOf };
+  };
+
+  it('matches by DOI, prefix-stripped and case-insensitively', () => {
+    const { store, documentId, idOf } = open();
+    expect(store.findItemByIdentifier(documentId, { doi: '10.1/abc.xyz' })).toBe(idOf('withdoi'));
+    expect(store.findItemByIdentifier(documentId, { doi: 'https://doi.org/10.1/abc.XYZ' })).toBe(
+      idOf('withdoi'),
+    );
+  });
+
+  it('matches by arXiv Eprint, version-insensitive and prefix-tolerant', () => {
+    const { store, documentId, idOf } = open();
+    expect(store.findItemByIdentifier(documentId, { arxivId: '2301.01234v2' })).toBe(idOf('witharxiv'));
+    expect(store.findItemByIdentifier(documentId, { arxivId: 'arXiv:2301.01234' })).toBe(
+      idOf('witharxiv'),
+    );
+  });
+
+  it('returns null for an unknown identifier or empty query', () => {
+    const { store, documentId } = open();
+    expect(store.findItemByIdentifier(documentId, { doi: '10.9/nope' })).toBeNull();
+    expect(store.findItemByIdentifier(documentId, { arxivId: '9999.99999' })).toBeNull();
+    expect(store.findItemByIdentifier(documentId, {})).toBeNull();
+  });
+
+  it('itemAttachmentNames is empty for an entry with no managed files', () => {
+    const { store, documentId, idOf } = open();
+    expect(store.itemAttachmentNames(documentId, idOf('plain'))).toEqual([]);
+  });
+});

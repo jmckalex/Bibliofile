@@ -744,6 +744,13 @@ export interface ImportResult {
   readonly addedIds: readonly ItemId[];
   /** Non-fatal messages (e.g. "no entries found", per-file read errors). */
   readonly warnings: readonly string[];
+  /**
+   * Per-PDF outcomes of a drop-import (drag-and-drop / file picker), for the
+   * renderer's result notice: `created` = looked up by DOI/arXiv id and added;
+   * `linked` = attached to an existing matching entry; `stub` = no identifier /
+   * lookup miss, added as a filename stub. Absent for non-drop imports.
+   */
+  readonly summary?: { readonly created: number; readonly linked: number; readonly stub: number };
 }
 
 // --- Find & Replace ---------------------------------------------------------

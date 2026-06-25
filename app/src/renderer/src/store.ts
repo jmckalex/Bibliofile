@@ -180,6 +180,10 @@ export interface ViewerState {
 
   loading: boolean;
   detailLoading: boolean;
+  /** True while a drop / file-picker import runs (incl. async DOI/arXiv lookups). */
+  importing: boolean;
+  /** Outcome counts of the last drop-import (for the footer notice); null when none. */
+  importSummary?: ImportResult['summary'] | null;
   error?: string;
   /** True in the standalone editor window: skip table/group reloads on edits. */
   editorMode: boolean;
@@ -365,6 +369,8 @@ export function createStore(api: BibDeskApi) {
     saving: false,
     loading: false,
     detailLoading: false,
+    importing: false,
+    importSummary: null,
     editorMode: false,
     texPreviewState: { loading: false },
 
@@ -907,27 +913,33 @@ export function createStore(api: BibDeskApi) {
     importFiles: async (paths) => {
       const { documentId } = get();
       if (!documentId || paths.length === 0) return;
+      set({ importing: true, importSummary: null, error: undefined });
       try {
         const res = await api.importFiles({ documentId, paths });
         await get().afterImport(res);
       } catch (err) {
         set({ error: errorMessage(err) });
+      } finally {
+        set({ importing: false });
       }
     },
 
     importFromDialog: async () => {
       const { documentId } = get();
       if (!documentId) return;
+      set({ importing: true, importSummary: null, error: undefined });
       try {
         const res = await api.importDialog({ documentId });
         if (res.addedIds.length || res.warnings.length) await get().afterImport(res);
       } catch (err) {
         set({ error: errorMessage(err) });
+      } finally {
+        set({ importing: false });
       }
     },
 
     afterImport: async (res) => {
-      set({ dirty: res.dirty, selectedGroupId: undefined });
+      set({ dirty: res.dirty, selectedGroupId: undefined, importSummary: res.summary ?? null });
       await get().loadGroups();
       await get().loadPublications();
       // Cleared group => the table now lists the whole library; sync the header.

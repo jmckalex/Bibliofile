@@ -123,6 +123,8 @@ function Footer() {
   const selectedGroupId = useStore((s) => s.selectedGroupId);
   const groups = useStore((s) => s.groups);
   const loading = useStore((s) => s.loading);
+  const importing = useStore((s) => s.importing);
+  const importSummary = useStore((s) => s.importSummary);
   const error = useStore((s) => s.error);
 
   const groupName = groups.find((g) => g.id === selectedGroupId)?.name;
@@ -132,6 +134,14 @@ function Footer() {
       ? t(total === 1 ? 'footer.row' : 'footer.rows', { count: total })
       : t('footer.rowsOf', { filtered, total });
 
+  // Summarize the last drop-import (created via lookup / linked to existing / added as stub).
+  const summaryParts: string[] = [];
+  if (importSummary) {
+    if (importSummary.created) summaryParts.push(t('footer.importCreated', { count: importSummary.created }));
+    if (importSummary.linked) summaryParts.push(t('footer.importLinked', { count: importSummary.linked }));
+    if (importSummary.stub) summaryParts.push(t('footer.importStub', { count: importSummary.stub }));
+  }
+
   return (
     <footer className="bd-footer">
       <span>
@@ -139,6 +149,10 @@ function Footer() {
         {countLabel}
       </span>
       {loading && <span>{t('common.loading')}</span>}
+      {importing && <span className="bd-footer__status">{t('footer.importing')}</span>}
+      {!importing && summaryParts.length > 0 && (
+        <span className="bd-footer__notice">{t('footer.imported', { parts: summaryParts.join(', ') })}</span>
+      )}
       {error && <span className="bd-footer__error">{t('footer.error', { error })}</span>}
     </footer>
   );

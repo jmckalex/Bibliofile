@@ -74,7 +74,8 @@ import {
 } from './csl.js';
 import { renderCite, renderBibliography } from './csl-format.js';
 import { findTexBin, renderTexPreview, renderTexPreviewSvg, SVG_MAX_KEYS } from './tex-preview.js';
-import { searchOnline, extractDoi } from './online.js';
+import { searchOnline, extractDoi, extractArxivId, searchArxivById } from './online.js';
+import { importPdfsSmart } from './import-smart.js';
 import { extractPdfText } from './pdf-text.js';
 import { PdfPool } from './pdf-pool.js';
 import { PdfTextCache } from './pdf-cache.js';
@@ -677,52 +678,55 @@ function htmlToPlain(html: string): string {
 }
 
 /**
- * Import dropped files, upgrading PDFs: extract the PDF's text, find a DOI, look
- * it up (CrossRef), and import the real metadata + attach the PDF — instead of a
- * filename-stub entry. PDFs with no DOI (and all non-PDFs) fall back to the
- * store's plain import. Returns the combined {@link ImportResult}-shaped result.
+ * Import dropped files, upgrading PDFs into real entries. For each PDF we read
+ * its first pages, look for a DOI (then an arXiv id), and:
+ *   - if the library already has that paper, attach the PDF to the existing entry
+ *     (deduped by basename) rather than creating a duplicate — `linked`;
+ *   - else look the identifier up (CrossRef for DOI, arXiv API for an arXiv id),
+ *     import the real metadata, and attach the PDF — `created`;
+ *   - else (no identifier / lookup miss) fall back to the filename-stub entry — `stub`.
+ * Non-PDFs go through the store's plain import. The `summary` counts feed the
+ * renderer's result notice.
  */
 async function importFilesSmart(
   documentId: string,
   paths: readonly string[],
-): Promise<{ dirty: boolean; addedIds: string[]; warnings: string[] }> {
+): Promise<{
+  dirty: boolean;
+  addedIds: string[];
+  warnings: string[];
+  summary: { created: number; linked: number; stub: number };
+}> {
   const isPdf = (p: string): boolean => /\.pdf$/i.test(p);
-  const addedIds: string[] = [];
-  const warnings: string[] = [];
+  // PDFs go through the testable DOI/arXiv → entry pipeline (deps injected here).
+  const r = await importPdfsSmart(paths.filter(isPdf), {
+    extractText: extractPdfText,
+    extractDoi,
+    extractArxivId,
+    findExisting: (ids) => store.findItemByIdentifier(documentId, ids),
+    attachmentNames: (id) => store.itemAttachmentNames(documentId, id),
+    addAttachment: (id, pdf) => {
+      store.addAttachments(documentId, id, [pdf]);
+    },
+    lookupDoi: (doi) => searchOnline('doi', doi),
+    lookupArxiv: (id) => searchArxivById(id),
+    importEntry: (type, fields) => store.importEntry(documentId, type, fields).affectedItemId ?? null,
+    importStub: (pdf) => {
+      const res = store.importFiles(documentId, [pdf]);
+      return { addedIds: [...res.addedIds], warnings: [...res.warnings] };
+    },
+  });
+  const addedIds = [...r.addedIds];
+  const warnings = [...r.warnings];
 
-  for (const pdf of paths.filter(isPdf)) {
-    let handled = false;
-    try {
-      const doi = extractDoi(await extractPdfText(pdf, 3)); // first few pages
-      if (doi) {
-        const results = await searchOnline('doi', doi).catch(() => []);
-        const r = results[0];
-        if (r) {
-          const res = store.importEntry(documentId, r.entryType, r.fields);
-          if (res.affectedItemId) {
-            store.addAttachments(documentId, res.affectedItemId, [pdf]);
-            addedIds.push(res.affectedItemId);
-            handled = true;
-          }
-        }
-      }
-    } catch {
-      /* fall through to the stub-entry import below */
-    }
-    if (!handled) {
-      const r = store.importFiles(documentId, [pdf]);
-      addedIds.push(...r.addedIds);
-      warnings.push(...r.warnings);
-    }
-  }
-
+  // Non-PDFs (e.g. a dropped .bib to merge) take the store's plain import path.
   const others = paths.filter((p) => !isPdf(p));
   if (others.length) {
-    const r = store.importFiles(documentId, others);
-    addedIds.push(...r.addedIds);
-    warnings.push(...r.warnings);
+    const o = store.importFiles(documentId, others);
+    addedIds.push(...o.addedIds);
+    warnings.push(...o.warnings);
   }
-  return { dirty: store.isDirty(documentId), addedIds, warnings };
+  return { dirty: store.isDirty(documentId), addedIds, warnings, summary: r.summary };
 }
 
 /** Build a complete RTF bibliography document for the whole library (CSL-formatted). */

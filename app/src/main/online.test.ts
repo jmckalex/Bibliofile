@@ -6,6 +6,8 @@ import {
   parseOpenLibrary,
   parsePubmed,
   extractDoi,
+  extractArxivId,
+  normArxivId,
 } from './online.js';
 
 describe('parseCrossref', () => {
@@ -90,6 +92,31 @@ describe('extractDoi', () => {
 
   it('returns null when there is no DOI', () => {
     expect(extractDoi('no identifier here')).toBeNull();
+  });
+});
+
+describe('extractArxivId', () => {
+  it('reads the arXiv watermark (new-style id, with version + category)', () => {
+    expect(extractArxivId('arXiv:2301.01234v2 [cs.AI] 5 Jan 2023')).toBe('2301.01234v2');
+    expect(extractArxivId('arXiv:0704.0001')).toBe('0704.0001');
+  });
+
+  it('reads abs/pdf URLs and the legacy archive/NNNNNNN form', () => {
+    expect(extractArxivId('see https://arxiv.org/abs/2106.09685 for details')).toBe('2106.09685');
+    expect(extractArxivId('https://arxiv.org/pdf/1912.01703v1.pdf')).toBe('1912.01703v1');
+    expect(extractArxivId('arXiv:math/0309136')).toBe('math/0309136');
+    expect(extractArxivId('arXiv:cs.AI/0309136')).toBe('cs.AI/0309136');
+  });
+
+  it('requires an arXiv context so plain numbers do not false-match', () => {
+    expect(extractArxivId('equation 2301.01234 in table 3')).toBeNull();
+    expect(extractArxivId('no identifier here')).toBeNull();
+  });
+
+  it('normArxivId strips the version + prefix and lower-cases', () => {
+    expect(normArxivId('arXiv:2301.01234v2')).toBe('2301.01234');
+    expect(normArxivId('Math/0309136V1')).toBe('math/0309136');
+    expect(normArxivId('2106.09685')).toBe('2106.09685');
   });
 });
 

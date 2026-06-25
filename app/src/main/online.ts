@@ -186,6 +186,16 @@ async function searchArxiv(query: string): Promise<OnlineResult[]> {
   return parseArxiv(await res.text());
 }
 
+/** Look up one paper by its arXiv id via the API's `id_list` (exact, not a search). */
+export async function searchArxivById(id: string): Promise<OnlineResult[]> {
+  const clean = id.trim().replace(/^arxiv:\s*/i, '');
+  if (!clean) return [];
+  const url = `http://export.arxiv.org/api/query?id_list=${encodeURIComponent(clean)}&max_results=1`;
+  const res = await fetch(url, { headers: { 'User-Agent': UA } });
+  if (!res.ok) throw new Error(`arXiv HTTP ${res.status}`);
+  return parseArxiv(await res.text());
+}
+
 // --- DOI (CrossRef single work) ---------------------------------------------
 
 /** Look up one DOI via CrossRef `/works/{doi}` (accepts a bare DOI or a doi.org URL). */
@@ -399,6 +409,29 @@ export function extractDoi(text: string): string | null {
   if (!m) return null;
   // Trim trailing punctuation that commonly abuts a DOI mid-sentence.
   return m[1]!.replace(/[.,;:)\]]+$/, '');
+}
+
+/**
+ * Find an arXiv identifier in text — the watermark arXiv PDFs carry down their
+ * left margin ("arXiv:2301.01234v1 [cs.AI]"), or an abs/pdf URL. Matches both the
+ * post-2007 `YYMM.NNNNN` form and the legacy `archive/NNNNNNN` form (with an
+ * optional `vN` version), and requires an `arXiv:`/`arxiv.org/` context so plain
+ * numbers in the body can't false-match. Returns the bare id (version kept), or null.
+ */
+export function extractArxivId(text: string): string | null {
+  const m = text.match(
+    /(?:arxiv\s*:\s*|arxiv\.org\/(?:abs|pdf)\/)((?:\d{4}\.\d{4,5}(?:v\d+)?)|(?:[a-z][a-z.-]+\/\d{7}(?:v\d+)?))/i,
+  );
+  return m ? m[1]! : null;
+}
+
+/** Strip an arXiv id's version suffix + case for matching (e.g. `2301.01234v2` → `2301.01234`). */
+export function normArxivId(id: string): string {
+  return id
+    .trim()
+    .replace(/^arxiv:\s*/i, '')
+    .replace(/v\d+$/i, '')
+    .toLowerCase();
 }
 
 // --- dispatch ---------------------------------------------------------------

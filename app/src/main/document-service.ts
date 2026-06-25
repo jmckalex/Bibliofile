@@ -2678,6 +2678,41 @@ export class DocumentStore {
   }
 
   /**
+   * Find an existing item matching a dropped PDF's identifier — by `Doi`
+   * (prefix-stripped, case-insensitive) or arXiv `Eprint` (version-insensitive) —
+   * so a re-dropped paper links to its entry instead of creating a duplicate.
+   * Returns the item id, or null when nothing matches.
+   */
+  findItemByIdentifier(
+    documentId: string,
+    ids: { doi?: string | null; arxivId?: string | null },
+  ): string | null {
+    const doc = this.docs.get(documentId);
+    if (!doc) return null;
+    const stripDoi = (s: string): string =>
+      s.trim().toLowerCase().replace(/^(https?:\/\/(dx\.)?doi\.org\/|doi:)/i, '');
+    const normArxiv = (s: string): string =>
+      s.trim().replace(/^arxiv:\s*/i, '').replace(/v\d+$/i, '').toLowerCase();
+    const doi = ids.doi ? stripDoi(ids.doi) : '';
+    const eprint = ids.arxivId ? normArxiv(ids.arxivId) : '';
+    for (const item of doc.library.items) {
+      if (doi && stripDoi(item.stringValueOfField('Doi', true)) === doi) return item.id;
+      if (eprint && normArxiv(item.stringValueOfField('Eprint', true)) === eprint) return item.id;
+    }
+    return null;
+  }
+
+  /** Lower-cased basenames of an item's managed file attachments (to skip a re-dropped PDF). */
+  itemAttachmentNames(documentId: string, itemId: string): string[] {
+    const doc = this.docs.get(documentId);
+    const item = doc?.itemsById.get(itemId);
+    if (!doc || !item) return [];
+    return itemFiles(item, doc.library, doc.path)
+      .filter((f) => f.kind === 'file')
+      .map((f) => f.displayName.toLowerCase());
+  }
+
+  /**
    * Full-text search via SQLite FTS5; returns matching item ids best-match first.
    * `available` is false when the native index couldn't load (caller should fall
    * back to a client-side substring filter). With `includePdf` it searches the

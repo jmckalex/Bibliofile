@@ -913,6 +913,14 @@ bd-citation {
   color: #b91c1c;
 }
 
+/* Drop-import progress + result summary in the status footer. */
+.bd-footer__status {
+  color: var(--bd-accent);
+}
+.bd-footer__notice {
+  color: var(--bd-text);
+}
+
 /* ---- Groups sidebar ---------------------------------------------------- */
 
 .bd-sidebar {
