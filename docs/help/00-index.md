@@ -65,6 +65,10 @@ order from **Getting Started**; otherwise jump straight to the topic you need.
     own panel and output templates with Handlebars: the context fields, helpers,
     live widgets, interactive hooks, and worked examples.
 
+12. **[Scripting with JavaScript](12-scripting.md)** — Automate your library with
+    JavaScript: the Script Console, the `bibliofile` API, saved scripts, file and
+    network access, change hooks, and worked examples.
+
 ## Conventions used in this manual
 
 - **Key notation.** Keyboard shortcuts are shown for both platforms, macOS

@@ -37,6 +37,7 @@ BibDesk and your TeX workflow.
 - 📥 **Import / export** — paste BibTeX, drag-and-drop `.bib`, **drop a PDF to auto-create an entry** (DOI/arXiv lookup + attach), RIS import; export BibTeX / RIS / CSV / styled HTML.
 - 🌐 **Online search** of CrossRef and arXiv, importing results as new entries.
 - 🤖 An optional **Claude assistant** in the side pane (bring your own API key).
+- 🧩 **JavaScript scripting** — a Script Console + saved Scripts menu with a synchronous `bibliofile` API (read/edit entries, import/export, files, network, change hooks); one run is a single Undo. The cross-platform successor to AppleScript.
 - 🌓 Native menus, keyboard shortcuts, a full in-app **manual**, and UI scaffolding for **30 languages**.
 
 ---
@@ -267,8 +268,11 @@ electron-vite · TypeScript · Vitest.
   [`docs/help/`](docs/help/) (Getting Started, Browsing & Searching, Editing,
   Attachments, Notes, Preview & Citations, Import/Export, Online Search, Shortcuts,
   Configurable Panels, and the Handlebars customization reference).
-- **Automation** — an optional loopback bridge for scripting; see
-  [`docs/automation/`](docs/automation/).
+- **Scripting** — automate the library with **JavaScript** (Tools ▸ Script Console,
+  or saved scripts in the Scripts menu) via the `bibliofile` API; see the
+  [Scripting chapter](docs/help/12-scripting.md). macOS **AppleScript** and an
+  optional loopback **bridge** ([`docs/automation/`](docs/automation/)) remain for
+  external automation.
 
 ---
 
