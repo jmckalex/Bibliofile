@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DocumentStore } from './document-service.js';
-import { runScript } from './script-host.js';
+import { runScript, fireDocumentChange, clearDocumentHooks } from './script-host.js';
 
 const BIB =
   '@article{a, author = {Smith, Jane}, title = {Alpha}, year = {2020}}\n' +
@@ -174,5 +174,48 @@ describe('script-host: controlled I/O (injected capabilities)', () => {
     const { store, documentId } = fresh();
     expect(run(store, documentId, `return bibliofile.io.readText('/x');`).error?.message).toMatch(/not available/);
     expect(run(store, documentId, `return bibliofile.fetch('http://x/');`).error?.message).toMatch(/not available/);
+  });
+});
+
+describe('script-host: onChange hooks', () => {
+  const noteOf = (store: DocumentStore, documentId: string, key: string): string | undefined => {
+    const id = store.itemIdForCiteKey(documentId, key)!;
+    return store.getItemDetail({ documentId, itemId: id }).fields.find((f) => f.name === 'Note')?.value;
+  };
+
+  it('a registered hook fires on a later document change', () => {
+    const { store, documentId } = fresh();
+    run(store, documentId, `bibliofile.onChange(() => bibliofile.activeDocument.get('a').setField('Note', 'hooked'));`);
+    expect(noteOf(store, documentId, 'a')).toBeUndefined();
+    fireDocumentChange(documentId); // simulate an external mutation
+    expect(noteOf(store, documentId, 'a')).toBe('hooked');
+  });
+
+  it('a new run replaces the prior run’s hooks', () => {
+    const { store, documentId } = fresh();
+    run(store, documentId, `bibliofile.onChange(() => bibliofile.activeDocument.get('a').setField('Note', 'first'));`);
+    run(store, documentId, `return 1;`); // no hooks → clears the prior one
+    fireDocumentChange(documentId);
+    expect(noteOf(store, documentId, 'a')).toBeUndefined();
+  });
+
+  it('a throwing hook is isolated from its siblings', () => {
+    const { store, documentId } = fresh();
+    run(
+      store,
+      documentId,
+      `bibliofile.onChange(() => { throw new Error('boom'); });
+       bibliofile.onChange(() => bibliofile.activeDocument.get('a').setField('Note', 'ok'));`,
+    );
+    expect(() => fireDocumentChange(documentId)).not.toThrow();
+    expect(noteOf(store, documentId, 'a')).toBe('ok');
+  });
+
+  it('clearDocumentHooks removes hooks', () => {
+    const { store, documentId } = fresh();
+    run(store, documentId, `bibliofile.onChange(() => bibliofile.activeDocument.get('a').setField('Note', 'x'));`);
+    clearDocumentHooks(documentId);
+    fireDocumentChange(documentId);
+    expect(noteOf(store, documentId, 'a')).toBeUndefined();
   });
 });

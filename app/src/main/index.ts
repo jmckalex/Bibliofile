@@ -53,7 +53,7 @@ import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 import { DocumentStore } from './document-service.js';
 import { resolveActivePanelBody, renderMultiPanels, MULTI_LIST_CAP } from './panel.js';
 import { runAgentTurn } from './agent.js';
-import { runScript, type ScriptCapabilities } from './script-host.js';
+import { runScript, fireDocumentChange, clearDocumentHooks, type ScriptCapabilities } from './script-host.js';
 import { syncFetch } from './sync-fetch.js';
 import {
   ensureScriptsDir,
@@ -2053,7 +2053,10 @@ function registerIpc(): void {
   // request/response shapes are checked against the contract.
   const handlers: IpcHandlers = {
     [IpcChannels.openDocument]: (req) => openPath(req.path),
-    [IpcChannels.closeDocument]: (req) => store.closeDocument(req),
+    [IpcChannels.closeDocument]: (req) => {
+      clearDocumentHooks(req.documentId); // drop any script onChange hooks for it
+      return store.closeDocument(req);
+    },
     [IpcChannels.listPublications]: (req) => store.listPublications(req),
     [IpcChannels.listGroups]: (req) => store.listGroups(req),
     [IpcChannels.getItemDetail]: (req) => store.getItemDetail(req),
@@ -2738,7 +2741,14 @@ function registerIpc(): void {
     ipcMain.handle(channel, async (e: IpcMainInvokeEvent, req: { documentId?: string }) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (handlers as any)[channel](req);
-      if (typeof req?.documentId === 'string') broadcastDocumentChanged(req.documentId, e.sender);
+      // Fire script onChange hooks for genuine mutations — but NOT for a script
+      // run (which would self-fire the hooks it just registered); the run reacts
+      // to its OWN edits inline. Hooks run before the broadcast so their edits are
+      // included in the one refresh.
+      if (typeof req?.documentId === 'string') {
+        if (channel !== IpcChannels.runScript) fireDocumentChange(req.documentId);
+        broadcastDocumentChanged(req.documentId, e.sender);
+      }
       buildMenu(); // refresh Undo/Redo labels after a mutating action
       return result;
     });

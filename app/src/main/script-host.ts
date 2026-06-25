@@ -24,6 +24,51 @@ import { detexify } from '@bibdesk/tex';
 import type { ExportFormat } from '@bibdesk/shared';
 import type { DocumentStore } from './document-service.js';
 
+// --- onChange hooks ---------------------------------------------------------
+// Scripts can register `bibliofile.onChange(fn)` handlers that persist past the
+// run and fire on later document mutations. To stay bounded + leak-free: a run
+// REPLACES the document's hooks (the latest run's hooks win; cleared on close
+// too), each hook fires in its own undo group + try/catch, and a re-entrancy
+// guard stops a hook's own edits from re-firing hooks. Hooks run with the app's
+// trust (no timeout) — a hook must not block; document accordingly.
+
+interface Hook {
+  readonly store: DocumentStore;
+  readonly documentId: string;
+  readonly fn: (change: { documentId: string }) => void;
+}
+const hookRegistry = new Map<string, Hook[]>();
+let firingHooks = false;
+
+/** Drop all onChange hooks for a document (on a new run, or on close). */
+export function clearDocumentHooks(documentId: string): void {
+  hookRegistry.delete(documentId);
+}
+
+/**
+ * Fire the onChange hooks registered for `documentId` (called by the electron
+ * layer after a non-script mutation). Each hook runs in its own undo group; a
+ * throwing hook is isolated; a re-entrancy guard means a hook's own edits don't
+ * recursively re-fire hooks.
+ */
+export function fireDocumentChange(documentId: string): void {
+  if (firingHooks) return;
+  const hooks = hookRegistry.get(documentId);
+  if (!hooks || hooks.length === 0) return;
+  firingHooks = true;
+  try {
+    for (const h of [...hooks]) {
+      try {
+        h.store.runInUndoGroup(documentId, 'Script hook', () => h.fn({ documentId }));
+      } catch {
+        /* a throwing hook must not break sibling hooks or the app */
+      }
+    }
+  } finally {
+    firingHooks = false;
+  }
+}
+
 // --- the `bibliofile` API object graph --------------------------------------
 
 /** One entry, addressed by stable item id; reads + writes go through the store. */
@@ -289,6 +334,24 @@ class ScriptApp {
     if (!this.caps.fetch) throw new Error('bibliofile.fetch is not available in this context.');
     return this.caps.fetch(url, opts);
   }
+
+  /**
+   * Register a handler that fires after later mutations of the active document.
+   * Stays active until you run another script (which replaces it) or close the
+   * document. Returns an unsubscribe function. Keep handlers quick — they run on
+   * the main thread with no timeout.
+   */
+  onChange(fn: (change: { documentId: string }) => void): () => void {
+    const id = this.defaultDocumentId;
+    const hook: Hook = { store: this.store, documentId: id, fn };
+    const list = hookRegistry.get(id) ?? [];
+    list.push(hook);
+    hookRegistry.set(id, list);
+    return () => {
+      const cur = hookRegistry.get(id);
+      if (cur) hookRegistry.set(id, cur.filter((h) => h !== hook));
+    };
+  }
 }
 
 // --- the runner --------------------------------------------------------------
@@ -358,6 +421,8 @@ export function runScript(
   opts: RunScriptOptions = {},
 ): RunScriptResult {
   const filename = opts.filename ?? 'script.js';
+  // A run replaces the document's onChange hooks (latest run wins; bounded).
+  clearDocumentHooks(documentId);
   const output: string[] = [];
   const log = (...args: unknown[]): void => void output.push(args.map(formatArg).join(' '));
   const sandbox: Record<string, unknown> = Object.create(null);

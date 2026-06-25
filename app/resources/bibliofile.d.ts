@@ -114,6 +114,13 @@ export interface Bibliofile {
     url: string,
     opts?: { method?: string; headers?: Record<string, string>; body?: string },
   ): { status: number; headers: Record<string, string>; text: string };
+  /**
+   * Register a handler that runs after later changes to the active document.
+   * It stays active until you run another script (which replaces it) or close
+   * the document. Returns an unsubscribe function. Keep handlers quick — they run
+   * on the main thread with no timeout.
+   */
+  onChange(fn: (change: { documentId: string }) => void): () => void;
 }
 
 declare global {
