@@ -509,6 +509,10 @@ export const en: Catalog = {
   'script.readFailed': 'Could not read “{name}”',
   'script.failed': '“{name}” failed',
   'script.ran': 'Ran “{name}”',
+  'script.allow': 'Allow',
+  'script.networkTitle': 'Allow network access?',
+  'script.networkDetail':
+    'This script is making a network request to {url}. A script can read your whole library, so only allow this for scripts you trust.',
 
   // --- Smart group dialog ---
   'smart.editTitle': 'Edit Smart Group',

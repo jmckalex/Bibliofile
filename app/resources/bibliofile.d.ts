@@ -90,6 +90,13 @@ export interface Document {
   transaction<T>(label: string, fn: (doc: Document) => T): T;
 }
 
+/** Host-mediated file I/O (synchronous, raw paths). */
+export interface ScriptIO {
+  readText(path: string): string;
+  writeText(path: string, text: string): void;
+  exists(path: string): boolean;
+}
+
 export interface Bibliofile {
   readonly name: string;
   readonly version: string;
@@ -97,6 +104,16 @@ export interface Bibliofile {
   readonly activeDocument: Document;
   documents(): Document[];
   document(documentId: string): Document;
+  /** Read/write files (synchronous). Scripts run with the app's file access. */
+  readonly io: ScriptIO;
+  /**
+   * A synchronous HTTP request. Prompts once per run for network access. Use
+   * sparingly — a script can read your whole library.
+   */
+  fetch(
+    url: string,
+    opts?: { method?: string; headers?: Record<string, string>; body?: string },
+  ): { status: number; headers: Record<string, string>; text: string };
 }
 
 declare global {

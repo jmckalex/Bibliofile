@@ -233,12 +233,28 @@ class ScriptDocument {
   }
 }
 
+/**
+ * Host-mediated I/O exposed to scripts (`bibliofile.io` / `bibliofile.fetch`),
+ * injected by the electron layer (so the host stays pure + testable). Anything
+ * absent throws when used.
+ */
+export interface ScriptCapabilities {
+  readText?(path: string): string;
+  writeText?(path: string, text: string): void;
+  exists?(path: string): boolean;
+  fetch?(
+    url: string,
+    opts?: { method?: string; headers?: Record<string, string>; body?: string },
+  ): { status: number; headers: Record<string, string>; text: string };
+}
+
 /** The `bibliofile` global. */
 class ScriptApp {
   constructor(
     private readonly store: DocumentStore,
     private readonly defaultDocumentId: string,
     readonly version: string,
+    private readonly caps: ScriptCapabilities = {},
   ) {}
   readonly name = 'Bibliofile';
   get activeDocument(): ScriptDocument {
@@ -249,6 +265,29 @@ class ScriptApp {
   }
   document(documentId: string): ScriptDocument {
     return new ScriptDocument(this.store, documentId);
+  }
+
+  /** Host-mediated file I/O; throws if a capability wasn't provided. */
+  get io(): { readText(p: string): string; writeText(p: string, t: string): void; exists(p: string): boolean } {
+    const caps = this.caps;
+    const need = <T>(fn: T | undefined, name: string): T => {
+      if (!fn) throw new Error(`bibliofile.io.${name} is not available in this context.`);
+      return fn;
+    };
+    return Object.freeze({
+      readText: (p: string) => need(caps.readText, 'readText')(p),
+      writeText: (p: string, t: string) => need(caps.writeText, 'writeText')(p, String(t ?? '')),
+      exists: (p: string) => need(caps.exists, 'exists')(p),
+    });
+  }
+
+  /** Synchronous HTTP request (host-mediated, network-gated); throws if unavailable. */
+  fetch(
+    url: string,
+    opts?: { method?: string; headers?: Record<string, string>; body?: string },
+  ): { status: number; headers: Record<string, string>; text: string } {
+    if (!this.caps.fetch) throw new Error('bibliofile.fetch is not available in this context.');
+    return this.caps.fetch(url, opts);
   }
 }
 
@@ -261,6 +300,8 @@ export interface RunScriptOptions {
   readonly version?: string;
   /** Filename used in stack traces / error line mapping. */
   readonly filename?: string;
+  /** Host-mediated I/O (`bibliofile.io` / `bibliofile.fetch`); absent ⇒ unavailable. */
+  readonly capabilities?: ScriptCapabilities;
 }
 
 export interface RunScriptResult {
@@ -320,7 +361,7 @@ export function runScript(
   const output: string[] = [];
   const log = (...args: unknown[]): void => void output.push(args.map(formatArg).join(' '));
   const sandbox: Record<string, unknown> = Object.create(null);
-  sandbox.bibliofile = new ScriptApp(store, documentId, opts.version ?? '');
+  sandbox.bibliofile = new ScriptApp(store, documentId, opts.version ?? '', opts.capabilities ?? {});
   sandbox.console = Object.freeze({ log, info: log, warn: log, error: log });
   // Safe intrinsics only — no require/process/module/global/timers.
   Object.assign(sandbox, { JSON, Math, Date, String, Number, Boolean, Array, Object, RegExp, Map, Set, Symbol, parseInt, parseFloat, isNaN, isFinite });

@@ -53,7 +53,8 @@ import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 import { DocumentStore } from './document-service.js';
 import { resolveActivePanelBody, renderMultiPanels, MULTI_LIST_CAP } from './panel.js';
 import { runAgentTurn } from './agent.js';
-import { runScript } from './script-host.js';
+import { runScript, type ScriptCapabilities } from './script-host.js';
+import { syncFetch } from './sync-fetch.js';
 import {
   ensureScriptsDir,
   listScriptFiles,
@@ -647,6 +648,37 @@ function openPreferences(): void {
 }
 
 /**
+ * Host-mediated I/O for scripts: synchronous file read/write/exists (raw paths —
+ * the AppleScript trust level), and a synchronous `fetch` gated behind a one-time
+ * per-run network confirmation (a script can read the whole library, so network
+ * access could exfiltrate it). `win` anchors the confirmation dialog.
+ */
+function makeScriptCapabilities(win: BrowserWindow | undefined): ScriptCapabilities {
+  let networkAllowed: boolean | null = null; // unasked → asked once per run
+  return {
+    readText: (p) => readFileSync(p, 'utf8'),
+    writeText: (p, text) => writeFileSync(p, text),
+    exists: (p) => existsSync(p),
+    fetch: (url, opts) => {
+      if (networkAllowed === null) {
+        networkAllowed = win
+          ? dialog.showMessageBoxSync(win, {
+              type: 'warning',
+              buttons: [t('script.allow'), t('common.cancel')],
+              defaultId: 0,
+              cancelId: 1,
+              message: t('script.networkTitle'),
+              detail: t('script.networkDetail', { url: String(url) }),
+            }) === 0
+          : true;
+      }
+      if (!networkAllowed) throw new Error('Network access was denied.');
+      return syncFetch(String(url), opts ?? {}, 8000);
+    },
+  };
+}
+
+/**
  * Run a saved script (Scripts menu) against the focused document. Prompts once
  * per file (and again if it was edited) since folder scripts may not have been
  * authored/re-read by the user, then runs it via the host and reports the result
@@ -679,7 +711,12 @@ function runSavedScript(path: string): void {
     if (choice !== 0) return;
     recordScriptTrust(userData, path, code);
   }
-  const r = runScript(store, documentId, code, { timeoutMs: 5000, version: app.getVersion(), filename: basename(path) });
+  const r = runScript(store, documentId, code, {
+    timeoutMs: 10000,
+    version: app.getVersion(),
+    filename: basename(path),
+    capabilities: makeScriptCapabilities(win),
+  });
   if (r.mutated) {
     broadcastDocumentChanged(documentId);
     buildMenu();
@@ -2675,8 +2712,9 @@ function registerIpc(): void {
     },
     [IpcChannels.runScript]: (req) => {
       const r = runScript(store, req.documentId, req.code, {
-        timeoutMs: 5000,
+        timeoutMs: 10000,
         version: app.getVersion(),
+        capabilities: makeScriptCapabilities(focusedWindow()),
       });
       return {
         output: r.output,

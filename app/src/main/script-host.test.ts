@@ -146,3 +146,33 @@ describe('script-host: sandbox + errors', () => {
     expect(JSON.parse(JSON.stringify(r.result))).toBeTruthy(); // clone-safe
   });
 });
+
+describe('script-host: controlled I/O (injected capabilities)', () => {
+  it('exposes bibliofile.io + fetch when capabilities are provided', () => {
+    const { store, documentId } = fresh();
+    const written: Record<string, string> = {};
+    const r = runScript(
+      store,
+      documentId,
+      `bibliofile.io.writeText('/out.txt', 'hi');
+       return [bibliofile.io.readText('/a'), bibliofile.io.exists('/yes'), bibliofile.io.exists('/no'), bibliofile.fetch('http://x/').text];`,
+      {
+        capabilities: {
+          readText: (p) => `contents of ${p}`,
+          writeText: (p, t) => void (written[p] = t),
+          exists: (p) => p === '/yes',
+          fetch: (url) => ({ status: 200, headers: {}, text: `body of ${url}` }),
+        },
+      },
+    );
+    expect(r.error).toBeUndefined();
+    expect(r.result).toEqual(['contents of /a', true, false, 'body of http://x/']);
+    expect(written['/out.txt']).toBe('hi');
+  });
+
+  it('throws when I/O is not available (default, e.g. unit context)', () => {
+    const { store, documentId } = fresh();
+    expect(run(store, documentId, `return bibliofile.io.readText('/x');`).error?.message).toMatch(/not available/);
+    expect(run(store, documentId, `return bibliofile.fetch('http://x/');`).error?.message).toMatch(/not available/);
+  });
+});
