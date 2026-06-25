@@ -107,20 +107,25 @@ imports them according to their type.
 | **`.bib` file(s)** | Each file's entries are **merged** into the open library, exactly as if pasted — with the same unique-cite-key handling. Warnings are prefixed with the file's name. |
 | **`.ris` file(s)** | Imported as RIS records (see [§7.5](#75-the-ris-format)). |
 | **EndNote file(s)** (`.enw`, `.enl`, `.xml`) | Imported as EndNote records (see [§7.5.3](#753-endnote-import)). |
-| **PDF (or any other file)** | A **new entry is created and the file is attached to it**. The entry's type is your configured default (`article` unless you changed it), its `Title` is set to the file's name (without the extension), and a cite key is generated. |
+| **PDF** | The PDF is sniffed for a **DOI** (then an **arXiv** id) and, if one is found, the reference is **looked up online** (CrossRef / arXiv) so a **fully-populated entry** is created with the PDF attached. If that paper is **already in your library**, the PDF is attached to the existing entry instead of creating a duplicate. With no identifier — or if the lookup finds nothing — it falls back to a filename-titled **stub**. See the notes below. |
+| **Any other file** | A **new entry is created and the file attached**: type = your configured default (`article` unless you changed it), `Title` = the filename (without the extension), with a generated cite key. |
 | **Plain text** that looks like BibTeX | Imported as if pasted (see [§7.2](#72-pasting-bibtex-from-the-clipboard)). |
 
-This makes drag-and-drop a natural way to bring a pile of PDFs into a fresh
-library: drop them all at once and you get one entry per file, each with the PDF
-already attached and the filename as a placeholder title. Then fill in the real
-bibliographic data — or use [Online search](08-online-search.md) to fetch it and
-copy fields across.
+This makes drag-and-drop the fastest way to build a library: drop a pile of PDFs
+at once and each is identified, looked up, and turned into a real entry with the
+PDF attached. While the lookups run, the status bar reads **"Looking up
+references…"**; when it finishes it shows a summary such as **"Imported: 3 from
+identifier, 1 linked to existing, 1 without metadata."** Anything that couldn't be
+identified becomes a filename-titled stub you can fill in by hand — or enrich with
+[Online search](08-online-search.md).
 
-> **Note:** Dropping a PDF does **not** read the paper's metadata out of the PDF;
-> it only creates a stub entry titled from the filename and attaches the file.
-> The attachment is recorded as a link (a `Bdsk-File-N` blob with a path relative
-> to the library), exactly as if you had added it through the **Attachments**
-> section — see [Attachments](04-attachments.md).
+> **Note:** Identifiers are read from the PDF's **first pages** — a DOI printed in
+> the text, or the `arXiv:…` watermark / abs URL on a preprint. A scanned PDF with
+> no text layer, or a paper that prints no identifier, won't be recognized and
+> becomes a filename stub (the file is still attached). The attachment is recorded
+> as a link (a `Bdsk-File-N` blob with a path relative to the library), exactly as
+> if you had added it through the **Attachments** section — see
+> [Attachments](04-attachments.md).
 
 > **Warning:** A dropped file is attached by **link**, not copied into the
 > library folder. For the link to keep resolving, keep the file in a predictable
@@ -142,7 +147,8 @@ in — use the **Import** menu.
 3. The chosen files are imported by type — `.bib` files merge their entries,
    `.ris` files import their records, EndNote `.enw`/`.enl`/`.xml` files import
    their records, and any other file you force through the *All Files* filter is
-   turned into a stub entry with that file attached, just as with drag-and-drop.
+   handled just as with drag-and-drop: a **PDF** is looked up by its DOI/arXiv id
+   (falling back to a stub), and any other file becomes a stub with that file attached.
 
 The same **File → Import** submenu also contains **Search Online (CrossRef /
 arXiv)…** (**⇧⌘O** / **Shift+Ctrl+O**), which opens the

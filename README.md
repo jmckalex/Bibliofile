@@ -34,7 +34,7 @@ BibDesk and your TeX workflow.
 - 📑 Formatted **CSL citations** (APA / Vancouver / Harvard, offline) — install & manage your own `.csl` styles, cite in notes with `\cite{…}` / `@references`, and optionally make URLs/DOIs clickable.
 - 🧮 **LaTeX preview** — typeset the selection's bibliography with your own TeX + `.bst` style (crisp SVG or PDF).
 - 🪟 **Configurable panels** you can resize, hide, swap, and redesign with **Handlebars templates** — including a **tabbed** bottom panel (Annotation · Abstract · Attachments, with PDF/image thumbnails).
-- 📥 **Import / export** — paste BibTeX, drag-and-drop `.bib`/PDFs, RIS import; export BibTeX / RIS / CSV / styled HTML.
+- 📥 **Import / export** — paste BibTeX, drag-and-drop `.bib`, **drop a PDF to auto-create an entry** (DOI/arXiv lookup + attach), RIS import; export BibTeX / RIS / CSV / styled HTML.
 - 🌐 **Online search** of CrossRef and arXiv, importing results as new entries.
 - 🤖 An optional **Claude assistant** in the side pane (bring your own API key).
 - 🌓 Native menus, keyboard shortcuts, a full in-app **manual**, and UI scaffolding for **30 languages**.
@@ -85,7 +85,11 @@ BibDesk and your TeX workflow.
 - A **Links** section for `Url` / `Doi` (with bare-DOI → doi.org rewriting).
 - **AutoFile** moves attachments into a Papers folder named by a format language,
   and **Folders** can export a mirrored directory tree of the attached PDFs.
-- Drop **PDFs** onto the window to create entries and auto-attach them.
+- **Drop a PDF → a fully-populated entry.** Dropped PDFs are sniffed for a **DOI**
+  (then an **arXiv** id) and looked up online (CrossRef / arXiv) to create a complete
+  entry with the file attached — instantly. If you already have that paper, the PDF is
+  **attached to the existing entry** instead of duplicating it; PDFs with no identifier
+  become a filename-titled stub. A footer notice summarizes the result.
 
 ### 📝 Notes & abstracts
 
@@ -164,7 +168,8 @@ BibDesk and your TeX workflow.
 ### 📥 Import & export
 
 - Get references **in**: paste BibTeX from the clipboard (e.g. Google Scholar),
-  drag-and-drop `.bib` files to merge, **File → Import** for BibTeX and **RIS**.
+  drag-and-drop `.bib` files to merge, **drop PDFs** to auto-create entries by
+  DOI/arXiv lookup (see Attachments), or **File → Import** for BibTeX and **RIS**.
 - Get references **out**: **File → Export** to BibTeX / RIS / CSV or a styled **HTML**
   bibliography, plus your own Handlebars **export templates**.
 
