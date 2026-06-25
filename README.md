@@ -88,8 +88,10 @@ BibDesk and your TeX workflow.
 - **Drop a PDF → a fully-populated entry.** Dropped PDFs are sniffed for a **DOI**
   (then an **arXiv** id) and looked up online (CrossRef / arXiv) to create a complete
   entry with the file attached — instantly. If you already have that paper, the PDF is
-  **attached to the existing entry** instead of duplicating it; PDFs with no identifier
-  become a filename-titled stub. A footer notice summarizes the result.
+  **attached to the existing entry** instead of duplicating it. PDFs with no identifier
+  open a **review dialog** — fill each one in with the normal entry editor and **Accept**
+  (creates it + attaches the PDF) or **Discard**; nothing is added to your library until
+  you Accept, so a big library never fills up with empty placeholders.
 
 ### 📝 Notes & abstracts
 

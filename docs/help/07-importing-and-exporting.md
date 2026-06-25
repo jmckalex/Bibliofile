@@ -107,25 +107,40 @@ imports them according to their type.
 | **`.bib` file(s)** | Each file's entries are **merged** into the open library, exactly as if pasted — with the same unique-cite-key handling. Warnings are prefixed with the file's name. |
 | **`.ris` file(s)** | Imported as RIS records (see [§7.5](#75-the-ris-format)). |
 | **EndNote file(s)** (`.enw`, `.enl`, `.xml`) | Imported as EndNote records (see [§7.5.3](#753-endnote-import)). |
-| **PDF** | The PDF is sniffed for a **DOI** (then an **arXiv** id) and, if one is found, the reference is **looked up online** (CrossRef / arXiv) so a **fully-populated entry** is created with the PDF attached. If that paper is **already in your library**, the PDF is attached to the existing entry instead of creating a duplicate. With no identifier — or if the lookup finds nothing — it falls back to a filename-titled **stub**. See the notes below. |
+| **PDF** | The PDF is sniffed for a **DOI** (then an **arXiv** id) and, if one is found, the reference is **looked up online** (CrossRef / arXiv) so a **fully-populated entry** is created with the PDF attached. If that paper is **already in your library**, the PDF is attached to the existing entry instead of creating a duplicate. With no identifier — or if the lookup finds nothing — the PDF opens the **review dialog** (see below) rather than being auto-added. |
 | **Any other file** | A **new entry is created and the file attached**: type = your configured default (`article` unless you changed it), `Title` = the filename (without the extension), with a generated cite key. |
 | **Plain text** that looks like BibTeX | Imported as if pasted (see [§7.2](#72-pasting-bibtex-from-the-clipboard)). |
 
 This makes drag-and-drop the fastest way to build a library: drop a pile of PDFs
-at once and each is identified, looked up, and turned into a real entry with the
+at once and each identified paper is looked up and turned into a real entry with the
 PDF attached. While the lookups run, the status bar reads **"Looking up
 references…"**; when it finishes it shows a summary such as **"Imported: 3 from
-identifier, 1 linked to existing, 1 without metadata."** Anything that couldn't be
-identified becomes a filename-titled stub you can fill in by hand — or enrich with
-[Online search](08-online-search.md).
+identifier, 1 linked to existing, 2 to review."**
+
+#### Reviewing PDFs with no identifier
+
+A PDF with no DOI or arXiv id (e.g. an older scan, or a working paper that prints
+no identifier) **isn't auto-added** — that would litter a large library with empty,
+hard-to-find placeholders. Instead all such PDFs from the drop open a **review
+dialog**: the PDFs are listed on the left, with the normal entry editor on the
+right. Click a PDF to edit its entry (type, cite key, fields, notes — the title is
+pre-filled from the filename), then:
+
+- **Accept** — creates the entry in your library and attaches that PDF (AutoFiling
+  it if a Papers folder is set).
+- **Discard** — drops the PDF; no entry is created.
+
+**Nothing is added to your library until you Accept** — the drafts live in a
+scratch area, so closing the dialog (or discarding) leaves no trace. Tip: fill in
+the **Author**, **Title**, and **Year**, then click **Generate** for a proper cite
+key.
 
 > **Note:** Identifiers are read from the PDF's **first pages** — a DOI printed in
 > the text, or the `arXiv:…` watermark / abs URL on a preprint. A scanned PDF with
-> no text layer, or a paper that prints no identifier, won't be recognized and
-> becomes a filename stub (the file is still attached). The attachment is recorded
-> as a link (a `Bdsk-File-N` blob with a path relative to the library), exactly as
-> if you had added it through the **Attachments** section — see
-> [Attachments](04-attachments.md).
+> no text layer, or a paper that prints no identifier, won't be recognized and goes
+> to the review dialog. When you Accept, the attachment is recorded as a link (a
+> `Bdsk-File-N` blob with a path relative to the library), exactly as if you had
+> added it through the **Attachments** section — see [Attachments](04-attachments.md).
 
 > **Warning:** A dropped file is attached by **link**, not copied into the
 > library folder. For the link to keep resolving, keep the file in a predictable
@@ -148,7 +163,8 @@ in — use the **Import** menu.
    `.ris` files import their records, EndNote `.enw`/`.enl`/`.xml` files import
    their records, and any other file you force through the *All Files* filter is
    handled just as with drag-and-drop: a **PDF** is looked up by its DOI/arXiv id
-   (falling back to a stub), and any other file becomes a stub with that file attached.
+   (no-identifier PDFs open the review dialog), and any other file becomes a stub
+   with that file attached.
 
 The same **File → Import** submenu also contains **Search Online (CrossRef /
 arXiv)…** (**⇧⌘O** / **Shift+Ctrl+O**), which opens the
@@ -409,10 +425,12 @@ a text area, **⌘V** pastes there as normal. Use **Edit → Paste Publication**
 which imports regardless of focus.
 
 **"I dropped a PDF but the entry has no real title/author."**
-Dropping a PDF creates a stub entry titled from the filename and attaches the
-file; it does not read the paper's metadata. Fill in the bibliographic fields by
-hand, or look the paper up with [Online search](08-online-search.md) and copy the
-fields across.
+If the PDF prints a **DOI** or **arXiv id** in its first pages, the entry is built
+from a real online lookup. If it doesn't (e.g. an older scan), the PDF opens the
+**review dialog** instead of being auto-added — fill in the fields there before you
+**Accept**, or look the paper up with [Online search](08-online-search.md) and copy
+the fields across. (Anything you Accept with only the filename title can be edited
+later, too.)
 
 **"My import isn't in the file after I quit."**
 Imports are unsaved edits. Press **⌘S** / **Ctrl+S** (or click **Save**) after a
