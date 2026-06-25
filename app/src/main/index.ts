@@ -54,6 +54,13 @@ import { DocumentStore } from './document-service.js';
 import { resolveActivePanelBody, renderMultiPanels, MULTI_LIST_CAP } from './panel.js';
 import { runAgentTurn } from './agent.js';
 import { runScript } from './script-host.js';
+import {
+  ensureScriptsDir,
+  listScriptFiles,
+  newScriptFile,
+  isScriptTrusted,
+  recordScriptTrust,
+} from './script-files.js';
 import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
 import { initScripting } from './scripting-bridge.js';
@@ -637,6 +644,59 @@ function notifyDocumentOpened(opened: OpenedDocument, win: BrowserWindow | undef
 /** Ask the focused library window's renderer to open the Preferences pane. */
 function openPreferences(): void {
   focusedWindow()?.webContents.send(IpcEvents.showPreferences, null);
+}
+
+/**
+ * Run a saved script (Scripts menu) against the focused document. Prompts once
+ * per file (and again if it was edited) since folder scripts may not have been
+ * authored/re-read by the user, then runs it via the host and reports the result
+ * in a dialog (folder scripts are fire-and-forget; the Console is for interactive
+ * runs). Refreshes open windows when the run changed the document.
+ */
+function runSavedScript(path: string): void {
+  const documentId = focusedDocId();
+  if (!documentId) return;
+  const win = focusedWindow();
+  let code: string;
+  try {
+    code = readFileSync(path, 'utf8');
+  } catch (e) {
+    if (win) dialog.showMessageBoxSync(win, { type: 'error', message: t('script.readFailed', { name: basename(path) }), detail: e instanceof Error ? e.message : String(e) });
+    return;
+  }
+  const userData = app.getPath('userData');
+  if (!isScriptTrusted(userData, path, code)) {
+    const choice = win
+      ? dialog.showMessageBoxSync(win, {
+          type: 'warning',
+          buttons: [t('script.runButton'), t('common.cancel')],
+          defaultId: 0,
+          cancelId: 1,
+          message: t('script.trustTitle', { name: basename(path) }),
+          detail: t('script.trustDetail'),
+        })
+      : 0;
+    if (choice !== 0) return;
+    recordScriptTrust(userData, path, code);
+  }
+  const r = runScript(store, documentId, code, { timeoutMs: 5000, version: app.getVersion(), filename: basename(path) });
+  if (r.mutated) {
+    broadcastDocumentChanged(documentId);
+    buildMenu();
+  }
+  if (!win) return;
+  if (r.error) {
+    const detail = (r.error.line != null ? `Line ${r.error.line}: ` : '') + r.error.message;
+    dialog.showMessageBoxSync(win, { type: 'error', message: t('script.failed', { name: basename(path) }), detail });
+  } else {
+    const lines = [...r.output];
+    if (r.result !== undefined) lines.push('⇒ ' + (typeof r.result === 'string' ? r.result : JSON.stringify(r.result)));
+    dialog.showMessageBoxSync(win, {
+      type: 'info',
+      message: t('script.ran', { name: basename(path) }),
+      detail: lines.join('\n').slice(0, 4000) || t('scripting.ranNoOutput'),
+    });
+  }
 }
 
 /** Open a path now if the app is ready, else stash it for after launch. */
@@ -1599,6 +1659,31 @@ function buildMenu(): void {
         accelerator: 'CmdOrCtrl+Alt+J',
         enabled: docEnabled,
         click: () => sendMenuCommand('scriptConsole'),
+      },
+      {
+        label: t('menu.tools.scripts'),
+        submenu: [
+          ...(listScriptFiles(app.getPath('userData')).map((f) => ({
+            label: f.name,
+            enabled: docEnabled,
+            click: () => runSavedScript(f.path),
+          })) as Electron.MenuItemConstructorOptions[]),
+          ...(listScriptFiles(app.getPath('userData')).length === 0
+            ? [{ label: t('scripts.none'), enabled: false } as Electron.MenuItemConstructorOptions]
+            : []),
+          { type: 'separator' },
+          {
+            label: t('scripts.new'),
+            click: () => {
+              void shell.openPath(newScriptFile(app.getPath('userData')));
+              buildMenu();
+            },
+          },
+          {
+            label: t('scripts.openFolder'),
+            click: () => void shell.openPath(ensureScriptsDir(app.getPath('userData'))),
+          },
+        ],
       },
       { type: 'separator' },
       {
@@ -2872,6 +2957,7 @@ if (!gotLock) {
       bottomPanelTemplate: resolveActivePanelBody(settings.bottomForks, settings.activeBottomFork),
     });
     registerIpc();
+    ensureScriptsDir(app.getPath('userData')); // create the Scripts folder for the Scripts menu
     buildMenu();
     startBridge();
     // macOS AppleScript dictionary (no-op elsewhere / if the native addon isn't

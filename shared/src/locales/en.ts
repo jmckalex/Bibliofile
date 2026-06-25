@@ -78,6 +78,7 @@ export const en: Catalog = {
   // --- Tools / View / Help menus ---
   'menu.tools.assistant': 'Claude Assistant…',
   'menu.tools.scriptConsole': 'Script Console…',
+  'menu.tools.scripts': 'Scripts',
   'menu.tools.journalCovers': 'Download Missing Journal Covers…',
   'menu.tools.texPreview': 'LaTeX Preview',
   'menu.view.toggleSide': 'Toggle Side Panel',
@@ -498,6 +499,16 @@ export const en: Catalog = {
   'scripting.outputEmpty': 'Run a script to see its output here.',
   'scripting.ranNoOutput': 'Script ran (no output).',
   'scripting.errorAt': 'Error (line {line}): {error}',
+  'scripts.none': '(No saved scripts)',
+  'scripts.new': 'New Script…',
+  'scripts.openFolder': 'Open Scripts Folder',
+  'script.runButton': 'Run',
+  'script.trustTitle': 'Run “{name}”?',
+  'script.trustDetail':
+    'Saved scripts run with the app’s full access — they can read and change everything in this library. Only run scripts you trust.',
+  'script.readFailed': 'Could not read “{name}”',
+  'script.failed': '“{name}” failed',
+  'script.ran': 'Ran “{name}”',
 
   // --- Smart group dialog ---
   'smart.editTitle': 'Edit Smart Group',
