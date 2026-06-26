@@ -152,10 +152,12 @@ BIBDESK_OPEN=/Users/me/research/library.bib pnpm --filter @bibdesk/app dev
 > `docs/math-demo.bib`, ships with the project and is useful for seeing the
 > MathJax preview and the dynamic category groups in action.
 
-> **Warning:** The application currently reads `.bib` files as **UTF-8**. If your
-> file was saved in a different text encoding, non-ASCII characters may not be
-> read correctly. Re-saving the file as UTF-8 (for instance from BibDesk or a
-> text editor) resolves this. Encoding auto-detection is on the roadmap.
+> **Note:** The application **auto-detects** each `.bib` file's text encoding — a
+> byte-order mark first, then UTF-8, falling back to Windows-1252 / Latin-1 — so
+> files saved by BibDesk or other tools read correctly without manual conversion.
+> If an 8-bit file is guessed wrong, re-read it under the right encoding (or
+> **Convert to UTF-8**) from the **File → Text Encoding** submenu; saves also warn
+> before they would drop a character the current encoding can't represent.
 
 ## 1.4 The window at a glance
 

@@ -392,10 +392,11 @@ groups, they appear here, read directly from the file's group `@comment` blocks:
 Selecting a Static or Smart group scopes the table to its members; the footer
 shows the group's name and count.
 
-> **Note:** This version *reads, evaluates, and counts* Static and Smart groups
-> from the file, and round-trips them faithfully on save. Creating or editing
-> groups from within the application's UI is planned but not yet available — for
-> now, you manage group definitions in BibDesk (or by hand in the `.bib` file).
+> **Note:** This version *reads, evaluates, counts, and round-trips* Static and
+> Smart groups, and you can **create and edit them in the app**: add a Static
+> group, build a Smart group in the condition editor, rename or delete from the
+> sidebar's right-click menu, and organise them into nestable **folders**. URL and
+> Script groups are still preserved-but-not-evaluated (see below).
 
 ### 2.4.4 URL and Script groups (type-only)
 

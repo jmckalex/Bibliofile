@@ -397,11 +397,12 @@ your `.bib` file; they're missing conveniences, not data hazards.
   so a file that has been moved may not open until you fix the path,
   [AutoFile](04-attachments.md#autofile-organising-linked-files) it, or re-add
   it. See [Attachments](04-attachments.md#compatibility-with-macos-bibdesk).
-- **URL and Script groups are not evaluated.** They are preserved on disk and
-  appear in the sidebar, but in this app they have no live membership (URL
-  groups don't fetch; Script groups don't execute), and there is no in-app
-  editor for creating or editing groups (you manage group definitions in BibDesk
-  or by hand). (These BibDesk *Script group* definitions are unrelated to
+- **URL and Script groups are not evaluated.** Static and Smart groups (and
+  nestable folders) are fully editable in the app — create, rename, delete, and
+  build Smart-group conditions in the sidebar. **URL** and **Script** groups,
+  however, are only preserved on disk: they appear in the sidebar but have no live
+  membership (URL groups don't fetch; Script groups don't execute). (These
+  BibDesk *Script group* definitions are unrelated to
   [Scripting with JavaScript](12-scripting.md), which is fully supported.)
 - **Citation styles are added by file.** Three styles ship built in (APA,
   Vancouver, Harvard); you can install any other by adding its **CSL** (`.csl`)
@@ -413,8 +414,10 @@ your `.bib` file; they're missing conveniences, not data hazards.
   for the app's runtime; if a build doesn't include it, search silently falls back
   to a substring filter over the visible columns. Developers enable it with `pnpm
   --filter @bibdesk/app rebuild:electron`.
-- **Find Duplicates is review-only.** It finds and navigates to duplicates but
-  does not merge or delete them for you; clean them up by hand.
+- **Find Duplicates merges into the primary entry.** It groups likely duplicates
+  and can **merge** a group into its first entry (filling missing fields, unioning
+  keywords, then deleting the rest); it does not auto-resolve every group, so you
+  confirm each merge.
 
 ## Glossary
 

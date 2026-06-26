@@ -303,9 +303,11 @@ file stays exactly as portable and faithful as ever.
 
 A few things are worth setting expectations on:
 
-- **Three bundled styles today.** Only APA, Vancouver, and Harvard ship with the
-  app at present. There is no in-app style browser or arbitrary-CSL import yet;
-  the picker offers exactly those three.
+- **Styles are added by file, not browsed.** APA, Vancouver, and Harvard ship
+  bundled; you can install any other CSL style with **Install CSL file…**
+  (see [Installing & managing your own styles](#installing--managing-your-own-styles)).
+  What's missing is an in-app *browser* of the CSL repository — you supply the
+  `.csl` file yourself.
 - **CSL is not BibTeX `.bst`.** The formatted citation comes from the CSL
   ecosystem, which is independent of LaTeX's `bibliographystyle`/`.bst` system.
   A CSL style of the "same name" may differ in small ways from the `.bst` you use
