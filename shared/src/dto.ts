@@ -797,6 +797,38 @@ export interface OaPdfProgress {
   readonly result: OaPdfItemResult;
 }
 
+/** OCR the scanned PDF attachments of the given entries (adds a text layer). */
+export interface OcrScannedPdfsRequest {
+  readonly documentId: DocumentId;
+  readonly itemIds: readonly ItemId[];
+  /** Tesseract language code(s), e.g. `eng`, `fra`. Default `eng`. */
+  readonly lang?: string;
+}
+export type OcrItemStatus = 'ocred' | 'skipped' | 'error';
+export interface OcrItemResult {
+  readonly itemId: ItemId;
+  readonly citeKey: string;
+  readonly status: OcrItemStatus;
+  readonly message: string;
+  /** Pages OCR'd (when status === 'ocred'). */
+  readonly pages?: number;
+}
+export interface OcrScannedPdfsResponse {
+  readonly results: readonly OcrItemResult[];
+}
+/** Streamed during an OCR run so the UI can show live progress. */
+export interface OcrProgress {
+  readonly documentId: DocumentId;
+  /** Entries finished so far. */
+  readonly done: number;
+  readonly total: number;
+  /** Cite key of the entry being OCR'd right now. */
+  readonly citeKey: string;
+  /** Page-level sub-progress within the current entry's PDF (when known). */
+  readonly page?: number;
+  readonly pages?: number;
+}
+
 /** Progress of background full-text indexing of a document's PDF attachments. */
 export interface IndexProgress {
   readonly documentId: DocumentId;
@@ -1606,6 +1638,7 @@ export type MenuCommand =
   | 'findDuplicates'
   | 'findBrokenLinks'
   | 'findOpenAccessPdf'
+  | 'ocrScannedPdfs'
   | 'scanJournalCovers'
   | 'scriptConsole'
   | 'texPreview'

@@ -110,8 +110,11 @@ import type {
   FetchPdfBytesResponse,
   AttachPdfBytesRequest,
   AttachPdfBytesResponse,
+  OcrScannedPdfsRequest,
+  OcrScannedPdfsResponse,
   OaPdfProgress,
   IndexProgress,
+  OcrProgress,
   RelocateAttachmentRequest,
   GroupEditRequest,
   GroupEditResult,
@@ -296,6 +299,9 @@ const api: BibDeskApi = {
   attachPdfBytes(request: AttachPdfBytesRequest): Promise<AttachPdfBytesResponse> {
     return ipcRenderer.invoke(IpcChannels.attachPdfBytes, request);
   },
+  ocrScannedPdfs(request: OcrScannedPdfsRequest): Promise<OcrScannedPdfsResponse> {
+    return ipcRenderer.invoke(IpcChannels.ocrScannedPdfs, request);
+  },
   relocateAttachment(request: RelocateAttachmentRequest): Promise<EditResult> {
     return ipcRenderer.invoke(IpcChannels.relocateAttachment, request);
   },
@@ -394,6 +400,11 @@ const api: BibDeskApi = {
     const handler = (_e: IpcRendererEvent, payload: IndexProgress): void => listener(payload);
     ipcRenderer.on(IpcEvents.indexProgress, handler);
     return () => ipcRenderer.removeListener(IpcEvents.indexProgress, handler);
+  },
+  onOcrProgress(listener: (p: OcrProgress) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, payload: OcrProgress): void => listener(payload);
+    ipcRenderer.on(IpcEvents.ocrProgress, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.ocrProgress, handler);
   },
 };
 

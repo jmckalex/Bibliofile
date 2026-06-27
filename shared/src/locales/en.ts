@@ -74,6 +74,7 @@ export const en: Catalog = {
   'menu.publication.consolidate': 'Consolidate Linked Files…',
   'menu.publication.findBrokenLinks': 'Find Broken Links…',
   'menu.publication.findOpenAccessPdf': 'Find Open-Access PDFs…',
+  'menu.publication.ocrScannedPdfs': 'OCR Scanned PDFs…',
   'menu.publication.macros': 'Macros (@string)…',
 
   // --- Tools / View / Help menus ---
@@ -342,6 +343,15 @@ export const en: Catalog = {
   'oa.status.none': 'No OA copy',
   'oa.status.skipped': 'Skipped',
   'oa.status.error': 'Error',
+
+  // --- OCR scanned PDFs ---
+  'ocr.title': 'OCR Scanned PDFs',
+  'ocr.summary': '— {ocred} of {total} OCR’d',
+  'ocr.progress': 'OCR’ing… {done} of {total}',
+  'ocr.page': '{citeKey} — page {page} of {pages}',
+  'ocr.status.ocred': 'Text added',
+  'ocr.status.skipped': 'Skipped',
+  'ocr.status.error': 'Error',
 
   // --- Open-Access PDF review window ---
   'oareview.title': 'Review open-access PDF',

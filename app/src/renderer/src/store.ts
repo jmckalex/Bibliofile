@@ -21,6 +21,7 @@ import type {
   FindReplaceResult,
   FindDuplicatesResult,
   OaPdfItemResult,
+  OcrItemResult,
   IndexProgress,
   BrokenLink,
   GroupNode,
@@ -55,6 +56,20 @@ export interface OaLookupState {
   running: boolean;
   /** Per-entry outcomes, appended live as each finishes. */
   results: OaPdfItemResult[];
+}
+
+/** Live state of an OCR batch (adds a searchable text layer), in a non-blocking panel. */
+export interface OcrState {
+  /** Number of entries the batch is processing. */
+  total: number;
+  /** How many have finished so far. */
+  done: number;
+  /** Still running (drives the progress bar vs. the final summary). */
+  running: boolean;
+  /** The entry currently being OCR'd and its page progress (drives the live line). */
+  current: { citeKey: string; page: number; pages: number } | null;
+  /** Per-entry outcomes, appended live as each finishes. */
+  results: OcrItemResult[];
 }
 
 /** Apply the chosen theme to the document root (`system` follows the OS). */
@@ -327,6 +342,12 @@ export interface ViewerState {
   startOaLookup: (itemIds: readonly string[]) => Promise<void>;
   /** Dismiss the OA-PDF panel. */
   closeOaLookup: () => void;
+  /** Live state of a running/finished OCR batch (null = panel closed). */
+  ocr: OcrState | null;
+  /** OCR the scanned-PDF attachments of the given entries; opens the non-blocking progress panel. */
+  startOcr: (itemIds: readonly string[]) => Promise<void>;
+  /** Dismiss the OCR panel. */
+  closeOcr: () => void;
   /** Attach reviewed PDF bytes to an entry (from the review window); refreshes + marks the panel row attached. */
   attachReviewedPdf: (itemId: string, bytes: Uint8Array) => Promise<boolean>;
   /** Scan the document for attachments whose file is missing on disk. */
@@ -414,6 +435,7 @@ export function createStore(api: BibDeskApi) {
     macros: [],
     selectedIds: [],
     oaLookup: null,
+    ocr: null,
     indexing: null,
     indexDismissed: null,
     dirty: false,
@@ -1137,6 +1159,49 @@ export function createStore(api: BibDeskApi) {
     },
 
     closeOaLookup: () => set({ oaLookup: null }),
+
+    startOcr: async (itemIds) => {
+      const { documentId } = get();
+      if (!documentId || itemIds.length === 0) return;
+      // Open the panel immediately in its "running" state.
+      set({ ocr: { total: itemIds.length, done: 0, running: true, current: null, results: [] } });
+
+      // Stream per-entry/per-page progress into the panel. A progress event with a
+      // `page` updates the live line; one without `page` marks an entry finished.
+      const unsub = api.onOcrProgress((p) => {
+        if (p.documentId !== get().documentId) return;
+        const cur = get().ocr;
+        if (!cur) return; // panel was closed
+        if (typeof p.page === 'number') {
+          set({ ocr: { ...cur, current: { citeKey: p.citeKey, page: p.page, pages: p.pages ?? 0 } } });
+        } else {
+          set({ ocr: { ...cur, done: p.done, current: null } });
+        }
+      });
+      try {
+        const res = await api.ocrScannedPdfs({ documentId, itemIds });
+        const cur = get().ocr;
+        if (cur) {
+          set({
+            ocr: { ...cur, running: false, done: res.results.length, current: null, results: [...res.results] },
+          });
+        }
+        // If any file gained a text layer, refresh the open detail (so a re-opened
+        // PDF reflows) — the main process already re-indexed for full-text search.
+        if (res.results.some((r) => r.status === 'ocred')) {
+          const sel = get().selectedItemId;
+          if (sel) await get().loadDetail(sel);
+        }
+      } catch (err) {
+        set({ error: errorMessage(err) });
+        const cur = get().ocr;
+        if (cur) set({ ocr: { ...cur, running: false, current: null } });
+      } finally {
+        unsub();
+      }
+    },
+
+    closeOcr: () => set({ ocr: null }),
 
     applyIndexProgress: (p) => {
       if (p.documentId !== get().documentId) return; // event for another window's doc

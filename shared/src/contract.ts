@@ -91,6 +91,8 @@ import type {
   FetchPdfBytesResponse,
   AttachPdfBytesRequest,
   AttachPdfBytesResponse,
+  OcrScannedPdfsRequest,
+  OcrScannedPdfsResponse,
   RelocateAttachmentRequest,
   GroupEditRequest,
   GroupEditResult,
@@ -194,6 +196,7 @@ export interface IpcContract {
   [IpcChannels.findOpenAccessPdf]: IpcEntry<FindOpenAccessPdfRequest, FindOpenAccessPdfResponse>;
   [IpcChannels.fetchPdfBytes]: IpcEntry<FetchPdfBytesRequest, FetchPdfBytesResponse>;
   [IpcChannels.attachPdfBytes]: IpcEntry<AttachPdfBytesRequest, AttachPdfBytesResponse>;
+  [IpcChannels.ocrScannedPdfs]: IpcEntry<OcrScannedPdfsRequest, OcrScannedPdfsResponse>;
   [IpcChannels.relocateAttachment]: IpcEntry<RelocateAttachmentRequest, EditResult>;
   [IpcChannels.groupEdit]: IpcEntry<GroupEditRequest, GroupEditResult>;
   [IpcChannels.groupConditions]: IpcEntry<GroupConditionsRequest, GroupConditionsResponse>;

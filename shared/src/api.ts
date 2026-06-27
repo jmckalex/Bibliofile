@@ -92,8 +92,11 @@ import type {
   FetchPdfBytesResponse,
   AttachPdfBytesRequest,
   AttachPdfBytesResponse,
+  OcrScannedPdfsRequest,
+  OcrScannedPdfsResponse,
   OaPdfProgress,
   IndexProgress,
+  OcrProgress,
   RelocateAttachmentRequest,
   GroupEditRequest,
   GroupEditResult,
@@ -287,6 +290,8 @@ export interface BibDeskApi {
   fetchPdfBytes(request: FetchPdfBytesRequest): Promise<FetchPdfBytesResponse>;
   /** Attach reviewed PDF bytes to an entry. */
   attachPdfBytes(request: AttachPdfBytesRequest): Promise<AttachPdfBytesResponse>;
+  /** OCR the scanned PDFs of the given entries (adds a searchable text layer in place). */
+  ocrScannedPdfs(request: OcrScannedPdfsRequest): Promise<OcrScannedPdfsResponse>;
 
   /** Repair a broken managed attachment by picking a replacement file (opens a dialog). */
   relocateAttachment(request: RelocateAttachmentRequest): Promise<EditResult>;
@@ -376,6 +381,8 @@ export interface BibDeskApi {
   onOaPdfProgress(listener: (p: OaPdfProgress) => void): Unsubscribe;
   /** Subscribe to background full-text PDF indexing progress (fires after open). */
   onIndexProgress(listener: (p: IndexProgress) => void): Unsubscribe;
+  /** Subscribe to per-entry progress of a running OCR batch. */
+  onOcrProgress(listener: (p: OcrProgress) => void): Unsubscribe;
 }
 
 /**

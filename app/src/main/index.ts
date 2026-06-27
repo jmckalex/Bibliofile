@@ -13,7 +13,7 @@
 
 import { basename, dirname, extname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
-import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
 
@@ -50,6 +50,9 @@ import {
   type FindOpenAccessPdfResponse,
   type OaPdfItemResult,
   type OaPdfProgress,
+  type OcrScannedPdfsResponse,
+  type OcrItemResult,
+  type OcrProgress,
 } from '@bibdesk/shared';
 import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 
@@ -90,6 +93,7 @@ import { renderCite, renderBibliography } from './csl-format.js';
 import { findTexBin, renderTexPreview, renderTexPreviewSvg, SVG_MAX_KEYS } from './tex-preview.js';
 import { searchOnline, extractDoi, extractArxivId, searchArxivById } from './online.js';
 import { locateOa, downloadPdf, firstAuthorSurname, setContactEmail, looksLikePdf } from './oa-locator.js';
+import { createOcrSession, isLikelyScanned } from './ocr.js';
 import { importPdfsSmart } from './import-smart.js';
 import { extractPdfText } from './pdf-text.js';
 import { PdfPool } from './pdf-pool.js';
@@ -1035,6 +1039,118 @@ async function locateOaPdfs(
   return { results };
 }
 
+/** Resolve the bundled `tessdata` dir (holds eng.traineddata.gz + downloaded langs). */
+function tessdataDir(): string {
+  const candidates = [
+    join(process.resourcesPath ?? '', 'tessdata'), // packaged (extraResources)
+    join(app.getAppPath(), 'resources', 'tessdata'), // dev / unpacked
+  ];
+  for (const c of candidates) if (c && existsSync(join(c, 'eng.traineddata.gz'))) return c;
+  return candidates[1]!;
+}
+
+/**
+ * OCR the scanned PDF attachments of the given entries. For each **image-only**
+ * PDF it adds a searchable text layer (tesseract.js) and atomically replaces the
+ * file in place (temp → validate → rename, so the original is never corrupted).
+ * PDFs that already have a text layer are skipped. Streams per-entry progress; once
+ * done, re-indexes so the new text is searchable in Bibliofile too.
+ */
+async function ocrScannedPdfs(
+  documentId: string,
+  itemIds: readonly string[],
+  lang: string,
+  onProgress?: (p: OcrProgress) => void,
+): Promise<OcrScannedPdfsResponse> {
+  const results: OcrItemResult[] = [];
+  const total = itemIds.length;
+  const stripScheme = (u: string): string => u.replace(/^file:\/\/(localhost)?/i, '');
+
+  let session;
+  try {
+    session = await createOcrSession({ lang: lang || 'eng', langPath: tessdataDir() });
+  } catch (err) {
+    const message = `OCR engine could not start: ${err instanceof Error ? err.message : String(err)}`;
+    return { results: itemIds.slice(0, 1).map((id) => ({ itemId: id, citeKey: '', status: 'error' as const, message })) };
+  }
+
+  let done = 0;
+  let anyOcred = false;
+  try {
+    for (const itemId of itemIds) {
+      let detail;
+      try {
+        detail = store.getItemDetail({ documentId, itemId });
+      } catch {
+        done++;
+        continue;
+      }
+      const citeKey = detail.citeKey;
+      const pdfPaths = detail.files
+        .filter((f) => f.kind === 'file' && /\.pdf$/i.test(f.url))
+        .map((f) => stripScheme(f.url))
+        .filter((p) => existsSync(p));
+      if (pdfPaths.length === 0) {
+        results.push({ itemId, citeKey, status: 'skipped', message: 'No PDF attachment.' });
+        onProgress?.({ documentId, done: ++done, total, citeKey });
+        continue;
+      }
+
+      let replaced = false;
+      let errored = false;
+      let hadScan = false;
+      let pageCount = 0;
+      for (const path of pdfPaths) {
+        let bytes: Uint8Array;
+        try {
+          bytes = new Uint8Array(readFileSync(path));
+        } catch {
+          errored = true;
+          continue;
+        }
+        if (!(await isLikelyScanned(bytes))) continue; // already has a text layer
+        hadScan = true;
+        try {
+          const out = await session.ocrPdf(bytes, (p, pages) => {
+            pageCount = pages;
+            onProgress?.({ documentId, done, total, citeKey, page: p, pages });
+          });
+          const buf = Buffer.from(out);
+          if (!looksLikePdf(buf)) {
+            errored = true;
+            continue;
+          }
+          const tmp = `${path}.ocr.tmp`;
+          writeFileSync(tmp, buf);
+          renameSync(tmp, path); // atomic in-place replace (same directory)
+          replaced = true;
+        } catch {
+          errored = true;
+        }
+      }
+
+      if (replaced) {
+        anyOcred = true;
+        results.push({ itemId, citeKey, status: 'ocred', message: `Added a searchable text layer (${pageCount} pages).`, pages: pageCount });
+      } else if (errored) {
+        results.push({ itemId, citeKey, status: 'error', message: 'OCR failed for this entry.' });
+      } else {
+        results.push({ itemId, citeKey, status: 'skipped', message: hadScan ? 'OCR produced no text.' : 'PDF already has a text layer.' });
+      }
+      onProgress?.({ documentId, done: ++done, total, citeKey });
+    }
+  } finally {
+    await session.close();
+  }
+
+  // Re-extract + re-index so the freshly-added text is searchable in Bibliofile.
+  if (anyOcred) {
+    await store.reindexAttachments(documentId, pdfExtract, (d, t) => broadcastIndexProgress(documentId, d, t));
+    pdfCache?.flush();
+  }
+  return { results };
+}
+
 /** Build a complete RTF bibliography document for the whole library (CSL-formatted). */
 function buildLibraryRtf(documentId: string, styleId: string): string {
   const ids = store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.id);
@@ -1862,6 +1978,11 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('findOpenAccessPdf'),
       },
+      {
+        label: t('menu.publication.ocrScannedPdfs'),
+        enabled: docEnabled,
+        click: () => sendMenuCommand('ocrScannedPdfs'),
+      },
       { type: 'separator' },
       {
         label: t('menu.publication.macros'),
@@ -2473,6 +2594,9 @@ function registerIpc(): void {
         return { ok: false, error: err instanceof Error ? err.message : String(err) };
       }
     },
+    // Overridden below by a custom `ipcMain.handle` that streams per-entry/per-page
+    // progress; this entry exists only to satisfy the exhaustive `IpcHandlers` type.
+    [IpcChannels.ocrScannedPdfs]: (req) => ocrScannedPdfs(req.documentId, req.itemIds, req.lang ?? 'eng'),
     [IpcChannels.relocateAttachment]: async (req) => {
       const parent = dialogParent();
       const result = parent
@@ -3136,6 +3260,16 @@ function registerIpc(): void {
     buildMenu();
     return result;
   });
+
+  // OCR scanned PDFs: registered by hand (not via `mutating`) so it can stream
+  // per-entry/per-page progress to the calling window. It rewrites attachment files
+  // in place and re-indexes them, but does NOT dirty the .bib, so there is no
+  // mutating tail (the re-index broadcasts its own indexing progress).
+  ipcMain.handle(IpcChannels.ocrScannedPdfs, async (e: IpcMainInvokeEvent, req) =>
+    ocrScannedPdfs(req.documentId, req.itemIds, req.lang ?? 'eng', (p: OcrProgress) =>
+      e.sender.send(IpcEvents.ocrProgress, p),
+    ),
+  );
 }
 
 // ---------------------------------------------------------------------------

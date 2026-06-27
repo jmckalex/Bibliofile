@@ -126,6 +126,8 @@ export const IpcChannels = {
   fetchPdfBytes: 'bibdesk:fetchPdfBytes',
   /** Attach reviewed PDF bytes to an entry. */
   attachPdfBytes: 'bibdesk:attachPdfBytes',
+  /** OCR the scanned PDF attachments of entries (adds a searchable text layer). */
+  ocrScannedPdfs: 'bibdesk:ocrScannedPdfs',
   /** Repair a broken managed attachment by pointing it at a user-picked file. */
   relocateAttachment: 'bibdesk:relocateAttachment',
   /** Create/rename/delete a group or change a static group's membership. */
@@ -185,6 +187,8 @@ export const IpcEvents = {
   oaPdfProgress: 'bibdesk:event:oaPdfProgress',
   /** Progress of background full-text indexing of a document's PDF attachments. */
   indexProgress: 'bibdesk:event:indexProgress',
+  /** Progress of an OCR run (per entry, with page sub-progress). */
+  ocrProgress: 'bibdesk:event:ocrProgress',
 } as const;
 
 /** Union of all request/response channel-name string-literal values. */

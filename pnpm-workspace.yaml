@@ -17,3 +17,6 @@ onlyBuiltDependencies:
 
 patchedDependencies:
   electron-vite@2.3.0: patches/electron-vite@2.3.0.patch
+
+allowBuilds:
+  tesseract.js: set this to true or false

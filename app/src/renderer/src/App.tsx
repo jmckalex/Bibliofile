@@ -23,6 +23,7 @@ import { Preferences } from './Preferences.js';
 import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
 import { OaPdfLocator } from './OaPdfLocator.js';
+import { OcrPanel } from './OcrPanel.js';
 import { IndexingPanel } from './IndexingPanel.js';
 import { BrokenLinks } from './BrokenLinks.js';
 import { JournalCoverScan } from './JournalCoverScan.js';
@@ -318,6 +319,12 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       if (ids.length) await store.startOaLookup(ids);
       return;
     }
+    case 'ocrScannedPdfs': {
+      // OCR the scanned PDFs of the selection (fall back to the focused row).
+      const ids = selectedIds.length ? selectedIds : selectedItemId ? [selectedItemId] : [];
+      if (ids.length) await store.startOcr(ids);
+      return;
+    }
     case 'scanJournalCovers':
       modals.setCoverScanOpen(true);
       return;
@@ -466,6 +473,7 @@ export function App() {
   const [coverScanOpen, setCoverScanOpen] = useState(false);
   const [scriptConsoleOpen, setScriptConsoleOpen] = useState(false);
   const oaLookup = useStore((s) => s.oaLookup);
+  const ocr = useStore((s) => s.ocr);
   const pdfReviewOpen = useStore((s) => s.pdfReview != null);
   const [dragging, setDragging] = useState(false);
   const layout = useStore((s) => s.settings.layout);
@@ -694,6 +702,7 @@ export function App() {
       {duplicatesOpen && <FindDuplicates onClose={() => setDuplicatesOpen(false)} />}
       {brokenLinksOpen && <BrokenLinks onClose={() => setBrokenLinksOpen(false)} />}
       {oaLookup && <OaPdfLocator />}
+      {ocr && <OcrPanel />}
       <IndexingPanel />
       {coverScanOpen && <JournalCoverScan onClose={() => setCoverScanOpen(false)} />}
       {scriptConsoleOpen && <ScriptConsole onClose={() => setScriptConsoleOpen(false)} />}

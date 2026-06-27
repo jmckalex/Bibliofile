@@ -147,6 +147,7 @@ function makeFakeApi() {
     findDuplicates: async () => ({ groups: [], total: 0 }),
     findBrokenLinks: async () => ({ links: [] }),
     findOpenAccessPdf: async () => ({ results: [] }),
+    ocrScannedPdfs: async () => ({ results: [] }),
     fetchPdfBytes: async () => ({ data: null }),
     attachPdfBytes: async () => ({ ok: true }),
     relocateAttachment: async () => ({ dirty: true }),
@@ -170,6 +171,7 @@ function makeFakeApi() {
     onDocumentClosed: (): Unsubscribe => () => {},
     onDocumentChanged: (): Unsubscribe => () => {},
     onOaPdfProgress: (): Unsubscribe => () => {},
+    onOcrProgress: (): Unsubscribe => () => {},
     onIndexProgress: (): Unsubscribe => () => {},
     onShowPreferences: (): Unsubscribe => () => {},
   };
