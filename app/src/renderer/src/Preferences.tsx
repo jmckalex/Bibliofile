@@ -865,6 +865,17 @@ function CitationStylesSection({
           />
         </label>
         <p className="bd-prefs__hint">{t('prefs.citationAutolinkHint')}</p>
+        <label className="bd-prefs__row">
+          <span>{t('prefs.contactEmail')}</span>
+          <input
+            className="bd-input"
+            type="email"
+            placeholder={t('prefs.contactEmailPlaceholder')}
+            value={settings.contactEmail}
+            onChange={(e) => void save({ contactEmail: e.target.value })}
+          />
+        </label>
+        <p className="bd-prefs__hint">{t('prefs.contactEmailHint')}</p>
       </section>
       <section className="bd-prefs__section">
         <h3>{t('prefs.manageStyles')}</h3>

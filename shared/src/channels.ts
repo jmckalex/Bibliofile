@@ -120,6 +120,12 @@ export const IpcChannels = {
   findDuplicates: 'bibdesk:findDuplicates',
   /** Scan a document for file attachments whose target is missing on disk. */
   findBrokenLinks: 'bibdesk:findBrokenLinks',
+  /** Locate open-access PDFs (Unpaywall/Crossref) for entries and attach what is found. */
+  findOpenAccessPdf: 'bibdesk:findOpenAccessPdf',
+  /** Download a PDF by URL (for in-app review of a "possible match"). */
+  fetchPdfBytes: 'bibdesk:fetchPdfBytes',
+  /** Attach reviewed PDF bytes to an entry. */
+  attachPdfBytes: 'bibdesk:attachPdfBytes',
   /** Repair a broken managed attachment by pointing it at a user-picked file. */
   relocateAttachment: 'bibdesk:relocateAttachment',
   /** Create/rename/delete a group or change a static group's membership. */
@@ -175,6 +181,10 @@ export const IpcEvents = {
   menuSetColor: 'bibdesk:event:menuSetColor',
   /** The open document's content changed (e.g. an edit from the editor window). */
   documentChanged: 'bibdesk:event:documentChanged',
+  /** Progress of a running Find Open-Access PDFs batch (one per entry processed). */
+  oaPdfProgress: 'bibdesk:event:oaPdfProgress',
+  /** Progress of background full-text indexing of a document's PDF attachments. */
+  indexProgress: 'bibdesk:event:indexProgress',
 } as const;
 
 /** Union of all request/response channel-name string-literal values. */

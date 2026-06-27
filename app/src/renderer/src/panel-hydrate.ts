@@ -151,10 +151,49 @@ function openFilesMenu(anchor: HTMLElement): void {
   }, 0);
 }
 
+/**
+ * Overlay a delete (✕) button on each attachment thumbnail whose `Bdsk-File-N`
+ * field we can resolve from the open detail (matching the figure's `data-file`
+ * against the attachment URLs). Lets the bottom panel remove an attachment in
+ * place. Skips thumbnails with no resolvable field (e.g. a custom template).
+ */
+function addThumbDeleteButtons(root: HTMLElement): void {
+  const detail = getStore().getState().detail;
+  if (!detail) return;
+  const fieldByUrl = new Map(
+    detail.files
+      .filter((f) => f.kind === 'file' && f.field)
+      .map((f) => [f.url, f.field as string]),
+  );
+  if (fieldByUrl.size === 0) return;
+  for (const fig of root.querySelectorAll<HTMLElement>('[data-thumb][data-file]')) {
+    if (fig.querySelector('.bd-thumb__del')) continue; // already added
+    const field = fig.dataset.file ? fieldByUrl.get(fig.dataset.file) : undefined;
+    if (!field) continue;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'bd-thumb__del';
+    btn.dataset.removeThumb = field;
+    btn.title = 'Remove attachment';
+    btn.setAttribute('aria-label', 'Remove attachment');
+    btn.textContent = '×'; // ×
+    fig.appendChild(btn);
+  }
+}
+
 /** Wire a hydrated panel root; returns a cleanup function. */
 export function hydratePanel(root: HTMLElement): () => void {
   const onClick = (e: MouseEvent): void => {
     const t = e.target as HTMLElement;
+    // Delete an attachment from its thumbnail (the red ✕ overlay).
+    const del = t.closest<HTMLElement>('[data-remove-thumb]');
+    if (del?.dataset.removeThumb) {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = getStore().getState().detail?.id;
+      if (id) void getStore().getState().removeAttachment(id, del.dataset.removeThumb);
+      return;
+    }
     const url = t.closest<HTMLElement>('[data-open-url]');
     if (url?.dataset.openUrl) {
       e.preventDefault();
@@ -208,6 +247,7 @@ export function hydratePanel(root: HTMLElement): () => void {
   root.addEventListener('click', onClick);
   root.addEventListener('dblclick', onDblClick);
   initTabs(root);
+  addThumbDeleteButtons(root);
   const revoke: string[] = [];
   void fillThumbnails(root, revoke);
   // Typeset static math (field values, notes, preview/abstract). bd-citation

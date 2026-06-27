@@ -73,6 +73,7 @@ export const en: Catalog = {
   'menu.publication.autoFile': 'AutoFile Linked Files',
   'menu.publication.consolidate': 'Consolidate Linked Files…',
   'menu.publication.findBrokenLinks': 'Find Broken Links…',
+  'menu.publication.findOpenAccessPdf': 'Find Open-Access PDFs…',
   'menu.publication.macros': 'Macros (@string)…',
 
   // --- Tools / View / Help menus ---
@@ -143,6 +144,10 @@ export const en: Catalog = {
   'prefs.citationAutolink': 'Link URLs & DOIs',
   'prefs.citationAutolinkHint':
     'Run formatted citations through Autolinker so URLs (and DOIs shown as https://doi.org/… links) become clickable and open in your browser.',
+  'prefs.contactEmail': 'Contact email',
+  'prefs.contactEmailPlaceholder': 'you@example.com',
+  'prefs.contactEmailHint':
+    'Used by Find Open-Access PDFs: sent to Unpaywall (required) and Crossref to look entries up politely. Stays on your machine otherwise.',
   'prefs.manageStyles': 'Citation styles',
   'prefs.noCustomStyles': 'No styles installed yet — install a .csl file to add your own.',
   'prefs.installStyle': 'Install CSL file…',
@@ -307,6 +312,7 @@ export const en: Catalog = {
   'context.delete': 'Delete entry',
   'context.deleteEntries': 'Delete {count} entries',
   'context.editAnnotation': 'Edit Annotation…',
+  'context.findOaPdf': 'Find Open-Access PDF…',
 
   // --- Find Duplicates ---
   'dup.ariaLabel': 'Find duplicates',
@@ -319,6 +325,32 @@ export const en: Catalog = {
   'dup.entriesCount': '{count} entries',
   'dup.merge': 'Merge',
   'dup.mergeTitle': 'Merge into the first entry (fills missing fields, unions keywords + attachments, deletes the rest)',
+
+  // --- Background full-text indexing ---
+  'index.title': 'Indexing PDFs',
+  'index.progress': '{done} of {total}',
+  'index.hint': 'Building full-text search — you can keep working.',
+
+  // --- Find Open-Access PDFs ---
+  'oa.title': 'Find Open-Access PDFs',
+  'oa.summary': '— {attached} of {total} attached',
+  'oa.progress': 'Searching… {done} of {total}',
+  'oa.searching': '{count} to go…',
+  'oa.review': 'Review…',
+  'oa.status.attached': 'Attached',
+  'oa.status.candidate': 'Possible match',
+  'oa.status.none': 'No OA copy',
+  'oa.status.skipped': 'Skipped',
+  'oa.status.error': 'Error',
+
+  // --- Open-Access PDF review window ---
+  'oareview.title': 'Review open-access PDF',
+  'oareview.loading': 'Downloading the PDF…',
+  'oareview.error': 'Could not load this PDF.',
+  'oareview.hint': 'Is this the right paper?',
+  'oareview.discard': 'Discard',
+  'oareview.attach': 'Attach',
+  'oareview.attaching': 'Attaching…',
 
   // --- Common (shared) ---
   'common.close': 'Close',

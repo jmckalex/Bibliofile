@@ -11,7 +11,7 @@
  * only. The renderer talks exclusively to `window.bibdesk` (see preload).
  */
 
-import { basename, join, resolve } from 'node:path';
+import { basename, dirname, extname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -47,6 +47,9 @@ import {
   type JournalCoverProposal,
   type ImportResult,
   type PdfReviewBatch,
+  type FindOpenAccessPdfResponse,
+  type OaPdfItemResult,
+  type OaPdfProgress,
 } from '@bibdesk/shared';
 import { sharedTypeManager, LABEL_COLORS } from '@bibdesk/model';
 
@@ -86,6 +89,7 @@ import {
 import { renderCite, renderBibliography } from './csl-format.js';
 import { findTexBin, renderTexPreview, renderTexPreviewSvg, SVG_MAX_KEYS } from './tex-preview.js';
 import { searchOnline, extractDoi, extractArxivId, searchArxivById } from './online.js';
+import { locateOa, downloadPdf, firstAuthorSurname, setContactEmail, looksLikePdf } from './oa-locator.js';
 import { importPdfsSmart } from './import-smart.js';
 import { extractPdfText } from './pdf-text.js';
 import { PdfPool } from './pdf-pool.js';
@@ -542,6 +546,16 @@ function broadcastDocumentChanged(documentId: string, except?: Electron.WebConte
   }
 }
 
+/** Tell the windows how far background full-text PDF indexing has got (they filter
+ *  by documentId). Fired from {@link DocumentStore.indexAttachments} after open. */
+function broadcastIndexProgress(documentId: string, done: number, total: number): void {
+  for (const w of BrowserWindow.getAllWindows()) {
+    if (!w.isDestroyed() && w !== helpWindow) {
+      w.webContents.send(IpcEvents.indexProgress, { documentId, done, total });
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Open lifecycle
 // ---------------------------------------------------------------------------
@@ -620,7 +634,11 @@ function loadDocumentInto(win: BrowserWindow, path: string): OpenedDocument {
  */
 function scheduleIndex(documentId: string): void {
   setTimeout(() => {
-    void store.indexAttachments(documentId, pdfExtract).then(() => pdfCache?.flush());
+    void store
+      .indexAttachments(documentId, pdfExtract, (done, total) =>
+        broadcastIndexProgress(documentId, done, total),
+      )
+      .then(() => pdfCache?.flush());
   }, 2000);
 }
 
@@ -850,6 +868,171 @@ async function importFilesSmart(
     summary: r.summary,
     ...(review ? { review } : {}),
   };
+}
+
+/** Make a cite key safe to use as a single filename stem. */
+function safeFileStem(citeKey: string): string {
+  return citeKey.replace(/[^\w.-]+/g, '_') || 'attachment';
+}
+
+/**
+ * Save PDF bytes to a durable location — the **Papers folder** if set (AutoFile
+ * re-files it there), else the `.bib`'s own directory (a portable relative link),
+ * else a temp dir — named by the entry's cite key, then attach it. Returns the
+ * stored file name. Shared by the Find-Open-Access batch and the review window.
+ */
+function saveAndAttachPdf(documentId: string, itemId: string, buf: Buffer): string {
+  const docPath = store.documentPath(documentId);
+  const destDir = getSettings().papersFolder || (docPath ? dirname(docPath) : '') || tmpdir();
+  let citeKey = 'attachment';
+  try {
+    citeKey = store.getItemDetail({ documentId, itemId }).citeKey || citeKey;
+  } catch {
+    /* keep the default stem */
+  }
+  let dest = join(destDir, `${safeFileStem(citeKey)}.pdf`);
+  for (let n = 2; existsSync(dest); n++) dest = join(destDir, `${safeFileStem(citeKey)}-${n}.pdf`);
+  mkdirSync(destDir, { recursive: true });
+  writeFileSync(dest, buf);
+  store.addAttachments(documentId, itemId, [dest]);
+  return basename(dest);
+}
+
+/**
+ * Locate open-access PDFs (OpenAlex) for the given entries and attach what is
+ * found. All network + downloads happen first (async); the successful downloads
+ * are then attached together in a single undo group (so one ⌘Z reverts the batch).
+ * Entries that already have a PDF are skipped; an unconfident fuzzy match is
+ * reported as a `candidate` and never attached automatically.
+ */
+async function locateOaPdfs(
+  documentId: string,
+  itemIds: readonly string[],
+  onProgress?: (p: OaPdfProgress) => void,
+): Promise<FindOpenAccessPdfResponse> {
+  const results: OaPdfItemResult[] = [];
+  const total = itemIds.length;
+  // Contact email (required by Unpaywall; Crossref polite pool) for this run.
+  setContactEmail(getSettings().contactEmail ?? '');
+  // Record one entry's outcome and stream it to the UI for live progress.
+  const emit = (r: OaPdfItemResult): void => {
+    results.push(r);
+    onProgress?.({ documentId, done: results.length, total, result: r });
+  };
+
+  // Each attachment is applied immediately as its entry finishes (so the UI can
+  // refresh live), giving one undo step per attached PDF. We deliberately do NOT
+  // hold a single batch-wide undo group: the panel is non-blocking, so the user
+  // may be editing in parallel, and that suspension would swallow their edits.
+  //
+  // Circuit breaker: if the lookup service keeps failing (rate-limited or
+  // unreachable), stop after a streak of errors rather than crawling the library.
+  const ABORT_AFTER_FAILS = 8;
+  let failStreak = 0;
+  let aborted = false;
+
+  const processOne = async (itemId: string): Promise<void> => {
+    let detail;
+    try {
+      detail = store.getItemDetail({ documentId, itemId });
+    } catch {
+      emit({ itemId, citeKey: itemId, status: 'skipped', message: 'Entry not found.' });
+      return;
+    }
+    const citeKey = detail.citeKey;
+    if (aborted) {
+      emit({ itemId, citeKey, status: 'skipped', message: 'Stopped — the lookup service is unreachable or rate-limiting.' });
+      return;
+    }
+    const byName = new Map(detail.fields.map((f) => [f.name.toLowerCase(), f]));
+    const val = (name: string): string => byName.get(name)?.value ?? '';
+    const raw = (name: string): string => byName.get(name)?.rawValue ?? '';
+
+    // Skip entries that already have a file attached, to avoid adding a duplicate.
+    // (A file's display name isn't a reliable ".pdf" signal, so check the kind.)
+    if (detail.files.some((f) => f.kind === 'file')) {
+      emit({ itemId, citeKey, status: 'skipped', message: 'Already has a file attachment.' });
+      return;
+    }
+
+    const doi = (raw('doi') || extractDoi(raw('url')) || '').trim();
+    const title = val('title').trim();
+    const year = val('year').trim();
+    const authorLast = firstAuthorSurname(raw('author'));
+    if (!doi && !title) {
+      emit({ itemId, citeKey, status: 'skipped', message: 'No DOI or title to search with.' });
+      return;
+    }
+
+    let outcome;
+    try {
+      outcome = await locateOa({ doi, title, year, authorLast });
+      failStreak = 0; // a successful lookup resets the breaker
+    } catch (err) {
+      emit({ itemId, citeKey, status: 'error', message: err instanceof Error ? err.message : String(err) });
+      if (++failStreak >= ABORT_AFTER_FAILS) aborted = true;
+      return;
+    }
+
+    if (outcome.status === 'none') {
+      emit({ itemId, citeKey, status: 'none', message: outcome.reason });
+      return;
+    }
+    if (outcome.status === 'candidate') {
+      emit({
+        itemId,
+        citeKey,
+        status: 'candidate',
+        message: `Possible match — “${outcome.matchedTitle}”${outcome.year ? ` (${outcome.year})` : ''}. Not attached.`,
+        via: 'fuzzy',
+        matchedTitle: outcome.matchedTitle,
+        ...(outcome.pdfUrl ? { url: outcome.pdfUrl } : {}),
+      });
+      return;
+    }
+
+    // outcome.status === 'attach' → download, validate it's really a PDF, stage it.
+    let buf: Buffer | null;
+    try {
+      buf = await downloadPdf(outcome.pdfUrl);
+    } catch (err) {
+      emit({ itemId, citeKey, status: 'error', message: err instanceof Error ? err.message : String(err) });
+      return;
+    }
+    if (!buf) {
+      emit({ itemId, citeKey, status: 'error', message: 'The open-access link did not return a PDF.' });
+      return;
+    }
+    // Save + attach right away so the entry refreshes in the UI as soon as it's done.
+    let fileName: string;
+    try {
+      fileName = saveAndAttachPdf(documentId, itemId, buf);
+    } catch (err) {
+      emit({ itemId, citeKey, status: 'error', message: `Could not save the PDF: ${err instanceof Error ? err.message : String(err)}` });
+      return;
+    }
+    emit({
+      itemId,
+      citeKey,
+      status: 'attached',
+      message: outcome.via === 'doi' ? 'Attached (matched by DOI).' : `Attached (matched “${outcome.matchedTitle}”).`,
+      fileName,
+      via: outcome.via,
+      ...(outcome.matchedTitle ? { matchedTitle: outcome.matchedTitle } : {}),
+    });
+  };
+
+  // Process entries with a small concurrency pool so lookups overlap network
+  // latency (the request rate is capped politely inside the locator).
+  let cursor = 0;
+  const worker = async (): Promise<void> => {
+    while (cursor < itemIds.length) {
+      const itemId = itemIds[cursor++]; // synchronous read+increment: no two workers share an index
+      if (itemId !== undefined) await processOne(itemId);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(6, itemIds.length) }, () => worker()));
+  return { results };
 }
 
 /** Build a complete RTF bibliography document for the whole library (CSL-formatted). */
@@ -1674,6 +1857,11 @@ function buildMenu(): void {
         enabled: docEnabled,
         click: () => sendMenuCommand('findBrokenLinks'),
       },
+      {
+        label: t('menu.publication.findOpenAccessPdf'),
+        enabled: docEnabled,
+        click: () => sendMenuCommand('findOpenAccessPdf'),
+      },
       { type: 'separator' },
       {
         label: t('menu.publication.macros'),
@@ -2271,6 +2459,20 @@ function registerIpc(): void {
     [IpcChannels.removeAttachment]: (req) =>
       store.removeAttachment(req.documentId, req.itemId, req.field),
     [IpcChannels.findBrokenLinks]: (req) => ({ links: store.findBrokenLinks(req.documentId) }),
+    [IpcChannels.findOpenAccessPdf]: (req) => locateOaPdfs(req.documentId, req.itemIds),
+    [IpcChannels.fetchPdfBytes]: async (req) => {
+      const buf = await downloadPdf(req.url);
+      return buf ? { data: new Uint8Array(buf) } : { data: null, error: 'Could not download the PDF.' };
+    },
+    [IpcChannels.attachPdfBytes]: (req) => {
+      try {
+        const buf = Buffer.from(req.data);
+        if (!looksLikePdf(buf)) return { ok: false, error: 'That file is not a PDF.' };
+        return { ok: true, fileName: saveAndAttachPdf(req.documentId, req.itemId, buf) };
+      } catch (err) {
+        return { ok: false, error: err instanceof Error ? err.message : String(err) };
+      }
+    },
     [IpcChannels.relocateAttachment]: async (req) => {
       const parent = dialogParent();
       const result = parent
@@ -2322,7 +2524,9 @@ function registerIpc(): void {
       if (s.ftsPageLimit !== ftsPageLimit) {
         ftsPageLimit = s.ftsPageLimit;
         for (const id of store.openDocumentIds()) {
-          void store.reindexAttachments(id, pdfExtract).then(() => pdfCache?.flush());
+          void store
+            .reindexAttachments(id, pdfExtract, (done, total) => broadcastIndexProgress(id, done, total))
+            .then(() => pdfCache?.flush());
         }
       }
       // Re-localize the menu when the UI language changes.
@@ -2855,6 +3059,9 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.readAttachment, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.readAttachment](req),
   );
+  ipcMain.handle(IpcChannels.fetchPdfBytes, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.fetchPdfBytes](req),
+  );
   ipcMain.handle(IpcChannels.exportText, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.exportText](req),
   );
@@ -2866,6 +3073,7 @@ function registerIpc(): void {
   );
   mutating(IpcChannels.pasteEntries);
   mutating(IpcChannels.importFiles);
+  mutating(IpcChannels.attachPdfBytes);
   mutating(IpcChannels.importDialog);
   mutating(IpcChannels.commitStagedEntry); // creates the entry in `documentId` (target)
   ipcMain.handle(IpcChannels.discardStagingDoc, (_e: IpcMainInvokeEvent, req) =>
@@ -2915,6 +3123,19 @@ function registerIpc(): void {
   );
   mutating(IpcChannels.agentRun);
   mutating(IpcChannels.runScript);
+
+  // Find Open-Access PDFs: registered by hand (not via `mutating`) so it can stream
+  // per-entry progress back to the calling window while it runs, then apply the
+  // mutating tail (hooks + cross-window refresh + menu rebuild) once it finishes.
+  ipcMain.handle(IpcChannels.findOpenAccessPdf, async (e: IpcMainInvokeEvent, req) => {
+    const result = await locateOaPdfs(req.documentId, req.itemIds, (p: OaPdfProgress) =>
+      e.sender.send(IpcEvents.oaPdfProgress, p),
+    );
+    fireDocumentChange(req.documentId);
+    broadcastDocumentChanged(req.documentId, e.sender);
+    buildMenu();
+    return result;
+  });
 }
 
 // ---------------------------------------------------------------------------

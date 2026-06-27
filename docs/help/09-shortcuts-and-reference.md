@@ -80,6 +80,7 @@ Every item needs an open library.
 | Add File Attachment… | — | — | Attach a file to the selected entry |
 | AutoFile Linked Files | — | — | [AutoFile](04-attachments.md#autofile-organising-linked-files) the selected entry's attachments |
 | Find Broken Links… | — | — | Find attachments whose files are [missing on disk](04-attachments.md#finding-and-repairing-broken-links) and repair them |
+| Find Open-Access PDFs… | — | — | Locate and attach [open-access PDFs](04-attachments.md#finding-open-access-pdfs) (OpenAlex) for the selected entries |
 | Macros (@string)… | — | — | Open the `@string` macro editor |
 
 ### View menu
@@ -165,7 +166,7 @@ useful ones:
 | --- | --- |
 | **Select an entry** | Click its row in the publications table; the detail pane updates |
 | **Extend the selection** | **Cmd/Ctrl-click** a row to add/remove it; **Shift-click** for a range; **⌘A** / **Ctrl+A** for all. 2+ rows switch both panels to the [multi-select view](10-panels.md#working-with-multiple-selected-entries) |
-| **Right-click a row** | Open the row [context menu](10-panels.md#the-row-context-menu): **Edit Annotation…** (opens the [standalone annotation editor](05-notes-and-abstracts.md#the-annotation-editor-window)), a strip of **colour-label** dots (and a **✕** to clear), and **Delete entry** / **Delete N entries**. A right-click outside the selection selects just that row first |
+| **Right-click a row** | Open the row [context menu](10-panels.md#the-row-context-menu): **Edit Annotation…** (opens the [standalone annotation editor](05-notes-and-abstracts.md#the-annotation-editor-window)), **Find Open-Access PDF…** ([locate + attach an OA PDF](04-attachments.md#finding-open-access-pdfs)), a strip of **colour-label** dots (and a **✕** to clear), and **Delete entry** / **Delete N entries**. A right-click outside the selection selects just that row first |
 | **Delete the selection** | Press **Delete** / **Backspace** (table focused), or use the right-click **Delete** item; undoable |
 | **Sort the table** | Click a **column header**; click the same header again to flip ascending/descending (a ▲/▼ marks the active column) |
 | **Drag out a citation** | Drag a row into a TeX editor (or any text field) to insert a `\cite{…}` |

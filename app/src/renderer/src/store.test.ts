@@ -146,6 +146,9 @@ function makeFakeApi() {
     findReplace: async () => ({ matches: [], total: 0, applied: false, dirty: false }),
     findDuplicates: async () => ({ groups: [], total: 0 }),
     findBrokenLinks: async () => ({ links: [] }),
+    findOpenAccessPdf: async () => ({ results: [] }),
+    fetchPdfBytes: async () => ({ data: null }),
+    attachPdfBytes: async () => ({ ok: true }),
     relocateAttachment: async () => ({ dirty: true }),
     groupEdit: async () => ({ dirty: true, groupId: 'g#0#0' }),
     groupConditions: async () => ({ name: 'Smart', conjunction: 0, conditions: [] }),
@@ -166,6 +169,8 @@ function makeFakeApi() {
     onDocumentOpened: (): Unsubscribe => () => {},
     onDocumentClosed: (): Unsubscribe => () => {},
     onDocumentChanged: (): Unsubscribe => () => {},
+    onOaPdfProgress: (): Unsubscribe => () => {},
+    onIndexProgress: (): Unsubscribe => () => {},
     onShowPreferences: (): Unsubscribe => () => {},
   };
   return { api, calls };

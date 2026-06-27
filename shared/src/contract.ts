@@ -85,6 +85,12 @@ import type {
   FindDuplicatesResult,
   FindBrokenLinksRequest,
   FindBrokenLinksResponse,
+  FindOpenAccessPdfRequest,
+  FindOpenAccessPdfResponse,
+  FetchPdfBytesRequest,
+  FetchPdfBytesResponse,
+  AttachPdfBytesRequest,
+  AttachPdfBytesResponse,
   RelocateAttachmentRequest,
   GroupEditRequest,
   GroupEditResult,
@@ -185,6 +191,9 @@ export interface IpcContract {
   [IpcChannels.findReplace]: IpcEntry<FindReplaceRequest, FindReplaceResult>;
   [IpcChannels.findDuplicates]: IpcEntry<FindDuplicatesRequest, FindDuplicatesResult>;
   [IpcChannels.findBrokenLinks]: IpcEntry<FindBrokenLinksRequest, FindBrokenLinksResponse>;
+  [IpcChannels.findOpenAccessPdf]: IpcEntry<FindOpenAccessPdfRequest, FindOpenAccessPdfResponse>;
+  [IpcChannels.fetchPdfBytes]: IpcEntry<FetchPdfBytesRequest, FetchPdfBytesResponse>;
+  [IpcChannels.attachPdfBytes]: IpcEntry<AttachPdfBytesRequest, AttachPdfBytesResponse>;
   [IpcChannels.relocateAttachment]: IpcEntry<RelocateAttachmentRequest, EditResult>;
   [IpcChannels.groupEdit]: IpcEntry<GroupEditRequest, GroupEditResult>;
   [IpcChannels.groupConditions]: IpcEntry<GroupConditionsRequest, GroupConditionsResponse>;

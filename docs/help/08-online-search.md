@@ -327,6 +327,8 @@ missing field by hand in the detail pane — see
   record.
 - [Browsing & Searching](02-browsing-and-searching.md) — check for an existing
   copy before you import.
+- [Attachments → Finding open-access PDFs](04-attachments.md#finding-open-access-pdfs)
+  — another online lookup: find and attach a legal OA PDF for entries you already have.
 - [Notes & Abstracts](05-notes-and-abstracts.md) — the arXiv abstract is
   Markdown-rendered in the preview.
 - [Shortcuts & Reference](09-shortcuts-and-reference.md) — the **Save** shortcut

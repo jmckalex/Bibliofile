@@ -104,6 +104,14 @@ import type {
   FindDuplicatesResult,
   FindBrokenLinksRequest,
   FindBrokenLinksResponse,
+  FindOpenAccessPdfRequest,
+  FindOpenAccessPdfResponse,
+  FetchPdfBytesRequest,
+  FetchPdfBytesResponse,
+  AttachPdfBytesRequest,
+  AttachPdfBytesResponse,
+  OaPdfProgress,
+  IndexProgress,
   RelocateAttachmentRequest,
   GroupEditRequest,
   GroupEditResult,
@@ -279,6 +287,15 @@ const api: BibDeskApi = {
   findBrokenLinks(request: FindBrokenLinksRequest): Promise<FindBrokenLinksResponse> {
     return ipcRenderer.invoke(IpcChannels.findBrokenLinks, request);
   },
+  findOpenAccessPdf(request: FindOpenAccessPdfRequest): Promise<FindOpenAccessPdfResponse> {
+    return ipcRenderer.invoke(IpcChannels.findOpenAccessPdf, request);
+  },
+  fetchPdfBytes(request: FetchPdfBytesRequest): Promise<FetchPdfBytesResponse> {
+    return ipcRenderer.invoke(IpcChannels.fetchPdfBytes, request);
+  },
+  attachPdfBytes(request: AttachPdfBytesRequest): Promise<AttachPdfBytesResponse> {
+    return ipcRenderer.invoke(IpcChannels.attachPdfBytes, request);
+  },
   relocateAttachment(request: RelocateAttachmentRequest): Promise<EditResult> {
     return ipcRenderer.invoke(IpcChannels.relocateAttachment, request);
   },
@@ -367,6 +384,16 @@ const api: BibDeskApi = {
     const handler = (_e: IpcRendererEvent, payload: DocumentChangedEvent): void => listener(payload);
     ipcRenderer.on(IpcEvents.documentChanged, handler);
     return () => ipcRenderer.removeListener(IpcEvents.documentChanged, handler);
+  },
+  onOaPdfProgress(listener: (p: OaPdfProgress) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, payload: OaPdfProgress): void => listener(payload);
+    ipcRenderer.on(IpcEvents.oaPdfProgress, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.oaPdfProgress, handler);
+  },
+  onIndexProgress(listener: (p: IndexProgress) => void): Unsubscribe {
+    const handler = (_e: IpcRendererEvent, payload: IndexProgress): void => listener(payload);
+    ipcRenderer.on(IpcEvents.indexProgress, handler);
+    return () => ipcRenderer.removeListener(IpcEvents.indexProgress, handler);
   },
 };
 

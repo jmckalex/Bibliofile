@@ -20,6 +20,8 @@ import type {
   FindReplaceRequest,
   FindReplaceResult,
   FindDuplicatesResult,
+  OaPdfItemResult,
+  IndexProgress,
   BrokenLink,
   GroupNode,
   ImportResult,
@@ -42,6 +44,18 @@ import {
   parseSearchQuery,
   searchTokensMatch,
 } from '@bibdesk/shared';
+
+/** Live state of a Find Open-Access PDFs batch, surfaced in a non-blocking panel. */
+export interface OaLookupState {
+  /** Number of entries the batch is processing. */
+  total: number;
+  /** How many have finished so far. */
+  done: number;
+  /** Still running (drives the progress bar vs. the final summary). */
+  running: boolean;
+  /** Per-entry outcomes, appended live as each finishes. */
+  results: OaPdfItemResult[];
+}
 
 /** Apply the chosen theme to the document root (`system` follows the OS). */
 export function applyTheme(theme: Settings['theme']): void {
@@ -299,6 +313,22 @@ export interface ViewerState {
   findReplace: (opts: Omit<FindReplaceRequest, 'documentId' | 'groupId'>) => Promise<FindReplaceResult>;
   /** Scan the document for duplicate entries. */
   findDuplicates: () => Promise<FindDuplicatesResult>;
+  /** Background full-text PDF indexing progress (null = idle/done/dismissed). */
+  indexing: { done: number; total: number } | null;
+  /** The documentId whose indexing panel the user dismissed (re-shown on a fresh run). */
+  indexDismissed: string | null;
+  /** Apply a background-indexing progress event (from `onIndexProgress`). */
+  applyIndexProgress: (p: IndexProgress) => void;
+  /** Hide the indexing panel for the current run. */
+  dismissIndexing: () => void;
+  /** Live state of a running/finished Find Open-Access PDFs batch (null = panel closed). */
+  oaLookup: OaLookupState | null;
+  /** Start an OA-PDF lookup for the given entries; opens the non-blocking progress panel. */
+  startOaLookup: (itemIds: readonly string[]) => Promise<void>;
+  /** Dismiss the OA-PDF panel. */
+  closeOaLookup: () => void;
+  /** Attach reviewed PDF bytes to an entry (from the review window); refreshes + marks the panel row attached. */
+  attachReviewedPdf: (itemId: string, bytes: Uint8Array) => Promise<boolean>;
   /** Scan the document for attachments whose file is missing on disk. */
   findBrokenLinks: () => Promise<BrokenLink[]>;
   /** Repair a broken managed attachment by picking a replacement file (opens a dialog). */
@@ -383,6 +413,9 @@ export function createStore(api: BibDeskApi) {
     citationStyles: [...CITATION_STYLES],
     macros: [],
     selectedIds: [],
+    oaLookup: null,
+    indexing: null,
+    indexDismissed: null,
     dirty: false,
     saving: false,
     loading: false,
@@ -1044,6 +1077,107 @@ export function createStore(api: BibDeskApi) {
       } catch (err) {
         set({ error: errorMessage(err) });
         return { groups: [], total: 0 };
+      }
+    },
+
+    startOaLookup: async (itemIds) => {
+      const { documentId, settings } = get();
+      if (!documentId || itemIds.length === 0) return;
+      // Unpaywall (and the Crossref polite pool) need a contact email.
+      if (!settings.contactEmail?.trim()) {
+        set({ error: 'Set a contact email in Preferences → Citations to use Find Open-Access PDFs.' });
+        return;
+      }
+      // Open the panel immediately in its "running" state.
+      set({ oaLookup: { total: itemIds.length, done: 0, running: true, results: [] } });
+
+      // Coalesce table reloads while attachments stream in (the file-icon column
+      // is per-row, so reload the whole table — but at most every ~400ms).
+      let tableTimer: ReturnType<typeof setTimeout> | undefined;
+      const scheduleTableRefresh = (): void => {
+        if (tableTimer) return;
+        tableTimer = setTimeout(() => {
+          tableTimer = undefined;
+          void get().loadPublications();
+        }, 400);
+      };
+
+      // Stream each entry's outcome into the panel; refresh the table + the open
+      // detail as soon as an attachment lands (main applies it before emitting).
+      const unsub = api.onOaPdfProgress((p) => {
+        if (p.documentId !== get().documentId) return;
+        const cur = get().oaLookup;
+        if (!cur) return; // panel was closed
+        set({ oaLookup: { ...cur, done: p.done, results: [...cur.results, p.result] } });
+        if (p.result.status === 'attached') {
+          set({ dirty: true });
+          scheduleTableRefresh();
+          if (p.result.itemId === get().selectedItemId) void get().loadDetail(p.result.itemId);
+        }
+      });
+      try {
+        const res = await api.findOpenAccessPdf({ documentId, itemIds });
+        // Final reconcile pass (covers the trailing debounced refresh).
+        if (res.results.some((r) => r.status === 'attached')) {
+          set({ dirty: true });
+          await get().loadPublications();
+          const sel = get().selectedItemId;
+          if (sel) await get().loadDetail(sel);
+        }
+        const cur = get().oaLookup;
+        if (cur) set({ oaLookup: { ...cur, running: false, done: res.results.length, results: [...res.results] } });
+      } catch (err) {
+        set({ error: errorMessage(err) });
+        const cur = get().oaLookup;
+        if (cur) set({ oaLookup: { ...cur, running: false } });
+      } finally {
+        if (tableTimer) clearTimeout(tableTimer);
+        unsub();
+      }
+    },
+
+    closeOaLookup: () => set({ oaLookup: null }),
+
+    applyIndexProgress: (p) => {
+      if (p.documentId !== get().documentId) return; // event for another window's doc
+      if (p.done === 0) set({ indexDismissed: null }); // a fresh run un-dismisses
+      if (get().indexDismissed === p.documentId) return; // user hid this run
+      if (p.total === 0 || p.done >= p.total) set({ indexing: null });
+      else set({ indexing: { done: p.done, total: p.total } });
+    },
+
+    dismissIndexing: () => set({ indexing: null, indexDismissed: get().documentId ?? null }),
+
+    attachReviewedPdf: async (itemId, bytes) => {
+      const { documentId } = get();
+      if (!documentId) return false;
+      try {
+        const res = await api.attachPdfBytes({ documentId, itemId, data: bytes });
+        if (!res.ok) {
+          set({ error: res.error ?? 'Could not attach the PDF.' });
+          return false;
+        }
+        // Mark the panel row attached (drop its review URL) and refresh the view.
+        const cur = get().oaLookup;
+        if (cur) {
+          set({
+            oaLookup: {
+              ...cur,
+              results: cur.results.map((r) =>
+                r.itemId === itemId
+                  ? { ...r, status: 'attached', message: 'Attached (reviewed).', fileName: res.fileName, url: undefined }
+                  : r,
+              ),
+            },
+          });
+        }
+        set({ dirty: true });
+        await get().loadPublications();
+        if (get().selectedItemId === itemId) await get().loadDetail(itemId);
+        return true;
+      } catch (err) {
+        set({ error: errorMessage(err) });
+        return false;
       }
     },
 

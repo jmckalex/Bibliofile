@@ -737,6 +737,75 @@ export interface ImportDialogRequest {
   readonly documentId: DocumentId;
 }
 
+/** Locate (and, where found, attach) open-access PDFs for the given entries. */
+export interface FindOpenAccessPdfRequest {
+  readonly documentId: DocumentId;
+  readonly itemIds: readonly ItemId[];
+}
+
+/** Per-entry outcome of an open-access PDF lookup. */
+export type OaPdfStatus = 'attached' | 'none' | 'candidate' | 'skipped' | 'error';
+export interface OaPdfItemResult {
+  readonly itemId: ItemId;
+  readonly citeKey: string;
+  readonly status: OaPdfStatus;
+  /** Human-readable explanation for the row. */
+  readonly message: string;
+  /** Attached file's name (when `status === 'attached'`). */
+  readonly fileName?: string;
+  /** How the match was made (when attached/candidate). */
+  readonly via?: 'doi' | 'fuzzy';
+  /** The title we matched against (fuzzy attach / candidate). */
+  readonly matchedTitle?: string;
+  /** A PDF URL the user can open manually (an unconfident `candidate`). */
+  readonly url?: string;
+}
+export interface FindOpenAccessPdfResponse {
+  readonly results: readonly OaPdfItemResult[];
+}
+
+/** Download a PDF by URL (e.g. a "possible match" candidate) for in-app review. */
+export interface FetchPdfBytesRequest {
+  readonly url: string;
+}
+export interface FetchPdfBytesResponse {
+  /** PDF bytes (validated `%PDF-`), or null if it didn't fetch / isn't a PDF. */
+  readonly data: Uint8Array | null;
+  readonly error?: string;
+}
+
+/** Attach already-downloaded PDF bytes (from the review window) to an entry. */
+export interface AttachPdfBytesRequest {
+  readonly documentId: DocumentId;
+  readonly itemId: ItemId;
+  readonly data: Uint8Array;
+}
+export interface AttachPdfBytesResponse {
+  readonly ok: boolean;
+  /** Attached file's name on success. */
+  readonly fileName?: string;
+  readonly error?: string;
+}
+
+/** Streamed after each entry is processed, so the UI can show live progress. */
+export interface OaPdfProgress {
+  readonly documentId: DocumentId;
+  /** Entries processed so far (1-based as it counts up). */
+  readonly done: number;
+  readonly total: number;
+  /** The just-finished entry's outcome. */
+  readonly result: OaPdfItemResult;
+}
+
+/** Progress of background full-text indexing of a document's PDF attachments. */
+export interface IndexProgress {
+  readonly documentId: DocumentId;
+  /** Entries (with PDFs) indexed so far. */
+  readonly done: number;
+  /** Total entries with PDF attachments to index (0 ⇒ nothing to do). */
+  readonly total: number;
+}
+
 /** One staged PDF awaiting review: a draft entry id in the staging document + its
  *  source PDF (the file that will be attached if the draft is Accepted). */
 export interface StagedPdf {
@@ -1158,6 +1227,11 @@ export interface Settings {
    */
   readonly defaultCiteStyle: string;
   /**
+   * Contact email sent to Unpaywall (required) and Crossref (polite pool) when
+   * using **Find Open-Access PDFs**. Empty ⇒ the feature prompts you to set one.
+   */
+  readonly contactEmail: string;
+  /**
    * CSL style id used to render inline `\cite{…}` commands and the `@references`
    * bibliography inside notes. Empty string ⇒ follow {@link defaultCiteStyle}.
    */
@@ -1289,6 +1363,7 @@ export const DEFAULT_SETTINGS: Settings = {
   locale: 'system',
   theme: 'system',
   defaultCiteStyle: 'apa',
+  contactEmail: '',
   inlineCiteStyle: '', // empty ⇒ follow defaultCiteStyle
   citationAutolink: true, // make URLs/DOIs in citations clickable
 
@@ -1530,6 +1605,7 @@ export type MenuCommand =
   | 'editMacros'
   | 'findDuplicates'
   | 'findBrokenLinks'
+  | 'findOpenAccessPdf'
   | 'scanJournalCovers'
   | 'scriptConsole'
   | 'texPreview'

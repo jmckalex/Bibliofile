@@ -86,6 +86,14 @@ import type {
   FindDuplicatesResult,
   FindBrokenLinksRequest,
   FindBrokenLinksResponse,
+  FindOpenAccessPdfRequest,
+  FindOpenAccessPdfResponse,
+  FetchPdfBytesRequest,
+  FetchPdfBytesResponse,
+  AttachPdfBytesRequest,
+  AttachPdfBytesResponse,
+  OaPdfProgress,
+  IndexProgress,
   RelocateAttachmentRequest,
   GroupEditRequest,
   GroupEditResult,
@@ -273,6 +281,12 @@ export interface BibDeskApi {
 
   /** Scan the document for file attachments whose target file is missing on disk. */
   findBrokenLinks(request: FindBrokenLinksRequest): Promise<FindBrokenLinksResponse>;
+  /** Locate open-access PDFs for the given entries and attach what is found. */
+  findOpenAccessPdf(request: FindOpenAccessPdfRequest): Promise<FindOpenAccessPdfResponse>;
+  /** Download a PDF by URL for in-app review (a "possible match" candidate). */
+  fetchPdfBytes(request: FetchPdfBytesRequest): Promise<FetchPdfBytesResponse>;
+  /** Attach reviewed PDF bytes to an entry. */
+  attachPdfBytes(request: AttachPdfBytesRequest): Promise<AttachPdfBytesResponse>;
 
   /** Repair a broken managed attachment by picking a replacement file (opens a dialog). */
   relocateAttachment(request: RelocateAttachmentRequest): Promise<EditResult>;
@@ -358,6 +372,10 @@ export interface BibDeskApi {
    * refresh. Returns an unsubscribe function.
    */
   onDocumentChanged(listener: (e: DocumentChangedEvent) => void): Unsubscribe;
+  /** Subscribe to per-entry progress of a running Find Open-Access PDFs batch. */
+  onOaPdfProgress(listener: (p: OaPdfProgress) => void): Unsubscribe;
+  /** Subscribe to background full-text PDF indexing progress (fires after open). */
+  onIndexProgress(listener: (p: IndexProgress) => void): Unsubscribe;
 }
 
 /**

@@ -277,6 +277,7 @@ export function PublicationsTable() {
   const columnWidths = useStore((s) => s.settings.columnWidths);
   const saveSettings = useStore((s) => s.saveSettings);
   const setColor = useStore((s) => s.setColor);
+  const startOaLookup = useStore((s) => s.startOaLookup);
 
   // Right-click color picker: cursor position + the clicked row's current color.
   const [colorMenu, setColorMenu] = useState<
@@ -677,6 +678,9 @@ export function PublicationsTable() {
         count={colorMenu.count}
         onPick={(idx) => void setColor(idx)}
         onEditAnnotation={() => openAnnotation(colorMenu.itemId)}
+        onFindOaPdf={() =>
+          void startOaLookup(selectedIds.length ? selectedIds : [colorMenu.itemId])
+        }
         onDelete={() => void deleteSelection()}
         onClose={() => setColorMenu(undefined)}
       />

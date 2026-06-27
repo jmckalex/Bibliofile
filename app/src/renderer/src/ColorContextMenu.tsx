@@ -16,6 +16,7 @@ export function ColorContextMenu({
   count,
   onPick,
   onEditAnnotation,
+  onFindOaPdf,
   onDelete,
   onClose,
 }: {
@@ -29,6 +30,8 @@ export function ColorContextMenu({
   onPick: (colorIndex: number | null) => void;
   /** Open the standalone annotation editor for the right-clicked entry. */
   onEditAnnotation: () => void;
+  /** Find & attach open-access PDFs for the current selection. */
+  onFindOaPdf: () => void;
   /** Delete the current selection. */
   onDelete: () => void;
   onClose: () => void;
@@ -66,6 +69,18 @@ export function ColorContextMenu({
       >
         <Icon name="annotation" />
         {t('context.editAnnotation')}
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="bd-colormenu__item"
+        onClick={() => {
+          onFindOaPdf();
+          onClose();
+        }}
+      >
+        <Icon name="pdf" />
+        {t('context.findOaPdf')}
       </button>
       <div className="bd-colormenu__sep" />
       <div className="bd-colormenu__colors">

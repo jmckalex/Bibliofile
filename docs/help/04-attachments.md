@@ -79,6 +79,62 @@ Each chosen file is attached to the entry immediately as a new managed
 > deal; see [How attachments are stored](#how-attachments-are-stored) and
 > [Best practices](#best-practices-for-portable-attachments).
 
+## Finding open-access PDFs
+
+Rather than tracking down a PDF yourself, you can ask the app to find a **legal,
+open-access** copy and attach it for you. Select one or more entries and choose
+**Publication → Find Open-Access PDFs…**, or **right-click the selection** and pick
+**Find Open-Access PDF…**. For each entry the app looks the work up via
+[Unpaywall](https://unpaywall.org) (a free database of open-access copies) — using
+[Crossref](https://www.crossref.org) first to find a DOI for entries that don't
+have one — and where an OA PDF exists, **downloads and attaches it**.
+
+> **Note:** This needs a **contact email** (Unpaywall requires one; Crossref uses it
+> to serve you politely). Set it once in **Preferences → Citations → Contact email**.
+> Until you do, the command will ask you to.
+
+A small **progress panel** appears in the lower-right while it runs, filling in each
+entry's result as it goes — it **doesn't block the app**, so you can keep browsing
+and editing while the search continues. Entries that **already have a file attached
+are skipped**, so re-running never adds a duplicate.
+
+It works **with or without a DOI**:
+
+- **With a DOI** (or a `doi.org` link in the `Url` field), the lookup is exact.
+- **Without one**, it searches by **title, author, and year**. A *confident* match
+  is attached automatically; a weaker, *possible* match is **never attached on a
+  guess** — instead you can **Review…** it (the PDF opens in the app) and then
+  **Attach** or **Discard** it yourself.
+
+| Result | Meaning |
+| --- | --- |
+| **Attached** | An open-access PDF was found and attached (the row says whether it matched by DOI or by title). |
+| **Possible match** | A plausible but unconfirmed title match — not attached automatically. Click **Review…** to open the PDF *in the app* and **Attach** or **Discard** it once you've checked it's the right paper. |
+| **No OA copy** | The work was identified but has no open-access PDF available. |
+| **Skipped** | The entry already has a file attached, or has neither a DOI nor a title to search with. |
+| **Error** | The lookup or download failed (e.g. you're offline). |
+
+The downloaded file is saved to your **Papers folder** if you've set one (and is
+[AutoFiled](#autofile-organising-linked-files) there), otherwise **next to your
+`.bib`** so the link stays portable. Downloads are verified to really be PDFs, and
+each one is **its own undo step** (so you can revert an individual attachment). As
+with any attachment, the change isn't written until you **Save**.
+
+> **Note:** Big libraries — Unpaywall and Crossref are generous (tens of thousands
+> of lookups a day), so a whole library is fine, but they're queried at a steady,
+> polite pace, so a very large selection takes a while. The app times out and
+> retries unresponsive requests, and stops with a clear message if a service is
+> persistently rate-limiting (then try again later or in smaller batches).
+
+> **Note:** The downloaded copy is acquired for you, but **viewing and annotating
+> it is left to your preferred PDF app** — clicking the attachment opens it there,
+> exactly like any other file.
+
+> **Warning:** To look entries up, their **DOIs and titles — and your contact
+> email — are sent to Unpaywall and Crossref**, third-party services. This is the
+> same kind of request the app already makes for
+> [Online Search](08-online-search.md); it happens only when you run this command.
+
 ## Opening an attachment
 
 Click an attachment in the **Attachments** list to open it:
@@ -103,7 +159,13 @@ The DOI and URL chips on the same card open the link / DOI directly.
 
 ## Removing an attachment
 
-Click the **×** next to a managed file attachment to detach it from the entry.
+There are two ways to detach a managed file from an entry:
+
+- In the detail pane's **Attachments** list, click the **×** next to the file.
+- In the bottom panel's **Attachments** tab, hover an attachment thumbnail and click
+  the **red ✕** in its upper-right corner.
+
+Either way the removal is **undoable** (**⌘Z** / **Ctrl+Z**).
 
 > **Note:** Removing an attachment only deletes the **link** from your library
 > (the `Bdsk-File-N` entry). The file itself stays untouched on disk. If you want
@@ -396,9 +458,10 @@ opens, so PDF matches may appear a moment after the first results. See
 |--------|-----|
 | Add file attachment(s) | Select entry → **＋ Add** in Attachments (or **Publication → Add File Attachment…**) → pick one or more files |
 | Attach via drag-and-drop | Drag a file onto the **detail pane** → attaches to the shown entry; drag onto the **publications list** → new entry with the file attached |
+| Find & attach an open-access PDF | Select entries → **Publication → Find Open-Access PDFs…** or **right-click → Find Open-Access PDF…** (matches by DOI, or by title when there's none) |
 | Open an attachment | Click it → opens in your OS default app (PDFs in your usual reader); or click the **📎 N files** preview chip |
 | Open another file / link | Click it (file → default app; link → browser) |
-| Remove a file attachment | Click **×** beside it |
+| Remove a file attachment | Click **×** beside it in the detail pane, or the **red ✕** on its thumbnail in the bottom panel's Attachments tab |
 | Remove a URL/DOI link | Edit/delete the `Url` or `Doi` field in **Fields** |
 | File selected entries into the Papers folder | **Publication → AutoFile Linked Files** (works on the whole selection; set the Papers folder + format in **Preferences → AutoFile**) |
 | File the whole library into the Papers folder | **Publication → Consolidate Linked Files…** |

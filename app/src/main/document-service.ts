@@ -1208,26 +1208,53 @@ export class DocumentStore {
    * body adds no undo step. Used by the JavaScript scripting host.
    */
   runInUndoGroup<T>(documentId: string, label: string, fn: () => T): T {
+    this.beginUndoGroup(documentId, label);
+    try {
+      return fn();
+    } finally {
+      this.endUndoGroup(documentId);
+    }
+  }
+
+  /** State captured by an open {@link beginUndoGroup}, for {@link endUndoGroup}. */
+  private undoGroups = new Map<
+    string,
+    { before: string; redoBefore: UndoStep[]; pushed: boolean; wasSuspended: boolean }
+  >();
+
+  /**
+   * Begin a one-undo batch whose body runs **asynchronously** (so
+   * {@link runInUndoGroup}, which takes a synchronous `fn`, can't wrap it). Takes
+   * the single up-front snapshot and suspends the per-operation snapshots that
+   * nested `applyEdit`/`addAttachments` calls take — so the whole batch collapses
+   * to one undo step, while each mutation is applied (and visible) immediately.
+   * Pair with {@link endUndoGroup} (always, e.g. in a `finally`). Not re-entrant
+   * per document.
+   */
+  beginUndoGroup(documentId: string, label: string): void {
     this.requireDoc(documentId);
     const h = this.historyFor(documentId);
     const before = this.serializeDocument(documentId);
     const redoBefore = h.redo.slice();
     const undoLen = h.undo.length;
-    this.snapshot(documentId, label); // the single undo point for the whole group
+    this.snapshot(documentId, label);
     const pushed = h.undo.length > undoLen;
     const wasSuspended = this.undoSuspended.has(documentId);
     this.undoSuspended.add(documentId);
-    try {
-      return fn();
-    } finally {
-      if (!wasSuspended) this.undoSuspended.delete(documentId);
-      // A read-only / no-op body should leave undo+redo untouched: drop the
-      // snapshot we took up front and restore the redo stack `snapshot()` cleared.
-      if (this.serializeDocument(documentId) === before) {
-        if (pushed) h.undo.pop();
-        h.redo.length = 0;
-        h.redo.push(...redoBefore);
-      }
+    this.undoGroups.set(documentId, { before, redoBefore, pushed, wasSuspended });
+  }
+
+  /** End the batch begun by {@link beginUndoGroup}; a no-op body leaves undo/redo untouched. */
+  endUndoGroup(documentId: string): void {
+    const g = this.undoGroups.get(documentId);
+    if (!g) return;
+    this.undoGroups.delete(documentId);
+    if (!g.wasSuspended) this.undoSuspended.delete(documentId);
+    const h = this.historyFor(documentId);
+    if (this.serializeDocument(documentId) === g.before) {
+      if (g.pushed) h.undo.pop();
+      h.redo.length = 0;
+      h.redo.push(...g.redoBefore);
     }
   }
 
@@ -1407,6 +1434,11 @@ export class DocumentStore {
   /** One BibItem by id within a document, or undefined. */
   itemById(documentId: string, itemId: string): BibItem | undefined {
     return this.docs.get(documentId)?.itemsById.get(itemId);
+  }
+
+  /** Absolute path of a document's `.bib`, or '' if it has never been saved. */
+  documentPath(documentId: string): string {
+    return this.docs.get(documentId)?.path ?? '';
   }
 
   /** Close a document and release it. Throws if the id is unknown. */
@@ -2825,6 +2857,7 @@ export class DocumentStore {
   async indexAttachments(
     documentId: string,
     extract: (absPath: string) => Promise<string> = extractPdfText,
+    onProgress?: (done: number, total: number) => void,
   ): Promise<void> {
     const doc = this.docs.get(documentId);
     if (!doc || doc.attachmentsIndexed || !doc.fts.available) return;
@@ -2834,15 +2867,29 @@ export class DocumentStore {
     // Yield to the event loop between items so a long all-cache-hit reopen (no
     // worker round-trip to interleave) still services IPC/UI rather than bursting.
     const yieldToLoop = (): Promise<void> => new Promise((r) => setImmediate(r));
+
+    // Collect the items that actually have an existing PDF to extract, so progress
+    // is reported against real work (entries with no PDFs are not counted).
+    const work: { item: BibItem; paths: string[] }[] = [];
     for (const item of doc.library.items) {
-      // The document may be closed (or re-opened) while indexing is in flight.
-      if (this.docs.get(documentId) !== doc) return;
-      let added = '';
+      const paths: string[] = [];
       for (const f of itemFiles(item, doc.library, doc.path)) {
         if (f.kind !== 'file' || !/\.pdf$/i.test(f.url)) continue;
         const p = stripScheme(f.url);
         const abs = isAbsolute(p) ? p : baseDir ? resolve(baseDir, p) : p;
-        if (!existsSync(abs)) continue;
+        if (existsSync(abs)) paths.push(abs);
+      }
+      if (paths.length) work.push({ item, paths });
+    }
+    const total = work.length;
+    onProgress?.(0, total);
+
+    let done = 0;
+    for (const { item, paths } of work) {
+      // The document may be closed (or re-opened) while indexing is in flight.
+      if (this.docs.get(documentId) !== doc) return;
+      let added = '';
+      for (const abs of paths) {
         await yieldToLoop();
         const text = await extract(abs);
         if (text) added += ` \n ${text}`;
@@ -2851,6 +2898,7 @@ export class DocumentStore {
         doc.pdfText.set(item.id, (doc.pdfText.get(item.id) ?? '') + added);
         this.reindex(doc, item);
       }
+      onProgress?.(++done, total);
     }
   }
 
@@ -2863,6 +2911,7 @@ export class DocumentStore {
   async reindexAttachments(
     documentId: string,
     extract: (absPath: string) => Promise<string> = extractPdfText,
+    onProgress?: (done: number, total: number) => void,
   ): Promise<void> {
     const doc = this.docs.get(documentId);
     if (!doc || !doc.fts.available) return;
@@ -2870,7 +2919,7 @@ export class DocumentStore {
       if (doc.pdfText.delete(item.id)) this.reindex(doc, item);
     }
     doc.attachmentsIndexed = false;
-    await this.indexAttachments(documentId, extract);
+    await this.indexAttachments(documentId, extract, onProgress);
   }
 
   /** Ids of all currently-open documents. */

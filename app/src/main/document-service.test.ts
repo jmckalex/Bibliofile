@@ -497,6 +497,28 @@ describe('document-service: BD test.bib', () => {
     expect(store.ftsSearch(documentId, 'alexander', true).ids).toEqual([itemId]);
   });
 
+  it.runIf(FTS_AVAILABLE)('indexAttachments reports progress for entries that have PDFs', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-idx-'));
+    const pdf1 = join(dir, 'a.pdf');
+    const pdf2 = join(dir, 'b.pdf');
+    writeFileSync(pdf1, '%PDF-1.4');
+    writeFileSync(pdf2, '%PDF-1.4');
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Title={A}}\n@article{b, Title={B}}\n@article{c, Title={C}}',
+      join(dir, 'lib.bib'),
+    );
+    const ids = store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.id);
+    store.addAttachments(documentId, ids[0]!, [pdf1]);
+    store.addAttachments(documentId, ids[1]!, [pdf2]);
+    // Entry c has no PDF → it is not counted toward the total.
+    const events: Array<[number, number]> = [];
+    await store.indexAttachments(documentId, async () => 'text', (done, total) => events.push([done, total]));
+    expect(events[0]).toEqual([0, 2]); // start: 2 entries with PDFs
+    expect(events.map((e) => e[0])).toEqual([0, 1, 2]); // monotonic to completion
+    expect(events.every(([, total]) => total === 2)).toBe(true);
+  });
+
   it('toItemDetail marks an entry type’s required fields (so they can’t be deleted)', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText(

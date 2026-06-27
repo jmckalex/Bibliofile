@@ -22,6 +22,8 @@ import { OnlineSearch } from './OnlineSearch.js';
 import { Preferences } from './Preferences.js';
 import { FindReplace } from './FindReplace.js';
 import { FindDuplicates } from './FindDuplicates.js';
+import { OaPdfLocator } from './OaPdfLocator.js';
+import { IndexingPanel } from './IndexingPanel.js';
 import { BrokenLinks } from './BrokenLinks.js';
 import { JournalCoverScan } from './JournalCoverScan.js';
 import { PdfReviewDialog } from './PdfReviewDialog.js';
@@ -310,6 +312,12 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
     case 'findBrokenLinks':
       modals.setBrokenLinksOpen(true);
       return;
+    case 'findOpenAccessPdf': {
+      // Locate OA PDFs for the selection (fall back to the focused row).
+      const ids = selectedIds.length ? selectedIds : selectedItemId ? [selectedItemId] : [];
+      if (ids.length) await store.startOaLookup(ids);
+      return;
+    }
     case 'scanJournalCovers':
       modals.setCoverScanOpen(true);
       return;
@@ -457,6 +465,7 @@ export function App() {
   const [brokenLinksOpen, setBrokenLinksOpen] = useState(false);
   const [coverScanOpen, setCoverScanOpen] = useState(false);
   const [scriptConsoleOpen, setScriptConsoleOpen] = useState(false);
+  const oaLookup = useStore((s) => s.oaLookup);
   const pdfReviewOpen = useStore((s) => s.pdfReview != null);
   const [dragging, setDragging] = useState(false);
   const layout = useStore((s) => s.settings.layout);
@@ -592,6 +601,7 @@ export function App() {
         void getStore().getState().reloadAfterExternalChange();
       }
     });
+    const unsubIndex = api.onIndexProgress((p) => getStore().getState().applyIndexProgress(p));
     return () => {
       unsubOpen();
       unsubPrefs();
@@ -600,6 +610,7 @@ export function App() {
       unsubExportTmpl();
       unsubSetColor();
       unsubChanged();
+      unsubIndex();
     };
   }, [onDocumentOpened]);
 
@@ -682,6 +693,8 @@ export function App() {
       {findReplaceOpen && <FindReplace onClose={() => setFindReplaceOpen(false)} />}
       {duplicatesOpen && <FindDuplicates onClose={() => setDuplicatesOpen(false)} />}
       {brokenLinksOpen && <BrokenLinks onClose={() => setBrokenLinksOpen(false)} />}
+      {oaLookup && <OaPdfLocator />}
+      <IndexingPanel />
       {coverScanOpen && <JournalCoverScan onClose={() => setCoverScanOpen(false)} />}
       {scriptConsoleOpen && <ScriptConsole onClose={() => setScriptConsoleOpen(false)} />}
       {pdfReviewOpen && <PdfReviewDialog />}
