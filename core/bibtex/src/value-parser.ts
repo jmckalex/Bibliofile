@@ -34,6 +34,7 @@ interface PieceResult {
 /** Parse a `{ … }` brace-delimited literal starting at `text[i] === '{'`. */
 function parseBraced(text: string, i: number): PieceResult {
   let depth = 0;
+  let closed = false;
   let j = i;
   for (; j < text.length; j++) {
     const c = text[j];
@@ -42,12 +43,16 @@ function parseBraced(text: string, i: number): PieceResult {
       depth--;
       if (depth === 0) {
         j++;
+        closed = true;
         break;
       }
     }
   }
-  // inner content excludes the outer braces
-  const inner = text.slice(i + 1, j - 1);
+  // Normal case: `j` is just past the closing `}`, so the inner content is
+  // `[i+1, j-1)`. If the group was never closed (missing `}` in a malformed
+  // file), `j === text.length` and `j - 1` would chop the last REAL character —
+  // keep everything after the opening brace instead.
+  const inner = closed ? text.slice(i + 1, j - 1) : text.slice(i + 1);
   return { node: stringNode(inner), next: j };
 }
 

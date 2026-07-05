@@ -27,7 +27,7 @@ import {
   type FieldValue,
   type MacroResolver,
 } from '@bibdesk/model';
-import { texify } from '@bibdesk/tex';
+import { texify, balanceBraces } from '@bibdesk/tex';
 
 import type { BibLibrary, DocumentInfoEntry } from './library.js';
 import { bdskFileKey } from './library.js';
@@ -84,7 +84,24 @@ function buildMacroString(resolver: MacroResolver): string {
 
 /** Render a macro definition value (no TeXify; `{…}`/bare/`#`-joined). */
 function renderMacroValue(value: FieldValue): string {
-  return complexValueToBibTeX(value);
+  return renderBalanced(value, false);
+}
+
+/**
+ * Render a {@link FieldValue} to BibTeX text with stray braces balanced, and —
+ * when `doTexify` — literal string pieces TeXified first. Every literal `{…}`
+ * piece is brace-balanced (via {@link balanceBraces}) so an unbalanced stored
+ * value cannot corrupt the round-trip (a lone `{`/`}` re-parses as a fabricated
+ * macro / swallows the next field otherwise); macro and number tokens pass
+ * through untouched. A strict no-op for well-formed (brace-balanced) values.
+ */
+function renderBalanced(value: FieldValue, doTexify: boolean): string {
+  const literal = (s: string): string => balanceBraces(doTexify ? texify(s) : s);
+  if (!isComplex(value)) return `{${literal(value)}}`;
+  const nodes = value.nodes.map((node) =>
+    node.type === 'string' ? { type: 'string' as const, value: literal(node.value) } : node,
+  );
+  return complexValueToBibTeX({ nodes });
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +120,7 @@ function buildDocumentInfo(entries: DocumentInfoEntry[]): string {
 
 /** Render a value as `{…}`-wrapped (or bare/joined for complex), no TeXify. */
 function renderRawValue(value: FieldValue): string {
-  return complexValueToBibTeX(value);
+  return renderBalanced(value, false);
 }
 
 // ---------------------------------------------------------------------------
@@ -197,20 +214,10 @@ function renderFieldValue(
     return complexValueToBibTeX(value);
   }
 
-  if (isComplex(value)) {
-    // complex values: macro tokens / numbers stay bare; string nodes wrapped.
-    // TeXify only applies to literal string nodes of TeXifiable fields.
-    if (!tm.shouldTeXifyField(name)) return complexValueToBibTeX(value);
-    const texified = {
-      nodes: value.nodes.map((node) =>
-        node.type === 'string' ? { type: 'string' as const, value: texify(node.value) } : node,
-      ),
-    };
-    return complexValueToBibTeX(texified);
-  }
-
-  const text = tm.shouldTeXifyField(name) ? texify(value) : value;
-  return `{${text}}`;
+  // Both simple and complex values route through renderBalanced: macro/number
+  // tokens stay bare, literal string pieces are TeXified (TeXifiable fields only)
+  // and brace-balanced so an unbalanced stored value can't corrupt the round-trip.
+  return renderBalanced(value, tm.shouldTeXifyField(name));
 }
 
 // ---------------------------------------------------------------------------

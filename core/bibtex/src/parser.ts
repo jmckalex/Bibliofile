@@ -93,16 +93,38 @@ function scanBlocks(text: string): RawBlock[] {
     }
     // Scan the body to its matching delimiter. BibTeX bodies are brace-balanced
     // (btparse balances `{`/`}` regardless of quotes/parens inside), so we track
-    // brace depth and ignore quotes entirely at this level — the embedded XML
+    // brace depth and ignore quotes entirely FOR BRACE COUNTING — the embedded XML
     // plist of a group `@comment` is full of `"` attribute quotes that must NOT
     // be treated as string delimiters. For a paren-delimited body we additionally
     // need balanced parens (the `@comment(…)` form may contain nested parens).
+    //
+    // In-entry `%` line comments are skipped for brace counting so a comment like
+    // `% see { note` can't desync the block boundary and swallow the entry (H2).
+    // But this applies ONLY to FIELD-LIST bodies (entries, `@string`,
+    // `@bibdesk_info`): a free-text `@comment{…}`/`@preamble{…}` body legitimately
+    // carries a literal `%` (e.g. `@comment{Coverage 95% done}` from a JabRef/Zotero
+    // export, or LaTeX in a preamble) at brace depth 0, which must NOT be treated as
+    // a comment — doing so ate the block's own closing delimiter and corrupted the
+    // (well-formed) body on save. `inQuote` is tracked only to gate that `%` skip;
+    // it never affects brace counting.
+    const stripFieldComments = type !== 'comment' && type !== 'preamble';
     let depthBrace = 0;
     let depthParen = 0;
+    let inQuote = false;
     let k = j + 1;
     let end = -1;
     for (; k < n; k++) {
       const c = text[k];
+      if (stripFieldComments && c === '"' && depthBrace === 0 && depthParen === 0) {
+        inQuote = !inQuote;
+        continue;
+      }
+      if (stripFieldComments && c === '%' && !inQuote && depthBrace === 0 && depthParen === 0) {
+        const nl = text.indexOf('\n', k);
+        if (nl === -1) break; // comment runs to EOF → block is unterminated
+        k = nl; // resume at the newline (the loop's k++ steps past it)
+        continue;
+      }
       if (c === '{') {
         depthBrace++;
       } else if (c === '}') {
@@ -122,7 +144,18 @@ function scanBlocks(text: string): RawBlock[] {
       }
     }
     if (end === -1) {
-      // unterminated — take the rest of the file
+      // Unterminated body (a missing `}`/`)`). Rather than swallow the rest of the
+      // file — which silently deletes EVERY following entry on the next save — try
+      // to resynchronise at the next top-level `@type{`/`@type(` start, so only
+      // THIS malformed block is affected. btparse likewise resyncs at the next
+      // entry (and reports an error). Falls back to consuming the rest only when no
+      // further entry start is found.
+      const resync = findNextEntryStart(text, j + 1);
+      if (resync !== -1) {
+        blocks.push({ type, delim: open, body: text.slice(j + 1, resync) });
+        i = resync;
+        continue;
+      }
       end = n;
     }
     const body = text.slice(j + 1, end);
@@ -130,6 +163,31 @@ function scanBlocks(text: string): RawBlock[] {
     i = end + 1;
   }
   return blocks;
+}
+
+/**
+ * Find the next plausible top-level entry start (`@type{` / `@type(`) at or after
+ * `from`, used to resynchronise after an unterminated block. To avoid matching a
+ * stray `@` inside a field value (e.g. an email address), the `@` must sit at the
+ * start of a line (only whitespace between the preceding newline and it) and be
+ * followed by a type name and an opening delimiter. Returns -1 if none remains.
+ */
+function findNextEntryStart(text: string, from: number): number {
+  const n = text.length;
+  for (let p = from; p < n; p++) {
+    if (text[p] !== '@') continue;
+    // require line-start: only spaces/tabs between the previous newline and here
+    let b = p - 1;
+    while (b >= 0 && (text[b] === ' ' || text[b] === '\t')) b--;
+    if (b >= 0 && text[b] !== '\n') continue;
+    // require a type name followed by an opening delimiter
+    let j = p + 1;
+    while (j < n && /[A-Za-z0-9_]/.test(text[j]!)) j++;
+    if (j === p + 1) continue; // no type name
+    while (j < n && /\s/.test(text[j]!)) j++;
+    if (text[j] === '{' || text[j] === '(') return p;
+  }
+  return -1;
 }
 
 // ---------------------------------------------------------------------------
@@ -206,15 +264,24 @@ function findTopLevelEquals(s: string): number {
 
 /**
  * Split `s` on a top-level `sep` character (default `,`), respecting brace and
- * quote nesting. In-value `%` comments are stripped from each segment tail.
+ * quote nesting.
+ *
+ * `%` line comments are stripped from the WHOLE body FIRST, in a single
+ * brace/quote-aware pre-pass, so a comment's own `,` / `{` / `}` / `"` can't
+ * desync the split. (Stripping per already-split segment — as this used to —
+ * came too late: the splitter had already treated a comment comma as a field
+ * separator and a comment brace as raising the nesting depth, silently dropping
+ * or corrupting the following real field. btparse removes comments during
+ * lexing, i.e. before splitting; this matches that.)
  */
 function splitTopLevel(s: string, sep: ',' | ';'): string[] {
+  const cleaned = stripLineComments(s);
   const out: string[] = [];
   let depthBrace = 0;
   let inQuote = false;
   let start = 0;
-  for (let i = 0; i < s.length; i++) {
-    const c = s[i];
+  for (let i = 0; i < cleaned.length; i++) {
+    const c = cleaned[i];
     if (inQuote) {
       if (c === '{') depthBrace++;
       else if (c === '}') {
@@ -227,18 +294,21 @@ function splitTopLevel(s: string, sep: ',' | ';'): string[] {
     else if (c === '}') {
       if (depthBrace > 0) depthBrace--;
     } else if (c === sep && depthBrace === 0) {
-      out.push(stripLineComments(s.slice(start, i)));
+      out.push(cleaned.slice(start, i));
       start = i + 1;
     }
   }
-  out.push(stripLineComments(s.slice(start)));
+  out.push(cleaned.slice(start));
   return out;
 }
 
 /**
- * Strip btparse-style in-entry `%` line comments from a segment: a `%` that is
- * not inside braces/quotes comments out the rest of its line. BibDesk does not
- * round-trip these.
+ * Strip btparse-style in-entry `%` line comments from an entry / `@string` body:
+ * a `%` that is not inside braces/quotes comments out the rest of its line. Runs
+ * over the WHOLE body (see {@link splitTopLevel}) so a comment's own delimiters
+ * are removed before the field split, not after. BibDesk does not round-trip
+ * these. (The block scanner independently skips these comments for brace
+ * counting; this removes their text from the split.)
  */
 function stripLineComments(seg: string): string {
   let depthBrace = 0;

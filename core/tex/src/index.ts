@@ -76,6 +76,8 @@ export {
   TEX_RESERVED_ESCAPES,
 } from './specialChars.js';
 
+export { balanceBraces } from './braces.js';
+
 // Raw plist-section tables, verbatim from CharacterConversion.plist.
 export {
   ONE_WAY_CONVERSIONS,

@@ -35,6 +35,13 @@ import {
 export const EXTRA_TEX_TO_ROMAN: Readonly<Record<string, string>> = {
   '{\\i}': 'ı',
   '{\\j}': 'ȷ',
+  // Literal-brace control words. The serializer's `balanceBraces` emits these for
+  // stray (unbalanced) braces in a stored value so the output is valid, balanced
+  // BibTeX; mapping them back on detexify keeps the DISPLAYED value a plain
+  // `{`/`}`. Detexify-only (texify must leave real braces untouched), so these are
+  // in EXTRA_TEX_TO_ROMAN, not EXTRA_ROMAN_TO_TEX.
+  '{\\textbraceleft}': '{',
+  '{\\textbraceright}': '}',
 };
 
 export const EXTRA_ROMAN_TO_TEX: Readonly<Record<string, string>> = {
