@@ -26,6 +26,7 @@ import {
   mkdirSync,
   readFileSync,
   renameSync,
+  statSync,
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
@@ -1038,6 +1039,37 @@ interface OpenDoc {
   encoding: string;
   /** Whether the file began with a byte-order mark (re-added on save). */
   hadBom: boolean;
+  /**
+   * mtime (ms) + size of the backing file as of the last read/write WE did — the
+   * baseline for detecting an external edit before a save clobbers it (H3).
+   * `undefined` for a document with no on-disk file yet (a staging/unsaved doc).
+   */
+  savedMtimeMs?: number;
+  savedSize?: number;
+}
+
+/**
+ * Thrown by {@link DocumentStore.saveDocument} when the backing file changed on
+ * disk since we last read/wrote it and the save was not forced — so a caller that
+ * doesn't prompt the user (scripting / automation) surfaces the conflict as an
+ * error rather than silently clobbering external edits.
+ */
+export class ExternalChangeError extends Error {
+  constructor(public readonly path: string) {
+    super(`"${path}" has changed on disk since it was opened; the save was not forced.`);
+    this.name = 'ExternalChangeError';
+  }
+}
+
+/** Snapshot a file's mtime+size for external-change detection, or undefined if absent. */
+function fileStamp(path: string): { mtimeMs: number; size: number } | undefined {
+  try {
+    if (!path || !existsSync(path)) return undefined;
+    const st = statSync(path);
+    return { mtimeMs: st.mtimeMs, size: st.size };
+  } catch {
+    return undefined;
+  }
 }
 
 /** Concatenated searchable text for an item (field text + any indexed PDF text). */
@@ -1325,6 +1357,10 @@ export class DocumentStore {
       dirty,
       encoding,
       hadBom,
+      // Undo/redo/snapshot rebuilds re-parse in-memory text and do NOT touch the
+      // file, so the external-change baseline carries over unchanged.
+      savedMtimeMs: prev.savedMtimeMs,
+      savedSize: prev.savedSize,
     };
     this.docs.set(documentId, next);
   }
@@ -1390,8 +1426,16 @@ export class DocumentStore {
       encoding,
       hadBom,
     };
+    this.restampFromDisk(doc);
     this.docs.set(opened.documentId, doc);
     return opened;
+  }
+
+  /** Set a document's external-change baseline to its backing file's current stat. */
+  private restampFromDisk(doc: OpenDoc): void {
+    const stamp = fileStamp(doc.path);
+    doc.savedMtimeMs = stamp?.mtimeMs;
+    doc.savedSize = stamp?.size;
   }
 
   /**
@@ -1670,7 +1714,10 @@ export class DocumentStore {
         if (!r || r.record.kind !== 'static') throw new Error('Not a static group');
         const cur = typeof r.dict.keys === 'string' ? (r.dict.keys as string).split(',') : [];
         const set = new Set(cur.map((k) => k.trim()).filter(Boolean));
-        for (const k of cmd.citeKeys) (cmd.add ? set.add(k) : set.delete(k));
+        for (const k of cmd.citeKeys) {
+          if (cmd.add) set.add(k);
+          else set.delete(k);
+        }
         r.dict.keys = [...set].join(',');
         doc.dirty = true;
         return { dirty: true, groupId: cmd.groupId };
@@ -3200,10 +3247,18 @@ export class DocumentStore {
   saveDocument(
     documentId: string,
     targetPath?: string,
-    opts?: { encoding?: string },
+    opts?: { encoding?: string; force?: boolean },
   ): { documentId: string; path: string } {
     const doc = this.requireDoc(documentId);
     const path = resolve(targetPath ?? doc.path);
+    // Refuse to clobber an external edit unless forced (H3). The interactive save
+    // paths prompt the user and then force; callers that DON'T prompt (the
+    // AppleScript/JS scripting `save`, x-bibdesk automation) get this as an error
+    // instead of silently overwriting a `.bib` changed on disk. Own-path saves
+    // only — a Save As to a new path is confirmed by the native dialog.
+    if (!opts?.force && path === resolve(doc.path) && this.diskChangedSinceLoad(documentId)) {
+      throw new ExternalChangeError(path);
+    }
     const encoding = opts?.encoding ?? doc.encoding;
     // A different encoding (Convert to UTF-8) starts fresh — no carried-over BOM.
     const hadBom = encoding === doc.encoding ? doc.hadBom : false;
@@ -3219,7 +3274,32 @@ export class DocumentStore {
     doc.dirty = false;
     doc.encoding = encoding; // a chosen encoding (Convert) persists for later saves
     doc.hadBom = hadBom;
+    // Re-baseline the external-change stamp to the file we just wrote, so the NEXT
+    // save compares against our own write rather than the pre-save state (H3).
+    this.restampFromDisk(doc);
     return { documentId, path };
+  }
+
+  /**
+   * Has the document's backing file changed on disk since we last read or wrote it
+   * (an edit from another editor, a Git checkout, a Dropbox/rsync sync)? Drives the
+   * save-conflict prompt so an in-app save doesn't silently clobber external edits.
+   * False for a staging/unsaved doc (no baseline) or a file deleted out from under
+   * us (a save simply recreates it — not a clobber).
+   *
+   * Heuristic (mtime + size, not a content hash), so it only ever *under*-warns,
+   * never falsely warns. Two known narrow misses, both acceptable vs. hashing every
+   * file on every save: (a) a same-byte-length edit landing in the same mtime tick
+   * on a coarse-granularity volume (FAT/some SMB/NFS); effectively unreachable on
+   * the app's APFS/ext4 default. (b) an external write in the few-ms window between
+   * our read and our stat at open time. Same tradeoff macOS BibDesk's own guard makes.
+   */
+  diskChangedSinceLoad(documentId: string): boolean {
+    const doc = this.docs.get(documentId);
+    if (!doc || doc.savedMtimeMs === undefined) return false;
+    const stamp = fileStamp(doc.path);
+    if (!stamp) return false; // file gone → not a clobber; save recreates it
+    return stamp.mtimeMs !== doc.savedMtimeMs || stamp.size !== doc.savedSize;
   }
 
   /**
@@ -3261,6 +3341,9 @@ export class DocumentStore {
     // Re-read the file's bytes with the chosen encoding (fixes a wrong auto-detect).
     const decoded = decodeBibAs(readFileSync(doc.path), encoding);
     this.rebuildFromText(documentId, decoded.text, decoded.encoding, decoded.hadBom, false);
+    // The re-read reflects the current on-disk file, so re-baseline the stamp to it
+    // (rebuildFromText carried the old baseline, which is right for undo/redo only).
+    this.restampFromDisk(this.requireDoc(documentId));
     return this.summarize(documentId);
   }
 

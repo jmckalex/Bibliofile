@@ -462,6 +462,13 @@ export const en: Catalog = {
     'These characters have no representation in {encoding}:  {chars}\n\nConvert the file to UTF-8 to keep them, or save anyway to replace them with “?”.',
   'save.convertUtf8': 'Convert to UTF-8',
   'save.saveAnyway': 'Save Anyway',
+  'save.conflictTitle': 'This file has changed on disk',
+  'save.conflictDetail':
+    '“{name}” was modified outside the app since you opened it. Overwriting replaces those external changes with your in-app version; reloading discards your unsaved edits and shows the version on disk.',
+  'save.conflictDetailClose':
+    '“{name}” was modified outside the app since you opened it. Overwriting replaces those external changes with your in-app version.',
+  'save.overwrite': 'Overwrite',
+  'save.reloadFromDisk': 'Reload from Disk',
   'encoding.rereadTitle': 'Re-read the file with a different encoding?',
   'encoding.rereadDetail':
     'This re-reads the file from disk as {encoding} and discards your unsaved changes.',

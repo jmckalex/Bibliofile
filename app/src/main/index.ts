@@ -253,8 +253,25 @@ function bindWindowToDoc(win: BrowserWindow, documentId: string): void {
       return;
     }
     if (choice === 0) {
+      // External-change guard (H3), synchronous variant for the close flow: don't
+      // silently clobber an edit made outside the app. Reload isn't offered here
+      // (the window is closing) — just Overwrite or Cancel.
+      if (store.diskChangedSinceLoad(id)) {
+        const conflict = dialog.showMessageBoxSync(win, {
+          type: 'warning',
+          buttons: [t('save.overwrite'), t('common.cancel')],
+          defaultId: 1,
+          cancelId: 1,
+          message: t('save.conflictTitle'),
+          detail: t('save.conflictDetailClose', { name: displayName }),
+        });
+        if (conflict === 1) {
+          isQuitting = false; // Cancel → keep the window open and abort the quit
+          return;
+        }
+      }
       try {
-        store.saveDocument(id, path);
+        store.saveDocument(id, path, { force: true }); // guarded above by the sync conflict prompt
       } catch (err) {
         isQuitting = false; // failed save aborts the quit too
         void dialog.showMessageBox(win, {
@@ -1041,6 +1058,30 @@ function tessdataDir(): string {
   return candidates[1]!;
 }
 
+/** Directory where the pre-OCR originals are kept (recoverable), under userData. */
+function ocrBackupDir(): string {
+  const dir = join(app.getPath('userData'), 'OCR Backups');
+  mkdirSync(dir, { recursive: true });
+  return dir;
+}
+
+/**
+ * Copy a PDF to the OCR Backups folder BEFORE the destructive in-place OCR replace,
+ * so a misclassified (born-digital) PDF flattened to 200-DPI rasters is recoverable
+ * (audit H4/SEV-3). Returns the backup path; throws if the copy fails so the caller
+ * can refuse to replace the original when it couldn't be backed up.
+ */
+function backupOriginalPdf(path: string): string {
+  const name = basename(path).replace(/\.pdf$/i, '');
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  // A short random suffix guarantees uniqueness even for two same-basename PDFs
+  // backed up in the same millisecond (distinct source dirs, or a future parallel run).
+  const uniq = randomBytes(3).toString('hex');
+  const dest = join(ocrBackupDir(), `${name} (before OCR ${stamp} ${uniq}).pdf`);
+  copyFileSync(path, dest);
+  return dest;
+}
+
 /**
  * OCR the scanned PDF attachments of the given entries. For each **image-only**
  * PDF it adds a searchable text layer (tesseract.js) and atomically replaces the
@@ -1112,6 +1153,16 @@ async function ocrScannedPdfs(
             errored = true;
             continue;
           }
+          // H4: back up the pristine original before the destructive replace. If the
+          // backup can't be written, skip this file rather than flatten it with no
+          // recovery path — the OCR replace re-renders every page to a 200-DPI raster,
+          // so a misclassified born-digital PDF would otherwise be irrecoverable.
+          try {
+            backupOriginalPdf(path);
+          } catch {
+            errored = true;
+            continue;
+          }
           const tmp = `${path}.ocr.tmp`;
           writeFileSync(tmp, buf);
           renameSync(tmp, path); // atomic in-place replace (same directory)
@@ -1121,9 +1172,14 @@ async function ocrScannedPdfs(
         }
       }
 
-      if (replaced) {
+      if (replaced && errored) {
+        // Multi-PDF entry where some PDFs were OCR'd (and backed up) but at least one
+        // could not be processed — surface the partial failure rather than claim success.
         anyOcred = true;
-        results.push({ itemId, citeKey, status: 'ocred', message: `Added a searchable text layer (${pageCount} pages).`, pages: pageCount });
+        results.push({ itemId, citeKey, status: 'ocred', message: `Added a searchable text layer to some PDFs (originals backed up); one or more others could not be processed and were left unchanged.`, pages: pageCount });
+      } else if (replaced) {
+        anyOcred = true;
+        results.push({ itemId, citeKey, status: 'ocred', message: `Added a searchable text layer (${pageCount} pages). The original was backed up to the OCR Backups folder.`, pages: pageCount });
       } else if (errored) {
         results.push({ itemId, citeKey, status: 'error', message: 'OCR failed for this entry.' });
       } else {
@@ -1404,6 +1460,31 @@ async function saveWithEncodingGuard(
   targetPath: string | undefined,
   win: BrowserWindow | undefined,
 ): Promise<{ documentId: string; path: string; cancelled?: boolean }> {
+  // External-change guard (H3): when saving to the document's OWN backing file
+  // (not a Save As to a new path, which the native dialog already confirms),
+  // refuse to silently clobber an edit made outside the app since we last read it.
+  const currentPath = store.summarize(documentId).path;
+  const savingToOwnPath = !targetPath || resolve(targetPath) === resolve(currentPath);
+  if (savingToOwnPath && store.diskChangedSinceLoad(documentId)) {
+    const box: Electron.MessageBoxOptions = {
+      type: 'warning',
+      message: t('save.conflictTitle'),
+      detail: t('save.conflictDetail', { name: basename(currentPath) }),
+      buttons: [t('save.overwrite'), t('save.reloadFromDisk'), t('common.cancel')],
+      defaultId: 2, // default to the non-destructive choice
+      cancelId: 2,
+    };
+    const { response } = win ? await dialog.showMessageBox(win, box) : await dialog.showMessageBox(box);
+    if (response === 2) return { documentId, path: currentPath, cancelled: true };
+    if (response === 1) {
+      // Reload: discard in-memory edits and re-read the on-disk version. This mints
+      // a NEW documentId (the old one is closed), so return that rather than the now-
+      // deleted id — the renderer re-anchors on the documentOpened broadcast anyway.
+      const reopened = win ? loadDocumentInto(win, currentPath) : undefined;
+      return { documentId: reopened?.documentId ?? documentId, path: currentPath, cancelled: true };
+    }
+    // response === 0 (Overwrite): fall through and save over the external change.
+  }
   const preview = store.saveEncodingPreview(documentId);
   let opts: { encoding?: string } | undefined;
   if (preview.lossy) {
@@ -1422,7 +1503,9 @@ async function saveWithEncodingGuard(
     if (response === 2) return { documentId, path: store.summarize(documentId).path, cancelled: true };
     if (response === 0) opts = { encoding: 'utf8' };
   }
-  const res = store.saveDocument(documentId, targetPath, opts);
+  // force: this path already ran the external-change + lossy-encoding guards above,
+  // so bypass the store's refuse-to-clobber throw (which backstops unprompted callers).
+  const res = store.saveDocument(documentId, targetPath, { ...opts, force: true });
   if (win) setWindowTitle(win, basename(res.path), res.path);
   if (opts?.encoding) buildMenu(); // encoding changed → refresh the Text Encoding marks
   return res;

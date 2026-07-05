@@ -3,7 +3,7 @@
  * real BibDesk-authored `BD test.bib` fixture and exercises the full open → rows
  * → groups → detail path the IPC handlers expose.
  */
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,6 +13,7 @@ import iconv from 'iconv-lite';
 
 import {
   DocumentStore,
+  ExternalChangeError,
   formatAuthorsDisplay,
   openLibraryFromText,
   toDisplay,
@@ -425,7 +426,7 @@ describe('document-service: BD test.bib', () => {
     // Two managed attachments: one real file, one that does not exist.
     store.addAttachments(documentId, itemId, [present, join(dir, 'missing.pdf')]);
 
-    let broken = store.findBrokenLinks(documentId);
+    const broken = store.findBrokenLinks(documentId);
     expect(broken).toHaveLength(1);
     expect(broken[0]!.citeKey).toBe('a');
     expect(broken[0]!.path).toBe(join(dir, 'missing.pdf'));
@@ -1628,5 +1629,67 @@ describe('commitStagedEntry (drop-PDF review Accept)', () => {
     const target = store.openText('', '/tmp/lib.bib').documentId;
     const staging = store.openText('', '').documentId;
     expect(store.commitStagedEntry(staging, 'nope', target, undefined).error).toBeTruthy();
+  });
+});
+
+describe('external-change detection on save (H3)', () => {
+  function openTempBib(contents: string): { store: DocumentStore; documentId: string; bib: string } {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-extchg-'));
+    const bib = join(dir, 'lib.bib');
+    writeFileSync(bib, contents);
+    const store = new DocumentStore();
+    const { documentId } = store.openFile(bib);
+    return { store, documentId, bib };
+  }
+
+  it('detects an external modification and re-baselines after a forced save', () => {
+    const { store, documentId, bib } = openTempBib('@article{a, Title = {One}}\n');
+    expect(store.diskChangedSinceLoad(documentId)).toBe(false); // just opened
+
+    // an external tool rewrites the file (different size) → detected
+    writeFileSync(bib, '@article{a, Title = {One, but a good deal longer now}}\n');
+    expect(store.diskChangedSinceLoad(documentId)).toBe(true);
+
+    // a forced save (what the interactive Overwrite path does) re-baselines → clean
+    store.saveDocument(documentId, undefined, { force: true });
+    expect(store.diskChangedSinceLoad(documentId)).toBe(false);
+  });
+
+  it('REFUSES an unforced save when the file changed on disk (throws, never clobbers)', () => {
+    const { store, documentId, bib } = openTempBib('@article{a, Title = {One}}\n');
+    const external = '@article{a, Title = {Edited by another tool}}\n';
+    writeFileSync(bib, external);
+    // an unprompted caller (scripting/automation) must NOT silently overwrite
+    expect(() => store.saveDocument(documentId)).toThrow(ExternalChangeError);
+    expect(readFileSync(bib, 'utf8')).toBe(external); // the external edit is intact
+  });
+
+  it('allows a Save As to a new path even when the original changed (not a clobber)', () => {
+    const { store, documentId, bib } = openTempBib('@article{a, Title = {One}}\n');
+    writeFileSync(bib, '@article{a, Title = {Externally edited}}\n');
+    const other = `${bib}.copy.bib`;
+    // Save As targets a different path → no conflict throw
+    expect(() => store.saveDocument(documentId, other)).not.toThrow();
+    expect(existsSync(other)).toBe(true);
+  });
+
+  it('is false for an in-memory/staging document with no backing file', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/nope.bib');
+    expect(store.diskChangedSinceLoad(documentId)).toBe(false);
+  });
+
+  it('is false when the file was deleted externally (a save recreates it, not a clobber)', () => {
+    const { store, documentId, bib } = openTempBib('@article{a, Title = {One}}\n');
+    rmSync(bib);
+    expect(store.diskChangedSinceLoad(documentId)).toBe(false);
+  });
+
+  it('does NOT report a change across an in-app edit + undo (the file is untouched)', () => {
+    const { store, documentId } = openTempBib('@article{a, Title = {One}}\n');
+    const id = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    store.applyEdit({ documentId, command: { kind: 'setField', itemId: id, field: 'Title', value: 'Two' } });
+    expect(store.undo(documentId)).toBe(true); // undo rebuilds from text (no file I/O)
+    expect(store.diskChangedSinceLoad(documentId)).toBe(false);
   });
 });
