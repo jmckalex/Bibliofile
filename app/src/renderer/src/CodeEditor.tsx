@@ -83,7 +83,6 @@ export function CodeEditor({
       el.removeEventListener('bd-blur', onBlurEv);
     };
     // Mount-only: subsequent value changes are handled by the effect below.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Push external value changes into the editor (guarded against echo: setValue

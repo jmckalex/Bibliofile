@@ -493,7 +493,6 @@ export function PublicationsTable() {
     if (!selectedItemId) return;
     const index = tableRows.findIndex((r) => r.original.id === selectedItemId);
     if (index >= 0) virtualizer.scrollToIndex(index, { align: 'auto' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedItemId]);
 
   const headerGroups = table.getHeaderGroups();

@@ -43,7 +43,6 @@ export function PdfReviewDialog() {
     if (!stagingDocId || !staging) return;
     void staging.getState().loadEntryTypes();
     void staging.getState().loadCitationStyles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stagingDocId]);
 
   // Keep a valid selection as items are accepted/discarded, and load its detail.

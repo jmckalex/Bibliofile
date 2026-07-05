@@ -46,7 +46,7 @@ export function parseRis(text: string): RisRecord[] {
   };
 
   for (const rawLine of text.split(/\r?\n/)) {
-    const m = rawLine.match(/^([A-Z][A-Z0-9])  - ?(.*)$/);
+    const m = rawLine.match(/^([A-Z][A-Z0-9]) {2}- ?(.*)$/);
     if (!m) continue;
     const tag = m[1]!;
     const value = m[2]!.trim();

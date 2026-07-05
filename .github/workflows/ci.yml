@@ -1,0 +1,64 @@
+name: CI
+
+# Lint + typecheck + bundler build + test on every push to main and every PR.
+# Runs on macOS because the native toolchain script (scripts/rebuild-native.mjs)
+# and better-sqlite3's build assume a Unix/Xcode toolchain, and macOS is the dev +
+# release platform. `audit-fixes` is included so the current work branch is checked
+# before it merges (remove it once merged).
+on:
+  push:
+    branches: [main, audit-fixes]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    # Nothing in this job launches Electron (build:app is a bundler build, tests are
+    # headless), so skip the ~100 MB Electron binary download — faster + one fewer
+    # network dependency to flake on.
+    env:
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm first, so setup-node's `cache: pnpm` can find it. Version comes from
+      # the root package.json `packageManager` field (pnpm@11.2.2).
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # A fresh install builds better-sqlite3 for THIS node's ABI (approved in
+      # pnpm-workspace.yaml onlyBuiltDependencies) and applies the electron-vite
+      # patch — so the FTS5 tests, which skip locally against the app's Electron
+      # ABI, actually run here.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck (tsc, all packages)
+        run: pnpm build
+
+      - name: Bundler build (electron-vite — catches errors tsc misses)
+        run: pnpm build:app
+
+      # The FTS5 tests self-skip when better-sqlite3 can't load (graceful degradation),
+      # which would let a broken native build pass as GREEN. Assert it loads for this
+      # node ABI so those tests actually run — and fail loudly here if it doesn't.
+      - name: Assert native better-sqlite3 + FTS5 is available
+        working-directory: app
+        run: node -e "const D=require('better-sqlite3');const db=new D(':memory:');db.exec('CREATE VIRTUAL TABLE t USING fts5(x)');db.close();console.log('better-sqlite3 + FTS5 OK')"
+
+      # Runs after build:app so the built renderer exists for the prod-CSP
+      # build-output test. TeX-preview tests self-skip when TeX isn't installed.
+      - name: Test
+        run: pnpm test

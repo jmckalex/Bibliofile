@@ -70,7 +70,10 @@ const COMPOSED_CHAR_MAP: ReadonlyMap<number, string> = new Map<number, string>([
 ]);
 
 /** Matches Unicode combining marks (the `kCFStringTransformStripCombiningMarks`). */
-const COMBINING_MARKS = /[̀-ͯ᪰-᫿᷀-᷿⃐-⃿︠-︯]/g;
+// The class deliberately IS combining marks (stripped after NFD/NFKD) — exactly what
+// no-misleading-character-class warns about — so it is silenced for this one line.
+// eslint-disable-next-line no-misleading-character-class
+const COMBINING_MARKS = /[\u0300-\u036f\u1ab0-\u1aff\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f]/g;
 
 /**
  * Strip combining marks (decompose with NFD, then drop combining marks), then

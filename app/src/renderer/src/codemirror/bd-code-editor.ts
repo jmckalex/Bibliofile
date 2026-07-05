@@ -257,7 +257,7 @@ const latexCommandDeco = Decoration.mark({ class: 'cm-latexCommand' });
 const latexBraceDeco = Decoration.mark({ class: 'cm-latexBrace' });
 const latexOperatorDeco = Decoration.mark({ class: 'cm-latexOperator' });
 
-const LATEX_CMD_RE = /\\(?:(?:big{1,2}|Big{1,2}|left|right)(?:\\[{}|]|[(\[\])|.\/])?|[a-zA-Z@]+|[\\,;!>{}|&%#_^~$ ])/g;
+const LATEX_CMD_RE = /\\(?:(?:big{1,2}|Big{1,2}|left|right)(?:\\[{}|]|[([\])|./])?|[a-zA-Z@]+|[\\,;!>{}|&%#_^~$ ])/g;
 const LATEX_BRACE_RE = /[{}]/g;
 const LATEX_OP_RE = /[_^&]/g;
 

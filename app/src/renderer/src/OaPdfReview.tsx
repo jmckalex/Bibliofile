@@ -66,7 +66,6 @@ export function OaPdfReview({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const attach = async (): Promise<void> => {
