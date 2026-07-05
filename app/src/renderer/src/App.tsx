@@ -290,6 +290,10 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       modals.setMacrosOpen(true);
       return;
     case 'save':
+      // Commit the field currently being edited first: DetailPane commits on blur,
+      // so a value typed but not yet Enter/blur-confirmed would otherwise be excluded
+      // from this save (and the header would then wrongly show "saved").
+      (document.activeElement as HTMLElement | null)?.blur();
       await store.save();
       return;
     case 'print':
@@ -484,6 +488,16 @@ export function App() {
     void loadEntryTypes();
     void loadCitationStyles();
   }, [loadSettings, loadEntryTypes, loadCitationStyles]);
+
+  // Flush a field being edited on teardown (reload / refresh): DetailPane commits on
+  // blur, so blurring the focused input dispatches its setField IPC before unload.
+  // (This does not cover the OS close/quit prompt, which main evaluates before this
+  // fires; ⌘S/menu-Save blur the field explicitly for that path.)
+  useEffect(() => {
+    const flush = (): void => (document.activeElement as HTMLElement | null)?.blur();
+    window.addEventListener('beforeunload', flush);
+    return () => window.removeEventListener('beforeunload', flush);
+  }, []);
 
   // Autosave: a short debounce after the document becomes dirty (opt-in).
   const dirty = useStore((s) => s.dirty);

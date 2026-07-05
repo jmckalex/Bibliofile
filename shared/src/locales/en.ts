@@ -281,6 +281,11 @@ export const en: Catalog = {
   'pdfReview.remaining': '{count} remaining',
   'pdfReview.discard': 'Discard',
   'pdfReview.accept': 'Accept',
+  'pdfReview.confirmDiscard': 'Discard {count} remaining PDF(s)?',
+  'pdfReview.confirmDiscardDetail':
+    'Any metadata you typed into the remaining drafts will be lost. This can’t be undone.',
+  'pdfReview.keepEditing': 'Keep Editing',
+  'pdfReview.discardRemaining': 'Discard Remaining',
   'common.loading': 'Loading…',
   'app.dropImport': 'Drop .bib or files to import',
   'theme.switchLight': 'Switch to light theme',

@@ -1370,9 +1370,15 @@ export function createStore(api: BibDeskApi) {
         if (patch.columns) await get().loadPublications();
         // editing custom entry types changes the type list/field sets → reload
         if (patch.customTypes) await get().loadEntryTypes();
-        // re-fetch the open detail so a changed default citation style etc. shows
-        const { selectedItemId } = get();
-        if (selectedItemId) await get().selectItem(selectedItemId);
+        // Refresh the OPEN view so a changed default citation style etc. shows,
+        // without collapsing the selection. Use loadDetail / loadMultiPanel (NOT
+        // selectItem, which resets selectedIds to a single row — a settings write
+        // from a theme toggle / column resize / FTS toggle / any Preferences control
+        // would then silently drop a multi-selection). For 2+ rows the visible pane
+        // is the multi-panel, so refresh that; otherwise refresh the single detail.
+        const { selectedItemId, selectedIds } = get();
+        if (selectedIds.length >= 2) await get().loadMultiPanel();
+        else if (selectedItemId) await get().loadDetail(selectedItemId);
       } catch (err) {
         set({ error: errorMessage(err) });
       }

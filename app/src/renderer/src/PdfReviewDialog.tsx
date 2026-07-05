@@ -32,6 +32,9 @@ export function PdfReviewDialog() {
   const staging = stagingRef.current;
 
   const [currentId, setCurrentId] = useState<string | null>(null);
+  // Guard against an accidental backdrop/✕ click destroying un-accepted drafts: only
+  // finish (which discards the staging doc) when nothing remains; otherwise ask first.
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   // Initialise the staging store (entry types + CSL styles for the editor) once we
   // have a batch; re-runs only if the staging document changes (a new drop).
@@ -53,6 +56,13 @@ export function PdfReviewDialog() {
     if (next) void staging.getState().initEditor(review.stagingDocId, next);
   }, [review, currentId, staging]);
 
+  // Moving to a different draft (select, or the item set changing after an
+  // Accept/Discard) dismisses a pending close confirmation — so the danger bar
+  // never lingers past the moment the user resumes working.
+  useEffect(() => {
+    setConfirmDiscard(false);
+  }, [currentId]);
+
   if (!review || !staging) return null;
 
   const select = (itemId: string): void => {
@@ -66,8 +76,16 @@ export function PdfReviewDialog() {
   // ahead of the commit IPC, so the last edit isn't lost.
   const flush = (): void => (document.activeElement as HTMLElement | null)?.blur();
 
+  // Backdrop / ✕ close request: finishing discards the off-library staging doc and
+  // every un-accepted draft, so only do it silently when nothing is left to lose;
+  // otherwise show an inline confirm rather than destroying typed metadata.
+  const requestClose = (): void => {
+    if (review.items.length === 0) void finishPdfReview();
+    else setConfirmDiscard(true);
+  };
+
   return (
-    <div className="bd-modal-backdrop" onClick={() => void finishPdfReview()}>
+    <div className="bd-modal-backdrop" onClick={requestClose}>
       <div
         className="bd-modal bd-modal--wide bd-modal--pdfreview"
         role="dialog"
@@ -80,13 +98,33 @@ export function PdfReviewDialog() {
             type="button"
             className="bd-field__del"
             title={t('common.close')}
-            onClick={() => void finishPdfReview()}
+            onClick={requestClose}
           >
             <Icon name="close" />
           </button>
         </div>
+        {confirmDiscard && (
+          <div className="bd-pdfreview__confirm" role="alertdialog" aria-label={t('pdfReview.confirmDiscard', { count: review.items.length })}>
+            <div className="bd-pdfreview__confirm-text">
+              <strong>{t('pdfReview.confirmDiscard', { count: review.items.length })}</strong>
+              <span>{t('pdfReview.confirmDiscardDetail')}</span>
+            </div>
+            <span className="bd-toolbar__spacer" />
+            <button type="button" className="bd-btn" onClick={() => setConfirmDiscard(false)}>
+              {t('pdfReview.keepEditing')}
+            </button>
+            <button type="button" className="bd-btn bd-btn--danger" onClick={() => void finishPdfReview()}>
+              {t('pdfReview.discardRemaining')}
+            </button>
+          </div>
+        )}
         <p className="bd-pdfreview__hint">{t('pdfReview.hint')}</p>
-        <div className="bd-pdfreview">
+        {/* Any interaction with the list/editor means "I'm resuming work" — dismiss the
+            close confirmation so its one-click "Discard Remaining" button never lingers. */}
+        <div
+          className="bd-pdfreview"
+          onMouseDownCapture={() => confirmDiscard && setConfirmDiscard(false)}
+        >
           <ul className="bd-pdfreview__list">
             {review.items.map((it) => (
               <li key={it.itemId}>

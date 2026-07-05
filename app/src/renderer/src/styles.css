@@ -3084,6 +3084,21 @@ button.bd-chip {
   color: var(--bd-text-muted);
   font-size: var(--bd-fs-sm);
 }
+/* Inline "discard remaining drafts?" confirmation shown on a close request. */
+.bd-pdfreview__confirm {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bd-warn-bg, rgba(220, 150, 40, 0.12));
+  border-bottom: 1px solid var(--bd-border);
+}
+.bd-pdfreview__confirm-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--bd-fs-sm);
+}
 
 /* Script Console: a JavaScript editor (top) over a console output pane (bottom). */
 .bd-modal--script {

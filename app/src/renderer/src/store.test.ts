@@ -278,6 +278,25 @@ describe('viewer store', () => {
     expect(s.detailLoading).toBe(false);
   });
 
+  it('saveSettings preserves a multi-selection (does not collapse it) — H7', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    await store.getState().selectItem('i1');
+    store.getState().toggleSelect('i2'); // now a 2-row selection
+    expect([...store.getState().selectedIds].sort()).toEqual(['i1', 'i2']);
+    const primaryBefore = store.getState().selectedItemId;
+
+    // A settings write from a theme toggle / column resize / any Preferences control
+    // must NOT drop the multi-selection (it used to re-run selectItem → single row).
+    await store.getState().saveSettings({ theme: 'dark' });
+
+    expect([...store.getState().selectedIds].sort()).toEqual(['i1', 'i2']);
+    expect(store.getState().selectedItemId).toBe(primaryBefore); // primary + detail preserved
+    expect(calls.updateSettings.at(-1)).toEqual({ theme: 'dark' });
+  });
+
   it('selectByCiteKeys selects every cited entry (multi-entry \\cite click)', async () => {
     const { api } = makeFakeApi();
     const store = createStore(api);

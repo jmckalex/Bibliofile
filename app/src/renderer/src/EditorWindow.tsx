@@ -31,6 +31,20 @@ export function EditorWindow({ documentId, itemId }: { documentId: string; itemI
     void loadCitationStyles();
   }, [initEditor, loadEntryTypes, loadCitationStyles, documentId, itemId]);
 
+  // Flush a field being edited when the window is torn down (OS traffic-light / ⌘W /
+  // reload). DetailPane commits on blur, so blurring the focused input dispatches its
+  // setField IPC (synchronously, before teardown) — otherwise text typed but not yet
+  // Enter/blur-confirmed is silently lost, and since it never became a committed edit
+  // the "Save changes?" prompt can't rescue it either. AnnotationWindow does the same.
+  useEffect(() => {
+    const flush = (): void => (document.activeElement as HTMLElement | null)?.blur();
+    window.addEventListener('beforeunload', flush);
+    return () => {
+      window.removeEventListener('beforeunload', flush);
+      flush();
+    };
+  }, []);
+
   // If the main window mutates this item (rename author, find/replace, …), refresh
   // — but only for this editor's own document, not some other open library.
   useEffect(() => {
