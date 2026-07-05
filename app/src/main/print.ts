@@ -5,6 +5,8 @@
  * per-entry HTML and loads the result into a hidden window to print.
  */
 
+import { secondaryWindowCsp } from '../security/csp.js';
+
 /** Escape text destined for an HTML text node / attribute. */
 function escapeHtml(s: string): string {
   return s
@@ -28,6 +30,7 @@ export function buildPrintHtml(entries: readonly string[], title: string): strin
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${secondaryWindowCsp()}">
 <title>${escapeHtml(title.trim() || 'Bibliography')}</title>
 <style>
   @page { margin: 2cm; }

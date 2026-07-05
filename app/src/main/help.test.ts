@@ -29,6 +29,10 @@ describe('help manual', () => {
     expect(html).toMatch(/href="#0\d-[a-z-]+"/);
     // sanitized: no scripts
     expect(html).not.toContain('<script');
+    // carries a script-free CSP <meta> (the help window has no build-injected CSP)
+    expect(html).toMatch(/http-equiv="Content-Security-Policy"/);
+    expect(html).toContain("default-src 'none'");
+    expect(html).toContain('img-src data: file: https:'); // the file:// screenshots load
     // the scripting chapter is present and its JS code blocks are highlighted
     expect(html).toMatch(/id="\d\d-scripting"/);
     expect(html).toContain('class="hljs language-javascript"');

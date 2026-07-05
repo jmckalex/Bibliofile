@@ -72,6 +72,7 @@ import { parseAppUrl } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
 import { initScripting } from './scripting-bridge.js';
 import { htmlToRtf, wrapRtf } from './rtf.js';
+import { installNavigationGuards, installDevCsp } from './window-security.js';
 import { buildPrintHtml } from './print.js';
 import {
   loadCoverIndex,
@@ -309,17 +310,8 @@ function openHelp(): void {
     webPreferences: { contextIsolation: true, nodeIntegration: false },
   });
   void helpWindow.loadFile(tmp);
-  // External links open in the OS browser, not in the help window.
-  helpWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (/^https?:/i.test(url)) void shell.openExternal(url);
-    return { action: 'deny' };
-  });
-  helpWindow.webContents.on('will-navigate', (e, url) => {
-    if (/^https?:/i.test(url)) {
-      e.preventDefault();
-      void shell.openExternal(url);
-    }
-  });
+  // External links open in the OS browser, not in the help window — handled by the
+  // process-wide guard installed in `installNavigationGuards()` (window-security.ts).
   helpWindow.on('closed', () => {
     helpWindow = null;
   });
@@ -1066,9 +1058,9 @@ async function ocrScannedPdfs(
   const total = itemIds.length;
   const stripScheme = (u: string): string => u.replace(/^file:\/\/(localhost)?/i, '');
 
-  let session;
+  let ocrSession;
   try {
-    session = await createOcrSession({ lang: lang || 'eng', langPath: tessdataDir() });
+    ocrSession = await createOcrSession({ lang: lang || 'eng', langPath: tessdataDir() });
   } catch (err) {
     const message = `OCR engine could not start: ${err instanceof Error ? err.message : String(err)}`;
     return { results: itemIds.slice(0, 1).map((id) => ({ itemId: id, citeKey: '', status: 'error' as const, message })) };
@@ -1111,7 +1103,7 @@ async function ocrScannedPdfs(
         if (!(await isLikelyScanned(bytes))) continue; // already has a text layer
         hadScan = true;
         try {
-          const out = await session.ocrPdf(bytes, (p, pages) => {
+          const out = await ocrSession.ocrPdf(bytes, (p, pages) => {
             pageCount = pages;
             onProgress?.({ documentId, done, total, citeKey, page: p, pages });
           });
@@ -1140,7 +1132,7 @@ async function ocrScannedPdfs(
       onProgress?.({ documentId, done: ++done, total, citeKey });
     }
   } finally {
-    await session.close();
+    await ocrSession.close();
   }
 
   // Re-extract + re-index so the freshly-added text is searchable in Bibliofile.
@@ -3340,6 +3332,14 @@ if (!gotLock) {
   void app.whenReady().then(() => {
     // Register the automation URL scheme (AppleScript / shell / other apps).
     app.setAsDefaultProtocolClient('x-bibdesk');
+
+    // Security: deny window-open + off-document navigation on every window (the
+    // preload bridge rides every load, so a hijacked window must not reach an
+    // attacker document). In dev, also apply the CSP as a header on the Vite
+    // server; the packaged app carries a stricter CSP <meta> from the build.
+    installNavigationGuards();
+    const devUrl = process.env.ELECTRON_RENDERER_URL;
+    if (devUrl) installDevCsp(devUrl);
 
     const settings = loadSettings();
     ftsPageLimit = settings.ftsPageLimit ?? 40; // PDF full-text extraction depth

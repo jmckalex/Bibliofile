@@ -53,6 +53,33 @@ describe('renderMarkdown', () => {
     expect(h).not.toContain('onerror');
   });
 
+  // --- stored-XSS regression: math spans are restored AFTER sanitize, so their
+  // raw source must be HTML-escaped or a payload inside `$…$` becomes a live tag.
+  it('does NOT let HTML inside a $…$ math span survive as a live element', () => {
+    const h = renderMarkdown('mass $<img src=x onerror="alert(1)">$ here');
+    expect(h).not.toContain('<img'); // no live element…
+    expect(h).toContain('&lt;img'); // …escaped to inert text instead
+    // the delimiters + escaped body remain for MathJax to typeset from textContent
+    expect(h).toContain('$&lt;img src=x onerror=&quot;alert(1)&quot;&gt;$');
+  });
+
+  it('does NOT let a $…$ span break out of a data-open-url attribute', () => {
+    // math used as a link target: the placeholder lands INSIDE data-open-url="…",
+    // so an un-escaped `"` in the math would break out and inject a handler.
+    const h = renderMarkdown('[click]($" onmouseover="alert(1)$)');
+    expect(h).not.toContain('onmouseover="'); // no attribute breakout (real quote)
+    expect(h).toContain('&quot;'); // the math\'s quotes were escaped in place
+  });
+
+  it('preserves legitimate math that contains HTML-special chars', () => {
+    // `<`, `>`, `&` are common in TeX (comparisons, matrix `&` alignment); after
+    // escaping, the browser decodes them back in textContent so MathJax is unaffected.
+    const h = renderMarkdown('compare $a < b$ and align $\\begin{matrix}a & b\\end{matrix}$');
+    expect(h).toContain('$a &lt; b$');
+    expect(h).toContain('a &amp; b');
+    expect(h).not.toContain('<em>');
+  });
+
   it('converts links to data-open-url spans (no in-window href)', () => {
     const h = renderMarkdown('see [the paper](https://example.org/p)');
     expect(h).toContain('data-open-url="https://example.org/p"');

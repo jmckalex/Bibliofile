@@ -118,7 +118,18 @@ function renderWith(md: string, opts: sanitizeHtml.IOptions): string {
   const rawHtml = marked.parse(protectedMd, { async: false }) as string;
   const clean = sanitizeHtml(rawHtml, opts);
   return clean
-    .replace(/@@MATH(\d+)@@/g, (_m, i) => math[Number(i)] ?? '')
+    // SECURITY: math spans are pulled out BEFORE sanitize, so their raw source
+    // never passes through sanitizeHtml. Restore them HTML-ESCAPED so a payload
+    // like `$<img src=x onerror=…>$` becomes inert text, not a live element.
+    // This is transparent to MathJax: it typesets from a text node's `textContent`
+    // (which the browser entity-decodes back to `<`, `&`, `"`), so escaping keeps
+    // legitimate math — matrix `&` alignments, `a < b`, `\text{"…"}` — intact while
+    // closing the stored-XSS hole. Escaping `"` also covers the case where a
+    // placeholder lands inside a `data-open-url="…"` attribute (math used as a link
+    // target), preventing attribute breakout. XCITE below is citeproc HTML whose
+    // field content citeproc already entity-escapes (only its own attribute-free
+    // <i>/<b>/<sup>/<sub> formatting survives), so it is restored as-is.
+    .replace(/@@MATH(\d+)@@/g, (_m, i) => escapeAttr(math[Number(i)] ?? ''))
     .replace(/@@XCITE(\d+)@@/g, (_m, i) => citeStore[Number(i)] ?? '');
 }
 

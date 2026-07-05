@@ -30,4 +30,12 @@ describe('buildPrintHtml', () => {
     // An empty heading is omitted entirely.
     expect(html).not.toContain('<h1>');
   });
+
+  it('carries a script-free CSP <meta> (the print window has no build-injected CSP)', () => {
+    const html = buildPrintHtml(['x'], 'T');
+    expect(html).toMatch(/http-equiv="Content-Security-Policy"/);
+    // scripts are forbidden outright (default-src 'none', no script-src source)
+    expect(html).toContain("default-src 'none'");
+    expect(html).toContain("style-src 'unsafe-inline'"); // the inline print stylesheet
+  });
 });

@@ -1,6 +1,34 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'electron-vite';
+import type { Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+import { contentSecurityPolicy } from './src/security/csp';
+
+/**
+ * Inject the production Content-Security-Policy as a `<meta http-equiv>` into the
+ * built renderer HTML. A meta tag (not an `onHeadersReceived` header) is used
+ * because the packaged renderer loads over `file://`, where the header is not
+ * reliably applied and `'self'` does not match sibling `file:` assets. Applied
+ * only to the production build; the dev server gets a looser header from main.
+ */
+function cspMetaPlugin(): Plugin {
+  return {
+    name: 'bibdesk-csp-meta',
+    apply: 'build',
+    transformIndexHtml() {
+      return [
+        {
+          tag: 'meta',
+          attrs: {
+            'http-equiv': 'Content-Security-Policy',
+            content: contentSecurityPolicy('prod'),
+          },
+          injectTo: 'head-prepend',
+        },
+      ];
+    },
+  };
+}
 
 export default defineConfig({
   main: {
@@ -33,6 +61,6 @@ export default defineConfig({
     build: {
       rollupOptions: { input: { index: resolve(__dirname, 'src/renderer/index.html') } },
     },
-    plugins: [react()],
+    plugins: [react(), cspMetaPlugin()],
   },
 });

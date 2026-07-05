@@ -18,6 +18,7 @@ import bash from 'highlight.js/lib/languages/bash';
 import xml from 'highlight.js/lib/languages/xml';
 import css from 'highlight.js/lib/languages/css';
 import sanitizeHtml from 'sanitize-html';
+import { secondaryWindowCsp } from '../security/csp.js';
 
 // Only the languages used in the manual's fenced code blocks (keeps it lean).
 hljs.registerLanguage('javascript', javascript);
@@ -145,5 +146,6 @@ export function buildHelpHtml(helpDir: string): string {
     .map((c) => `<a href="#${c.id}">${esc(c.title)}</a>`)
     .join('\n');
   const body = chapters.map((c) => `<section id="${c.id}">${c.html}</section>`).join('\n<hr>\n');
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Bibliofile Help</title><style>${HELP_CSS}</style></head><body><nav><h2>Bibliofile Help</h2>${toc}</nav><main>${body}</main></body></html>`;
+  const csp = `<meta http-equiv="Content-Security-Policy" content="${secondaryWindowCsp()}">`;
+  return `<!doctype html><html><head><meta charset="utf-8">${csp}<title>Bibliofile Help</title><style>${HELP_CSS}</style></head><body><nav><h2>Bibliofile Help</h2>${toc}</nav><main>${body}</main></body></html>`;
 }
