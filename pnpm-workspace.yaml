@@ -5,7 +5,7 @@ packages:
   - 'app'
 
 # Don't re-run `pnpm install` before `pnpm run` scripts: the install's
-# ignored-build-script warning otherwise returns exit 1 and blocks `pnpm -r test`.
+# ignored-build-script check otherwise returns exit 1 and blocks `pnpm -r test`.
 verifyDepsBeforeRun: false
 
 # Approve native build scripts (esbuild platform binary, electron runtime,
@@ -18,5 +18,9 @@ onlyBuiltDependencies:
 patchedDependencies:
   electron-vite@2.3.0: patches/electron-vite@2.3.0.patch
 
+# tesseract.js's only build script is `opencollective-postinstall || true` (harmless
+# funding telemetry). A definite `false` is the decision pnpm's own stub asks for —
+# it stops `pnpm install` failing with ERR_PNPM_IGNORED_BUILDS (exit 1) over the
+# un-decided build, which would red the first CI step (audit MED-2).
 allowBuilds:
-  tesseract.js: set this to true or false
+  tesseract.js: false

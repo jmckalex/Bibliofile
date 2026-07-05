@@ -26,16 +26,60 @@ directories:
   output: release # built installers land in ./release (repo root)
   buildResources: build # icons + entitlements live in ./build (repo root)
 
-# Relative to the app dir (app/). The whole app is bundled into out/**; the only
-# runtime node_modules dependency is the native better-sqlite3 (+ its deps), which
-# electron-builder collects automatically from the production dependency tree.
+# Relative to the app dir (app/). The whole app is bundled into out/**; the OCR
+# stack and better-sqlite3 are externalized (not bundled), so electron-builder
+# collects them from the production dependency tree into the asar (see asarUnpack).
 files:
   - out/**/*
   - package.json
 
-# Native .node binaries can't live inside the asar archive.
+# On-disk resources the MAIN process probes for at runtime (they are NOT bundled
+# into out/**, and without this key the packaged app finds none of them and each
+# degrades silently). `from` is resolved against the PROJECT dir (repo root — the
+# `directories.app: app` split), `to` against Contents/Resources/. The `to` paths
+# match the resolvers exactly:
+#   - tessdataDir()   → process.resourcesPath/tessdata            (index.ts)
+#   - findJournalsDir → <appPath>/../resources/journals           (journal-covers.ts)
+#   - findHelpDir     → <appPath>/../docs/help                    (help.ts); the
+#     manual's `../viewer-*.png` image refs resolve to <helpDir>/../<img>, i.e.
+#     Contents/Resources/docs/<img>, so the screenshots go alongside at docs/.
+# VERIFY after a `pnpm pack:dir`: release/mac-*/Bibliofile.app/Contents/Resources/
+# should contain tessdata/, resources/journals/, docs/help/, docs/*.png.
+extraResources:
+  - from: app/resources/tessdata
+    to: tessdata
+  - from: app/resources/journals
+    to: resources/journals
+  - from: docs/help
+    to: docs/help
+  - from: docs
+    to: docs
+    filter: ['*.png']
+# NOTE — the macOS AppleScript addon (bibliophile_scripting.node → scripting-bridge
+# addonCandidates()) is deliberately NOT bundled yet: the .node is gitignored, built
+# for a specific ABI, and NOT rebuilt by the `dist` script, so bundling it as-is would
+# either break the build on a missing file or ship a wrong-ABI binary. Wire an
+# Electron-ABI addon build into the `dist` script first, then add:
+#   - from: app/native/scripting/build/Release/bibliophile_scripting.node
+#     to: bibliophile_scripting.node
+# Until then AppleScript automation degrades gracefully (logs "not built") when packaged.
+
+# Native .node binaries can't live inside the asar. The OCR deps are externalized and
+# collected into the asar, but must be UNPACKED to real file paths: tesseract.js spawns
+# a worker_threads script by path, tesseract.js-core reads its WASM from disk,
+# @napi-rs/canvas loads a per-arch native binding, and pdfjs-dist is loaded via a
+# file-URL import() (+ its standard_fonts/). pdf-lib is pure JS and can stay packed.
 asarUnpack:
   - '**/*.node'
+  - node_modules/tesseract.js/**
+  - node_modules/tesseract.js-core/**
+  - node_modules/@napi-rs/canvas/**
+  # The actual skia native binary lives in the per-arch sibling package (declared as
+  # an optionalDependency of the app so electron-builder collects it); unpack it so
+  # @napi-rs/canvas's `require('@napi-rs/canvas-darwin-<arch>')` resolves a real file.
+  - node_modules/@napi-rs/canvas-darwin-arm64/**
+  - node_modules/@napi-rs/canvas-darwin-x64/**
+  - node_modules/pdfjs-dist/**
 
 npmRebuild: false # we rebuild better-sqlite3 for Electron ourselves (see scripts)
 

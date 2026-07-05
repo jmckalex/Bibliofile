@@ -204,6 +204,13 @@ importers:
       vite:
         specifier: ^5.4.11
         version: 5.4.21(@types/node@22.19.21)
+    optionalDependencies:
+      '@napi-rs/canvas-darwin-arm64':
+        specifier: 1.0.1
+        version: 1.0.1
+      '@napi-rs/canvas-darwin-x64':
+        specifier: 1.0.1
+        version: 1.0.1
 
   core/bibtex:
     dependencies:

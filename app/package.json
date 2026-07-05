@@ -63,6 +63,10 @@
     "tesseract.js-core": "^6.1.2",
     "zustand": "^5.0.2"
   },
+  "optionalDependencies": {
+    "@napi-rs/canvas-darwin-arm64": "1.0.1",
+    "@napi-rs/canvas-darwin-x64": "1.0.1"
+  },
   "devDependencies": {
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
