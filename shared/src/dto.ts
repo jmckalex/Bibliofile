@@ -919,6 +919,12 @@ export interface FindReplaceRequest {
   readonly apply: boolean;
   /** Restrict the scope to a group's members (optional). */
   readonly groupId?: string;
+  /**
+   * Further restrict the scope to these item ids (optional). The renderer passes
+   * the currently-visible rows here when a search filter is active, so Replace All
+   * acts on what the user sees rather than the whole group.
+   */
+  readonly itemIds?: readonly string[];
 }
 
 /** One field that matched (with the would-be/after value). */

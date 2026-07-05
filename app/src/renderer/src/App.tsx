@@ -598,7 +598,10 @@ export function App() {
     });
     const unsubPrefs = api.onShowPreferences(() => setPrefsOpen(true));
     const unsubMenu = api.onMenuCommand((command) => {
-      void dispatchMenuCommand(command, {
+      // The clipboard commands (copy Cite/BibTeX/Citation/RIS/…) touch the clipboard
+      // + IPC directly, outside any store action, so a rejection would otherwise
+      // vanish. Catch it here and surface it in the error footer.
+      dispatchMenuCommand(command, {
         setMacrosOpen,
         setOnlineOpen,
         setPrefsOpen,
@@ -607,6 +610,8 @@ export function App() {
         setBrokenLinksOpen,
         setCoverScanOpen,
         setScriptConsoleOpen,
+      }).catch((err) => {
+        getStore().setState({ error: err instanceof Error ? err.message : String(err) });
       });
     });
     const unsubCols = api.onMenuToggleColumn((key) => void getStore().getState().toggleColumn(key));

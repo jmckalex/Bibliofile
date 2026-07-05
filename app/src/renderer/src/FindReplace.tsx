@@ -8,7 +8,7 @@
 
 import { useState } from 'react';
 import type { FindReplaceResult } from '@bibdesk/shared';
-import { useStore } from './store.js';
+import { useStore, visibleRows } from './store.js';
 import { useT } from './i18n.js';
 import { Icon } from './icons.js';
 
@@ -35,6 +35,12 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
   const groups = useStore((s) => s.groups);
   const selectedGroupId = useStore((s) => s.selectedGroupId);
   const groupName = groups.find((g) => g.id === selectedGroupId)?.name;
+  // When a search filter is active, Replace All is scoped to the visible rows
+  // (see store.findReplace); surface that in the header so the count isn't a shock.
+  const rows = useStore((s) => s.rows);
+  const query = useStore((s) => s.query);
+  const ftsIds = useStore((s) => s.ftsIds);
+  const filteredCount = query.trim() ? visibleRows(rows, query, ftsIds).length : null;
 
   const [field, setField] = useState('');
   const [find, setFind] = useState('');
@@ -74,6 +80,7 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
           <span>
             {t('fr.title')}
             {groupName ? t('fr.inGroup', { name: groupName }) : ''}
+            {filteredCount != null ? t('fr.filteredScope', { count: filteredCount }) : ''}
           </span>
           <button type="button" className="bd-field__del" title={t('common.close')} onClick={onClose}>
             <Icon name="close" />
@@ -125,7 +132,7 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
           {result && (
             <div className="bd-fr__result">
               {result.error ? (
-                <span className="bd-fr__error">{t('fr.invalidPattern', { error: result.error })}</span>
+                <span className="bd-fr__error">{t('fr.opError', { error: result.error })}</span>
               ) : result.applied ? (
                 <span>
                   {t('fr.replaced')} <strong>{result.total}</strong>{' '}

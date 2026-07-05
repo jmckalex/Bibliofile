@@ -451,6 +451,298 @@ describe('viewer store', () => {
     await store.getState().exportTemplate('T', 'selected');
     expect(calls.exportTemplate.at(-1)!.itemIds).toEqual(['i1', 'i3']);
   });
+
+  // --- MED-1: dirty desync on save + concurrent edit -------------------------
+  it('save clears dirty optimistically and does not swallow an edit that lands mid-save (MED-1)', async () => {
+    const { api } = makeFakeApi();
+    let releaseSave: () => void = () => {};
+    const savePending = new Promise<void>((r) => {
+      releaseSave = r;
+    });
+    api.saveDocument = async (r) => {
+      await savePending;
+      return { documentId: r.documentId, path: '/tmp/test.bib' };
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().edit({ kind: 'setField', itemId: 'i1', field: 'Title', value: 'X' });
+    expect(store.getState().dirty).toBe(true);
+
+    const saving = store.getState().save();
+    expect(store.getState().dirty).toBe(false); // cleared up front for the state being persisted
+
+    // A blur-commit / autosave overlap: an edit lands while the write is in flight.
+    await store.getState().edit({ kind: 'setField', itemId: 'i1', field: 'Title', value: 'Y' });
+    releaseSave();
+    await saving;
+    // The mid-save edit must survive (else ⌘S no-ops and autosave won't rearm).
+    expect(store.getState().dirty).toBe(true);
+  });
+
+  it('save restores dirty when the write is cancelled at the lossy-encoding prompt (MED-1)', async () => {
+    const { api } = makeFakeApi();
+    api.saveDocument = async (r) => ({ documentId: r.documentId, path: '/tmp/test.bib', cancelled: true });
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().edit({ kind: 'setField', itemId: 'i1', field: 'Title', value: 'X' });
+    await store.getState().save();
+    expect(store.getState().dirty).toBe(true);
+  });
+
+  // --- MED-2: Replace All + Print honour the active search filter -------------
+  it('findReplace scopes to the visible rows when a search filter is active (MED-2)', async () => {
+    const { api } = makeFakeApi();
+    let seen: Parameters<BibDeskApi['findReplace']>[0] | undefined;
+    api.findReplace = async (r) => {
+      seen = r;
+      return { matches: [], total: 0, applied: false, dirty: false };
+    };
+    api.ftsSearch = async () => ({ available: true, ids: ['i3'] });
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().setQuery('gamma');
+    await store.getState().findReplace({ find: 'a', replace: 'b', regex: false, caseSensitive: false, apply: true });
+    expect(seen?.itemIds).toEqual(['i3']);
+  });
+
+  it('findReplace passes no itemIds restriction when there is no active filter (MED-2)', async () => {
+    const { api } = makeFakeApi();
+    let seen: Parameters<BibDeskApi['findReplace']>[0] | undefined;
+    api.findReplace = async (r) => {
+      seen = r;
+      return { matches: [], total: 0, applied: false, dirty: false };
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().findReplace({ find: 'a', replace: 'b', regex: false, caseSensitive: false, apply: true });
+    expect(seen?.itemIds).toBeUndefined();
+  });
+
+  it('print honours the active search filter, not the whole group (MED-2)', async () => {
+    const { api } = makeFakeApi();
+    let printed: readonly string[] | undefined;
+    api.print = async (r) => {
+      printed = r.itemIds;
+      return { ok: true };
+    };
+    api.ftsSearch = async () => ({ available: true, ids: ['i3'] });
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().setQuery('gamma');
+    await store.getState().print();
+    expect(printed).toEqual(['i3']);
+  });
+
+  // --- MED-3: no overlapping OA / OCR batches --------------------------------
+  it('startOaLookup ignores a second run while one is in progress (MED-3)', async () => {
+    const { api } = makeFakeApi();
+    let release: () => void = () => {};
+    const pending = new Promise<void>((r) => {
+      release = r;
+    });
+    let calls = 0;
+    api.findOpenAccessPdf = async () => {
+      calls++;
+      await pending;
+      return { results: [] };
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    store.setState({ settings: { ...store.getState().settings, contactEmail: 'me@example.com' } });
+
+    const first = store.getState().startOaLookup(['i1']);
+    expect(store.getState().oaLookup?.running).toBe(true);
+    await store.getState().startOaLookup(['i2']); // second launch while running
+    expect(calls).toBe(1); // did not start a second batch
+    expect(store.getState().error).toMatch(/already in progress/i);
+    release();
+    await first;
+  });
+
+  it('startOcr ignores a second run while one is in progress (MED-3)', async () => {
+    const { api } = makeFakeApi();
+    let release: () => void = () => {};
+    const pending = new Promise<void>((r) => {
+      release = r;
+    });
+    let calls = 0;
+    api.ocrScannedPdfs = async () => {
+      calls++;
+      await pending;
+      return { results: [] };
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    const first = store.getState().startOcr(['i1']);
+    expect(store.getState().ocr?.running).toBe(true);
+    await store.getState().startOcr(['i2']);
+    expect(calls).toBe(1);
+    expect(store.getState().error).toMatch(/already in progress/i);
+    release();
+    await first;
+  });
+
+  // --- MED-4: no selection snap-back after a mid-flight re-select ------------
+  it('edit does not snap the pane back to the edited item if the user re-selected meanwhile (MED-4)', async () => {
+    const { api } = makeFakeApi();
+    let release: () => void = () => {};
+    const pending = new Promise<void>((r) => {
+      release = r;
+    });
+    api.applyEdit = async () => {
+      await pending;
+      return { dirty: true, affectedItemId: 'i1', detail: DETAIL };
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    await store.getState().selectItem('i1');
+    expect(store.getState().selectedItemId).toBe('i1');
+
+    const editing = store.getState().edit({ kind: 'setField', itemId: 'i1', field: 'Title', value: 'X' });
+    await store.getState().selectItem('i2'); // user moves to i2 mid-flight
+    expect(store.getState().selectedItemId).toBe('i2');
+
+    release();
+    await editing;
+    expect(store.getState().selectedItemId).toBe('i2'); // stayed on i2, no snap-back to i1
+  });
+
+  // --- MED-6: silent rejection paths ----------------------------------------
+  it('agentSend returns a transport error as res.error instead of throwing (MED-6)', async () => {
+    const { api } = makeFakeApi();
+    api.agentRun = async () => {
+      throw new Error('network down');
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    const res = await store.getState().agentSend('hi');
+    expect(res.mutated).toBe(false);
+    expect(res.error).toMatch(/network down/);
+  });
+
+  it('findReplace surfaces a transport error in the footer instead of throwing (MED-6)', async () => {
+    const { api } = makeFakeApi();
+    api.findReplace = async () => {
+      throw new Error('main exploded');
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    const res = await store
+      .getState()
+      .findReplace({ find: 'a', replace: 'b', regex: false, caseSensitive: false, apply: true });
+    expect(res.applied).toBe(false);
+    expect(store.getState().error).toMatch(/main exploded/);
+    // The error also rides in the result so the modal shows it, not "0 occurrences".
+    expect(res.error).toMatch(/main exploded/);
+  });
+
+  // --- Review follow-ups (adversarial pass on the MED fixes) -----------------
+  it('startOaLookup stays locked after the panel is closed mid-run (MED-3 review)', async () => {
+    const { api } = makeFakeApi();
+    let release: () => void = () => {};
+    const pending = new Promise<void>((r) => {
+      release = r;
+    });
+    let calls = 0;
+    api.findOpenAccessPdf = async () => {
+      calls++;
+      await pending;
+      return { results: [] };
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    store.setState({ settings: { ...store.getState().settings, contactEmail: 'me@example.com' } });
+
+    const first = store.getState().startOaLookup(['i1']);
+    expect(store.getState().oaLookup?.running).toBe(true);
+    // Closing the panel nulls oaLookup but cannot cancel the in-flight main call.
+    store.getState().closeOaLookup();
+    expect(store.getState().oaLookup).toBeNull();
+    // A restart must STILL be blocked — the lock is the run token, not the panel.
+    await store.getState().startOaLookup(['i2']);
+    expect(calls).toBe(1);
+    expect(store.getState().error).toMatch(/already in progress/i);
+
+    release();
+    await first;
+    // Once the batch actually finishes, the lock releases and a new run is allowed.
+    await store.getState().startOaLookup(['i3']);
+    expect(calls).toBe(2);
+  });
+
+  it('a document reload clears a stuck OA run lock so the new doc can start one (MED-3 review)', async () => {
+    const { api } = makeFakeApi();
+    let release: () => void = () => {};
+    const pending = new Promise<void>((r) => {
+      release = r;
+    });
+    let calls = 0;
+    api.findOpenAccessPdf = async () => {
+      calls++;
+      await pending;
+      return { results: [] };
+    };
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    store.setState({ settings: { ...store.getState().settings, contactEmail: 'me@example.com' } });
+
+    const first = store.getState().startOaLookup(['i1']);
+    expect(store.getState().oaLookup?.running).toBe(true);
+    // Reload the document (Revert / welcome-window reuse) mid-run.
+    await store.getState().onDocumentOpened({ ...DOC, documentId: 'doc-2' });
+    expect(store.getState().oaLookup).toBeNull();
+
+    const second = store.getState().startOaLookup(['i2']); // must NOT be blocked
+    expect(calls).toBe(2);
+    expect(store.getState().oaLookup?.running).toBe(true);
+    expect(store.getState().error ?? '').not.toMatch(/already in progress/i);
+
+    release();
+    await Promise.all([first, second]);
+  });
+
+  it('findReplace rebuilds the multi-select panel when 2+ rows are selected (MED-6 review)', async () => {
+    const { api } = makeFakeApi();
+    let multiCalls = 0;
+    api.renderMultiPanel = async (r) => {
+      multiCalls++;
+      return { count: r.itemIds.length };
+    };
+    api.findReplace = async () => ({
+      matches: [{ itemId: 'i1', citeKey: 'beta2020', field: 'Title', before: 'a', after: 'b', count: 1 }],
+      total: 1,
+      applied: true,
+      dirty: true,
+    });
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    store.getState().toggleSelect('i1');
+    store.getState().toggleSelect('i2');
+    expect(store.getState().selectedIds.length).toBe(2);
+
+    const before = multiCalls;
+    await store.getState().findReplace({ find: 'a', replace: 'b', regex: false, caseSensitive: false, apply: true });
+    expect(multiCalls).toBeGreaterThan(before); // multi-panel refreshed, not left stale
+  });
+
+  it('agentSend rebuilds the multi-select panel when 2+ rows are selected (MED-6 review)', async () => {
+    const { api } = makeFakeApi();
+    let multiCalls = 0;
+    api.renderMultiPanel = async (r) => {
+      multiCalls++;
+      return { count: r.itemIds.length };
+    };
+    api.agentRun = async () => ({ reply: 'ok', toolLog: [], mutated: true });
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+    store.getState().toggleSelect('i1');
+    store.getState().toggleSelect('i2');
+
+    const before = multiCalls;
+    await store.getState().agentSend('modify a field');
+    expect(multiCalls).toBeGreaterThan(before);
+  });
 });
 
 describe('filterRows', () => {

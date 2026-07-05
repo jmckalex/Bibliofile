@@ -2554,11 +2554,16 @@ export class DocumentStore {
     }
 
     const items = this.membersOf(doc, req.groupId);
+    // Optional per-item restriction (the renderer's active search filter). When
+    // present, only these items are searched/replaced — so Replace All matches the
+    // rows the user can actually see.
+    const restrict = req.itemIds ? new Set(req.itemIds) : null;
     const matches: FindReplaceMatch[] = [];
     let total = 0;
     let mutated = false;
 
     for (const item of items) {
+      if (restrict && !restrict.has(item.id)) continue;
       const names = req.field ? [req.field] : item.fieldNames();
       for (const name of names) {
         if (BDSK_FILE_RE.test(name)) continue;

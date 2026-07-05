@@ -150,10 +150,14 @@ function FullTextSection({
               style={{ maxWidth: '4.5rem' }}
               value={pageCount}
               disabled={isAll}
-              onChange={(e) => {
-                const n = Math.max(1, Math.floor(Number(e.target.value) || 1));
-                setPageCount(n);
-                if (!isAll) void save({ ftsPageLimit: n });
+              onChange={(e) => setPageCount(Math.max(1, Math.floor(Number(e.target.value) || 1)))}
+              // Commit on blur/Enter, not per keystroke: each save re-indexes any
+              // open libraries, so typing "40" would otherwise fire a "4" pass too.
+              onBlur={() => {
+                if (!isAll) void save({ ftsPageLimit: pageCount || 40 });
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
               }}
             />{' '}
             {t('prefs.ftsPages')}
@@ -871,8 +875,8 @@ function CitationStylesSection({
             className="bd-input"
             type="email"
             placeholder={t('prefs.contactEmailPlaceholder')}
-            value={settings.contactEmail}
-            onChange={(e) => void save({ contactEmail: e.target.value })}
+            defaultValue={settings.contactEmail}
+            onBlur={(e) => void save({ contactEmail: e.target.value.trim() })}
           />
         </label>
         <p className="bd-prefs__hint">{t('prefs.contactEmailHint')}</p>

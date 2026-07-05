@@ -420,6 +420,16 @@ export function createStore(api: BibDeskApi) {
   let texSeq = 0;
   // Same guard for the multi-select panel build (selection can change mid-flight).
   let multiSeq = 0;
+  // OA-PDF / OCR run tokens. A batch's main-process call cannot be cancelled, so
+  // the lock that prevents overlapping batches must be independent of the (nullable)
+  // progress panel: closing the panel must NOT release it. `*ActiveRun` is 0 when
+  // idle, else the id of the batch currently owning the panel; a batch's progress
+  // and completion writes only apply while it is still the active run, so a stale
+  // run (superseded by a document reload) can't clobber a newer batch's panel.
+  let oaRunSeq = 0;
+  let oaActiveRun = 0;
+  let ocrRunSeq = 0;
+  let ocrActiveRun = 0;
   return createZustandStore<ViewerState>((set, get) => ({
     itemCount: 0,
     warnings: 0,
@@ -449,6 +459,11 @@ export function createStore(api: BibDeskApi) {
     texPreviewState: { loading: false },
 
     onDocumentOpened: async (doc) => {
+      // A reload (Revert, or reusing the welcome window) supersedes any in-flight
+      // OA/OCR batch: retire its run token so the "already running" guard can't
+      // misfire on the new document and its late events/tail can't touch the new panel.
+      oaActiveRun = 0;
+      ocrActiveRun = 0;
       set({
         documentId: doc.documentId,
         displayName: doc.displayName,
@@ -467,6 +482,8 @@ export function createStore(api: BibDeskApi) {
         query: '',
         ftsIds: null,
         macros: [],
+        oaLookup: null,
+        ocr: null,
         // honor dirty (set when main re-opens the doc after undo/redo or Save As)
         dirty: doc.dirty ?? false,
         error: undefined,
@@ -788,6 +805,10 @@ export function createStore(api: BibDeskApi) {
     edit: async (command) => {
       const { documentId, editorMode } = get();
       if (!documentId) return;
+      // The selection at issue time. If the user re-selects a different row while
+      // the reloads below are in flight, we must not snap the pane back to the
+      // edited item (the addEntry case below is the deliberate exception).
+      const selWhenIssued = get().selectedItemId;
       const structural =
         command.kind === 'addEntry' ||
         command.kind === 'duplicateEntry' ||
@@ -804,16 +825,18 @@ export function createStore(api: BibDeskApi) {
           await get().loadGroups();
           await get().loadPublications();
         }
-        if (res.affectedItemId) {
-          set({ selectedItemId: res.affectedItemId, detail: res.detail });
+        if (command.kind === 'addEntry' && res.affectedItemId && !editorMode) {
           // A new publication sorts in wherever its cite key falls, so it can be
           // buried out of view. Make it the sole selection (clearing the prior
           // multi-selection) and open its editor so the user lands right on it.
-          if (command.kind === 'addEntry' && !editorMode) {
-            set({ selectedIds: [res.affectedItemId] });
-            get().openEditor(res.affectedItemId);
+          set({ selectedItemId: res.affectedItemId, detail: res.detail, selectedIds: [res.affectedItemId] });
+          get().openEditor(res.affectedItemId);
+        } else if (res.affectedItemId) {
+          // Only refresh/snap the pane if the user hasn't moved on meanwhile.
+          if (get().selectedItemId === selWhenIssued) {
+            set({ selectedItemId: res.affectedItemId, detail: res.detail });
           }
-        } else if (command.kind === 'deleteEntry') {
+        } else if (command.kind === 'deleteEntry' && get().selectedItemId === selWhenIssued) {
           set({ selectedItemId: undefined, detail: undefined });
         }
         if (command.kind === 'setMacro' || command.kind === 'removeMacro') {
@@ -841,13 +864,18 @@ export function createStore(api: BibDeskApi) {
     save: async () => {
       const { documentId, dirty } = get();
       if (!documentId || !dirty) return;
-      set({ saving: true, error: undefined });
+      // Clear `dirty` up front for the state we're about to persist. Any edit that
+      // lands while the write is in flight (a blur-commit or autosave overlapping a
+      // manual ⌘S) re-marks dirty via its own `set`, so we must NOT unconditionally
+      // clear it on resolve — that would swallow the edit (⌘S then early-returns on
+      // !dirty and autosave won't rearm). We only re-assert dirty if the save didn't
+      // actually happen (cancelled at the lossy-encoding prompt, or it threw).
+      set({ saving: true, dirty: false, error: undefined });
       try {
         const res = await api.saveDocument({ documentId });
-        // Cancelled at the lossy-encoding prompt → nothing written, stay dirty.
-        set({ saving: false, dirty: res.cancelled ? get().dirty : false });
+        set({ saving: false, ...(res.cancelled ? { dirty: true } : {}) });
       } catch (err) {
-        set({ saving: false, error: errorMessage(err) });
+        set({ saving: false, dirty: true, error: errorMessage(err) });
       }
     },
 
@@ -869,7 +897,9 @@ export function createStore(api: BibDeskApi) {
         const res = await api.addAttachment({ documentId, itemId, paths });
         set({ dirty: res.dirty });
         if (res.detail) {
-          set({ selectedItemId: itemId, detail: res.detail });
+          // The file picker can sit open for seconds; only pull the pane to the
+          // attached item if it's still the selection (else the user has moved on).
+          if (get().selectedItemId === itemId) set({ detail: res.detail });
           // Refresh the table so its attachment-count (📎) column reflects the add.
           await get().loadPublications();
         }
@@ -895,18 +925,22 @@ export function createStore(api: BibDeskApi) {
     },
 
     autoFile: async (itemIds) => {
-      const { documentId, selectedItemId } = get();
+      const { documentId } = get();
       if (!documentId || itemIds.length === 0) return;
       try {
         const res = await api.autoFile({ documentId, itemIds });
         if (res.detail) {
-          // Single entry: refresh the pane from the returned detail.
-          set({ dirty: res.dirty, detail: res.detail });
+          // Single entry: refresh the pane from the returned detail — but only if
+          // that entry is still selected (the user may have clicked away since).
+          set({ dirty: res.dirty });
+          if (get().selectedItemId === itemIds[0]) set({ detail: res.detail });
         } else if (res.moved > 0) {
-          // Bulk: reload the table + the open detail to reflect rewritten paths.
+          // Bulk: reload the table + whatever is currently selected (not a stale
+          // capture) to reflect rewritten paths.
           set({ dirty: res.dirty });
           await get().loadPublications();
-          if (selectedItemId) await get().loadDetail(selectedItemId);
+          const sel = get().selectedItemId;
+          if (sel) await get().loadDetail(sel);
         }
         if (res.errors.length) set({ error: res.errors.join('; ') });
       } catch (err) {
@@ -1075,20 +1109,37 @@ export function createStore(api: BibDeskApi) {
     },
 
     findReplace: async (opts) => {
-      const { documentId, selectedGroupId } = get();
+      const { documentId, selectedGroupId, rows, query, ftsIds } = get();
       if (!documentId) return { matches: [], total: 0, applied: false, dirty: false };
-      const res = await api.findReplace({
-        documentId,
-        ...(selectedGroupId ? { groupId: selectedGroupId } : {}),
-        ...opts,
-      });
-      if (res.applied && res.total > 0) {
-        set({ dirty: res.dirty });
-        await get().loadPublications();
-        const sel = get().selectedItemId;
-        if (sel) await get().selectItem(sel); // refresh the detail pane
+      // With an active search filter, scope to the visible rows so Replace All acts
+      // on what the user sees, not the whole group (matches exportTemplate('shown')).
+      const itemIds = query.trim() ? visibleRows(rows, query, ftsIds).map((r) => r.id) : undefined;
+      try {
+        const res = await api.findReplace({
+          documentId,
+          ...(selectedGroupId ? { groupId: selectedGroupId } : {}),
+          ...(itemIds ? { itemIds } : {}),
+          ...opts,
+        });
+        if (res.applied && res.total > 0) {
+          set({ dirty: res.dirty });
+          await get().loadPublications();
+          // Refresh the pane without collapsing a multi-selection: the single detail
+          // for the primary row, plus the multi-select panel when 2+ rows are selected
+          // (that panel is what's visible then, and nothing else rebuilds it — see
+          // batchEdit). Otherwise Replace All leaves the pane showing pre-replace values.
+          const sel = get().selectedItemId;
+          if (sel) await get().loadDetail(sel);
+          if (get().selectedIds.length >= 2) void get().loadMultiPanel();
+        }
+        return res;
+      } catch (err) {
+        const message = errorMessage(err);
+        set({ error: message });
+        // Carry the error in the result too so the modal renders its error branch
+        // rather than a misleading "0 occurrences" (its footer is behind the backdrop).
+        return { matches: [], total: 0, applied: false, dirty: get().dirty, error: message };
       }
-      return res;
     },
 
     findDuplicates: async () => {
@@ -1105,11 +1156,21 @@ export function createStore(api: BibDeskApi) {
     startOaLookup: async (itemIds) => {
       const { documentId, settings } = get();
       if (!documentId || itemIds.length === 0) return;
+      // Don't start a second lookup over the first: both batches keep emitting into
+      // the single panel, so their counters and results interleave. The lock is the
+      // run token (NOT oaLookup?.running) so closing the panel mid-run — which nulls
+      // oaLookup but can't cancel the main call — doesn't release it.
+      if (oaActiveRun !== 0) {
+        set({ error: 'A Find Open-Access PDFs run is already in progress.' });
+        return;
+      }
       // Unpaywall (and the Crossref polite pool) need a contact email.
       if (!settings.contactEmail?.trim()) {
         set({ error: 'Set a contact email in Preferences → Citations to use Find Open-Access PDFs.' });
         return;
       }
+      const runId = ++oaRunSeq;
+      oaActiveRun = runId;
       // Open the panel immediately in its "running" state.
       set({ oaLookup: { total: itemIds.length, done: 0, running: true, results: [] } });
 
@@ -1127,6 +1188,7 @@ export function createStore(api: BibDeskApi) {
       // Stream each entry's outcome into the panel; refresh the table + the open
       // detail as soon as an attachment lands (main applies it before emitting).
       const unsub = api.onOaPdfProgress((p) => {
+        if (oaActiveRun !== runId) return; // superseded by a newer batch / document reload
         if (p.documentId !== get().documentId) return;
         const cur = get().oaLookup;
         if (!cur) return; // panel was closed
@@ -1139,21 +1201,27 @@ export function createStore(api: BibDeskApi) {
       });
       try {
         const res = await api.findOpenAccessPdf({ documentId, itemIds });
-        // Final reconcile pass (covers the trailing debounced refresh).
-        if (res.results.some((r) => r.status === 'attached')) {
+        // Final reconcile pass (covers the trailing debounced refresh) — skip if a
+        // reload superseded this run (its attachments belong to the old document).
+        if (oaActiveRun === runId && res.results.some((r) => r.status === 'attached')) {
           set({ dirty: true });
           await get().loadPublications();
           const sel = get().selectedItemId;
           if (sel) await get().loadDetail(sel);
         }
         const cur = get().oaLookup;
-        if (cur) set({ oaLookup: { ...cur, running: false, done: res.results.length, results: [...res.results] } });
+        if (oaActiveRun === runId && cur) {
+          set({ oaLookup: { ...cur, running: false, done: res.results.length, results: [...res.results] } });
+        }
       } catch (err) {
-        set({ error: errorMessage(err) });
-        const cur = get().oaLookup;
-        if (cur) set({ oaLookup: { ...cur, running: false } });
+        if (oaActiveRun === runId) {
+          set({ error: errorMessage(err) });
+          const cur = get().oaLookup;
+          if (cur) set({ oaLookup: { ...cur, running: false } });
+        }
       } finally {
         if (tableTimer) clearTimeout(tableTimer);
+        if (oaActiveRun === runId) oaActiveRun = 0;
         unsub();
       }
     },
@@ -1163,12 +1231,21 @@ export function createStore(api: BibDeskApi) {
     startOcr: async (itemIds) => {
       const { documentId } = get();
       if (!documentId || itemIds.length === 0) return;
+      // As with OA lookups, lock on the run token (not ocr?.running) so closing the
+      // panel mid-run doesn't release the guard onto an uncancellable main call.
+      if (ocrActiveRun !== 0) {
+        set({ error: 'An OCR run is already in progress.' });
+        return;
+      }
+      const runId = ++ocrRunSeq;
+      ocrActiveRun = runId;
       // Open the panel immediately in its "running" state.
       set({ ocr: { total: itemIds.length, done: 0, running: true, current: null, results: [] } });
 
       // Stream per-entry/per-page progress into the panel. A progress event with a
       // `page` updates the live line; one without `page` marks an entry finished.
       const unsub = api.onOcrProgress((p) => {
+        if (ocrActiveRun !== runId) return; // superseded by a newer batch / document reload
         if (p.documentId !== get().documentId) return;
         const cur = get().ocr;
         if (!cur) return; // panel was closed
@@ -1181,22 +1258,25 @@ export function createStore(api: BibDeskApi) {
       try {
         const res = await api.ocrScannedPdfs({ documentId, itemIds });
         const cur = get().ocr;
-        if (cur) {
+        if (ocrActiveRun === runId && cur) {
           set({
             ocr: { ...cur, running: false, done: res.results.length, current: null, results: [...res.results] },
           });
         }
         // If any file gained a text layer, refresh the open detail (so a re-opened
         // PDF reflows) — the main process already re-indexed for full-text search.
-        if (res.results.some((r) => r.status === 'ocred')) {
+        if (ocrActiveRun === runId && res.results.some((r) => r.status === 'ocred')) {
           const sel = get().selectedItemId;
           if (sel) await get().loadDetail(sel);
         }
       } catch (err) {
-        set({ error: errorMessage(err) });
-        const cur = get().ocr;
-        if (cur) set({ ocr: { ...cur, running: false, current: null } });
+        if (ocrActiveRun === runId) {
+          set({ error: errorMessage(err) });
+          const cur = get().ocr;
+          if (cur) set({ ocr: { ...cur, running: false, current: null } });
+        }
       } finally {
+        if (ocrActiveRun === runId) ocrActiveRun = 0;
         unsub();
       }
     },
@@ -1455,10 +1535,13 @@ export function createStore(api: BibDeskApi) {
     },
 
     print: async () => {
-      const { documentId, selectedIds, rows, groups, selectedGroupId, displayName, settings } = get();
+      const { documentId, selectedIds, rows, query, ftsIds, groups, selectedGroupId, displayName, settings } =
+        get();
       if (!documentId) return;
-      // The multi-selection if any, else every row in the current view (group).
-      const itemIds = selectedIds.length > 1 ? selectedIds : rows.map((r) => r.id);
+      // The multi-selection if any, else every row in the current view — which
+      // honours the active search filter (not the whole group), matching what the
+      // user sees. `exportTemplate('shown')` uses the same visibleRows() scope.
+      const itemIds = selectedIds.length > 1 ? selectedIds : visibleRows(rows, query, ftsIds).map((r) => r.id);
       if (!itemIds.length) return;
       const group = groups.find((g) => g.id === selectedGroupId);
       const docName = (displayName ?? 'Bibliography').replace(/\.bib$/i, '');
@@ -1518,15 +1601,25 @@ export function createStore(api: BibDeskApi) {
     agentSend: async (message) => {
       const { documentId } = get();
       if (!documentId) return { reply: '', toolLog: [], mutated: false, error: 'No document open.' };
-      const res = await api.agentRun({ documentId, message });
-      if (res.mutated) {
-        set({ dirty: true });
-        await get().loadGroups();
-        await get().loadPublications();
-        const sel = get().selectedItemId;
-        if (sel) await get().selectItem(sel);
+      try {
+        const res = await api.agentRun({ documentId, message });
+        if (res.mutated) {
+          set({ dirty: true });
+          await get().loadGroups();
+          await get().loadPublications();
+          // Refresh the pane without collapsing a multi-selection (single detail for
+          // the primary, plus the multi-select panel when 2+ rows are selected — that
+          // panel is what's visible then and nothing else rebuilds it).
+          const sel = get().selectedItemId;
+          if (sel) await get().loadDetail(sel);
+          if (get().selectedIds.length >= 2) void get().loadMultiPanel();
+        }
+        return res;
+      } catch (err) {
+        // Surface transport/main failures as the assistant's reply (Assistant.tsx
+        // renders res.error as an error turn) instead of an unhandled rejection.
+        return { reply: '', toolLog: [], mutated: false, error: errorMessage(err) };
       }
-      return res;
     },
   }));
 }
