@@ -8,29 +8,41 @@ multi-row selection changes both panels, and where to design your own panels.
 
 ## Resizing, hiding, and switching the side panel
 
+The left-hand **groups sidebar** — the one holding your groups, folders, and
+smart groups — can be resized: drag the divider between it and the publications
+table. The width is clamped to **150–500 px** and is remembered between sessions,
+like every other panel size on this page.
+
 The right-hand **detail pane** is fully adjustable:
 
 - **Resize** — drag the divider between the publications table and the detail
-  pane left or right.
-- **Hide / show** — **View → Toggle Side Panel** (**⌘⌥S** / **Ctrl+Alt+S**), or
+  pane left or right. The width is clamped to **240–800 px**.
+- **Hide / show** — **View → Toggle Side Panel** (**⌥⌘S** / **Ctrl+Alt+S**), or
   click the **×** in the pane's header.
 - **Switch content** — the pane's header has a **content dropdown** (currently
   offering just **Details**) **plus** a dedicated **🤖 Claude** toggle button.
-  Click **🤖 Claude** to use the assistant right inside the pane; click it again
-  (or pick **Details** from the dropdown) to swap back.
+  Click **🤖 Claude** to use the assistant right inside the pane; click it again,
+  or the **×** in the assistant's own title bar, to go back to **Details**.
 
 > **Note:** The side-pane control is a **dropdown + a Claude button**, not a pair
 > of tabs. The dropdown lists the available detail content (just **Details**
 > today, with room to grow), while the assistant — which you flip in and out of
-> frequently — keeps its own one-click button.
+> frequently — keeps its own one-click button. Because **Details** is the
+> dropdown's only entry, the dropdown goes on reading "Details" even while the
+> assistant is showing; to get back, use the **🤖 Claude** button, the
+> assistant's own **×**, or **⌥⌘1**. (The two **×** buttons do different things:
+> the one in the *pane header* hides the whole side panel, the one in the
+> *assistant's* title bar just returns the pane to **Details**.)
 
 All of this is remembered across launches.
 
 ## The bottom panel
 
-Open it with **View → Toggle Bottom Panel** (**⌘⌥B** / **Ctrl+Alt+B**). The
+Open it with **View → Toggle Bottom Panel** (**⇧⌘B** / **Ctrl+Shift+B**). The
 bottom panel is a wide, selection-driven reader whose content you pick from the
-**content dropdown** in its header. It offers three views:
+**content dropdown** in its header. It sits under the **publications table**
+only — the groups sidebar and the side pane run full height beside it. It offers
+three views:
 
 - **Annotation** (the default) — the selected entry's annotation in a wide,
   comfortable-to-read format (handy for long notes that feel cramped in the
@@ -41,20 +53,26 @@ bottom panel is a wide, selection-driven reader whose content you pick from the
 - **LaTeX Preview** — a true BibTeX/`.bst` typesetting of the selected entries'
   bibliography (see [LaTeX preview](#latex-preview) below).
 
-Drag its top edge to resize, and click **×** to hide.
+Drag its top edge to resize (the height is clamped to **80–600 px**), and click
+**×** to hide.
 
 ### The Tabbed view
 
 Switch the bottom panel to **Tabbed** (from the content dropdown, or **View →
-Bottom Panel → Tabbed**, **⌘⌥4**) for a compact three-tab reader of the selected
+Bottom Panel → Tabbed**, **⌥⌘4**) for a compact three-tab reader of the selected
 entry:
 
 - **Annotation** — the entry's annotation, rendered from Markdown.
 - **Abstract** — the entry's `Abstract` field, rendered from Markdown.
 - **Attachments** — a grid of **large thumbnails**, one per attached file. PDFs
-  show their first page; image files (PNG, JPG, …) show the picture; other file
-  types show a generic file icon. **Double-click a thumbnail to open the file**
-  in the native application for its type.
+  show their first page; image files (PNG, JPG, GIF, WebP, BMP, SVG, AVIF) show
+  the picture; other file types show a generic file icon. **Double-click a
+  thumbnail to open the file** in the native application for its type, or click
+  the small **×** in its corner to **remove that attachment** from the entry —
+  the file itself is left on disk. The **×** only appears on the app's managed
+  `Bdsk-File-N` attachments, not on files the entry merely points at through a
+  local-path field; see
+  [Attachments → Removing an attachment](04-attachments.md#removing-an-attachment).
 
 Click a tab to switch; the view always opens on **Annotation**. The same tabbed
 layout is also available as a starting point for a
@@ -76,17 +94,17 @@ shortcut:
 
 | Menu item | Shortcut | Shows |
 | --- | --- | --- |
-| **View → Side Panel → Details** | **⌘⌥1** / **Ctrl+Alt+1** | The read-only detail view in the side pane |
-| **View → Side Panel → Claude** | **⌘⌥2** / **Ctrl+Alt+2** | The 🤖 Claude assistant in the side pane |
-| **View → Bottom Panel → Annotation** | **⌘⌥3** / **Ctrl+Alt+3** | The annotation reader in the bottom panel |
-| **View → Bottom Panel → Tabbed** | **⌘⌥4** / **Ctrl+Alt+4** | The Annotation · Abstract · Attachments tabs in the bottom panel |
-| **View → Bottom Panel → LaTeX Preview** | **⌘⌥5** / **Ctrl+Alt+5** | The LaTeX preview in the bottom panel |
+| **View → Side Panel → Details** | **⌥⌘1** / **Ctrl+Alt+1** | The read-only detail view in the side pane |
+| **View → Side Panel → Claude** | **⌥⌘2** / **Ctrl+Alt+2** | The 🤖 Claude assistant in the side pane |
+| **View → Bottom Panel → Annotation** | **⌥⌘3** / **Ctrl+Alt+3** | The annotation reader in the bottom panel |
+| **View → Bottom Panel → Tabbed** | **⌥⌘4** / **Ctrl+Alt+4** | The Annotation · Abstract · Attachments tabs in the bottom panel |
+| **View → Bottom Panel → LaTeX Preview** | **⌥⌘5** / **Ctrl+Alt+5** | The LaTeX preview in the bottom panel |
 
 Choosing any of these also **reveals** the relevant panel if it was hidden, so a
 single shortcut both shows the panel and selects its content.
 
 > **Tip:** The Claude assistant has a second home: **Tools → Claude Assistant…**
-> (**⌘J** / **Ctrl+J**) opens it in the side pane just like **⌘⌥2**.
+> (**⌘J** / **Ctrl+J**) opens it in the side pane just like **⌥⌘2**.
 
 ## LaTeX preview
 
@@ -99,20 +117,23 @@ copy-ready CSL rendering, the LaTeX preview is what `bibtex` itself produces for
 the `.bst` you cite with in your paper.
 
 Show it from the bottom-pane dropdown, from **View → Bottom Panel → LaTeX
-Preview** (**⌘⌥5** / **Ctrl+Alt+5**), or from **Tools → LaTeX Preview** (which
+Preview** (**⌥⌘5** / **Ctrl+Alt+5**), or from **Tools → LaTeX Preview** (which
 opens the bottom panel and switches it to the preview).
 
 ### What it renders, and how
 
+- **It always typesets the selection.** The preview needs at least one selected
+  row: with nothing selected it shows a hint and runs nothing at all. There is no
+  "preview the whole library" mode in the pane.
 - **A small selection renders as crisp, theme-aware inline SVG.** When you have
-  selected roughly **20 entries or fewer** (and the `dvisvgm` tool is present in
-  your TeX install), the bibliography is traced to vector **SVG** that inherits
-  the pane's text colour — so it stays sharp at any zoom and recolours to match
-  light or dark mode.
-- **The whole library and larger selections render as a PDF.** With more entries
-  selected — or with nothing selected, which previews the **entire library** —
-  the bibliography is compiled to a **PDF** and shown page by page (rendered with
-  PDF.js). One rasterised page scales better than dozens of inline SVGs.
+  selected **20 entries or fewer** (and the `dvisvgm` tool is present in your TeX
+  install), the bibliography is traced to vector **SVG** that inherits the pane's
+  text colour — so it stays sharp at any zoom and recolours to match light or
+  dark mode.
+- **Larger selections render as a PDF.** Select **more than 20** entries — or run
+  a TeX install without `dvisvgm` — and the bibliography is compiled to a **PDF**
+  instead and shown page by page (rendered with PDF.js). One rasterised page
+  scales better than dozens of inline SVGs.
 - **It auto-refreshes from the selection.** The preview renders as soon as you
   open it and then re-renders automatically (debounced, so arrow-keying through
   rows doesn't spawn a run per row) every time the selection changes. There is no
@@ -151,26 +172,40 @@ Shift-click for a range, **⌘A** / **Ctrl+A** for all) switches **both** the
 detail pane and the bottom panel into a **multi-select view** instead of the
 single-entry view.
 
-Each multi-select view opens with a sticky **"Multiple entries selected (N)"**
-indicator, where *N* is the number of selected entries, above a **scrollable
-list**: in the detail pane, each entry's preview; in the bottom panel, each
-entry's annotation. The list shows up to **50** entries; beyond that a final
-**"+N more not shown"** line tells you how many were elided.
+Each multi-select view opens with a sticky **"Multiple entries selected"**
+header, followed by a **count badge** showing how many rows are selected, above a
+**scrollable list** — one block per entry, headed by its cite key: in the detail
+pane, each entry's preview; in the bottom panel, each entry's annotation. The
+list shows up to **50** entries; beyond that a final **"+N more not shown"** line
+tells you how many were elided. (The batch tools below still act on the *whole*
+selection, not just the 50 that are drawn.)
+
+Two cases opt out of that view: the side pane keeps showing the **🤖 Claude**
+assistant if that is what it was showing, and the bottom panel's **LaTeX
+Preview** typesets all the selected entries rather than listing them. The
+**Annotation** and **Tabbed** bottom views both fall back to the same annotation
+list, so the three tabs disappear while more than one row is selected.
 
 ### Batch tools (the selection bar)
 
-Whenever two or more rows are selected, a floating **batch-edit bar** appears at
-the bottom of the window. Each tool applies one change to the **whole selection**
-in a **single undo step**:
+Whenever two or more rows are selected, a floating **batch-edit bar** appears
+near the bottom of the window — above the bottom panel's top edge when that panel
+is open, otherwise just above the window's bottom edge. It opens with an
+**"N selected"** count, then the tools. Each tool applies one change to the
+**whole selection** in a **single undo step**:
 
 | Tool | What it does |
 | --- | --- |
-| **Set field** | Type a field name and a value, then **Set** to write that field on every selected entry |
-| **Add keyword** | Type a keyword and **Add keyword** to add it to every selected entry's `Keywords` |
-| **Remove keyword** | Type a keyword and **Remove keyword** to strip it from every selected entry |
+| **Set** | Type a field name in **Field** and a value in **value**, then **Set** to write that field on every selected entry. Leave **value** empty to *remove* that field from every selected entry |
+| **Keyword** (**+**) | Type a keyword and press the **+ Keyword** button to add it to every selected entry's `Keywords`; entries that already have it (ignoring case) are left alone |
+| **Keyword** (**−**) | The **− Keyword** button strips that keyword from every selected entry, and drops the `Keywords` field entirely when nothing is left |
+
+> **Note:** Both keyword buttons are simply labelled **Keyword**; the **+** and
+> **−** icons are what tell them apart. **Set** stays disabled until you have
+> typed a field name, and the keyword buttons until you have typed a keyword.
 
 > **Tip:** Press **Enter** in the **value** box to apply **Set**, or in the
-> **keyword** box to **Add keyword**, without reaching for the button.
+> **Keyword** box to *add* the keyword, without reaching for the button.
 
 Because each batch operation is a single undoable step, you can apply one and
 then **Edit → Undo** (**⌘Z** / **Ctrl+Z**) to back it all out at once. The bar
@@ -199,6 +234,9 @@ with:
   editor](05-notes-and-abstracts.md#the-annotation-editor-window) for the
   right-clicked entry: a separate window with the entry's preview card above a
   Markdown editor that auto-saves.
+- **Find Open-Access PDF…** — looks for a freely available PDF for the selection
+  and offers to attach it; see
+  [Attachments → Finding open-access PDFs](04-attachments.md#finding-open-access-pdfs).
 - A horizontal row of **colour-label dots** (plus a **✕** that clears the
   label) — picking one applies that colour to the selection, mirroring the
   **Publication → Color Label** submenu.

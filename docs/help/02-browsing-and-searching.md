@@ -50,7 +50,7 @@ so you can add, remove, and reorder them; the defaults are:
 | **Year** | The publication year. | The `Year` field. |
 | **Keywords** (icon) | A 🔑 key icon when the entry has any keywords. | Non-empty `Keywords` field. |
 | **Attachments** (icon) | A 📎 paperclip (with a small count badge if more than one) when the entry has attached files. | The entry's `Bdsk-File-N` attachments (and a `Local-Url`, if any). |
-| **Read** (icon) | A checked box when the entry is marked read, an empty box when explicitly unread, nothing when unset. | The `Read` field (a tri-state value). |
+| **Read** (icon) | A checked box when the entry is marked read, an empty box when explicitly unread, nothing when unset. | The `Read` field (a boolean, shown three ways — see below). |
 | **Annotation** (icon, not shown by default) | A 📄 file icon when the entry has an annotation. | Non-empty notes/`Annote` content (including markdown annotations). |
 
 A few details worth knowing about how the text values are produced:
@@ -125,8 +125,24 @@ Every column sorts as text by this rule, including **Year** — which is fine
 because years are numeric strings and the numeric-aware comparison orders them
 correctly.
 
-> **Note:** Sorting on a single column at a time is supported today. Multi-column
-> ("sort by year, then by author") sorting is planned but not yet available.
+#### Sorting by more than one column
+
+**Shift-click** a header to add it as an *additional* sort key rather than
+replacing the current one. "Sort by year, then by author" is a click on **Year**
+followed by a Shift-click on **Authors**: rows are ordered by year, and rows
+sharing a year are ordered by author.
+
+- When more than one column is sorted, each sorted header shows a small
+  **priority number** beside its arrow — **1** is the primary key, **2** the
+  tie-breaker, and so on.
+- Shift-clicking a column that is *already* in the sort cycles it: ascending →
+  descending → removed. Remove the last remaining key and the table falls back to
+  the default **Cite Key, ascending**.
+- A plain (un-shifted) click always collapses the sort back to that one column
+  alone.
+
+The header tooltip is a reminder of all three header gestures: *Click to sort ·
+Shift-click to add a secondary sort · drag to reorder*.
 
 ### 2.2.4 Virtualization (why the table stays fast)
 
@@ -151,6 +167,13 @@ authors, venue, keyword tags, abstract, clickable DOI/URL/attachment links,
 rendered math, notes, and a formatted citation. Selecting an entry is also the
 gateway to editing it.
 
+**The selected row is kept in view.** If something moves the selected row — a new
+entry sorts in somewhere in the middle, or an edit re-sorts the row you are
+working on (renaming a cite key while sorted by Cite Key can throw it a long way
+off-screen) — the table scrolls the selection back into view and centres it. It
+scrolls only when the row is not *fully* visible, so re-sorting or filtering while
+the selection is already on screen never twitches the viewport.
+
 For everything you can see and do in that pane, see
 [Preview & citations](06-preview-and-citations.md),
 [Editing entries](03-editing-entries.md),
@@ -163,16 +186,22 @@ For everything you can see and do in that pane, see
 > Library so it can be selected. See [Notes & abstracts](05-notes-and-abstracts.md).
 
 > **Tip:** You can **drag a row out** of the table into a TeX editor (or any text
-> field) to insert a `\cite{…}` command for that entry, and there are clipboard
-> commands to copy the cite key, a `\cite{…}`, a formatted citation, or the
-> entry's BibTeX. See
+> field) to insert a `\cite{…}` command for that entry. If the row you drag is part
+> of a multi-row selection, the *whole* selection is dragged and the inserted
+> command carries every cite key. (The Edit-menu clipboard commands — copy the cite
+> key, a `\cite{…}`, a formatted citation, or the entry's BibTeX — work on the one
+> primary row instead.) See
 > [Editing entries → Copying entries](03-editing-entries.md#copying-entries-cite-keys-and-citations).
 
 #### Color labels
 
-**Right-click a row** for a Finder-style strip of color dots, and click one to
-tag the entry — the whole row is then tinted that color (the click target is the
-**×** to clear it). You can also use **Publication → Color Label**. The color
+**Right-click a row** for a Finder-style context menu: **Edit Annotation…**,
+**Find Open-Access PDF…**, a strip of label-color dots ending in a **✕**
+("No color"), and **Delete entry** (which reads *Delete N entries* when several
+rows are selected). Click a dot to tag the entry — the whole row is then tinted
+that color — or ✕ to clear it. Right-clicking a row *outside* the current
+selection selects just that row first; right-clicking *inside* the selection acts
+on the whole selection. You can also use **Publication → Color Label**. The color
 applies to the current selection, so you can tag several rows at once, and it's a
 single undo step. The label is stored in the entry's `Bdsk-Color` field, so it
 round-trips with BibDesk.
@@ -200,8 +229,9 @@ column on the fly.
 
 #### From the Preferences "Columns" manager (show / hide / add)
 
-Open **Preferences** (**⌘,** / **Ctrl+,**) and find the **Columns** section. It
-lists your current columns, each with a **×** to **remove** it. Below the list, an
+Open **Preferences** (**⌘,** / **Ctrl+,**) and pick **Display** in the left-hand
+rail. Its **Columns** section lists your current columns, each with a **×** to
+**remove** it. Below the list, an
 **Add column…** dropdown adds any of the built-in columns you do not yet have, and
 an **"Add a field (e.g. Journal)"** text box lets you add **any BibTeX field name
 at all** as a column — type the field name and press **Enter**. So if your entries
@@ -209,10 +239,11 @@ carry a custom `Funding` or `Project` field, you can surface it as a column.
 (Reordering and resizing happen on the header itself — see above and
 [§2.2.2](#222-column-widths).)
 
-> **Note:** To add the **Annotation** indicator, pick the built-in
-> **"Annotation"** entry from the **Add column…** dropdown — *not* the raw
-> `Annote` field. Typing `Annote` in the field box gives a plain (and empty) text
-> column instead of the 📄 icon indicator.
+> **Note:** The **Annotation** indicator is the one built-in column the **View →
+> Columns** menu does not offer; add it here, by picking **"Annotation"** from the
+> **Add column…** dropdown — *not* by typing the raw `Annote` field, which gives a
+> plain (and empty) text column instead of the 📄 icon indicator. Once added it
+> appears in the View → Columns menu like any other configured column.
 
 Your column configuration is saved with the application's other preferences (in
 `settings.json`), so it persists across sessions and applies to every library you
@@ -231,9 +262,10 @@ Three of the default columns are compact **icon** columns rather than text:
   `Bdsk-File-N` attachments (see [Attachments](04-attachments.md)). The header is
   a paperclip icon.
 - **✓ Read** — a tri-state read marker driven by the entry's `Read` field: a
-  **filled, checked box** when the entry is marked read, an **empty box** when it
-  is explicitly marked unread, and **nothing** when the field is absent. The
-  header is a checked-box icon.
+  **filled, checked box** when the field says read (`1`, `yes`, `true`, or `on`,
+  in any case), an **empty box** for any *other* non-empty value — i.e. explicitly
+  unread — and **nothing** when the field is absent or blank. The header is a
+  checked-box icon.
 - **★ Rating** (not shown by default) — when you add the Rating column, it shows
   the entry's `Rating` field as that many filled stars (out of five).
 - **📄 Annotation** (not shown by default) — when you add the Annotation column, it
@@ -243,13 +275,14 @@ Three of the default columns are compact **icon** columns rather than text:
 > **Note:** The icon columns are **display-only indicators** — they reflect the
 > underlying fields but you do not click them to toggle anything. To mark an entry
 > read or rate it, set its `Read` or `Rating` field in the
-> [editor](03-editing-entries.md#editing-fields) (`Read` uses values such as `1`
+> [editor](03-editing-entries.md#editing-fields) (`Read` takes `1`/`yes`/`true`/`on`
 > for read; `Rating` is a number 0–5). The columns then update to match.
 
 ## 2.3 Live search
 
 Use the **search box** at the top-right of the window — the one labelled
-**"Filter publications…"** — to filter the table as you type.
+**"Filter publications…"**, or **"Search (incl. PDF text)…"** when full-text
+search is switched on — to filter the table as you type.
 
 1. Click in the search box (it appears only when a library is open).
 2. Start typing.
@@ -272,8 +305,11 @@ other field. So:
 
 Matching is **case-insensitive** (`QUANTUM`, `Quantum`, and `quantum` are
 equivalent), results are **ranked by relevance** (best matches first), and terms
-match by **word prefix**, so `bargain` finds *bargaining*. The index is an
-in-memory, rebuildable cache (your `.bib` file stays the source of truth).
+match by **word prefix**, so `bargain` finds *bargaining*. This field index is an
+in-memory, rebuildable cache, built when the library opens and updated as you edit
+— your `.bib` file stays the source of truth. (PDF text is indexed separately and
+*is* kept on disk; see [below](#including-pdf-contents-the-pdf-toggle) and
+[§2.7](#27-performance-notes-for-large-libraries).)
 
 #### Multiple words and quoted phrases
 
@@ -306,9 +342,42 @@ This is off by default on purpose: PDF bodies mention many names and terms that
 aren't really about the entry (an author's name printed in a paper's references,
 say), so full-text search can return far more — and less relevant — results. Turn
 it on when you're hunting for something you know is *inside* a paper; leave it off
-for ordinary "find this reference" filtering. Your choice is remembered. (PDF text
-is indexed in the background shortly after a library opens, so newly-opened
-libraries gain PDF matches a moment later.)
+for ordinary "find this reference" filtering. Your choice is remembered, and it is
+the same setting as **Preferences → General → Full-text search**.
+
+**The toggle also decides whether PDFs are indexed at all.** Reading the text out
+of every attached PDF is the expensive part, so the button does not merely
+*filter* results — while it is **off, no PDF text is extracted or indexed**.
+Nothing is spent on a library whose PDFs you never intend to search.
+Consequently:
+
+- **Switching the button on starts indexing** every library you currently have
+  open. A small **Indexing PDFs** card appears in the lower left with a progress
+  count and the note *"Building full-text search — you can keep working."* You
+  can dismiss the card; indexing carries on. It only shows up if indexing takes a
+  moment, so an already-indexed library never flashes it.
+- **The first search after switching on may be incomplete** until that pass
+  finishes. Field matches are there immediately; PDF matches arrive as pages are
+  read.
+- The same happens, quietly, when you open a library with the button already on:
+  indexing begins a couple of seconds after the window appears, so the initial
+  load is not held up.
+
+**The PDF index is kept on disk**, so this cost is paid once rather than once per
+session. It lives in a database in the application's own data folder — never in
+your `.bib` — keyed by each PDF's absolute path, and it is shared by every library
+you open. Reopening a library whose PDFs are unchanged does **no** extraction at
+all. A file is re-read only when its content genuinely changed (a modification
+stamp that moved is confirmed against a checksum first, so a file merely touched,
+re-synced by a cloud client, or AutoFiled to a new name is *not* re-extracted),
+and entries for files that have since gone are pruned the next time the
+application opens the index.
+
+> **Scanned PDFs.** A scanned page is an image: there is no text to extract, so it
+> can never match — until you run **Publication → OCR Scanned PDFs…**, which adds
+> a searchable text layer. Entries that gain one are re-indexed automatically as
+> soon as the OCR run finishes (when full-text search is on), so they become
+> searchable straight away. See [Attachments](04-attachments.md).
 
 > **How many PDF pages are indexed.** By default only the **first 40 pages** of
 > each PDF are scanned — plenty for articles, and it keeps indexing fast. For long
@@ -316,15 +385,22 @@ libraries gain PDF matches a moment later.)
 > Full-text search**: choose **At most _N_ pages** (and set _N_), or **All** to
 > index the whole document. Indexing all pages of large scanned books is slower
 > and only finds text if the scan has a searchable text layer (OCR). Changing the
-> setting re-indexes any open libraries.
+> limit invalidates the stored text, so it re-indexes any open libraries — which is
+> why the page box commits when you leave it or press Enter, not on every
+> keystroke. (Nothing is re-indexed if full-text search is off; the new limit
+> applies when you next switch it on.)
 
 > **Note (the substring fallback):** Full-text search relies on a native
 > component. If it isn't available for your build, the box automatically falls
-> back to a plain **case-insensitive substring filter** over the **visible text
-> columns** only (no abstracts, notes, or PDF text) — still useful, just not
-> full-text. In that mode `ein` matches both `Einstein` and `protein` (a literal
-> substring, not a word). Developers can enable full-text search in a local build
-> with `pnpm --filter @bibdesk/app rebuild:electron`.
+> back to a **case-insensitive substring filter** over the five built-in text
+> columns only — cite key, type, authors, title, and year (no abstracts, notes,
+> other fields, or PDF text) — still useful, just not full-text. Quoted phrases
+> still mean what they mean above, but bare words match as literal substrings
+> rather than word prefixes, so `ein` matches both `Einstein` and `protein`. The
+> same filter is what you briefly see while a full-text query is still in flight,
+> which is why results sometimes tighten a moment after you stop typing. Developers
+> can enable full-text search in a local build with
+> `pnpm --filter @bibdesk/app rebuild:electron`.
 
 ### 2.3.2 The "N of M rows" footer
 
@@ -336,7 +412,9 @@ The label has two forms:
 | `123 rows` | No search (or the search matched everything); the count is the full set for the current group. |
 | `42 of 123 rows` | A search is narrowing the rows: **42** match out of **123** in the current scope. |
 
-If a group is selected, its name is prefixed, e.g. `To read: 8 of 40 rows`.
+The selected group's name is prefixed, e.g. `To read: 8 of 40 rows`. That includes
+the Library group, which is selected by default — so the resting state of the
+footer is `Library: 123 rows`.
 
 > **Tip:** The footer is the single most useful indicator in the window. It
 > answers "what am I looking at right now?" at a glance — the group scope, the
@@ -363,9 +441,11 @@ read from the `.bib` file; others are computed automatically.
 | 👤 | **Author** | Computed | An individual author value under the **Authors** section. |
 | 🔗 | **URL** | From the file | A BibDesk URL group. Stored for fidelity but type-only here (see caveat below). |
 | 📜 | **Script** | From the file | A BibDesk Script group. Stored for fidelity but type-only here (see caveat below). |
+| 🗂 | **Folder** | From the file | A container for other groups (and sub-folders). Folders hold *groups*, never publications directly — this application's own addition, stored in the `.bib` in a namespaced comment that BibDesk ignores. |
 
 Each group row shows its **icon**, its **name**, and a **count** of how many
-entries it contains.
+entries it contains. Folders are the exception: they show no count, because they
+hold groups rather than entries.
 
 ### 2.4.2 The Library group
 
@@ -448,6 +528,10 @@ the number of *distinct entries* that have at least one author / at least one
 keyword, respectively (an entry that lists three authors is still counted once
 toward the Authors-section total).
 
+Both category sections start **collapsed** — a library with a few thousand
+distinct authors would otherwise bury everything else in the sidebar. Click the
+disclosure triangle beside **Authors** or **Keywords** to expand it.
+
 > **Tip:** Because these categories are recomputed from the live library, they
 > update automatically as you edit. Add a keyword to an entry and that keyword's
 > category appears (or its count rises) the next time the sidebar refreshes after
@@ -473,12 +557,20 @@ what you type.
 > different people who merely share a surname. To merge an abbreviated form into a
 > full one, rename the abbreviated entry to the exact full name you want.
 
-### 2.4.6 The two-level tree
+### 2.4.6 The shape of the tree
 
-The sidebar is a **two-level tree**. Top-level rows are the Library, your saved
-groups, and the category section headings (Authors, Keywords); the individual
-authors and keywords are *children* indented beneath their section heading. There
-is no deeper nesting — the structure is intentionally flat and fast to scan.
+The sidebar is a **tree**, indented one step per level. Top-level rows are the
+Library, your saved groups and folders, and the two category section headings
+(Authors, Keywords); the individual authors and keywords are *children* beneath
+their section heading.
+
+Most of the tree is only two deep, because that is all the structure a category
+section or an unfiled group needs. **Folders** are the exception: a folder can
+hold groups *and* other folders, so you can nest them as deeply as you find
+useful. Drag a group or a folder onto a folder to file it there, or onto **📚
+Library** to move it back to the top level; a folder cannot be dropped inside
+itself. Category sections and their children are always top-level and cannot be
+filed into a folder.
 
 ### 2.4.7 Selecting and clearing a group
 
@@ -488,8 +580,9 @@ is no deeper nesting — the structure is intentionally flat and fast to scan.
 - **Clear** the group scope by clicking **📚 Library**, which returns you to the
   full set of entries.
 
-When you add, duplicate, or delete an entry, the selection returns to the Library
-scope, because such structural edits can change which dynamic categories exist.
+When you add, duplicate, delete, or merge entries, the selection returns to the
+Library scope, because such structural edits can change which dynamic categories
+exist.
 
 ## 2.5 Combining groups and search
 
@@ -539,12 +632,20 @@ entry** to jump to it: the window closes and that entry is selected in the main
 table (switching back to the full Library first if it was hidden by your current
 group), ready to inspect, edit, or delete.
 
-> **Note:** Find Duplicates is a **review tool**, not an automatic merge. It never
-> changes your library on its own — it only finds and navigates. Once you have
-> clicked through to a duplicate, remove the extra copy with **🗑 Delete** (or
-> **Publication → Delete Publication**), or merge fields by hand. See
+Each group's heading also carries a **Merge** button, which folds the group into
+its **first** entry: missing fields are filled in from the others, keywords and
+file attachments are unioned, and the remaining entries are deleted. The window
+then re-scans, so the group you just merged disappears from the list. The whole
+merge is a single, undoable step (**Edit → Undo Merge Entries**).
+
+> **Note:** Nothing is merged or deleted unless you ask for it — the scan itself
+> only finds and navigates. Merge is deliberately blunt: it keeps the *first*
+> entry's cite key, and its value wins for every field except keywords, so if you
+> care which copy survives, look at the entries first. The alternative is to click
+> through to the duplicate and remove the extra copy yourself with **🗑 Delete**
+> (or **Publication → Delete Publication**). See
 > [Editing entries](03-editing-entries.md#entry-lifecycle-new-duplicate-delete).
-> Before you delete, you can double-check with the
+> Before you merge or delete, you can double-check with the
 > [search box](#23-live-search): type a title word or the cite key to see both
 > copies side by side.
 
@@ -554,10 +655,20 @@ Bibliofile is built to handle large libraries comfortably:
 
 - **The table is virtualized** (§2.2.4), so rendering cost scales with the
   window, not the library. Scrolling stays smooth at thousands of rows.
-- **Live search uses an in-memory SQLite FTS5 index** built when the library
-  opens, so even full-text queries (across every field and attached-PDF text)
-  return in milliseconds and update as you type. The index lives in memory and is
-  rebuilt on open — nothing is written to disk.
+- **Search is two SQLite FTS5 indexes, on purpose.** They have opposite
+  characteristics, and the split is what keeps reopening a large library cheap:
+  - **Field text** (cite key, type, authors, title, and every other field,
+    including abstracts and notes) is a few megabytes, changes on every edit, and
+    is keyed by an entry identity that is not stable across sessions. So it is
+    held **in memory** and rebuilt when the library opens — nothing is written to
+    disk, and your `.bib` stays the source of truth.
+  - **PDF text** can run to hundreds of megabytes, changes only when a file
+    changes, and is keyed by the file's path — which *is* stable. So it is
+    **persisted to a database on disk** and reused for as long as the files stay
+    put, shared across every library you open. The text is never read back into
+    the application; a query is matched inside the database, which answers with
+    file paths. A library with half a gigabyte of PDFs therefore costs a few
+    megabytes of memory, not half a gigabyte.
 - **Category membership is precomputed.** When the Author/Keyword categories are
   built, each one's member set is computed up front, so selecting a category
   filters by a fast set-membership test rather than re-scanning every entry's
@@ -566,10 +677,13 @@ Bibliofile is built to handle large libraries comfortably:
   This keeps Smart groups correct as you edit, at the cost of a scan when you
   select one — negligible for typical libraries.
 
-> **Tip:** The **SQLite FTS5** full-text index makes deep queries — across every
-> field and the text of attached PDFs — fast even on very large libraries. PDF
-> text is extracted in the background just after a library opens, so PDF matches
-> may appear a moment after the first results.
+> **Tip:** The expensive part of full-text search is reading text out of PDFs, and
+> you pay it at most once per file. The **first** time you open a large library
+> with the PDF toggle on you will see the *Indexing PDFs* card; after that, opening
+> the same library does no extraction at all, and results — field *and* PDF — are
+> there as fast as you can type. Field matches always rank above PDF-body matches,
+> on the grounds that a query hitting a title says far more than one buried on page
+> 30 of an attachment.
 
 ## 2.8 Tips
 
@@ -580,7 +694,8 @@ Bibliofile is built to handle large libraries comfortably:
 - **Return to everything fast.** Click **📚 Library** to drop the group filter,
   and clear the search box to drop the text filter. They are independent.
 - **Sort to scan.** Sort by **Year** to find recent work, or by **Authors** to
-  group a person's papers together; click a header twice to reverse.
+  group a person's papers together; click a header twice to reverse, and
+  Shift-click a second header to break ties with it.
 - **Use categories as a quick index.** The Author and Keyword sections are a
   free, always-current index into your library — no tagging discipline required
   beyond filling in the fields you already fill in.
@@ -593,14 +708,21 @@ Bibliofile is built to handle large libraries comfortably:
 
 ## 2.9 Troubleshooting
 
-- **"My search isn't finding a word that's in the abstract (or a PDF)."** Full-text
-  search covers abstracts, notes, keywords, every other field, and attached-PDF
-  text — so this should normally work. Two things to check: (1) PDF text is indexed
-  in the background just after opening, so give it a moment on large libraries; (2)
-  if your build is using the **substring fallback** (only the visible text columns),
-  the native search component isn't active — rebuild it for the app with `pnpm
-  --filter @bibdesk/app rebuild:electron`. Also remember search is scoped to the
-  selected group; click **📚 Library** to search everything.
+- **"My search isn't finding a word that's in the abstract."** The field index
+  covers abstracts, notes, keywords, and every other field, so this should normally
+  work. If it doesn't, your build may be using the **substring fallback** (only the
+  five built-in text columns) because the native search component isn't
+  active — rebuild it for the app with `pnpm --filter @bibdesk/app
+  rebuild:electron`. Also remember search is scoped to the selected group; click
+  **📚 Library** to search everything.
+- **"My search isn't finding a phrase that's inside a PDF."** Work down this list:
+  (1) the **PDF button** beside the search box must be **on** — with it off, PDF
+  text is neither searched nor even indexed; (2) if you have only just switched it
+  on, indexing is still running — watch the *Indexing PDFs* card and give it a
+  moment on a large library; (3) the phrase may be past the **page limit**
+  (§2.3.1) — raise it, or set it to *All*; (4) the page may be a **scan** with no
+  text layer, in which case run **Publication → OCR Scanned PDFs…** (see
+  [Attachments](04-attachments.md)) and the entry is re-indexed when it finishes.
 - **"A Smart group shows 0 (or fewer) entries than I expect."** Smart-group
   membership is evaluated against your *current* entries. Check that the entries
   you expect actually satisfy the group's conditions; if you have just edited

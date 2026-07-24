@@ -9,10 +9,10 @@ of the detail pane, and they are stored inside your `.bib` file in a format that
 is fully compatible with macOS BibDesk.
 
 This chapter explains how to add, open, and remove attachments; how they are
-stored on disk and why that matters; how the app finds the underlying files;
-where BibDesk compatibility is exact and where it is not (yet); and a set of best
-practices and troubleshooting tips for keeping your library and its files
-together across moves and machines.
+stored on disk and why that matters; how the app finds the underlying files; how
+to make a scanned PDF searchable; where BibDesk compatibility is exact and where
+it is not (yet); and a set of best practices and troubleshooting tips for keeping
+your library and its files together across moves and machines.
 
 ![An entry with attachments](../viewer-editing.png)
 
@@ -69,8 +69,9 @@ Each chosen file is attached to the entry immediately as a new managed
 > [Importing & exporting → Drag and drop](07-importing-and-exporting.md#73-drag-and-drop).
 
 > **Warning:** Adding an attachment is an in-memory edit, like any other. It is
-> **not written to your `.bib` file until you Save** (**Cmd+S** / **Ctrl+S**).
-> The Save button will show **Save •** until you do. See
+> **not written to your `.bib` file until you Save** (**⌘S** / **Ctrl+S**).
+> There is no Save button: a **•** follows the library name in the window header
+> until you do. See
 > [Editing Entries → The dirty/save model](03-editing-entries.md#the-dirtysave-model).
 
 > **Note:** Adding an attachment records a *link* to the file where it currently
@@ -286,26 +287,53 @@ for awareness but are fixed by editing that field on the entry.
 ## Compatibility with macOS BibDesk
 
 Bibliofile is designed to share libraries seamlessly with the original
-macOS BibDesk. There are two things to know about attachment compatibility.
+macOS BibDesk. There are three things to know about attachment compatibility.
 
-### macOS bookmarks are preserved
+### macOS bookmarks are written and preserved
 
 In addition to a relative path, a `Bdsk-File-N` blob created by macOS BibDesk
 contains an Apple **file bookmark** (alias) — macOS's mechanism for tracking a
 file even after it is renamed or moved within a volume.
 
-This app **preserves those bookmarks untouched** when it saves. It re-emits the
-existing blob byte-for-byte, so a library you round-trip through Bibliofile
-stays fully valid for macOS BibDesk: the bookmarks BibDesk relies on are still
-there, intact.
+**Existing bookmarks are preserved untouched.** An attachment you don't edit is
+re-emitted byte-for-byte, so a library you round-trip through Bibliofile stays
+fully valid for macOS BibDesk: the bookmarks BibDesk relies on are still there,
+intact.
+
+**New attachments get a real bookmark too.** When you are running on macOS,
+Bibliofile now writes the same `{ relativePath, bookmark }` pair BibDesk itself
+writes — when you add a file attachment, when AutoFile moves one, when you point
+a broken link at a new file with **Locate…**, and when a
+[cloned bibliography](07-importing-and-exporting.md) is repointed at its copies.
+So a library built entirely in Bibliofile is now one BibDesk can recover files
+from, not just read.
+
+> **Note:** Bookmarks are a macOS API, so this happens **only on macOS** (and
+> only where the small helper the app uses for it is present). Everywhere else —
+> Windows, Linux — attachments are written as the portable `relativePath`-only
+> plist exactly as before. That plist is *not* broken or second-class: BibDesk
+> consults `relativePath` first, so such a library opens and resolves normally in
+> BibDesk; it simply has no bookmark to fall back on. Nothing here needs
+> configuring, and there is no setting for it.
+
+**Older libraries can be topped up in place.** A library written before this (or
+by the cross-platform writer) has attachments with no bookmark. Running
+**Publication → Consolidate Linked Files…** (or **AutoFile Linked Files** on a
+selection) **backfills a bookmark into every such attachment whose file is
+already where AutoFile wants it** — nothing is moved or renamed, only the stored
+blob gains its bookmark. That is why a run over a perfectly tidy library can
+report `Updated N attachment files with macOS bookmarks (no files moved).`
+rather than "No linked files needed filing." — and why it marks the document
+unsaved even though nothing moved on disk. Existing bookmarks are left alone (a
+bookmark tracks the file by identity, so it is still valid even after a rename).
 
 ### Moved-file resolution by bookmark is not (yet) implemented here
 
-The flip side of the previous point: while this app *preserves* macOS bookmarks,
-it does **not yet use** them to *find* a moved file. macOS BibDesk can follow a
-bookmark to locate a PDF you renamed or moved elsewhere; Bibliofile, being
-cross-platform, currently resolves attachments **by their relative path only**
-(as described in [How attachments resolve](#how-attachments-resolve)).
+The flip side of the previous point: Bibliofile *writes and preserves* macOS
+bookmarks, but it does **not yet use** them to *find* a moved file. macOS BibDesk
+can follow a bookmark to locate a PDF you renamed or moved elsewhere;
+Bibliofile, being cross-platform, still resolves attachments **by their relative
+path only** (as described in [How attachments resolve](#how-attachments-resolve)).
 
 The honest consequence:
 
@@ -320,6 +348,25 @@ The honest consequence:
 > harmed and the bookmark is not discarded. Open the same library in macOS
 > BibDesk and its bookmark-following still works; the bookmark survives the
 > round-trip through this app.
+
+### Finder tags and other file metadata survive a copy
+
+A PDF can carry more than its bytes: on macOS, Finder **tags** and **comments**,
+plus ACLs and resource forks, live in the file's *extended attributes*. A naive
+copy carries only the bytes and silently drops all of that.
+
+Where Bibliofile **copies** an attachment rather than moving it — which is what
+[Clone Bibliography…](07-importing-and-exporting.md#766-cloning-a-bibliography) does when it duplicates a
+library's files — it copies **with** the extended attributes on macOS, so a paper
+you filed under a Finder tag arrives in the clone still wearing it. On Windows
+and Linux the copy carries the bytes only. Copies never overwrite: if something
+already sits at the destination name, the copy is given a `-1`, `-2`… suffix
+instead.
+
+> **Note:** [AutoFile](#autofile-organising-linked-files) **moves** files, and a
+> move keeps a file's metadata by definition. The one gap is a move that crosses
+> to a **different drive**, which AutoFile completes as a plain byte copy plus a
+> delete — Finder tags on that file are not carried across.
 
 ## Best practices for portable attachments
 
@@ -368,7 +415,7 @@ the same idea as BibDesk's AutoFile.
 ### Setting it up
 
 Before AutoFile can run, tell it where your Papers folder is and how to name
-files, in **Preferences → AutoFile**:
+files, in **Preferences → Files → AutoFile**:
 
 - **Papers folder** — click **Choose…** and pick the folder where filed
   attachments should live (the **×** clears it). AutoFile is **disabled until
@@ -421,13 +468,23 @@ For each selected entry, every managed file attachment is:
 2. **Re-linked** — the `Bdsk-File-N` link is rewritten to the file's new location
    (still as a path relative to your `.bib`, so the library stays portable).
 
+A file that is **already** where AutoFile would put it is left exactly where it
+is — but on macOS its stored link is quietly
+[topped up with a bookmark](#macos-bookmarks-are-written-and-preserved) if it
+hasn't got one, which is how an older library is brought up to BibDesk parity
+without touching a single file.
+
 AutoFile Linked Files works on the **whole selection**. With **two or more**
 entries selected it first shows a **confirmation dialog** (files are moved on
 disk, so this is a real change) and a summary once it finishes. As with any edit,
-the change is in memory until you **Save**.
+the change is in memory until you **Save** — including a run that only added
+bookmarks and moved nothing.
 
 > **Tip:** To file the *whole library* (or just the selection) in one go, use
-> **Publication → Consolidate Linked Files…** instead.
+> **Publication → Consolidate Linked Files…** instead. It confirms first (naming
+> the scope — every entry, or the *N* selected ones) and reports what it did:
+> how many files it filed, and separately how many links it topped up with
+> bookmarks.
 
 > **Note:** AutoFile **moves** the actual file on disk (copying then deleting if
 > the destination is on a different drive). The original file leaves its old
@@ -440,17 +497,88 @@ the change is in memory until you **Save**.
 > the author and year, then run AutoFile to move and rename each one into your
 > Papers folder.
 
+## OCR: making scanned PDFs searchable
+
+Some PDFs are not documents so much as photographs of documents: a scanned book
+chapter, a paper someone photocopied in 1998. There is no text in them at all —
+you can't select a word, and neither
+[full-text search](#attachments-and-full-text-pdf-search) nor any other tool can
+read them.
+
+**Publication → OCR Scanned PDFs…** fixes that. Select one or more entries and
+run it; for every PDF attached to those entries the app checks whether there is
+already a text layer, and where there isn't, reads the pages with an optical
+character recogniser and writes the PDF back **with an invisible, selectable text
+layer over the page image**. The page still looks exactly as it did — it is the
+same scan — but now you can select and search its text, here and in any other PDF
+reader.
+
+Progress appears in a small panel in the lower-right, one line per entry, with
+the page it is currently working on. It **doesn't block the app**, so you can
+keep browsing and editing while it runs. Clicking a finished row selects that
+entry.
+
+| Result | Meaning |
+| --- | --- |
+| **Text added** | The PDF was image-only and now has a text layer; the row says how many pages, and that the original was backed up. |
+| **Skipped** | Nothing to do — the entry has no PDF attachment, or its PDF already has a text layer (the row says which). |
+| **Error** | The file couldn't be read, OCR failed, or the backup couldn't be written — in which case the original is deliberately **left alone**. |
+
+### What to know before you run it
+
+- **It replaces the PDF in place — and it is not undoable.** Unlike everything
+  else in this chapter, this is a change to a *file*, not to your library: no
+  `Bdsk-File-N` link changes, the document is not marked unsaved, and **⌘Z /
+  Ctrl+Z will not bring the old file back**. There is nothing to Save.
+- **The original is backed up first.** Before replacing anything, the app copies
+  the untouched PDF into an **OCR Backups** folder inside Bibliofile's own
+  application-data directory (on macOS,
+  `~/Library/Application Support/Bibliofile`; the equivalent app-data folder on
+  Windows and Linux), under a name like
+  `einstein1905 (before OCR 2026-07-24T…).pdf`. If that copy can't be written the
+  file is skipped rather than replaced. Backups are kept until you delete them —
+  nothing prunes them for you, so that folder will grow.
+- **Recognised text is a raster.** The rewritten PDF is built from a 200 DPI
+  rendering of each page, so a *born-digital* PDF that was wrongly treated as a
+  scan would come back visually flattened — no selectable original vectors, and
+  usually a larger file. The text-layer check is deliberately conservative
+  (it samples the first few pages and only calls a PDF a scan when they are
+  essentially empty of text), but the backup is your real safety net. If in doubt,
+  try it on a [cloned bibliography](07-importing-and-exporting.md) first.
+- **English only.** The recogniser ships with English training data and the app
+  doesn't offer a language picker, so a scan in another language will produce
+  poor results.
+- **Entirely offline.** OCR is bundled with the app — nothing is uploaded, no
+  service is contacted, and there is nothing to install alongside it. It is,
+  however, real work: every page is rendered and then read, so a long scan takes
+  a while. Try a handful of entries before turning it loose on a shelf of scanned
+  books.
+
+Once a PDF has gained its text layer, the app notices the file changed and
+re-reads it into the full-text index by itself, so the newly recognised text
+becomes searchable without you doing anything — provided full-text search is
+switched on (see below).
+
 ## Attachments and full-text PDF search
 
-The app indexes the **text inside your attached PDFs**, so the search box finds
-papers by their actual contents, not just their bibliographic fields. This relies
-on exactly the attachment links described in this chapter: the search index can
-only read a PDF that the app can resolve and open, so keeping your files reliably
-reachable (the [best practices](#best-practices-for-portable-attachments) above,
-or [AutoFile](#autofile-organising-linked-files)) is what lets full-text search
-reach into them. PDF text is extracted in the background shortly after a library
-opens, so PDF matches may appear a moment after the first results. See
-[Browsing & Searching](02-browsing-and-searching.md) for how the search behaves.
+The app can index the **text inside your attached PDFs**, so the search box finds
+papers by their actual contents, not just their bibliographic fields. This is
+what the **PDF toggle** beside the search box buys: with it **off**, PDFs are
+neither searched *nor read* — the app doesn't spend the time extracting their
+text at all. Switch it on and the extraction starts, for that library and every
+one you open afterwards. See
+[Browsing & Searching](02-browsing-and-searching.md#including-pdf-contents-the-pdf-toggle)
+for how the search itself behaves and how to cap how many pages of each PDF are
+indexed.
+
+Indexing relies on exactly the attachment links described in this chapter: the
+index can only read a PDF that the app can resolve and open, so keeping your
+files reliably reachable (the
+[best practices](#best-practices-for-portable-attachments) above, or
+[AutoFile](#autofile-organising-linked-files)) is what lets full-text search
+reach into them. Extraction runs in the background shortly after a library opens,
+so PDF matches may appear a moment after the first results. And a scanned PDF has
+no text to extract until you [OCR it](#ocr-making-scanned-pdfs-searchable).
 
 ## Quick reference
 
@@ -459,12 +587,13 @@ opens, so PDF matches may appear a moment after the first results. See
 | Add file attachment(s) | Select entry → **＋ Add** in Attachments (or **Publication → Add File Attachment…**) → pick one or more files |
 | Attach via drag-and-drop | Drag a file onto the **detail pane** → attaches to the shown entry; drag onto the **publications list** → new entry with the file attached |
 | Find & attach an open-access PDF | Select entries → **Publication → Find Open-Access PDFs…** or **right-click → Find Open-Access PDF…** (matches by DOI, or by title when there's none) |
+| Make a scanned PDF searchable | Select entries → **Publication → OCR Scanned PDFs…** (replaces the PDF in place; the original is backed up, but this is **not** undoable) |
 | Open an attachment | Click it → opens in your OS default app (PDFs in your usual reader); or click the **📎 N files** preview chip |
 | Open another file / link | Click it (file → default app; link → browser) |
 | Remove a file attachment | Click **×** beside it in the detail pane, or the **red ✕** on its thumbnail in the bottom panel's Attachments tab |
 | Remove a URL/DOI link | Edit/delete the `Url` or `Doi` field in **Fields** |
-| File selected entries into the Papers folder | **Publication → AutoFile Linked Files** (works on the whole selection; set the Papers folder + format in **Preferences → AutoFile**) |
-| File the whole library into the Papers folder | **Publication → Consolidate Linked Files…** |
+| File selected entries into the Papers folder | **Publication → AutoFile Linked Files** (works on the whole selection; set the Papers folder + format in **Preferences → Files → AutoFile**) |
+| File the whole library into the Papers folder | **Publication → Consolidate Linked Files…** (also backfills macOS bookmarks into already-filed attachments) |
 | Reveal the `.bib` in your file manager | **File → Show in Finder** (macOS) / **Show in File Manager** |
 | Persist attachment changes | **Save** (Cmd+S / Ctrl+S) — attachments are in memory until saved |
 
@@ -486,8 +615,8 @@ their relative positions) together. See
 
 **"I added a file but it's gone after restarting."**
 Adding an attachment is an unsaved edit. If you closed the app without saving,
-the change was discarded. Add it again and press **Save** (Cmd+S / Ctrl+S);
-the button reads **Save •** while there are unsaved changes.
+the change was discarded. Add it again and save (**⌘S** / **Ctrl+S**); a **•**
+follows the library name in the window header while there are unsaved changes.
 
 **"There's no × to remove this link."**
 It is a 🔗 URL/DOI link synthesized from a field, not a managed file. Remove or
@@ -499,9 +628,9 @@ value in the **Fields** section.
 
 **"AutoFile says no Papers folder is configured."**
 AutoFile needs a destination folder before it can run. Open **Preferences →
-AutoFile** and choose a **Papers folder** (and, if you like, adjust the **File
-name** format). Then select one or more entries and run **Publication → AutoFile
-Linked Files** again.
+Files → AutoFile** and choose a **Papers folder** (and, if you like, adjust the
+**File name** format). Then select one or more entries and run **Publication →
+AutoFile Linked Files** again.
 
 **"An attachment won't open / nothing happens."**
 Opening hands the file to your OS through its attachment link, so the same things
@@ -509,12 +638,29 @@ that break a link break opening: the file has moved, been renamed, or been
 deleted relative to the `.bib`. Restore the layout or re-add the file (or use
 **Find Broken Links** to locate it).
 
+**"OCR said 'Skipped — PDF already has a text layer', but I can't search it."**
+That PDF *does* carry text, so OCR correctly left it alone; the problem is
+elsewhere. Check the **PDF toggle** beside the search box is on (with it off,
+PDF contents are never indexed), and give the background extraction a moment
+after opening the library. See
+[Browsing & Searching](02-browsing-and-searching.md#including-pdf-contents-the-pdf-toggle).
+
+**"OCR flattened a PDF that was fine."**
+It was misjudged as a scan. Nothing is lost: the untouched original is in the
+**OCR Backups** folder in Bibliofile's application-data directory (on macOS,
+`~/Library/Application Support/Bibliofile`), named
+`<file> (before OCR <timestamp>).pdf`. Copy it back over the replaced file in
+your file manager — the attachment link is unchanged, so it will simply open the
+restored file. Undo cannot do this for you: OCR rewrote a file, not your library.
+
 **Cross-machine sync tips.**
 Sync the *whole library folder* (e.g. via Git, Dropbox, or iCloud Drive) rather
 than the `.bib` alone. The plain-text `.bib` plus a `pdfs/` subfolder with
 relative links is sync-friendly and conflict-resistant. If you also use macOS
 BibDesk on one of the machines, rest assured the file bookmarks it relies on are
-preserved by this app, so the library stays usable from both.
+both **written and preserved** by this app, so the library stays usable from
+both — and if it was built on Windows or Linux, one run of **Consolidate Linked
+Files…** on the Mac will add the bookmarks it is missing.
 
 ## See also
 

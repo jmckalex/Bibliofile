@@ -35,9 +35,10 @@ The flow is the same for both panels:
 Because the template is rendered in main and shipped as a string, two things
 follow. First, the panel can carry **live, asynchronous widgets** (the journal
 cover, the formatted citation) without your template having to know anything
-about them. Second, if your template fails to compile or render, the pane
-**falls back to the built-in layout** rather than showing a broken pane (see
-[§11.11](#1111-errors--the-safe-fallback)).
+about them. Second, if your template fails to compile or render, main sends **no
+HTML at all** for that pane rather than broken markup — the detail pane then
+draws itself the built-in way, and the bottom panel is left empty (see
+[§11.12](#1112-errors--the-safe-fallback)).
 
 > **Note:** Templates produce **HTML**, not Markdown. You are writing the markup
 > the pane will display, sprinkled with `{{…}}` placeholders. The built-in
@@ -65,9 +66,13 @@ the **Built-in default**. Exactly one of them is *active* at a time.
   is taken). A new fork becomes the active template right away, so you see it in
   the live pane.
 - **New from preset…** — this dropdown seeds a new fork from one of the
-  ready-made [presets](#presets) instead of from the default.
+  ready-made [presets](#presets) instead of from the default. A preset fork is
+  named after the preset it came from (*Reading view*, *Compact summary*, …),
+  again with a `2`, `3`, … suffix if that name is taken.
 - **Rename** — edit the name field at the top of a fork. (If the renamed fork was
-  the active one, the active pointer follows the new name.)
+  the active one, the active pointer follows the new name.) Names must be unique
+  within a panel: a rename that collides with another fork is refused and the
+  field keeps its old value.
 - **Edit** — the code editor below the name holds the Handlebars body. Your edit
   is saved when the editor loses focus.
 - **Delete** — the **×** button removes a fork. If you delete the active fork, the
@@ -85,23 +90,23 @@ default is in use."*
 ### Live preview (Text / HTML)
 
 Below each fork's editor is a **Preview** button. Clicking it renders your
-template against a **sample entry** from the open library and shows the result.
-A **Text / HTML** toggle switches between:
+template against the **first entry in the open library** and shows the result.
+A **Text / HTML** toggle then appears, switching between:
 
-- **HTML** — the rendered markup, shown in a sandboxed `<iframe>`.
+- **HTML** — the rendered markup, shown in a sandboxed `<iframe>`. This is what a
+  panel preview opens in.
 - **Text** — the raw HTML the template produced (useful for spotting a stray tag
   or an unescaped value).
 
-> **Tip:** You need an **open library** to preview — the preview renders against a
-> real entry. With no document open, the editor reports *"Open a library to
-> preview."*
+> **Tip:** You need an **open library with at least one entry** to preview — the
+> preview renders against a real entry. With no document open the editor reports
+> *"Open a library to preview."*; with an empty one, *"No publications to preview
+> against — open a library with entries."*
 
 > **Warning:** The live widgets `<bd-journal-cover>` and `<bd-citation>` do **not**
 > render in the sandboxed preview (it has no IPC access to fetch a cover or format
 > a citation). The preview shows everything *except* those two widgets — they
 > appear only in the real, live pane. See [§11.6](#116-live-widgets).
-
-<a name="presets"></a>
 
 ### Presets
 
@@ -163,8 +168,10 @@ fields first, then any fields inherited from a `Crossref` parent. Each item has:
 > **Note:** The managed attachment blobs (`Bdsk-File-N`), the annotation
 > field (`Annote`/`Bdsk-Annotation`), and the color-label field are **not** in
 > `fields` — they're surfaced as `attachments`, `notesHtml`, and the color palette
-> respectively. So a loop over `fields` shows the real bibliographic fields, not
-> housekeeping fields.
+> respectively. The abstract appears exactly once, as a single decoded `Abstract`
+> row, whichever way it is stored (a compressed `Bdsk-Abstract` blob never shows).
+> So a loop over `fields` shows the real bibliographic fields, not housekeeping
+> fields.
 
 ### `attachments` and `links` — each file/link
 
@@ -253,8 +260,11 @@ just place the tag with the right attributes.
 ```
 
 Shows the entry's journal/book cover, or a generated initials-and-color fallback
-when none is found. It's also a **drop target**: dropping an image onto it sets
-that journal's cover (downsized automatically). Attributes:
+built from the entry's `Journal` (falling back to `Booktitle`). An entry with
+neither field renders nothing at all. It's also a **drop target**: dropping an
+image onto it sets the cover for *that journal* — so it shows on every entry in
+it — downsized automatically; an entry with no `Journal`/`Booktitle` has no
+journal to key the cover to, so the drop is ignored. Attributes:
 
 - `doc-id` — pass `{{documentId}}`.
 - `item-id` — pass `{{id}}`.
@@ -290,10 +300,10 @@ triggers the action — you do not write any JavaScript:
 
 | Attribute | Effect |
 |---|---|
-| `data-open-url="{{url}}"` | Opens the URL in your default browser (BibDesk resolves bare DOIs too). |
+| `data-open-url="{{url}}"` | Opens the URL in your default browser. A bare DOI (`10.…`) is resolved through `https://doi.org/`; only `http:`, `https:` and `mailto:` targets are opened — anything else is refused. |
 | `data-open-file="{{url}}"` | Opens the local file in your OS's default app for that type. |
 | `data-open-files` | Opens a small **popup menu** of the entry's file attachments (or opens the file directly if there's exactly one). Useful for a single "Files ▾" button. |
-| `data-cite="{{citeKey}}"` | Selects the entry with that cite key — a jump-to-cross-reference. |
+| `data-cite="{{citeKey}}"` | Selects the entry with that cite key — a jump-to-cross-reference. Matching ignores case, and if the key isn't in the group you're currently viewing the app switches to the whole library to find it. Several comma-separated keys select them all. |
 | `data-action="edit"` | Opens the standalone **editor window** for the selected entry. |
 
 ```handlebars
@@ -337,6 +347,12 @@ Give an attachment a `data-thumb` element with a `data-file="{{url}}"` and a
 the first page for PDFs, the picture for image files, and the icon you put in the
 slot for everything else. **Double-clicking the thumbnail opens the file** in its
 native app.
+
+The renderer also overlays a small **×** on each thumbnail whose file it can trace
+back to a managed `Bdsk-File-N` field, and clicking it **removes that attachment
+from the entry** — so a thumbnail grid in your own fork is a working attachment
+manager, not just a picture. Thumbnails it can't trace (a `Url`/`Local-Url`-derived
+file, or a `data-file` you built yourself) get no delete button.
 
 ```handlebars
 {{#if attachments}}
@@ -409,7 +425,7 @@ the **actual** built-in templates.
 Walking through it section by section:
 
 - **Edit button** — `data-action="edit"` opens the editor window
-  ([§11.7](#117-interactive-hooks-data-actions)); `{{icon "edit"}}` is the pen
+  ([§11.7](#117-interactive-hooks-data--actions)); `{{icon "edit"}}` is the pen
   glyph.
 - **Cover** — the live `<bd-journal-cover>` widget, fed `{{documentId}}` and
   `{{id}}`.
@@ -535,12 +551,14 @@ chosen rather than authored. It's important to know which is which.
 
 ### Export templates (Handlebars — fully customizable)
 
-You can author your own **export formats** under **Preferences → Export
-templates**. Each is a named Handlebars body plus an output **file extension**;
-once defined, it appears as a submenu under **File → Export**, with three scope
-choices — **whole library**, **entries shown** (the current group + search
-filter), or the **current selection**. Choosing one renders the entries through
-your template and writes the result to a file you pick.
+You can author your own **export formats** under **Preferences → Templates**, in
+the **Export templates** section. Each is a named Handlebars body plus an output
+**file extension** (`html` for a new one; a leading dot is stripped, and clearing
+it falls back to `txt`). Once defined, the template appears as a submenu under
+**File → Export**, with three scope choices — **Whole Library…**, **Shown
+Entries…** (the current group plus whatever the search box is filtering to), or
+**Selected Entries…**. Choosing one renders the entries through your template and
+writes the result to a file you pick.
 
 These export templates are a **different context** from the panel templates. Each
 template renders against `{ title, count, entries }`, where `title` is your
@@ -562,7 +580,8 @@ Two helpers are available in export templates:
 - `{{join array ", "}}` — joins an array with a separator (default `, `), e.g.
   `{{join authors "; "}}`.
 
-A minimal export template loops the entries:
+A minimal export template loops the entries — this is exactly the body the **+**
+button seeds a new template with:
 
 ```handlebars
 {{#each entries}}
@@ -571,8 +590,9 @@ A minimal export template loops the entries:
 ```
 
 The editor has the same **Preview** + **Text / HTML** toggle as the panel editors
-(it previews against the first few entries of the open library), and values are
-HTML-escaped, so titles with `<`, `>`, or `&` export safely.
+(it previews against the first eight entries of the open library, and opens in
+**Text** unless the template's extension is `html`), and values are HTML-escaped,
+so titles with `<`, `>`, or `&` export safely.
 
 > **Tip:** The built-in **File → Export → HTML…** styled bibliography is itself
 > rendered through a Handlebars template — so your own HTML export template can do
@@ -590,11 +610,14 @@ Citation**, and **File → Print…** — are **not** Handlebars. They are forma
 - **Pick a style** — **Preferences → Citations → Default style** sets the citation
   style used in the pane, in copy-citation, and in the printout. Three styles ship
   bundled (APA, Vancouver, Harvard).
-- **Install more** — click **Install CSL file…** and choose any Citation Style
-  Language **`.csl`** file (e.g. from the Zotero / CSL style repository). It's
-  validated, copied into the app's data folder, and added to the style list with a
-  **★** marking it as a user-installed style; then pick it in the dropdown.
-- **Remove** — selecting an installed (★) style shows a **Remove** button.
+- **Install more** — under **Citation styles**, click **Install CSL file…** and
+  choose any Citation Style Language **`.csl`** file (e.g. from the Zotero / CSL
+  style repository). It's validated, copied into the app's data folder, and added
+  to the style list with a **★** marking it as a user-installed style; then pick
+  it in the dropdown.
+- **Remove** — the **Citation styles** list shows every style you installed, each
+  with a **×** (*Remove*) button. Bundled styles aren't listed and can't be
+  removed.
 
 So: if you want a *different reference style* for citations or a printed
 bibliography, install or pick a CSL style — there is no Handlebars customization
@@ -612,10 +635,18 @@ Two safeguards keep a bad template from breaking the app:
   or render, the error message is shown in place of the preview (in red), so you
   can fix it before relying on the template.
 - **In the live pane** — if the *active* template throws while rendering an entry,
-  the panel quietly **falls back to the built-in layout** for that render. You get
-  the default pane, never a broken or blank one. (The same is true of the
-  multi-select panels and the export templates, which surface a readable
-  *"Template error: …"* on failure.)
+  main sends the pane nothing at all, so you never see broken markup. What you see
+  instead differs by pane, and it's worth knowing which:
+  - the **detail pane** falls back to drawing itself the built-in way (the same
+    Edit button, cover, preview card, citation, fields, annotation, attachments
+    and links the default layout produces), so a bad fork there looks like the
+    default pane;
+  - the **bottom panel** has no such fallback — it simply shows **nothing** for
+    that entry. A permanently empty bottom panel is the symptom of a fork that
+    throws, not of a missing annotation.
+
+  (An **export** template that throws is reported instead: the export stops with
+  a readable *"Template error: …"* and no file is written.)
 
 This means it's safe to experiment: a typo in a fork can't lock you out of your
 data — switch the **Active** dropdown back to **Built-in default**, or fix the

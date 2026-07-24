@@ -4,17 +4,19 @@ The pane on the right of the main window is a **read-only view** of the selected
 publication — its preview, citation, fields, notes, and attachments — so you can
 browse without any risk of changing something by accident. **Editing happens in a
 separate window.** Click **✎ Edit…** at the top of the view pane, **double-click**
-a row in the table, or choose **Publication → Edit Publication…** (**⌘E** /
-**Ctrl+E**) to open the editor window for that entry. (This mirrors BibDesk's
-separate editor windows.)
+a row in the table, press **Enter** with the publications table focused, or choose
+**Publication → Edit Publication…** (**⌘E** / **Ctrl+E**) to open the editor
+window for that entry. (This mirrors BibDesk's separate editor windows.)
 
 The **editor window** is the full-featured editor: everything about an entry can
 be changed there — its individual fields, its cite key, its BibTeX type, the
 files attached to it, and the free-form notes that travel with it. You can open
-several editor windows at once (one per entry). Changes you make there update the
-main window live, and are saved with the rest of the library from the main window
-(**Save**, ⌘S / Ctrl+S). The sections below describe the fields, cite key, type,
-notes, and attachments as they appear in that editor window.
+several editor windows at once (one per entry; asking for one that is already
+open just brings it to the front). Changes you make there update the main window
+live, and are saved with the rest of the library by **File → Save** (⌘S /
+Ctrl+S), which works from the editor window too. The sections below describe the
+fields, cite key, type, notes, and attachments as they appear in that editor
+window.
 
 This chapter explains the editing model in depth. It is worth understanding two
 ideas up front, because they govern almost everything else:
@@ -25,9 +27,10 @@ ideas up front, because they govern almost everything else:
    the file*. This distinction matters the moment you want braces, macros, or
    TeX accents — see [The raw-value model](#the-raw-value-model-what-you-are-really-editing).
 2. **Editing is explicit-save by default.** Your changes live in memory and are
-   not written to disk until you press **Save** (Cmd+S / Ctrl+S); there is no
-   autosave unless you turn one on. This is a deliberate safety choice, explained
-   in detail under [The dirty/save model](#the-dirtysave-model).
+   not written to disk until you save (**⌘S** / **Ctrl+S**); there is no autosave
+   unless you turn one on. Everything is undoable in the meantime — see
+   [Undo and redo](#undo-and-redo) — and the model is explained in detail under
+   [The dirty/save model](#the-dirtysave-model).
 
 ![Editing an entry](../viewer-editing.png)
 
@@ -35,37 +38,76 @@ ideas up front, because they govern almost everything else:
 > you see "Select a publication to see its details," click any row in the
 > publications table first. See [Browsing & Searching](02-browsing-and-searching.md).
 
-## Anatomy of the detail pane
+## Anatomy of the editor window
 
-When an entry is selected, the detail pane is laid out top-to-bottom as a stack
-of sections, each of which is described in its own part of this manual:
+The editor window is laid out as **two columns**: the read-only preview on the
+left, the editable form on the right.
 
-| Section | What it is | Covered in |
-|---------|------------|------------|
-| Preview card | A typographic rendering of the entry (title, authors, venue, chips, tags, abstract). Read-only. | [Preview & Citations](06-preview-and-citations.md) |
-| Citation | A formatted citation in your chosen CSL style (APA, Vancouver, Harvard). Read-only. | [Preview & Citations](06-preview-and-citations.md) |
-| Identity | The cite key (with **Generate**) and the entry **Type**. | [Cite key and type](#cite-key-and-type) below |
-| Fields | Every editable field, plus a row for adding new ones. | [Editing fields](#editing-fields) below |
-| Notes | The entry's Markdown notes (the `Annote` field). | [Notes & Abstracts](05-notes-and-abstracts.md) |
-| Attachments | Files and links attached to the entry. | [Attachments](04-attachments.md) |
+| Column | Section | What it is | Covered in |
+|--------|---------|------------|------------|
+| Left | Journal cover | The journal's cover thumbnail, or a generated stand-in. | [Attachments](04-attachments.md) |
+| Left | Preview card | A typographic rendering of the entry (title, authors, venue, chips, tags, abstract). Read-only. | [Preview & Citations](06-preview-and-citations.md) |
+| Left | Citation | A formatted citation in your chosen CSL style. Read-only. | [Preview & Citations](06-preview-and-citations.md) |
+| Right | Identity | The cite key (with **Generate**) and the entry **Type**. | [Cite key and type](#cite-key-and-type) below |
+| Right | Fields | Every editable field, plus a row for adding new ones. | [Editing fields](#editing-fields) below |
+| Right | Annotation | The entry's Markdown notes (the `Annote` field), with an **Edit** button. | [Notes & Abstracts](05-notes-and-abstracts.md) |
+| Right | Attachments | Files and links attached to the entry. | [Attachments](04-attachments.md) |
 
-The preview and citation blocks at the top always reflect your *latest* edits:
-each time you commit a change, the detail re-renders, so you can watch the
-formatted output update as you type.
+The preview and citation always reflect your *latest* edits: each time you commit
+a change, they re-render, so you can watch the formatted output update as you
+type.
+
+### Why the split layout
+
+The preview re-renders on every committed change, and it changes *height* as it
+does — a title that wraps onto a second line and back, an abstract that grows.
+When the preview sat directly above the fields, that movement shoved the very
+field you were typing in up and down under the cursor. Putting the preview in its
+own column fixes the top edge of the form, so the field you are editing never
+moves. The preview grows downward inside its own column, where it disturbs
+nothing.
+
+Each column scrolls **independently**, so scrolling a long field list does not
+drag the preview along with it.
+
+The editor window opens at 880 × 720. If you drag it narrower than about 560px
+the layout folds back to a single stacked column (preview above fields) and the
+window scrolls as one — two side-by-side scrolling boxes are unusable at that
+width.
+
+> **Note:** The split is specific to the standalone editor window. The main
+> window's read-only view pane is a narrow side panel where two columns would not
+> fit, so it keeps the stacked layout.
 
 ## Editing fields
 
 The **Fields** section lists every field stored on the selected entry, in the
 order BibDesk keeps them. A handful of fields are deliberately *not* shown in
-this list because they have dedicated homes elsewhere in the pane:
+this list because they have dedicated homes elsewhere in the window:
 
-- **`Annote`** — shown and edited in the **Notes** section instead (see
+- **`Annote`** (and its compressed twin `Bdsk-Annotation`) — shown and edited in
+  the **Annotation** section instead (see
   [Notes & Abstracts](05-notes-and-abstracts.md)).
 - **`Bdsk-File-N`** — the managed attachment blobs, shown in the **Attachments**
   section instead (see [Attachments](04-attachments.md)).
+- **`Bdsk-Color`** — the colour label, set from the row's right-click menu or
+  **Publication → Color Label** rather than typed as raw text.
+
+The abstract is a special case: it may be stored plain, escaped, or compressed in
+`Bdsk-Abstract`, and you always get exactly **one** decoded, editable `Abstract`
+row whichever storage is in use — never the raw compressed blob.
 
 Everything else — `Author`, `Title`, `Journal`, `Year`, `Crossref`, custom
 fields you invent, and so on — appears as an editable row.
+
+### Fields the entry type expects
+
+Below the stored fields, the editor also offers the **required and optional
+fields for the entry's type** that this entry does not have yet, as empty rows.
+They are prompts, not data: nothing is stored until you type a value into one and
+commit it, and an empty one is simply ignored. Required fields carry the **req**
+marker; neither kind has a **−** button, because there is nothing yet to remove.
+Change the **Type** and the offered set changes with it.
 
 ### How to edit a value
 
@@ -112,17 +154,25 @@ displayed form looks short.
 A few fields are recognised by name and edited with a purpose-built control
 rather than a text box:
 
-- **`Read`** is a boolean, so it shows a **checkbox** instead of a text box. Tick
-  it to mark the entry as read, untick it to mark it unread. A stored value of
+- **`Read`** is a **boolean** field, so it shows a **checkbox**. A stored value of
   `1`, `yes`, `true`, or `on` counts as "read"; anything else (or no field) is
-  unread.
+  unread. Ticking the box stores `Yes`; unticking it *removes* the field
+  altogether (an empty value is never stored — see [Removing a field](#removing-a-field)).
+- **`Rating`** is a **rating** field: a row of five stars. Click a star to set
+  the rating, click the current rating again to clear it.
 - **`Keywords`** gives a chip editor for its comma-separated tokens (see
   [Notes & Abstracts](05-notes-and-abstracts.md) and
   [Browsing & Searching](02-browsing-and-searching.md)).
+- **Three-state** fields get a small **— / No / Yes** dropdown. No field is
+  three-state out of the box; the category exists for you to fill in.
 
 These editors also appear when you create the field from the **＋** add-field row:
 the blank row starts as a text box, but the moment you name it `Read` it switches
 to a checkbox (just as naming it `Keywords` gives the chip editor).
+
+> **Note:** Which field names count as boolean, rating, three-state (and person,
+> URL, local-file, citation) is configurable in **Preferences → Fields → Field
+> types**. Rename or extend those lists and the editors follow.
 
 ### Field-value autocomplete
 
@@ -136,21 +186,26 @@ consistent data entry effortless — the same journal name, publisher, editor, o
 series spelled the same way every time.
 
 - The suggestions are drawn from the **distinct existing values** of that field
-  across every entry, gathered the first time you focus the box. So the more
-  consistently you have filled a field in the past, the more useful its
-  completions are.
-- For **`Keywords`** and other multi-value list fields, the suggestions are the
-  individual tokens (split on commas/semicolons), not whole comma-joined strings,
-  so you can complete one keyword at a time.
+  across every entry, deduplicated case-insensitively and sorted. They are
+  gathered the first time you focus the box. So the more consistently you have
+  filled a field in the past, the more useful its completions are.
+- For **list-valued citation fields** (`Cites`, `Cited-By`) the suggestions are
+  the individual tokens, split on commas and semicolons, rather than whole
+  comma-joined strings — so you complete one entry at a time.
 - Fields whose values are unique to each entry or are free-form prose — `Title`,
-  `Subtitle`, `DOI`, `URL`, `Eprint`, `Pages`, `Note`, `Abstract`, `ISBN` — do
-  **not** offer completions, because there is rarely a useful "existing value" to
-  reuse for them.
+  `Subtitle`, `DOI`, `URL`, `Eprint`, `Pages`, `Note`, `Annote`, `Abstract`,
+  `ISBN`, `Date-Added`, `Date-Modified` — do **not** offer completions, because
+  there is rarely a useful "existing value" to reuse for them.
+- **`Keywords` has no completion list.** It is a chip editor, not a text box, so
+  there is nowhere to hang one; build a controlled vocabulary from the
+  [Keyword categories](02-browsing-and-searching.md#245-the-dynamic-author-and-keyword-categories)
+  in the sidebar instead.
 
-> **Tip:** Autocomplete is the easiest way to keep a controlled vocabulary. Reuse
-> an existing keyword from the list rather than retyping it, and your
-> [Keyword categories](02-browsing-and-searching.md#245-the-dynamic-author-and-keyword-categories)
-> stay clean instead of fragmenting into near-duplicates.
+> **Tip:** Autocomplete is the easiest way to keep a journal, publisher or series
+> name spelled one way throughout. Pick the existing value from the list rather
+> than retyping it, and the
+> [dynamic sidebar categories](02-browsing-and-searching.md#245-the-dynamic-author-and-keyword-categories)
+> built from those fields stay clean instead of fragmenting into near-duplicates.
 
 ### The raw-value model: what you are really editing
 
@@ -198,12 +253,18 @@ field the entry does not yet have:
 2. Type the field name in the left box — for example, `Publisher`. (Field names
    are case-insensitive and are normalized to lower-case on save.)
 3. Type the value in the right box.
-4. Press **Enter** to add the field. To abandon a blank row without adding it,
-   click its red **−** button (or press **Escape**).
+4. Press **Enter** to add the field. To discard the row without adding it, click
+   its red **−** button (or press **Escape**).
 
 The new field is added immediately and appears as a normal editable row. An empty
 field name is ignored. If you add a field whose name already exists on the entry,
 its value is replaced.
+
+Moving focus *out of the row entirely* — clicking elsewhere, tabbing out of it,
+or closing the editor window — **also adds the field**, so a name and value you
+typed but never confirmed with Enter are not silently lost. Moving between the
+row's own boxes does not commit anything. The **−** button and **Escape** are the
+only ways to throw the row away.
 
 > **Tip:** You can add any field name you like, including non-standard ones.
 > Standard BibTeX fields for the entry's type are simply the ones BibDesk
@@ -227,7 +288,8 @@ a field "disappears."
 > entry's BibTeX type (for example `author`, `title`, `journal`, and `year` on an
 > `@article`) show a small **req** marker instead of a **−** button, so you can't
 > accidentally remove them. Change the entry's **Type** and the set of required
-> fields changes with it.
+> fields changes with it. (Clearing a required field's value still removes it —
+> the marker only hides the button.)
 
 > **Note:** Inherited (crossref) fields have no **−** button, because they are
 > not stored on this entry in the first place — see
@@ -249,8 +311,8 @@ under [Crossref inheritance](#crossref-inheritance).
 
 ## Cite key and type
 
-The **Identity** block at the top of the editor holds the two pieces of metadata
-that are not ordinary fields: the cite key and the entry type.
+The **Identity** block at the top of the form column holds the two pieces of
+metadata that are not ordinary fields: the cite key and the entry type.
 
 ### Cite key
 
@@ -263,35 +325,46 @@ The **Cite Key** is the unique label you use to refer to the entry from LaTeX
 - **To generate one automatically**, click **Generate**, or choose
   **Publication → Generate Cite Key** (**⌘K** / **Ctrl+K**).
 
+Characters BibTeX cannot hold in a key — a space, and `' " @ , \ # { } ~ % ( ) =`
+— are **filtered out as you type**, so they never reach the box. A warning
+triangle appears beside the box when the key is empty, when **another entry
+already uses this cite key**, or when it contains characters TeX finds fragile
+(`&`, `$`, `^`). The triangle is advice, not a veto: a duplicate or fragile key
+you type deliberately is still committed.
+
 #### How Generate works
 
 Generation derives a cite key from the entry's own fields using a configurable
-**cite-key format**. The factory default is `%a1:%Y%u2`, which means:
+**cite-key format**. The factory default is `%p[/][/etal1]2:%Y%u0`, which reads:
 
 | Piece | Specifier | Meaning |
 |-------|-----------|---------|
-| First author's last name | `%a1` | The surname of the entry's first author |
+| Up to two surnames | `%p…2` | The surnames of the entry's people — `Author`, or `Editor` when there is no author (an edited book keys off its editor rather than producing an author-less key) |
+| Name separator | `[/]` | Joins two surnames with `/` |
+| "and others" marker | `[/etal1]` | Once there are *more* than the two requested names, show only the first and append `/etal` |
 | Literal colon | `:` | A literal `:` separator |
 | Year | `%Y` | The 4-digit year |
-| Uniquifier | `%u2` | A short numeric suffix added only if needed to avoid a clash |
+| Uniquifier | `%u0` | A disambiguating letter (`a`, `b`, …) appended **only** on a clash |
 
-So an article by Albert Einstein from 1905 typically generates `Einstein:1905`.
-If that key is already taken by *another* entry, the uniquifier appends characters
-until the key is unique. The entry's *own* current key never counts as a
-collision, so regenerating a key for an entry that already owns `Einstein:1905`
-simply returns `Einstein:1905` again.
+So the default gives `Smith:2020` for one author, `Smith/Doe:2020` for two, and
+`Smith/etal:2020` for three or more — with `Smith:2020a`, `Smith:2020b` … if that
+key is already taken by *another* entry. The entry's *own* current key never
+counts as a collision, so regenerating a key for an entry that already owns
+`Smith:2020` simply returns `Smith:2020` again.
 
 You can change the format in **Preferences → Cite keys → Format**. The same
 mini-language drives the [AutoFile](04-attachments.md#autofile-organising-linked-files)
-file-name format; common specifiers include `%a`/`%A` (authors, full or
-initials), `%t`/`%T` (title words/characters), `%Y`/`%y` (4- or 2-digit year),
-`%f{Field}` (any field), and `%u`/`%U`/`%n` (a lowercase / uppercase / numeric
-uniquifier).
+file-name format; common specifiers include `%a`/`%A` (authors, surnames or
+initials), `%p`/`%P` (the same, falling back to editors), `%t`/`%T` (title
+characters / title words), `%Y`/`%y` (4- or 2-digit year), `%f{Field}` (any
+field), and `%u`/`%U`/`%n` (a lowercase-letter / uppercase-letter / digit
+uniquifier). A digit after the uniquifier says how many characters to append:
+`%u0` appends one only on a clash, `%u2` always appends two.
 
-> **Note:** Generation reads whatever author/year are currently on the entry. If
-> those fields are empty, the generated key will be sparse (just the parts it can
-> fill). Fill in `Author` and `Year` first, then click **Generate**, for a
-> meaningful key.
+> **Note:** Generation reads whatever the entry currently holds — with the
+> default format, its `Author` (or `Editor`) and `Year`. If those fields are
+> empty, the generated key will be sparse (just the parts it can fill). Fill them
+> in first, then click **Generate**, for a meaningful key.
 
 #### Generating keys for several entries at once
 
@@ -315,12 +388,16 @@ the first matching entry).
 
 ### Type
 
-The **Type** dropdown sets the entry's BibTeX type. The picker offers the common
-types:
+The **Type** dropdown sets the entry's BibTeX type. The picker offers every type
+BibDesk knows about:
 
-`article`, `book`, `inbook`, `incollection`, `inproceedings`, `conference`,
-`proceedings`, `phdthesis`, `mastersthesis`, `techreport`, `manual`, `misc`,
-`unpublished`, `booklet`.
+`article`, `book`, `booklet`, `commented`, `conference`, `glossdef`, `inbook`,
+`incollection`, `inproceedings`, `jurthesis`, `manual`, `mastersthesis`, `misc`,
+`periodical`, `phdthesis`, `proceedings`, `techreport`, `unpublished`, `url`,
+`electronic`, `webpage`
+
+— plus any **custom entry types** you have defined in **Preferences → Fields →
+Entry types**.
 
 Changing the type takes effect immediately. If the entry's *existing* type is one
 not in that list (for example, an exotic type from a hand-edited file), it is
@@ -342,26 +419,32 @@ keyboard shortcut — are:
 
 | Button | Menu / shortcut | Action | Needs a selection? |
 |--------|-----------------|--------|--------------------|
-| **＋ New** | **Publication → New Publication** (**⌘N** / **Ctrl+N**) | Create a fresh, empty entry and select it. | No |
+| **＋ New** | **Publication → New Publication** (**⌘N** / **Ctrl+N**) | Create a fresh, empty entry, select it, and open its editor window. | No |
 | **⧉ Duplicate** | **Publication → Duplicate** (**⇧⌘D** / **Shift+Ctrl+D**) | Copy the selected entry under a new cite key. | Yes |
 | **🗑 Delete** | **Publication → Delete Publication**, the **Delete** / **Backspace** key, or **right-click → Delete** | Remove the selected entry (or entries). | Yes |
 
-The **Publication** menu also holds **Generate Cite Key** (**⌘K**),
-**Find Duplicates…** (see
-[Browsing & Searching](02-browsing-and-searching.md#26-finding-duplicates)),
-**Add File Attachment…** and **AutoFile Linked Files** (see
-[Attachments](04-attachments.md)), and **Macros (@string)…** (the same macro
-editor as the **@string…** toolbar button).
+The **Publication** menu also holds **New Publication with Crossref**,
+**New Publications from Clipboard** (**⌥⌘L** — see
+[Importing & Exporting](07-importing-and-exporting.md)), **Generate Cite Key**
+(**⌘K**), **Select Crossref Parent**, **Color Label ▸**, **Find Duplicates…**
+(see [Browsing & Searching](02-browsing-and-searching.md#26-finding-duplicates)),
+**Add File Attachment…**, **AutoFile Linked Files**, **Consolidate Linked
+Files…**, **Find Broken Links…**, **Find Open-Access PDFs…** and **OCR Scanned
+PDFs…** (see [Attachments](04-attachments.md)), and **Macros (@string)…** (the
+same macro editor as the **@string…** toolbar button).
 
 **Duplicate** and **Delete** are disabled (greyed out) when no entry is selected.
 
 ### ＋ New
 
-Creates a brand-new entry of type `article` with no fields. Its cite key is
+Creates a brand-new entry with no fields, of the type set in **Preferences →
+Fields → New entries → Default type** (factory default `article`). Its cite key is
 auto-assigned a unique placeholder (based on `untitled`, suffixed `-1`, `-2`, …
-if `untitled` is taken). The new entry becomes the selection so you can start
-filling it in straight away. Change its type from the **Type** dropdown if
-`article` is not what you want.
+if `untitled` is taken). The new entry becomes the selection **and its editor
+window opens straight away**, so you can start filling it in without hunting for
+the row — a new entry sorts in wherever its placeholder cite key falls, which is
+often out of view. Change its type from the **Type** dropdown if the default is
+not what you want.
 
 ### ⧉ Duplicate
 
@@ -386,10 +469,11 @@ differ.
 Removes the selected entry (or entries) from the library. You can delete in
 several equivalent ways:
 
-- The toolbar **🗑 Delete** button or **Publication → Delete Publication** (the
-  current single selection).
-- The **Delete** or **Backspace** key, with the publications table focused —
-  this removes the **whole selection** (one row or many).
+- The toolbar **🗑 Delete** button — this removes the **focused row only**, even
+  if several are selected.
+- **Publication → Delete Publication**, or the **Delete** / **Backspace** key
+  with the publications table focused — both remove the **whole selection** (one
+  row or many).
 - A **right-click** on a row and **Delete entry** / **Delete N entries** from the
   [context menu](10-panels.md#the-row-context-menu).
 
@@ -404,10 +488,13 @@ several equivalent ways:
 > previous version survives in the `.bib.bak` backup — see
 > [The dirty/save model](#the-dirtysave-model)).
 
-To change a field, keyword, or colour label across **many** entries at once, use
-the floating **batch-edit bar** that appears at the bottom of the window when
-several rows are selected (**Set field**, **Add keyword**, **Remove keyword**) —
-see [Configurable Panels → Batch tools](10-panels.md#batch-tools-the-selection-bar).
+To set a field or add/remove a keyword across **many** entries at once, use the
+floating **batch-edit bar** that appears near the bottom of the window when
+several rows are selected: a *Field* + *value* pair with a **Set** button, and a
+*Keyword* box with **＋ Keyword** / **− Keyword** buttons. See
+[Configurable Panels → Batch tools](10-panels.md#batch-tools-the-selection-bar).
+Colour labels are not in that bar — set them from the row's **right-click menu**
+or **Publication → Color Label ▸**, which also act on the whole selection.
 
 ## Crossref inheritance
 
@@ -452,12 +539,17 @@ Consider an edited proceedings volume and one paper within it:
 
 When you select `ng2024types`, its **Fields** list shows its own `author`,
 `title`, `crossref`, and `pages` as normal rows, and additionally shows
-`booktitle`, `publisher`, `address`, and `year` as muted **(inherited)** rows
+`publisher`, `address`, `editor`, and `year` as muted **(inherited)** rows
 borrowed from `popl2024`. The child did not have to restate any of them.
 
-> **Note:** BibTeX's special case applies — a child `@inproceedings`/`@incollection`
-> inherits the parent's `title` as its `booktitle`, so the venue resolves
-> correctly even though the parent stores it under `title`.
+> **Note: BibDesk's booktitle workaround.** For the four entry types `inbook`,
+> `incollection`, `inproceedings` and `conference`, the app copies the entry's
+> **own** `Title` into its **own** `Booktitle` whenever `Booktitle` is empty —
+> exactly as macOS BibDesk does. So `ng2024types` above picks up a *local*
+> `booktitle` of "A Calculus of Effect Handlers" the moment it is loaded, and that
+> is a real stored field, not an inherited one. If you want the venue there
+> instead, set `Booktitle` on the child yourself — an existing `Booktitle` is
+> never overwritten, so whatever you type wins from then on.
 
 ### Overriding an inherited field
 
@@ -476,11 +568,17 @@ clearing it); the parent's value reappears as inherited.
 - **Resolution is by cite key, case-insensitively.** If two entries happen to
   share a cite key, the **first** one in the file is used as the parent (matching
   BibDesk's behavior).
-- **Crossref chains** are followed (a child whose parent itself has a `Crossref`
-  can inherit transitively), with cycle protection so a self-referential or
-  circular `Crossref` cannot loop forever.
+- **Inheritance is exactly one level deep.** A child reads its parent's *own*
+  fields; it does not follow a chain on to the parent's parent. BibTeX itself
+  only supports single-level crossrefs, so this matches what your `.bib` will do.
+  A self-referential or circular `Crossref` therefore cannot loop — but it also
+  will not give you anything.
+- **Nothing stops you typing an invalid `Crossref`.** The editor does not refuse
+  a key that points at an entry which itself has a `Crossref`, or at the entry
+  itself; you simply get no inherited fields.
 - A child always **wins** over its parent for any field the child defines
   locally; inheritance only fills in fields the child is missing.
+- **Citation fields** (`Cites`, `Cited-By`) are never inherited.
 
 ## `@string` macros
 
@@ -565,8 +663,12 @@ The window has these controls:
 If a group is selected in the sidebar, the window title notes it (e.g.
 *"Find & Replace — in My Smart Group"*), because the operation is **scoped to the
 members of the currently selected group**. With the **📚 Library** group selected,
-that means the whole library. (The scope is the group's full membership — it is
-not narrowed by the live-search box.)
+that means the whole library.
+
+The **live-search box narrows the scope further**: with a filter typed in the
+search box, Find & Replace acts only on the rows you can actually see, and the
+window title says so — *"(search filter active — 12 shown)"*. Clear the search
+box first if you meant to change the whole group.
 
 ### Preview, then Replace All
 
@@ -597,31 +699,82 @@ Several **Edit**-menu commands put information about the selected entry on the
 clipboard, and you can also **drag** a row out of the table. These are the bridge
 between your library and a document you are writing.
 
-| Command | Shortcut | What it copies |
-|---------|----------|----------------|
-| **Copy Cite Key** | **⌥⌘K** / **Alt+Ctrl+K** | The bare cite key, e.g. `einstein1905`. |
-| **Copy `\cite{…}`** | **⌥⌘C** / **Alt+Ctrl+C** | A LaTeX citation command for the entry, e.g. `\cite{einstein1905}`. |
-| **Copy Citation** | (no shortcut) | The entry's **formatted citation** (in your chosen CSL style) as plain text — ready to paste into an email or reading list. |
-| **Copy as BibTeX** | **⌥⌘B** / **Alt+Ctrl+B** | The entry's complete BibTeX source. |
+| Command | Shortcut | What it copies | Scope |
+|---------|----------|----------------|-------|
+| **Copy Cite Key** | **⌥⌘K** / **Alt+Ctrl+K** | The bare cite key, e.g. `einstein1905`. | Focused row |
+| **Copy `\cite{…}`** | **⌥⌘C** / **Alt+Ctrl+C** | A LaTeX citation command for the entry, e.g. `\cite{einstein1905}`. | Focused row |
+| **Copy Citation** | (no shortcut) | The entry's **formatted citation** (in your chosen CSL style) as plain text — ready to paste into an email or reading list. | Focused row |
+| **Copy Citation as RTF** | **⌥⌘R** / **Alt+Ctrl+R** | The same formatted citation as **rich text**, so its italics survive the paste into a word processor (plain text is put on the clipboard too, for apps that want it). | Focused row |
+| **Copy as BibTeX** | **⌥⌘B** / **Alt+Ctrl+B** | The entry's complete BibTeX source. | Focused row |
+| **Copy As ▸ RIS** | (no shortcut) | The entries as RIS. | Whole selection |
+| **Copy As ▸ Minimal BibTeX** | (no shortcut) | BibTeX with the attachment blobs (`Bdsk-File-N`) and BibDesk's bookkeeping fields (`Date-Added`, `Date-Modified`, `Rating`, `Read`, `Local-Url`) stripped out — the bibliography, nothing else. | Whole selection |
+| **Copy As ▸ LaTeX `\bibitem`** | (no shortcut) | One `\bibitem{key} …` line per entry, using the formatted citation as its text — for a hand-rolled `thebibliography`. | Whole selection |
+
+> **Note:** The first five act on the **focused row only**, even when several
+> rows are selected. The three **Copy As** commands act on the whole selection.
 
 ### Drag a row to insert a `\cite{…}`
 
 You can also **drag a row** from the publications table directly into a TeX editor
 (or any text field) and drop it to insert a `\cite{…}` command for that entry — no
-copy/paste round-trip. The drag carries the same text that **Copy `\cite{…}`**
-produces.
+copy/paste round-trip.
+
+Unlike **Copy `\cite{…}`**, the drag carries the **whole selection** when the row
+you drag is part of it: the keys are comma-joined into one command, in the order
+the rows are shown — `\cite{einstein1905,bohr1913}`. Drag a row that is *not* in
+the selection and you get just that row.
 
 ### The cite-command template
 
 Both the drag-out and **Copy `\cite{…}`** use a configurable **cite-command
-template**, set in **Preferences → Cite command (TeX)**. The default is
-`\cite{%K}`, where **`%K`** is replaced by the cite key. Change it to suit your
-document — for example `\citep{%K}` for `natbib`, or `\autocite{%K}` for
-`biblatex`. (Write `%%` if you ever need a literal percent sign.)
+template**, set in **Preferences → Citations → Cite command (TeX)**. The default
+is `\cite{%K}`, where **`%K`** is replaced by the cite key (or by the
+comma-joined keys, when a drag carries several). Change it to suit your document
+— for example `\citep{%K}` for `natbib`, or `\autocite{%K}` for `biblatex`.
+(Write `%%` if you ever need a literal percent sign.)
 
 > **Tip:** Set the template once to match the citation command your LaTeX class
 > uses, and every drag-out and **Copy `\cite{…}`** will produce exactly the right
 > markup for your paper.
+
+## Undo and redo
+
+Every edit described in this chapter is undoable. **Edit → Undo** (**⌘Z** /
+**Ctrl+Z**) steps backwards; **Edit → Redo** (**⇧⌘Z** / **Shift+Ctrl+Z**) steps
+forwards again.
+
+The menu items **name the action they will undo** — *Undo Set Field*, *Undo
+Delete Entry*, *Undo Generate Cite Key*, *Undo Set Macro* — so you can see what
+⌘Z is about to do before you press it. When there is nothing to undo the item
+reads plain *Undo* and is greyed out.
+
+Some things worth knowing:
+
+- **Undo is per library.** Each open `.bib` has its own undo history, up to 100
+  steps deep; the oldest step is discarded beyond that.
+- **A step is a whole state, not one keystroke.** That is why a batch operation —
+  deleting twelve selected rows, regenerating a whole selection's cite keys, a
+  Replace All, a script run — comes back in **one** undo, not twelve.
+- **Undo works on the in-memory library**, exactly like an edit: it marks the
+  document unsaved rather than touching the file. Undoing past your last save and
+  then saving writes the undone state to disk.
+
+### Undo preserves entry identity
+
+An undo restores the library by rebuilding it from a snapshot, and each entry
+comes back as **the same entry** — not a look-alike copy. This matters because
+other parts of the app hold on to entries:
+
+- An **editor window** you left open for an entry stays attached to it and keeps
+  working. (It used to lose its footing after an undo and report an unknown
+  entry on its next action.)
+- **Managed attachments** still resolve, so an undo cannot orphan a linked PDF.
+
+Two honest caveats. First, the main window reloads its table after an undo, so
+the **row selection is cleared** — you will need to re-select. Second, an editor
+window you have open beside the main window does not repaint itself when you undo
+there; it keeps showing what it had until the next edit refreshes it. Close and
+reopen the editor (**⌘E**) if you need to be sure of what it is showing.
 
 ## The dirty/save model
 
@@ -640,37 +793,39 @@ commit them all at once.
 
 ### The dirty indicator and how to save
 
-As soon as you have unsaved changes, the **Save** button in the toolbar changes
-to reflect the document's state:
+There is no Save button. The document's state is shown by a **dot beside the
+library's name** in the window header:
 
-| Button text | Meaning |
-|-------------|---------|
-| **Saved** | No unsaved changes; the disk file matches what you see. Button is disabled. |
-| **Save •** | You have unsaved changes (the • is the "dirty" dot). Press it to write them. |
-| **Saving…** | A save is in progress; the button is disabled until it finishes. |
+| Header shows | Meaning |
+|--------------|---------|
+| `mylibrary.bib` | No unsaved changes; the disk file matches what you see. |
+| `mylibrary.bib •` | You have unsaved changes. (Hover it: *"Unsaved changes — press ⌘S to save"*.) |
+| `mylibrary.bib (saving…)` | A save is in progress. |
 
-To save, either:
-
-- Press **Cmd+S** (macOS) or **Ctrl+S** (Windows/Linux), or
-- Click the **Save** button.
-
-The keyboard shortcut works from anywhere in the window.
+To save, press **⌘S** (macOS) / **Ctrl+S** (Windows/Linux), or choose
+**File → Save**. The shortcut works from any of the app's windows — including an
+editor window, which hands the save to its library window.
 
 ### What a save does, step by step
 
 When you save, the app:
 
-1. **Serializes** the entire in-memory library back to BibTeX text in BibDesk's
+1. **Checks the file has not changed underneath you.** If the `.bib` on disk has
+   been modified since the app last read or wrote it — by macOS BibDesk, a text
+   editor, a Git checkout, a sync client — the save stops and asks first, rather
+   than silently overwriting that work. See
+   [Getting Started](01-getting-started.md).
+2. **Serializes** the entire in-memory library back to BibTeX text in BibDesk's
    exact on-disk format (see [Round-trip fidelity](#round-trip-fidelity) below).
-2. **Backs up** the existing file: if a file already exists at the target path,
+3. **Backs up** the existing file: if a file already exists at the target path,
    it is copied to `<your-file>.bib.bak` first. This `.bak` always holds the
    *previous* saved version, so a save is recoverable.
-3. **Writes atomically:** the new text is written to a temporary file in the same
+4. **Writes atomically:** the new text is written to a temporary file in the same
    directory, then *renamed* over the target. A rename on the same filesystem is
    atomic, so your library is never left half-written — even if power is lost or
    the app crashes mid-save, you end up with either the complete old file or the
    complete new one, never a corrupt mixture.
-4. **Clears the dirty flag**, so the button returns to **Saved**.
+5. **Clears the dirty flag**, so the dot disappears.
 
 > **Tip:** Because the backup is overwritten on each save, `<file>.bib.bak` is a
 > one-deep safety net (the version immediately before the most recent save), not
@@ -695,12 +850,13 @@ happy with a batch of changes.
 
 ### Optional autosave
 
-If you prefer the app to write changes for you, turn on **Preferences → Saving →
-Autosave**. With it enabled, the library is saved automatically a moment after
-each edit — the same atomic write with the same `.bib.bak` backup as a manual
-save. It is **off by default**; the considerations above (predictability and safe
-interop with other tools) are why you opt in deliberately rather than getting it
-unasked.
+If you prefer the app to write changes for you, turn on **Preferences → General →
+Saving → Autosave**. With it enabled, the library is saved automatically about a
+second and a half after the document becomes unsaved — the same atomic write with
+the same `.bib.bak` backup as a manual save. It is **off by default**; the
+considerations above (predictability and safe interop with other tools) are why
+you opt in deliberately rather than getting it unasked. Undo and redo work
+exactly the same either way.
 
 > **Warning:** With autosave **off**, quitting or closing the document with
 > unsaved changes discards those changes (they were only in memory). Save first
@@ -742,26 +898,34 @@ including a real BibDesk-authored library.
 
 | Control | Action |
 |---------|--------|
-| ＋ New | Create a new empty `article` entry and select it |
+| ＋ New | Create a new empty entry (of your default type), select it, and open its editor |
 | ⧉ Duplicate | Copy the selected entry under a new cite key |
-| 🗑 Delete | Delete the selected entry |
+| 🗑 Delete | Delete the focused entry |
 | 🌐 Online… | Open the online search to import entries (see [Online Search](08-online-search.md)) |
 | @string… | Open the `@string` macro editor |
-| Save • / Saved / Saving… | Write unsaved changes to disk (Cmd+S / Ctrl+S) |
 
-### Editing actions in the detail pane
+There is no Save button: save with **⌘S** / **Ctrl+S** (or **File → Save**). The
+**•** beside the library's name in the header means there are unsaved changes.
+
+### Opening the editor
+
+| Action | How |
+|--------|-----|
+| Open the editor for an entry | Double-click its row, press **Enter** with the table focused, click **✎ Edit…** in the view pane, or **Publication → Edit Publication…** (⌘E) |
+| Edit another entry at the same time | Just open it too — one editor window per entry, as many as you like |
+
+### Editing actions in the editor window
 
 | Action | How |
 |--------|-----|
 | Edit a field | Click the value, type, press Enter (single-line) or click away (textarea); on shared-vocabulary fields (Journal, Publisher, Editor, …) pick from the autocomplete list of existing values |
-| Add a field | Type name + value in the **New field** row, press Enter or click + |
 | Add a field | Click the green **＋** below the fields, fill name + value, press Enter |
 | Remove a field | Click the red **−** on the field's row (required fields can't be removed), or clear its value and commit |
 | Override an inherited field | Click the muted (inherited) row and edit it |
 | Edit cite key | Click the Cite Key box, type, press Enter |
 | Generate cite key | Click **Generate**, or **Publication → Generate Cite Key** (Cmd+K) |
 | Change type | Choose from the **Type** dropdown |
-| Edit notes | Click **Edit** in the Notes section |
+| Edit notes | Click **Edit** in the Annotation section |
 | Add/remove attachments | Use the Attachments section (see [Attachments](04-attachments.md)) |
 
 ### Library-wide editing commands (menus)
@@ -769,9 +933,11 @@ including a real BibDesk-authored library.
 | Action | How |
 |--------|-----|
 | New / Duplicate / Delete | **Publication** menu (Cmd+N / Shift+Cmd+D / Delete Publication) |
+| Undo / Redo the last edit | **Edit → Undo** (⌘Z) / **Edit → Redo** (⇧⌘Z) — the item names the action |
 | Find & Replace across fields | **Edit → Find & Replace…** (⌥⌘F / Alt+Ctrl+F) |
-| Copy cite key / `\cite{…}` / citation / BibTeX | **Edit** menu (⌥⌘K / ⌥⌘C / Copy Citation / ⌥⌘B) |
-| Drag a `\cite{…}` into a TeX editor | Drag a table row out and drop it |
+| Copy cite key / `\cite{…}` / citation / RTF / BibTeX | **Edit** menu (⌥⌘K / ⌥⌘C / Copy Citation / ⌥⌘R / ⌥⌘B) |
+| Copy the whole selection as RIS / minimal BibTeX / `\bibitem` | **Edit → Copy As ▸** |
+| Drag a `\cite{…}` into a TeX editor | Drag a table row out and drop it (carries the whole selection) |
 | Edit `@string` macros | **@string…** toolbar button or **Publication → Macros (@string)…** |
 
 ## Troubleshooting
@@ -779,16 +945,19 @@ including a real BibDesk-authored library.
 **"My edit didn't stick."**
 A field value is only saved when you *commit* it — press **Enter** in a
 single-line box, or click away from (blur) a multi-line textarea. If you typed a
-change but then clicked Save without leaving the field first, the in-progress
-text may not have been committed. Click into the field, make sure your text is
-there, press Enter or Tab out, then save.
+change and then pressed ⌘S without leaving the field first, the in-progress text
+was not part of that save. Click into the field, make sure your text is there,
+press Enter or Tab out, then save again. (Closing the editor window is safe: it
+commits the field you were typing in first, whether you close it with the
+**Close** button, ⌘W, or the window's close control.)
 
 **"I lost a field — it vanished when I cleared it."**
 Clearing a field's value and committing it **removes the field** (an empty value
 is not stored). To blank a field rather than delete it, you generally do not want
-to — BibTeX has no concept of an empty field. If you deleted it by mistake and
-have not saved, re-add it from the **New field** row. If you have already saved,
-the previous version is in `<file>.bib.bak`.
+to — BibTeX has no concept of an empty field. If you deleted it by mistake,
+**Edit → Undo** (⌘Z) brings it back; otherwise re-add it with the green **＋**
+below the fields. If you have already saved, the previous version is in
+`<file>.bib.bak`.
 
 **"I can't remove an inherited field / there's no − on it."**
 Inherited (crossref) fields are not stored on the entry, so there is nothing to
@@ -796,8 +965,9 @@ remove there. To stop inheriting a field, either remove it from the **parent**,
 or change/remove the `Crossref` link on this entry.
 
 **"Generate gave me a weird or empty cite key."**
-Cite-key generation reads the entry's `Author` and `Year`. If those are missing
-or unusual (no surname, no 4-digit year), the result reflects that. Fill in the
+With the default format, cite-key generation reads the entry's `Author` (or
+`Editor`, when there is no author) and its `Year`. If those are missing or
+unusual (no surname, no 4-digit year), the result reflects that. Fill in the
 author and year, then click **Generate** again.
 
 **"Enter isn't committing my abstract / long field."**
@@ -812,8 +982,8 @@ braces deliberately to protect capitalization, and keep them balanced. See
 
 **"My changes disappeared after I closed the app."**
 Unless you enabled autosave, unsaved (in-memory) changes are discarded on close.
-Press Cmd+S / Ctrl+S — or click **Save** when the button shows **Save •** —
-before quitting. (You can turn on **Preferences → Saving → Autosave** to avoid
+Press Cmd+S / Ctrl+S whenever the **•** appears beside the library's name in the
+header. (You can turn on **Preferences → General → Saving → Autosave** to avoid
 this.)
 
 **"Find & Replace says 'Invalid pattern'."**
@@ -823,9 +993,15 @@ literal text instead.
 
 **"Replace All changed fewer/more entries than I expected."**
 Find & Replace is scoped to the **currently selected group** (the whole library
-when **📚 Library** is selected), and the **Field** dropdown limits which field is
-searched. Run the **Find** preview first to see exactly which entries and fields
-will change, and check both controls.
+when **📚 Library** is selected) and, if the search box has text in it, to the
+**rows currently shown**; the **Field** dropdown limits which field is searched.
+Run the **Find** preview first to see exactly which entries and fields will
+change, and check all three.
+
+**"My editor window is showing an old value after an undo."**
+Undo repaints the main window, not the editor windows you have open beside it.
+The entry itself is fine — close the editor and reopen it (**⌘E**) to see the
+undone state. See [Undo and redo](#undo-and-redo).
 
 ## See also
 

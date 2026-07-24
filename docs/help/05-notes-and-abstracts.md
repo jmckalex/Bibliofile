@@ -3,25 +3,34 @@
 Every reference in your library can carry two kinds of free-form prose: an
 **Abstract** and a set of **Notes**. In Bibliofile both are written in
 **Markdown** — a handful of plain-text conventions that the app renders into
-clean, typeset prose in the detail pane. Both can contain **mathematics**, which
-is typeset with MathJax; Notes can additionally hold **cross-references** to
-other entries in your library and **inline embeds** (such as a video player).
+clean, typeset prose in its panels and editor windows. Both can contain
+**mathematics**, which is typeset with MathJax; Notes can additionally hold
+**cross-references** to other entries in your library and **inline embeds**
+(such as a video player).
 
-Crucially, neither feature changes what lands in your `.bib` file. Markdown is
-just text, so an abstract or a note remains an ordinary BibTeX field value: it
-stays portable, diff-friendly, and perfectly legible to classic BibDesk, to
-`bibtex`/`biber`, and to anyone reading the file in a plain editor. The
-formatting is applied only when the app *displays* the value; nothing is written
-back into the file beyond the characters you typed.
+Crucially, the formatting is applied only when the app *displays* a value: no
+HTML is ever written back into your `.bib`. The **Abstract** is stored exactly
+as you typed it by default, so it stays portable, diff-friendly, and legible to
+classic BibDesk, to `bibtex`/`biber`, and to anyone reading the file in a plain
+editor. **Notes** are the one exception: because Markdown routinely contains
+braces that would corrupt a BibTeX value, the app encodes them by default into a
+private field — safe, and always decoded back, but not legible in a plain editor
+unless you switch storage modes. See
+[How the fields are stored](#how-the-fields-are-stored) for both, and how to
+change them.
 
 This chapter explains the two fields in depth, gives a complete reference to the
 Markdown the app accepts, documents the maths, cross-reference, and embed
 features with worked examples, and finishes with edge cases and troubleshooting.
 
 > **Tip:** If you only remember one thing, remember this — *Abstract* is the
-> field shown in the preview card at the top of the detail pane; *Notes* is the
-> editable section lower down, stored in the `Annote` field. Notes can do
-> everything Abstracts can, plus cross-references and embeds.
+> field shown in the preview card at the top of the details panel; *Notes* are
+> the entry's annotation, shown lower down in the section labelled
+> **Annotation**. Notes can do everything Abstracts can, plus cross-references
+> and embeds. The panels in the main window are **read-only**: you write both
+> in the entry's **editor window** (**Publication → Edit Publication…**, **⌘E** /
+> **Ctrl+E**, or double-click the row), and notes also have a
+> [window of their own](#the-annotation-editor-window).
 
 ## Two fields, two purposes
 
@@ -33,14 +42,18 @@ play different roles in a reference library.
 The **Abstract** is the summary of the work itself — typically the author's own
 abstract, pasted in from a paper or a database record. It belongs *to the
 reference*. The app reads it from the standard BibTeX `Abstract` field and
-renders it as Markdown inside the **preview card** at the top of the detail
-pane, immediately below the venue line, chips, and keyword tags. See
-[Preview & Citations](06-preview-and-citations.md) for the full anatomy of the
-card.
+renders it as Markdown inside the **preview card** at the top of the details
+panel, immediately below the venue line, chips, and keyword tags (and above the
+cite key). See [Preview & Citations](06-preview-and-citations.md) for the full
+anatomy of the card. The same rendered abstract is also what the bottom panel's
+**Tabbed** view shows under its **Abstract** tab — see
+[Configurable Panels](10-panels.md#the-tabbed-view).
 
 Because the Abstract is part of the citation record, it is also handed to the
 citation processor: when a CSL style asks for an abstract (some annotated
-bibliography styles do), the rendered text comes from this same field.
+bibliography styles do), the text comes from this same field. What the style
+receives is the *source* text — decoded from whichever storage mode you use and
+stripped of TeX markup — not the Markdown rendering.
 
 The Abstract uses the **strict** Markdown profile (see
 [The sanitizer](#the-sanitizer-what-survives-rendering) below). It supports
@@ -56,9 +69,12 @@ follow up a reference. Notes correspond to BibDesk's long-standing `Annote`
 annotation field, but — because Markdown notes routinely contain braces and other
 BibTeX-unsafe characters — they are stored **encoded** rather than as raw text (by
 default, compressed in a private `Bdsk-Annotation` field; see
-[How the fields are stored](#how-the-fields-are-stored)). You edit them through
-the dedicated **Notes** section near the bottom of the detail pane (an **Edit /
-Done** toggle), or in the [standalone annotation editor](#the-annotation-editor-window).
+[How the fields are stored](#how-the-fields-are-stored)). Throughout the app the
+section that holds them is labelled **Annotation**: read-only in the main
+window's details panel and bottom panel, and editable — with an **Edit** /
+**Done** toggle — near the bottom of the entry's **editor window**. There is
+also a [standalone annotation editor](#the-annotation-editor-window) for one
+entry at a time.
 
 Notes use the **richer** Markdown profile. On top of everything the Abstract
 supports, Notes additionally allow:
@@ -67,7 +83,7 @@ supports, Notes additionally allow:
   select the referenced entry — the foundation of a linked knowledge base.
 - **Formatted citations** written `\cite{…}` / `\citep{…}` / `\citet{…}` / … —
   LaTeX-style commands that render a styled citation of an entry (see
-  [Formatted citations](#formatted-citations--cite--notes-only)).
+  [Formatted citations](#formatted-citations--cite-notes-only)).
 - **Inline embeds** via an `<iframe>` (restricted to `http`/`https`), so you can
   drop in a video, a slide deck, or an interactive widget.
 
@@ -76,8 +92,8 @@ supports, Notes additionally allow:
 | Aspect | Abstract | Notes |
 | --- | --- | --- |
 | Stored in BibTeX field | `Abstract` (plain text) | `Bdsk-Annotation` (encoded; or `Annote` in Readable mode) |
-| Where it appears | Preview card (top of detail pane) | Notes section (lower in detail pane) |
-| How you edit it | As a normal field in the **Fields** list | Dedicated **Edit / Done** editor |
+| Where it appears | Preview card (top of the details panel); **Abstract** tab of the Tabbed bottom panel | **Annotation** section (details panel, bottom panel, editor window) |
+| How you edit it | As a normal field in the **Fields** list of the editor window | **Edit / Done** in the editor window, or the standalone annotation editor |
 | Markdown | Yes (strict profile) | Yes (richer profile) |
 | Maths (`$…$`, `$$…$$`) | Yes | Yes |
 | Links (`[text](url)`) | Yes (open externally) | Yes (open externally) |
@@ -88,23 +104,27 @@ supports, Notes additionally allow:
 
 ## Writing an Abstract
 
-The Abstract is edited like any other field. Select an entry, find **Abstract**
-in the **Fields** list, and type or paste Markdown into its box. (Because
-abstracts tend to be long, the editor gives the Abstract field a multi-line text
-area automatically.) The moment you commit the edit — by clicking away or
-pressing **Enter** to leave the box — the preview card at the top re-renders with
-the formatted result.
+The Abstract is edited like any other field, in the entry's **editor window**.
+Open it (**Publication → Edit Publication…**, **⌘E** / **Ctrl+E**, or
+double-click the row), find **Abstract** in the **Fields** list, and type or
+paste Markdown into its box. (Because abstracts tend to be long, the editor
+gives the Abstract field a multi-line text area automatically — which means
+**Enter** inserts a line break rather than committing; click away to commit.)
+The moment the edit is committed, the preview card re-renders with the formatted
+result — in the editor window's preview column, and in the main window's details
+panel behind it.
 
 > **Procedure — set an abstract**
 >
-> 1. Select the entry in the publications table.
-> 2. In the **Fields** list, locate the **Abstract** row. If the entry has no
->    abstract yet, add one with the **New field** row at the bottom of the list
->    (type `Abstract`, then the text).
+> 1. Select the entry in the publications table and open its editor window
+>    (**⌘E** / **Ctrl+E**, or double-click the row).
+> 2. In the **Fields** list, locate the **Abstract** row. Most entry types don't
+>    offer one, so if there is no Abstract row, click the green **＋** below the
+>    list and type `Abstract` as the field name.
 > 3. Type or paste Markdown into the value box.
-> 4. Click elsewhere (or press **Enter**) to commit.
-> 5. Watch the preview card at the top of the pane re-render with your
->    formatting.
+> 4. Click elsewhere to commit (the Abstract's box is a text area, so **Enter**
+>    just starts a new line).
+> 5. Watch the preview card re-render with your formatting.
 
 ### A worked example
 
@@ -126,50 +146,66 @@ clickable "1919 eclipse data" link that opens in your browser.
 
 ## Writing Notes
 
-Notes live in their own section toward the bottom of the detail pane. Unlike the
-Abstract — which you edit inline as a field — Notes have an explicit editing
-mode so the rendered view (with its clickable cross-references and embeds) does
-not get in the way of typing.
+Notes live in their own section, labelled **Annotation**, toward the bottom of
+the entry's editor window. Unlike the Abstract — which you edit inline as a
+field — Notes have an explicit editing mode so the rendered view (with its
+clickable cross-references and embeds) does not get in the way of typing.
 
 > **Procedure — write notes**
 >
-> 1. Select the entry.
-> 2. Scroll to the **Notes** section. If the entry has no notes yet, you'll see
->    *"No notes. Click Edit to add markdown notes."*
-> 3. Click **Edit**. The section becomes a Markdown text area.
+> 1. Select the entry and open its editor window (**Publication → Edit
+>    Publication…**, **⌘E** / **Ctrl+E**, or double-click the row).
+> 2. Scroll to the **Annotation** section. If the entry has no notes yet, you'll
+>    see *"No annotation. Click Edit to add markdown notes."*
+> 3. Click **Edit**. The section becomes a Markdown editor (CodeMirror, with
+>    syntax highlighting for headings, emphasis, and maths).
 > 4. Type your notes — Markdown, maths, `[[citeKey]]` links, and `<iframe>`
 >    embeds are all allowed.
 > 5. Click **Done** to leave editing mode and see the rendered result.
 
 The editor commits whenever it loses focus, so clicking **Done** (or clicking
-anywhere outside the text area) saves your text into the `Annote` field. The
-placeholder text in an empty editor reminds you of the extras:
-*"Markdown notes. Link entries with `[[citeKey]]`. Inline `<iframe>` embeds
-allowed."*
+anywhere outside the editor) saves your text as the entry's annotation — into
+whichever field your storage mode uses, not necessarily `Annote`; see
+[How the fields are stored](#how-the-fields-are-stored). The placeholder text in
+an empty editor reminds you of the extras: *"Markdown notes. Link entries with
+`[[citeKey]]`. Inline `<iframe>` embeds allowed."*
 
-![The Notes section, rendered](../viewer-notes.png)
+The main window's panels don't edit notes: the details panel and the bottom
+panel both show the rendered annotation read-only, with an **Edit…** button at
+the top of the details panel that opens the editor window. See
+[Configurable Panels](10-panels.md). (The same editable form — Fields,
+Annotation, Attachments — also drives the review dialog for dropped PDFs the app
+couldn't identify, so a draft can be annotated before you Accept it; see
+[Importing & Exporting](07-importing-and-exporting.md).)
+
+![Rendered notes: cross-reference links, a missing key in the warning style, and an inline embed](../viewer-notes.png)
+
+*(That screenshot is from an earlier build, when the side panel was itself
+editable — the rendered notes are current, the surrounding pane is not.)*
 
 > **Note:** Editing notes marks the document as having unsaved changes, exactly
 > like editing any other field. Your text is held in memory until you **Save**
-> (Cmd+S / Ctrl+S), at which point it is written to the entry's annotation field
-> in the `.bib` file — encoded for safety (the private `Bdsk-Annotation` field by
-> default; see [How the fields are stored](#how-the-fields-are-stored) below). See
-> [Editing Entries](03-editing-entries.md).
+> (**⌘S** / **Ctrl+S**), at which point it is written to the entry's annotation
+> field in the `.bib` file — encoded for safety (the private `Bdsk-Annotation`
+> field by default; see [How the fields are stored](#how-the-fields-are-stored)
+> below). See [Editing Entries](03-editing-entries.md).
 
 > **Tip — see which entries have notes at a glance:** Add the **Annotation**
-> indicator column to the publications table (**Preferences → Columns**, then pick
-> **Annotation** from the dropdown). It shows a file icon in any row whose entry
-> carries an annotation. This works for Markdown notes too: by default notes are
-> stored encoded in a private `Bdsk-Annotation` field (in *Readable* mode they
-> live in the standard `Annote` field), and the indicator detects both. Choose the
-> builtin **Annotation** column, *not* a raw **Annote** field column — the latter
-> reads the (usually empty) plain field and won't show the icon for the default
-> encoded notes.
+> indicator column to the publications table (**Preferences → Display →
+> Columns**, then pick **Annotation** from the **Add column…** dropdown). It
+> shows a file icon in any row whose entry carries an annotation. This works for
+> Markdown notes too: by default notes are stored encoded in a private
+> `Bdsk-Annotation` field (in *Readable* mode they live in the standard `Annote`
+> field), and the indicator detects both. Choose the builtin **Annotation**
+> column, *not* a raw **Annote** field column — the latter reads the (usually
+> empty) plain field and won't show the icon for the default encoded notes.
+> **View → Columns** doesn't offer Annotation until it has been added this way;
+> once it has, it appears there as a checkbox like the other columns.
 
 ## The annotation editor window
 
-When you want to write a longer annotation without the detail pane feeling
-cramped, open a **dedicated editor window** for one entry.
+When you want to write a longer annotation without a side panel feeling cramped,
+open a **dedicated editor window** for one entry.
 
 > **Procedure — open the annotation editor**
 >
@@ -180,22 +216,26 @@ A separate, **top-level window** opens — it is **non-blocking**, so the main
 window stays fully usable behind it (keep browsing, search, or open editors for
 other entries side by side). The window has two parts:
 
-- **A pretty-printed summary at the top** — the same card the detail pane shows,
-  including the **journal thumbnail / book cover** when one exists. It's a quick
-  reminder of *which* entry you're annotating.
-- **A full-height Markdown editor below** — the same editor as the Notes section,
-  with Markdown, maths, `[[citeKey]]` links, and `<iframe>` embeds all allowed.
+- **A pretty-printed summary at the top** — the same card the details panel
+  shows, including the **journal thumbnail / book cover** when one exists. It's a
+  quick reminder of *which* entry you're annotating. It is capped to the top
+  ~45% of the window and scrolls if the card is long.
+- **A full-height Markdown editor below** — the same editor as the Annotation
+  section, with Markdown, maths, `[[citeKey]]` links, and `<iframe>` embeds all
+  allowed.
 
-The window's **title bar shows the entry's cite key**, so several open at once
-stay easy to tell apart.
+Both the window's **OS title bar** and the small bar inside it read
+**Annotation · *cite key***, so several open at once stay easy to tell apart.
+
+![The standalone annotation editor: summary card above, Markdown editor below](../viewer-annotation-editor.png)
 
 ### Auto-save
 
-You don't click Save or Done in this window. Your text is **auto-saved to the
-entry on a short debounce** — about a second after you stop typing — and also
-when the editor loses focus and when you close the window. A small **"Saving… /
-Saved"** indicator in the title bar confirms it. The main window's detail pane
-(and the Annotation column) update automatically.
+You don't click Save or Done in this window (its only button is **Close**). Your
+text is **auto-saved to the entry on a short debounce** — about a second after
+you stop typing — and also when the editor loses focus and when you close the
+window. A small **"Saving… / Saved"** indicator in the bar at the top confirms
+it. The main window's panels (and the Annotation column) update automatically.
 
 > **Note:** "Saved to the entry" means the annotation is written into the open
 > document in memory, marking it as having unsaved changes — exactly like any
@@ -278,12 +318,16 @@ The dataset is published at [Zenodo](https://doi.org/10.5281/zenodo.123456).
 ```
 
 > **How links work:** For safety, the app does **not** let a rendered link
-> navigate the window. Instead the link's destination is attached to the element,
-> and when you click it the app opens the URL in your **external** browser via
-> the operating system. This is why every link in an abstract or note opens
-> outside the app rather than replacing the view. (Plain `[[citeKey]]`
-> cross-references are the exception — those navigate *within* the library; see
-> below.)
+> navigate the window. The `href` is dropped at render time and the destination
+> is carried on the element instead; when you click it the app opens the URL in
+> your **external** browser via the operating system. This is why every link in
+> an abstract or note opens outside the app rather than replacing the view.
+> (Plain `[[citeKey]]` cross-references are the exception — those navigate
+> *within* the library; see below.)
+>
+> Only `http:`, `https:` and `mailto:` links are opened; anything else is
+> refused. A bare DOI (`10.1000/xyz123`) used as a link target is turned into
+> `https://doi.org/…` for you.
 
 ### Code
 
@@ -318,6 +362,15 @@ Prefix lines with `>`:
 Three or more hyphens on their own line (`---`) render as a horizontal rule
 (`<hr>`).
 
+### Tables — not supported
+
+**Markdown tables do not render.** The parser understands GFM pipe tables (and
+the note editor even syntax-highlights them), but `<table>` and its friends are
+not on the sanitizer's allow-list, so the table markup is stripped and you are
+left with a run of the cell text. If you need tabular data in a note, use a list
+or a fenced code block instead. The same goes for task-list checkboxes
+(`- [ ] …`): the `<input>` is dropped and only the item text survives.
+
 ### Superscripts and subscripts
 
 The sanitizer allows `<sup>` and `<sub>` if your Markdown produces them, which
@@ -345,8 +398,15 @@ Anything else is dropped. In particular:
 
 - `<script>` tags and any JavaScript are removed entirely.
 - Event-handler attributes (`onclick`, `onload`, …) are removed.
-- Inline `style` attributes and arbitrary classes are not preserved.
+- Inline `style` attributes are not preserved. Attributes in general are
+  stripped: `<a>` keeps only `class`, `title` and the app's own link markers,
+  `<span>` keeps only `class`, and a Notes `<iframe>` keeps only the presentation
+  attributes listed under [Inline embeds](#inline-embeds-notes-only). Every other
+  tag comes through bare — which is why a fenced block's language hint leaves no
+  class behind.
 - Images (`<img>`) are not in the allow-list, so raw image tags are stripped.
+- Tables and form controls are not in the allow-list either (see
+  [Tables](#tables--not-supported) above).
 - In **Abstracts**, an `<iframe>` is stripped (it is a Notes-only capability).
 
 > **Note:** This means you cannot "break out" of the formatting by pasting raw
@@ -395,13 +455,17 @@ Understanding the rendering pipeline explains why some things work and others
 don't:
 
 1. **Protect maths.** Before any Markdown is parsed, the app finds every maths
-   span — `$$…$$` first, then `$…$` — and replaces each with a placeholder. This
-   is what stops Markdown from "seeing" the `_`, `*`, `{`, or `}` characters
-   inside maths and misinterpreting them as emphasis or stray markup.
+   span — `$$…$$` first, then `$…$`, then `\[…\]` and `\(…\)` — and replaces each
+   with a placeholder. This is what stops Markdown from "seeing" the `_`, `*`,
+   `{`, or `}` characters inside maths and misinterpreting them as emphasis or
+   stray markup (and stops `\[` from being eaten as an escaped bracket).
 2. **Render Markdown.** The placeholder-protected text is parsed to HTML and
    sanitized.
-3. **Restore maths.** The placeholders are swapped back for the original maths
-   text, verbatim.
+3. **Restore maths.** The placeholders are swapped back for your original maths
+   text, character for character. Because the maths never went through the
+   sanitizer, it is put back HTML-escaped — invisible to you and to MathJax
+   (which reads the text back decoded), but it means a maths span can't smuggle
+   live markup into the page.
 4. **Typeset.** When the rendered card or note is shown, the app runs MathJax
    over it, turning the `$…$`/`$$…$$` spans into crisp SVG equations that inherit
    the surrounding text colour (so maths looks right in both light and dark
@@ -437,7 +501,7 @@ It should be read alongside [[bohr1913]].
 
 Each `[[citeKey]]` becomes a clickable link (prefixed with a small ↪ marker).
 **Clicking it selects that entry** — the publications table jumps to the
-referenced item and its detail pane opens, just as if you'd clicked the row
+referenced item and the panels show it, just as if you'd clicked the row
 yourself. This turns your notes into a navigable web of connections: a
 literature trail, a "cited by / builds on" graph, or a running argument that
 threads through many papers.
@@ -446,6 +510,9 @@ threads through many papers.
 
 - Cite-key matching is **case-insensitive**, so `[[Einstein1905]]` finds
   `einstein1905`.
+- The target does **not** have to be visible in the group you're browsing. If
+  the key isn't among the rows currently shown, the app switches to the whole
+  **Library** and selects it there.
 - If two entries somehow share a cite key, the link resolves to the **first**
   match (matching BibDesk's own behaviour).
 - If a cite key matches **no** entry in the library, the link is rendered in a
@@ -555,6 +622,14 @@ The sanitizer is strict about iframes:
 > but it cannot vouch for the content of a third-party site. Embeds are a
 > Notes-only feature for this reason — Abstracts keep the simpler, stricter
 > profile with no embedding at all.
+>
+> Be aware that the opt-in belongs to whoever wrote the note. If you open a
+> `.bib` a colleague sent you, an `<iframe>` in *their* annotation loads from
+> *their* chosen host the moment you view that entry's notes — which tells that
+> host you read it. Nothing runs in the app itself, but the request does go out.
+> The app's content-security policy deliberately allows `http`/`https` frames so
+> the embed feature works; that is an accepted cost of the feature, not an
+> oversight.
 
 ## How the fields are stored
 
@@ -590,9 +665,11 @@ same opt-in encodings as the annotation:
 - **Readable** — only `% { }` percent-escaped, kept in the standard `Abstract`
   field: brace-safe and still readable, at the cost of `%7B`/`%7D` in other tools.
 - **Compressed** — an lz-string + base64 blob in a private `Bdsk-Abstract` field:
-  brace-safe and compact, but opaque to other tools and **invisible to citation
-  styles** (which read the standard `Abstract` field). The app still shows and
-  edits it normally, decoding on the fly.
+  brace-safe and compact, but opaque to everything that reads the `.bib` without
+  knowing the encoding — including any **other** tool's citation styles, which
+  look for the standard `Abstract` field and will find nothing. Bibliofile itself
+  is unaffected: it decodes the blob before showing it, editing it, indexing it
+  for search, or handing it to its own citation styles.
 
 Leave it on **Plain** unless you specifically need the protection — the abstract
 is part of the citation record, so most libraries are best served keeping it
@@ -667,6 +744,11 @@ Matching is case-insensitive, so capitalisation alone is never the problem.
 - The provider blocks embedding (some sites refuse to be framed); that's a
   decision made by the remote site, not the app.
 
+### My table came out as a run of plain text
+
+Markdown tables aren't supported — the sanitizer removes the table markup and
+leaves the cell text behind. See [Tables](#tables--not-supported).
+
 ### Emphasis appeared where I didn't want it
 
 A stray `*` or `_` in prose can trigger italics. Escape it with a backslash
@@ -687,7 +769,9 @@ always decodes it back.
 
 - [Preview & Citations](06-preview-and-citations.md) — where the rendered
   abstract appears, and how formatted citations work.
-- [Editing Entries](03-editing-entries.md) — editing fields, the `Annote` field,
+- [Editing Entries](03-editing-entries.md) — the editor window, editing fields,
   and saving.
+- [Configurable Panels](10-panels.md) — the details panel and the bottom
+  panel that display an entry's annotation and abstract.
 - [Browsing & Searching](02-browsing-and-searching.md) — finding the entries you
   cross-reference.

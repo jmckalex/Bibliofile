@@ -4,9 +4,11 @@ A bibliography manager is only as useful as the references you can get *into* it
 and the formats you can get back *out*. Bibliofile has grown a full set of
 get-references-in and get-references-out paths that sit alongside the in-app
 [Online search](08-online-search.md): you can **paste** BibTeX straight from the
-clipboard, **drag and drop** files onto the window, **import from a file** in
-BibTeX or RIS format, and **export** your whole library to BibTeX, RIS, CSV, or
-a styled HTML bibliography.
+clipboard, **drag and drop** files onto the publications table, **import from a
+file** in BibTeX, RIS, or EndNote format, **export** your whole library to
+BibTeX, RIS, CSV, a styled HTML bibliography, or an RTF reference list — and
+**clone** the whole library, attachments and all, into a copy you can experiment
+on.
 
 This chapter covers every one of those paths in depth: exactly what each one
 accepts, how cite-key collisions are handled, what fields are mapped where, and
@@ -17,7 +19,7 @@ precisely what each method does before you reach for it.
 
 > **Note:** All of the import methods in this chapter **add** entries to the
 > library you currently have open. None of them replaces, merges-over, or
-> deletes existing entries, and nothing is written to disk until you press
+> deletes existing entries, and nothing is written to your `.bib` until you press
 > **Save** (**⌘S** / **Ctrl+S**). If you import a batch and then quit without
 > saving, those entries are discarded — there is no autosave by default. (You can
 > turn on an autosave option; see [Editing entries](03-editing-entries.md#the-dirtysave-model).)
@@ -26,14 +28,20 @@ precisely what each method does before you reach for it.
 
 | Method | How you trigger it | Accepts | Best for |
 | --- | --- | --- | --- |
-| **Paste BibTeX** | **Edit → Paste Publication** (**⇧⌘V** / **Shift+Ctrl+V**), or just **paste** (`⌘V`) BibTeX text when the table is focused | One or more `@type{…}` entries on the clipboard | Grabbing a citation from Google Scholar, a publisher page, or an email |
-| **Drag and drop** | Drag files from your file manager onto the window | `.bib`, `.ris`, EndNote `.enw`/`.enl`/`.xml`, PDFs, and any other file | Dropping a folder of PDFs, or merging a colleague's `.bib` |
+| **Paste BibTeX** | **Edit → Paste Publication** (**⇧⌘V** / **Shift+Ctrl+V**) or **Publication → New Publications from Clipboard** (**⌥⌘L** / **Alt+Ctrl+L**) — the same command under two names — or just **paste** (`⌘V`) BibTeX text when the table is focused | One or more `@type{…}` entries on the clipboard | Grabbing a citation from Google Scholar, a publisher page, or an email |
+| **Drag and drop** | Drag files from your file manager onto the publications table | `.bib`, `.ris`, EndNote `.enw`/`.enl`/`.xml`, PDFs, and any other file | Dropping a folder of PDFs, or merging a colleague's `.bib` |
 | **Import from file** | **File → Import → From File (BibTeX / RIS / EndNote)…** (**⇧⌘I** / **Shift+Ctrl+I**) | `.bib`, `.ris`, and EndNote `.enw`/`.enl`/`.xml` files chosen in a dialog | A clean, dialog-driven import of one or several files |
-| **Online search** | **File → Import → Search Online…**, or the **🌐 Online…** toolbar button | CrossRef / arXiv results | Finding a reference you don't have a file for. See [Online search](08-online-search.md). |
+| **Online search** | **File → Import → Search Online…**, or the **🌐 Online…** toolbar button | Results from any of the six built-in sources (CrossRef, OpenAlex, PubMed, arXiv, DOI lookup, ISBN) | Finding a reference you don't have a file for. See [Online search](08-online-search.md). |
 
 The first three are covered here; online search has its own chapter. Whichever
 method you use, the same two rules apply: **cite keys are kept unique** (a clash
 gets a `-1`, `-2`, … suffix), and the import is **in memory until you Save**.
+
+Every import also ends the same way, so you can see what arrived: the sidebar
+selection is **cleared back to the whole Library** (a new entry that didn't match
+your current group would otherwise be invisible), the table reloads, and the
+**first** newly-added entry is selected and shown in the detail pane. Any
+warnings from the import appear in the status bar.
 
 ## 7.2 Pasting BibTeX from the clipboard
 
@@ -43,7 +51,8 @@ arXiv — offer a "BibTeX" or "Export citation" button that puts an `@article{�
 record on your clipboard. Bibliofile turns that clipboard text into a real
 entry.
 
-There are two ways to do it, and both end up in the same place.
+There are two ways to do it — a menu command and a bare paste — and both end up
+in the same place.
 
 ### 7.2.1 Edit → Paste Publication (the explicit way)
 
@@ -51,9 +60,21 @@ There are two ways to do it, and both end up in the same place.
 2. With a library open, choose **Edit → Paste Publication**
    (**⇧⌘V** / **Shift+Ctrl+V**).
 
-The app reads the clipboard, parses it as BibTeX, and adds every entry it finds.
-The new entries are selected so you can review and tidy them immediately in the
-detail pane.
+The app reads the clipboard, parses it as BibTeX, and adds every entry it finds,
+then selects the first of them so you can review and tidy it in the detail pane.
+
+The same command also sits in the **Publication** menu as **New Publications
+from Clipboard** (**⌥⌘L** / **Alt+Ctrl+L**), where BibDesk users will expect to
+find it — right after the two *New Publication* items, since that is what it
+does: it makes new publications, just from text you already have. The two menu
+items are the *same* command with the same behaviour and either shortcut works;
+use whichever you remember. (Unlike BibDesk's version there is no ellipsis and
+no parsing sheet — it reads BibTeX from the clipboard and adds the entries
+immediately, with no further input from you.)
+
+If the clipboard is empty — or the app can't read it at all — you get
+*"The clipboard has no text to paste."* in the status bar rather than a menu
+item that appears to do nothing.
 
 ### 7.2.2 Just paste (the quick way)
 
@@ -66,8 +87,9 @@ ordinary text paste.
 > **Note:** This "bare paste" deliberately stays out of your way while you are
 > editing. If your cursor is in a field editor, the search box, or any text area,
 > **⌘V** pastes text into that box as normal — only a paste landing on the table
-> (or window chrome) is treated as a BibTeX import. When in doubt, use **Edit →
-> Paste Publication**, which always imports regardless of focus.
+> (or window chrome) is treated as a BibTeX import. When in doubt, use the menu
+> command (**Edit → Paste Publication** or **Publication → New Publications from
+> Clipboard**), which always imports regardless of focus.
 
 ### 7.2.3 What paste accepts and how keys are assigned
 
@@ -91,16 +113,27 @@ than its BibTeX source).
 
 > **Tip:** Treat a pasted entry as a *starting point*. Online and clipboard
 > BibTeX is often imperfect — ALL-CAPS titles, abbreviated venues, initials-only
-> names. Because the new entry is selected the moment you paste, the detail-pane
-> editor is right there for cleanup. See
+> names. Because the first new entry is selected the moment you paste, the
+> detail-pane editor is right there for cleanup. See
 > [Editing entries](03-editing-entries.md).
 
 ## 7.3 Drag and drop
 
-You can drop files straight onto the Bibliofile window. As soon as you drag
-files over the window, a full-window overlay appears reading **"Drop .bib or
-files to import"**, confirming the drop will land. Release the files and the app
-imports them according to their type.
+You can drop files straight onto the **publications table** — the middle column
+of the window, which is the import drop target. As soon as you drag files over
+it, an overlay covers that column reading **"Drop .bib or files to import"**,
+confirming the drop will land. Release the files and the app imports them
+according to their type.
+
+The drop target is that column deliberately, not the whole window, because the
+other panes take drops of their own: dropping a file on the **detail pane**
+attaches it to the entry you are looking at (and dropping an image on its journal
+cover sets the cover), while the **groups sidebar** takes entries dragged onto a
+static group. Aiming at the table is what tells the app you mean *import*. The
+overlay also appears only for files dragged in from outside — dragging a row
+*out* of the table doesn't raise it. With **no library open**, the welcome screen
+accepts a dropped `.bib` too, but there it **opens** that file rather than
+merging it.
 
 | You drop… | What happens |
 | --- | --- |
@@ -127,7 +160,8 @@ right. Click a PDF to edit its entry (type, cite key, fields, notes — the titl
 pre-filled from the filename), then:
 
 - **Accept** — creates the entry in your library and attaches that PDF (AutoFiling
-  it if a Papers folder is set).
+  it only if you have **AutoFile attachments when added** switched on — see
+  [AutoFile](04-attachments.md#autofile-organising-linked-files)).
 - **Discard** — drops the PDF; no entry is created.
 
 **Nothing is added to your library until you Accept** — the drafts live in a
@@ -143,10 +177,12 @@ key.
 > added it through the **Attachments** section — see [Attachments](04-attachments.md).
 
 > **Warning:** A dropped file is attached by **link**, not copied into the
-> library folder. For the link to keep resolving, keep the file in a predictable
-> place relative to your `.bib` — or use
-> [AutoFile](04-attachments.md#autofile-organising-linked-files) afterwards to
-> move it into your Papers folder. See
+> library folder — it stays exactly where you dropped it from. For the link to
+> keep resolving, keep the file in a predictable place relative to your `.bib` —
+> or use [AutoFile](04-attachments.md#autofile-organising-linked-files)
+> afterwards to move it into your Papers folder. (The one exception: with
+> **AutoFile attachments when added** switched on *and* a Papers folder set, a
+> dropped file is moved there immediately, as part of the same import.) See
 > [Attachments → portability](04-attachments.md#best-practices-for-portable-attachments).
 
 ## 7.4 Importing from a file
@@ -175,6 +211,29 @@ its own chapter.
 > you can import several `.bib`/`.ris` files in a single operation. Each file's
 > warnings are reported with that file's name, so you can tell which source a
 > problem came from.
+
+### 7.4.1 What survives a round trip
+
+A `.bib` you merge in — or open outright — is re-serialized when you next save,
+so it is worth knowing what that does and doesn't preserve. The *layout* is
+rewritten into the app's canonical shape (see
+[Normalisations applied on save](09-shortcuts-and-reference.md#normalisations-applied-on-save)),
+but the *content* is meant to come back out exactly as it went in, including
+these cases that a careless parser gets wrong:
+
+- **`%` comments inside an entry** are treated as comments, so a `%` line
+  containing a stray `,`, `{`, or `"` cannot knock the field splitting out of
+  step and drop real fields. A free-text `@comment{…}` or `@preamble{…}` body is
+  left alone instead, so a literal `%` in one (JabRef and Zotero emit these)
+  survives untouched.
+- **A missing `}`** damages only the entry it belongs to: the parser
+  resynchronises at the next `@type{` that starts a line, rather than swallowing
+  every entry after it.
+- **Unmatched braces in a value** — a title containing a lone `{` or `}` — are
+  written out as the balanced TeX control words `{\textbraceleft}` and
+  `{\textbraceright}`, which re-read as the same characters and are shown as `{`
+  and `}` in the app. Values whose braces are already balanced (which is nearly
+  all of them) are written through unchanged.
 
 ## 7.5 The RIS format
 
@@ -231,7 +290,7 @@ type afterwards from the **Type** dropdown — see
 | `A2`, `ED` | `Editor` | Multiple lines, joined with ` and ` |
 | `TI`, `T1` | `Title` | |
 | `T2`, `JO`, `JF` | `Journal` or `Booktitle` | `Journal` for a `JOUR` record, `Booktitle` otherwise |
-| `PY`, `Y1` | `Year` | The first four-digit run is kept |
+| `PY`, `Y1` | `Year` | A **leading** four-digit year is kept and the rest dropped (`1935/01/01` → `1935`); a value that doesn't start with four digits is taken as-is |
 | `VL` | `Volume` | |
 | `IS` | `Number` | |
 | `SP` / `EP` | `Pages` | Combined as `start--end`; a lone `SP` becomes a single page |
@@ -258,18 +317,22 @@ Bibliofile reads the two EndNote formats you actually run into:
   interchange export. Text wrapped in EndNote's `<style>` runs is unwrapped to
   plain text automatically.
 
-The reference type sets the BibTeX type (*Journal Article* → `article`, *Book* →
-`book`, *Book Section* → `incollection`, *Conference Proceedings*/*Paper* →
-`inproceedings`, *Thesis* → `phdthesis`, *Report* → `techreport`; anything else →
-`misc`). Common fields map across as you would expect:
+The reference type sets the BibTeX type (*Journal Article* and *Electronic
+Article* → `article`, *Book* and *Edited Book* → `book`, *Book Section* →
+`incollection`, *Conference Proceedings*/*Paper* → `inproceedings`, *Thesis* →
+`phdthesis`, *Report* → `techreport`, *Manuscript* and *Unpublished Work* →
+`unpublished`; anything else, including *Web Page* and *Generic*, → `misc`).
+Common fields map across as you would expect:
 
 | EndNote (tagged / XML) | BibTeX field | Notes |
 | --- | --- | --- |
 | `%A` / `<author>` | `Author` | Joined with ` and ` |
 | `%E` / `<secondary-authors>` | `Editor` | Joined with ` and ` |
 | `%T` / `<title>` | `Title` | |
-| `%J` / `<secondary-title>`, `<full-title>` | `Journal` or `Booktitle` | `Journal` for an article, `Booktitle` otherwise |
-| `%D` / `<year>` | `Year` | First four-digit run |
+| `%J` / — | `Journal` | The tagged format has separate tags, so no guessing is needed |
+| `%B` / — | `Booktitle` | |
+| — / `<secondary-title>`, `<full-title>` | `Journal` or `Booktitle` | XML has one venue element: `Journal` for an article, `Booktitle` otherwise |
+| `%D` / `<year>` | `Year` | A four-digit year is picked out of the value |
 | `%V` / `<volume>` | `Volume` | |
 | `%N` / `<number>` | `Number` | |
 | `%P` / `<pages>` | `Pages` | A single hyphen between numbers becomes `--` |
@@ -277,9 +340,11 @@ The reference type sets the BibTeX type (*Journal Article* → `article`, *Book*
 | `%C` / `<pub-location>` | `Address` | |
 | `%R` / `<electronic-resource-num>` | `Doi` | A leading `doi:` is stripped |
 | `%U` / `<related-urls>` | `Url` | |
-| `%@` / `<isbn>` | `Issn` or `Isbn` | `Issn` when it looks like one, else `Isbn` |
-| `%K` / `<keyword>` | `Keywords` | Joined with `, ` |
+| `%@` / `<isbn>` | `Issn` or `Isbn` | `Issn` when it matches the ISSN pattern, else `Isbn` |
+| `%K` / `<keyword>` | `Keywords` | Joined with `, `; a single `%K` line holding several comma- or semicolon-separated keywords is split into separate keywords first |
 | `%X` / `<abstract>` | `Abstract` | |
+| `%Z`, `%1` / — | `Note` | |
+| `%G` / — | `Language` | |
 
 As with RIS, EndNote imports get fresh generated cite keys and are added as new
 entries (nothing is overwritten); unrecognised tags are ignored.
@@ -288,6 +353,9 @@ entries (nothing is overwritten); unrecognised tags are ignored.
 
 To get references *out* of Bibliofile in a different format, use the
 **Export** menu. Each format writes the **whole library** to a file you choose.
+(This section also covers the two neighbouring ways out that aren't file formats
+at all: [printing](#764-printing-a-bibliography) and
+[cloning](#766-cloning-a-bibliography) the whole library.)
 
 Choose **File → Export →** and then one of:
 
@@ -297,6 +365,7 @@ Choose **File → Export →** and then one of:
 | **RIS** | **RIS…** | A `.ris` file with one record per entry (see the mapping below). |
 | **CSV** | **CSV…** | A comma-separated spreadsheet with a fixed set of bibliographic columns. |
 | **HTML** | **HTML…** | A self-contained, styled HTML bibliography page (rendered through a Handlebars template). |
+| **RTF** | **RTF (formatted bibliography)…** | An `.rtf` document you can open in a word processor: one **CSL-formatted** reference per paragraph, in your default citation style, with the italics that style calls for. See [§7.6.5](#765-rtf-export). |
 
 Each choice opens a **Save** dialog (titled **Export**) with a sensible default
 filename — your library's name with the appropriate extension. None of the export
@@ -309,17 +378,27 @@ Export → Selected Entries (BibTeX)…**. This writes only the highlighted entr
 pulling the references for a single paper out of a large library. The default
 filename is your library's name with a `-selection` suffix.
 
-> **Note:** The five top-level **Export** formats always write the **entire**
+If you have defined any **export templates** of your own, they appear at the
+bottom of the same **File → Export** submenu — each as a submenu offering
+**Whole Library…**, **Shown Entries…**, or **Selected Entries…**. That is the
+route to a layout of your own design, and the only export route that can write
+just what the table is currently *showing*. See
+[Customizing panels → Export templates](11-customizing-panels.md#1111-customizing-outputs).
+
+> **Note:** The five built-in **Export** formats always write the **entire**
 > library, regardless of the group you have selected or any live-search filter —
 > they are *export the whole file* operations. Use **Selected Entries (BibTeX)…**
-> (above) when you want only the highlighted entries, or **Edit → Copy as BibTeX**
+> (above) when you want only the highlighted entries, an export template for
+> other scopes, or **Edit → Copy as BibTeX**
 > to put a single entry on the clipboard — see
 > [Editing entries](03-editing-entries.md#copying-entries-cite-keys-and-citations).
 
 > **Tip:** Exporting to BibTeX is also a convenient way to take a one-off snapshot
 > of the library to a new file without disturbing your working `.bib` or its
 > `.bib.bak` backup. To save the *working* library under a new name and keep
-> editing it there, use **File → Save As…** (**⇧⌘S**) instead.
+> editing it there, use **File → Save As…** (**⇧⌘S**) instead; to get a snapshot
+> that carries **copies of the attached files** as well, use
+> [**Clone Bibliography…**](#766-cloning-a-bibliography).
 
 ### 7.6.1 RIS export
 
@@ -369,7 +448,9 @@ so titles with `<`, `>`, or `&` export safely.
 > bibliography. It is meant for sharing a glance-able list, not for typesetting a
 > paper. For a properly styled single citation, use the
 > [formatted-citation block](06-preview-and-citations.md#formatted-citations) or
-> **Edit → Copy Citation**.
+> **Edit → Copy Citation**; for a whole bibliography in your chosen reference
+> style, export [RTF](#765-rtf-export) or [print](#764-printing-a-bibliography)
+> it instead.
 
 ### 7.6.4 Printing a bibliography
 
@@ -382,8 +463,9 @@ way to get a formatted PDF reading list without exporting a file first).
 Unlike **Export**, Print follows **what you are looking at**:
 
 - If you have **two or more entries selected**, only those are printed.
-- Otherwise the **current group** is printed (the whole library, a static or
-  smart group's members — whatever the table is currently showing).
+- Otherwise **everything the table is currently showing** is printed — the
+  current group (the whole library, or a static or smart group's members)
+  narrowed by whatever is in the live-search box.
 
 The heading is your library's name, and — when a group other than the whole
 library is selected — the group name too (for example *math-demo — To Read*).
@@ -394,21 +476,91 @@ The entries are formatted with your **default citation style** (set in
 > template — so a printout matches your chosen reference style, whereas
 > **File → Export → HTML…** always writes the same fixed, glance-able layout.
 
+### 7.6.5 RTF export
+
+**File → Export → RTF (formatted bibliography)…** writes the same CSL-formatted
+references that **Print** produces, but to an `.rtf` file instead of the printer —
+one reference per paragraph, formatted with your **default citation style**, ready
+to paste into a manuscript or hand to a co-author who doesn't use BibTeX. The
+italics and bold the style asks for are carried into the RTF; links become plain
+text, since RTF has no clickable-DOI equivalent here.
+
+Unlike Print, this is one of the whole-library exports: it writes **every** entry,
+not the current selection or view.
+
+### 7.6.6 Cloning a bibliography
+
+**File → Clone Bibliography…** makes a **complete, self-contained copy of the open
+library — including its attached files** — and opens it in a new window. It exists
+for the moment when you want to try something drastic (a big Find & Replace, a
+re-run of AutoFile, OCR over a pile of scans) without risking the library you
+actually depend on.
+
+1. Choose **File → Clone Bibliography…**. A **Save** dialog (titled **Clone
+   Bibliography**) opens, defaulting to `«your library» copy.bib` beside the
+   original.
+2. Pick a name and location. The clone is written there, and every file the
+   library links is **copied** into your **Papers folder**, named by your
+   **AutoFile** format exactly as a freshly added file would be — see
+   [AutoFile](04-attachments.md#autofile-organising-linked-files). With no Papers
+   folder set, the copies go into a *«clone name» Papers* folder next to the
+   clone instead, and the summary tells you so.
+3. The clone's attachment links are rewritten to point at those **copies**, and
+   the clone opens in its own window.
+
+A summary then reports what happened — *"Cloned 412 entries to 'thesis
+copy.bib'"* — along with how many attachments were copied and the folder they
+went into, and a warning list if anything could not be copied.
+
+What the clone guarantees, and why it is not just "Save As":
+
+- **The original is untouched.** Its file, its unsaved-changes state, its undo
+  history, and — crucially — **every file it links** are left exactly as they
+  were. Your open window keeps pointing at the original, not at the clone (that
+  is what **Save As** does instead).
+- **No existing file is overwritten by the copies.** An attachment copy always
+  gets a fresh, non-colliding name, even when a file of that name is already
+  sitting at the target — so a clone can never end up sharing a PDF with the
+  original. And cloning onto a `.bib` that is currently **open** (the source
+  itself, or another window) is refused outright. (The save dialog will still ask
+  before replacing some *other*, closed `.bib` you point it at, as usual.)
+- **Unsaved edits come along.** The clone is written from what is in memory, so
+  you needn't save the original first.
+- **Files it can't copy are reported.** If an attachment is missing from disk or
+  can't be read, the clone keeps that link pointing at the **original** file — a
+  live link beats a broken one — and the summary says so. Those particular files
+  *are* shared with the source library, so treat them as read-only in the clone.
+- **The encoding is preserved.** The clone is written in the source's
+  [text encoding](01-getting-started.md#13-opening-a-library); if a rewritten
+  path contains characters that encoding can't hold, the summary warns you rather
+  than silently mangling it.
+
+> **Tip:** A clone is also a reasonable way to hand a library to someone else:
+> every file it links is a *copy* (bar any the summary reported as uncopyable),
+> not a file borrowed from elsewhere on your disk. Its links are stored
+> **relative to the clone**, though, so it travels intact only if the clone and
+> the folder its copies went into keep the same relative positions. With no Papers
+> folder configured, those copies land in a folder right next to the clone — the
+> easiest arrangement to zip up and send.
+
 ## 7.7 Quick reference
 
 | Action | How |
 | --- | --- |
-| Paste BibTeX (explicit) | **Edit → Paste Publication** (**⇧⌘V** / **Shift+Ctrl+V**) |
+| Paste BibTeX (explicit) | **Edit → Paste Publication** (**⇧⌘V** / **Shift+Ctrl+V**) or **Publication → New Publications from Clipboard** (**⌥⌘L** / **Alt+Ctrl+L**) |
 | Paste BibTeX (quick) | Copy BibTeX, then **⌘V** / **Ctrl+V** with the table focused |
-| Drag-and-drop import | Drag `.bib`/`.ris`/EndNote/PDF/other files onto the window |
+| Drag-and-drop import | Drag `.bib`/`.ris`/EndNote/PDF/other files onto the publications table |
 | Import from a file | **File → Import → From File (BibTeX / RIS / EndNote)…** (**⇧⌘I** / **Shift+Ctrl+I**) |
 | Search online | **File → Import → Search Online…** (**⇧⌘O**) or **🌐 Online…** |
 | Export BibTeX | **File → Export → BibTeX…** |
 | Export RIS | **File → Export → RIS…** |
 | Export CSV | **File → Export → CSV…** |
 | Export HTML | **File → Export → HTML…** |
+| Export RTF | **File → Export → RTF (formatted bibliography)…** |
 | Export selected entries | **File → Export → Selected Entries (BibTeX)…** |
-| Print / Save as PDF | **File → Print…** (**⌘P** / **Ctrl+P**) — prints the selection or current group |
+| Export through your own template | **File → Export → «your template» → Whole Library… / Shown Entries… / Selected Entries…** |
+| Clone the library + its files | **File → Clone Bibliography…** |
+| Print / Save as PDF | **File → Print…** (**⌘P** / **Ctrl+P**) — prints the selection, or everything the table is showing |
 | Persist imports | **Save** (**⌘S** / **Ctrl+S**) — imports are in memory until saved |
 
 ## 7.8 Troubleshooting
@@ -421,8 +573,16 @@ source's "BibTeX" / "Export citation → BibTeX" option and paste again.
 **"A plain ⌘V didn't import — it pasted text instead."**
 The bare-paste import only fires when the table (not a text field) has focus and
 the clipboard looks like BibTeX. If your cursor was in a field, the search box, or
-a text area, **⌘V** pastes there as normal. Use **Edit → Paste Publication**,
-which imports regardless of focus.
+a text area, **⌘V** pastes there as normal. Use **Edit → Paste Publication** (or
+**Publication → New Publications from Clipboard**, **⌥⌘L**), which imports
+regardless of focus.
+
+**"I dropped files on the window and nothing happened."**
+Only the **publications table** — the middle column — is the import drop target.
+A file dropped on the detail pane is attached to the entry you are looking at
+instead, and one dropped on the groups sidebar does nothing. Watch for the
+**"Drop .bib or files to import"** overlay: if it isn't showing, the drop won't
+import.
 
 **"I dropped a PDF but the entry has no real title/author."**
 If the PDF prints a **DOI** or **arXiv id** in its first pages, the entry is built
@@ -443,18 +603,35 @@ imported; unrecognised tags are ignored. Add any missing fields by hand in the
 detail pane.
 
 **"My export looks reformatted / lost my Markdown."**
-The CSV, RIS, and HTML exports de-TeXify and flatten values for their target
+The CSV, RIS, HTML, and RTF exports de-TeXify and flatten values for their target
 format, so braces and TeX accents become plain text and Markdown in abstracts is
 not rendered. This is expected — those formats can't carry BibTeX/Markdown
 markup. Your `.bib` library itself is untouched by exporting.
 
+**"Clone Bibliography wouldn't write where I asked it to."**
+A clone is refused if the file you picked is a bibliography that is currently
+**open** — including the original itself. Close that window (or pick another
+name) and try again. The refusal is deliberate: the open library's in-memory
+state would overwrite the freshly written clone the next time it saved.
+
+**"The clone says some attachments couldn't be copied."**
+Those files were missing from disk or unreadable, so there is no copy to link.
+The clone keeps those particular links pointing at the **original** files, which
+means editing or re-filing them from the clone *will* affect your real library —
+the summary lists exactly which entries are affected. Fix the links (see
+[Find Broken Links](04-attachments.md#finding-and-repairing-broken-links)) and
+clone again if you want a genuinely independent copy.
+
 ## See also
 
 - [Online search](08-online-search.md) — the fourth way in: pull references from
-  CrossRef and arXiv.
+  CrossRef, OpenAlex, PubMed, arXiv, or a DOI/ISBN lookup.
 - [Editing entries](03-editing-entries.md) — clean up an imported entry, and the
   **Copy as BibTeX** / **Copy Citation** clipboard commands.
-- [Attachments](04-attachments.md) — how dropped PDFs are stored, and **AutoFile**.
+- [Attachments](04-attachments.md) — how dropped PDFs are stored, and **AutoFile**
+  (which decides where a clone's copied files land).
+- [Customizing panels](11-customizing-panels.md#1111-customizing-outputs) — writing
+  your own Handlebars **export templates**, which then appear in **File → Export**.
 - [Scripting with JavaScript](12-scripting.md) — import, export, and transform
   entries programmatically (`doc.import`, `doc.export`, `doc.save`) when the menu
   commands aren't enough.

@@ -38,6 +38,13 @@ and file attachments — lives *inside* the `.bib` file (or in BibDesk's own
 application-private store that could drift out of sync or be lost if you move
 the file.
 
+The one thing the app does keep outside your library is a *search cache* holding
+the text it has extracted from your PDFs, so that full-text search does not have
+to re-read every file. It contains no library data, and it is re-derived from the
+PDFs themselves whenever it is missing or out of date — deleting it costs you
+nothing but the time to rebuild it. See
+[Browsing & searching](02-browsing-and-searching.md).
+
 A direct, practical consequence: you can keep your `.bib` under version control
 (Git, etc.), sync it with Dropbox/iCloud, email it to a colleague, or feed it to
 `bibtex`/`biber`, and it remains a perfectly ordinary BibTeX file the whole
@@ -50,9 +57,9 @@ time.
 ### 1.1.2 Round-trip fidelity
 
 The application reproduces BibDesk's exact on-disk format. Its custom BibTeX
-parser and serializer are *byte-faithful*: they have been proven against a
-golden test corpus, including a real BibDesk-authored file, to read and re-write
-the following without mangling anything:
+parser and serializer are checked against a golden test corpus: a file already
+written in BibDesk's canonical form is read and re-written **byte for byte
+identically**, including:
 
 - `@string` macros and an `@preamble`,
 - BibDesk's `@bibdesk_info` document-info block,
@@ -60,15 +67,19 @@ the following without mangling anything:
   XML property lists), and
 - `Bdsk-File-N` file-attachment blobs (base64-encoded binary property lists).
 
-Field names are normalised, fields are sorted in BibDesk's canonical order, and
-values are emitted in BibDesk's exact wrapping style. The upshot is that a file
-you open and save here can be opened by BibDesk itself — and vice versa — with
-no surprises.
+A file that is *not* already in that form — one from another tool, or from a very
+old BibDesk — is rewritten into it on the first save: field names are normalised,
+fields are sorted in BibDesk's canonical order, values are emitted in BibDesk's
+exact wrapping style, and BibDesk's own header lines are refreshed. Your content
+survives; the formatting is canonicalised. The upshot is that a file you open and
+save here can be opened by BibDesk itself — and vice versa — with no surprises.
 
 > **Tip:** When you save, the application writes atomically (to a temporary file
 > that is then renamed into place) and keeps a backup of the previous version as
-> `yourfile.bib.bak`. See [Editing entries](03-editing-entries.md) for the full
-> save story.
+> `yourfile.bib.bak`. It also refuses to silently overwrite a file that has been
+> changed on disk behind its back — see *When the file has changed on disk* at the
+> end of this chapter. For the full save story see
+> [Editing entries](03-editing-entries.md).
 
 ### 1.1.3 Interoperability with BibDesk and the TeX ecosystem
 
@@ -99,9 +110,10 @@ the desktop shell runs on:
 - **Windows**
 - **Linux**
 
-Throughout this manual, keyboard shortcuts are written for both conventions —
-for example **Cmd+S** on macOS and **Ctrl+S** on Windows/Linux. Wherever you see
-"Cmd/Ctrl", use whichever modifier your platform uses.
+Throughout this manual, keyboard shortcuts are written for both conventions,
+macOS first — for example **⌘S** / **Ctrl+S**. **⌘** is the macOS Command key
+(**Ctrl** on Windows and Linux), **⇧** is Shift, and **⌥** is Option/Alt, so
+**⌥⌘S** / **Alt+Ctrl+S** means Option+Command+S or Alt+Ctrl+S.
 
 ## 1.3 Opening a library
 
@@ -109,21 +121,33 @@ A *library* is simply a `.bib` file. There are several ways to open one.
 
 ### 1.3.0 The welcome screen
 
-When you launch the app with no library open, you see a **welcome screen**: the
-BibDesk name and two buttons — **Open a Bibliography…** (choose an existing
-`.bib`) and **New Bibliography** (create an empty one — you pick where to save
-it, then it opens ready for entries). You can also **drag a `.bib` file onto the
-window** to open it. Once a library is open, the welcome screen is replaced by
-the normal three-pane view.
+When you launch the app with no library open, you see a **welcome screen**: a
+📚 logo, the **Bibliofile** name, the line *A bibliography manager for BibTeX
+libraries.*, and two buttons — **Open a Bibliography…** (choose an existing
+`.bib`) and **New Bibliography** (create an empty one — you pick where to save it,
+an empty file is written there, and it opens ready for entries). Below them is the
+reminder that you can also **drag a `.bib` file onto the window** to open it.
+Once a library is open, the welcome screen is replaced by the normal view.
 
 ### 1.3.1 From the File menu (the usual way)
 
-1. Choose **File → Open** from the application menu (or **⌘O** / **Ctrl+O**).
+1. Choose **File → Open…** from the menu bar (or press **⌘O** / **Ctrl+O**).
 2. In the file dialog, navigate to your `.bib` file and select it.
 3. The window populates with your references.
 
-That is all there is to it. The application reads the file as UTF-8 text, parses
-it, and shows you the result.
+That is all there is to it. The application reads the file, parses it, and shows
+you the result.
+
+**Each library gets its own window.** If the window you are in is still showing
+the welcome screen, the library opens into it; otherwise a new window appears, so
+you can have several libraries open side by side. Opening a file that is *already*
+open just brings its window to the front rather than loading it twice. Use the
+**Window** menu to move between them.
+
+> **Tip:** To experiment on a library without risking it, use
+> **File → Clone Bibliography…**: a complete copy — the `.bib` plus copies of
+> every file it links — opened in its own window, with the original untouched.
+> See [Importing & exporting → Cloning a bibliography](07-importing-and-exporting.md#766-cloning-a-bibliography).
 
 ### 1.3.2 Automatically on launch
 
@@ -161,13 +185,15 @@ BIBDESK_OPEN=/Users/me/research/library.bib pnpm --filter @bibdesk/app dev
 
 ## 1.4 The window at a glance
 
-Above everything sits the **application menu bar** (the **BibDesk** /
-**File** / **Edit** / **Publication** / **View** / **Window** / **Help** menus —
-on macOS this lives in the system menu bar at the top of the screen; on Windows
-and Linux it is attached to the window). The menus hold every command in the app,
-each with its keyboard shortcut where it has one. The most-used commands are
-*also* reachable from the toolbar, but the menu bar is the complete inventory. The
-full menu-and-shortcut reference is in
+Above everything sits the **application menu bar**: **File** / **Edit** /
+**Publication** / **Tools** / **View** / **Window** / **Help**. On macOS it lives
+in the system menu bar at the top of the screen and is preceded by the
+**Bibliofile** application menu (About, **Preferences… ⌘,**, Quit); on Windows and
+Linux there is no application menu — the menu bar is attached to the window, and
+**Preferences…** and **Quit** sit at the bottom of the **File** menu instead. The
+menus hold every command in the app, each with its keyboard shortcut where it has
+one. The most-used commands are *also* reachable from the toolbar, but the menu
+bar is the complete inventory. The full menu-and-shortcut reference is in
 [Shortcuts & reference](09-shortcuts-and-reference.md).
 
 Once a library is open, the window itself is organised into a header, a toolbar,
@@ -179,9 +205,9 @@ The overall layout looks like this:
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
-│ HEADER:  library.bib   123 publications        [Filter publications…]  ☾/☀ │
+│ HEADER:  library.bib •  123 publications   📄 [Filter publications…]   ☾/☀ │
 ├───────────────────────────────────────────────────────────────────────────┤
-│ TOOLBAR: ＋ New  ⧉ Duplicate  🗑 Delete  ····  🌐 Online…  @string…  Save • │
+│ TOOLBAR: ＋ New  ⧉ Duplicate  🗑 Delete  ········  🌐 Online…    @string…   │
 ├───────────────┬───────────────────────────────────┬───────────────────────┤
 │ GROUPS        │ PUBLICATIONS TABLE                │ DETAIL / PREVIEW PANE  │
 │ (sidebar)     │                                   │                        │
@@ -208,11 +234,20 @@ right:
 
 | Element | What it shows / does |
 | --- | --- |
-| **Document name** | The base name of the open `.bib` file (e.g. `library.bib`). When no library is open it reads `BibDesk`. |
+| **Document name** | The base name of the open `.bib` file (e.g. `library.bib`). With no library open you get the welcome screen instead of this header. |
+| **Unsaved-changes marker** | A **•** immediately after the file name when you have edits that are not on disk yet; it reads *(saving…)* while a save is running. See below. |
 | **Publication count** | The total number of entries in the file, e.g. "123 publications" (or "1 publication" in the singular). |
 | **Parse-warnings badge** | Appears only when the file produced warnings while loading, e.g. "⚠ 3 parse warnings". Absent on a clean load. |
-| **Search box** | A live filter labelled *Filter publications…* (top-right). See [Browsing & searching](02-browsing-and-searching.md). It is hidden until a library is open. |
+| **Search box** | A live filter labelled *Filter publications…*, with a small **PDF** button beside it that widens the search to the text inside your attached PDFs. See [Browsing & searching](02-browsing-and-searching.md). |
 | **Theme toggle** | The **☾** (moon) / **☀** (sun) button. See *Light and dark themes* below. |
+
+The dot beside the file name is your unsaved-changes indicator:
+
+| State | Header shows | Meaning |
+| --- | --- | --- |
+| Clean | `library.bib` | Everything on disk matches what is in the window. |
+| Dirty | `library.bib •` | You have unsaved edits. Hovering the dot says *Unsaved changes — press ⌘S to save*. |
+| Saving | `library.bib (saving…)` | A save is in progress. |
 
 ### 1.4.2 The toolbar
 
@@ -221,59 +256,64 @@ when a library is open. From left to right:
 
 | Button | Action | Notes |
 | --- | --- | --- |
-| **＋ New** | Add a new entry to the library. | Creates an `article` entry with a unique placeholder cite key, selects it, and marks the document dirty. |
+| **＋ New** | Add a new entry to the library. | Creates an entry of your **default entry type** (`article` unless you change it in Preferences) with the placeholder cite key `untitled`, made unique, and marks the document dirty. |
 | **⧉ Duplicate** | Copy the selected entry. | Disabled until you select a row. The copy gets a `…-copy` cite key (made unique). |
 | **🗑 Delete** | Remove the selected entry. | Disabled until you select a row. |
 | *(spacer)* | — | Pushes the remaining buttons to the right. |
 | **🌐 Online…** | Search online databases and import results. | Opens the online-search dialog. See [Online search](08-online-search.md). |
 | **@string…** | Edit the library's `@string` macros. | Opens the macro editor. See [Editing entries](03-editing-entries.md). |
-| **Save** | Write changes to disk. | See below. Also bound to **Cmd/Ctrl+S**. |
 
-The **Save** button doubles as your unsaved-changes indicator:
-
-| State | Label | Meaning |
-| --- | --- | --- |
-| Clean | **Saved** | Everything on disk matches what is in the window; the button is disabled. |
-| Dirty | **Save •** | You have unsaved edits (the bullet flags them); click to write them out. |
-| Saving | **Saving…** | A save is in progress. |
+There is no Save button: save with **⌘S** / **Ctrl+S** or **File → Save**, and
+watch the header for the unsaved-changes dot.
 
 > **Note:** "New" and "Duplicate" change the entry *in memory*; the file on disk
-> is unchanged until you actually **Save**. The same is true of every edit.
+> is unchanged until you actually save. The same is true of every edit.
 
 ### 1.4.3 The three panes
 
 The body of the window is a three-column layout.
 
 - **Groups sidebar (left).** Your **📚 Library** (everything), plus any saved
-  Static/Smart/URL/Script groups read from the file, plus the dynamic **Authors**
-  and **Keywords** category sections computed automatically from your entries.
-  Click a group to scope the table to it. Covered in depth in
-  [Browsing & searching](02-browsing-and-searching.md).
-- **Publications table (center).** One row per reference, with sortable columns
-  for **Cite Key**, **Type**, **Authors**, **Title**, and **Year**. Click a
-  column header to sort; click a row to inspect it. The table is *virtualized*,
-  so it stays fast with thousands of entries. Covered in depth in
-  [Browsing & searching](02-browsing-and-searching.md).
-- **Detail / preview pane (right).** A typeset card for the selected entry plus
-  an editable field list. It shows the title, authors, venue line, keyword tags,
+  Static/Smart/URL/Script groups read from the file, the **folders** you have
+  filed them into, and the dynamic **Authors** and **Keywords** category sections
+  computed automatically from your entries. Click a group to scope the table to
+  it. Covered in depth in [Browsing & searching](02-browsing-and-searching.md).
+- **Publications table (center).** One row per reference. Out of the box the
+  columns are **Cite Key**, **Type**, **Authors**, **Title**, **Year**, plus the
+  keyword, attachment, and read icon columns — but the column set is yours to
+  configure. Click a column header to sort; click a row to inspect it. The table
+  is *virtualized*, so it stays fast with thousands of entries. Covered in depth
+  in [Browsing & searching](02-browsing-and-searching.md).
+- **Detail / preview pane (right).** A typeset, **read-only** card for the
+  selected entry. It shows the title, authors, venue line, keyword tags,
   DOI/URL/attachment chips, a rendered abstract, rendered math, notes, and a
-  formatted citation — and it is also where you edit fields, the cite key, and
+  formatted citation; its **Edit…** button (or a double-click on the row) opens
+  the entry's editor window, which is where you change fields, the cite key, and
   the entry type. See [Editing entries](03-editing-entries.md),
   [Attachments](04-attachments.md), [Notes & abstracts](05-notes-and-abstracts.md),
   and [Preview & citations](06-preview-and-citations.md).
 
+The three columns are the default arrangement, not a fixed one. You can drag
+either divider to resize the groups sidebar or the right-hand pane, hide the
+latter altogether (**View → Toggle Side
+Panel**, **⌥⌘S** / **Alt+Ctrl+S**), swap it for the Claude assistant, and open a
+fourth area — a **bottom panel** — under the table (**View → Toggle Bottom
+Panel**, **⇧⌘B** / **Ctrl+Shift+B**). All of that is in
+[Configurable panels](10-panels.md).
+
 ### 1.4.4 The status bar (footer)
 
 The footer along the bottom always tells you **what you are looking at**: the
-name of the current group (if one other than the whole Library is selected) and
-the row count. The count adapts to your live search — for example:
+name of the group you have selected in the sidebar, followed by the row count.
+The count adapts to your live search — for example:
 
 - `Library: 123 rows` — the whole library, no search.
 - `To read: 8 rows` — a group is selected, no search.
-- `42 of 123 rows` — a live-search filter is narrowing the visible rows.
+- `Library: 42 of 123 rows` — a live-search filter is narrowing the visible rows.
 
-It also briefly shows `Loading…` while publications are loading and, if
-something goes wrong, an `Error: …` message.
+It also shows `Loading…` while publications are loading, progress and a summary
+while a drag-and-drop import is running, and, if something goes wrong, an
+`Error: …` message.
 
 ## 1.5 Light and dark themes
 
@@ -283,12 +323,16 @@ preference:
 - The **☾ / ☀** button in the header toggles between light and dark. In **light**
   mode the button shows the **☾** moon (click it to go dark); in **dark** mode it
   shows the **☀** sun (click it to go light).
-- **View → Toggle Light / Dark Theme** (**⌘⇧L** / **Ctrl+Shift+L**) does the same
+- **View → Toggle Light / Dark Theme** (**⇧⌘L** / **Ctrl+Shift+L**) does the same
   thing from the menu bar.
-- **Preferences → Appearance → Theme** offers three explicit choices:
-  **System**, **Light**, and **Dark**. The **System** setting (the default)
-  follows your operating system's light/dark mode automatically, switching with
-  it; **Light** and **Dark** pin the appearance regardless of the OS.
+- **Preferences → General → Appearance → Theme** offers three explicit choices:
+  **System**, **Light**, and **Dark**. **System** (the default) takes its cue from
+  your operating system's light/dark setting; **Light** and **Dark** pin the
+  appearance regardless of the OS.
+
+Note that the toggle button and the menu command always set an explicit **Light**
+or **Dark** — using either of them takes you *out* of **System**. To go back,
+choose **System** again in Preferences.
 
 ![Light theme](../viewer-stage6-light.png)
 
@@ -299,8 +343,11 @@ preference:
 Your choice is **persisted with the application's other preferences** (in a
 `settings.json` file in the per-user application-data folder), so:
 
-- The application reopens in the theme you last used (and **System** keeps
-  tracking the OS afterwards).
+- The application reopens in the theme you last used, and on **System** it
+  re-reads your OS setting each time it starts. It does not, however, follow a
+  live switch: if you change your operating system to dark mode while Bibliofile
+  is already running, the window keeps the appearance it started with until you
+  restart it or change any preference.
 - The theme is a **per-installation, application-wide** preference — it is *not*
   written into your `.bib` file, so switching themes never marks your document
   dirty and never changes a single byte of your library.
@@ -317,7 +364,7 @@ card, table, and sidebar all re-colour together.
 Here is an end-to-end walkthrough to get you comfortable. It assumes you have a
 `.bib` file to hand; if not, you can use the bundled `docs/math-demo.bib`.
 
-1. **Open your library.** Choose **File → Open** and select your `.bib` file (or
+1. **Open your library.** Choose **File → Open…** and select your `.bib` file (or
    launch with `BIBDESK_OPEN=/abs/path/library.bib`). The header now shows the
    file name and a publication count.
 2. **Get the lay of the land.** Look at the left sidebar. Click **📚 Library** to
@@ -327,8 +374,8 @@ Here is an end-to-end walkthrough to get you comfortable. It assumes you have a
    small **▲ / ▼** arrow that marks the active sort column.
 4. **Find something with live search.** Click the **Filter publications…** box in
    the header and type an author's surname or a word from a title — say
-   `quantum`. The table narrows instantly and the footer updates to `M of N
-   rows`. Clear the box to show everything again.
+   `quantum`. The table narrows instantly and the footer updates to
+   `Library: M of N rows`. Clear the box to show everything again.
 5. **Inspect an entry.** Click a row. The right-hand pane fills with a typeset
    card: title, authors, the venue line, keyword tags, any DOI/URL/attachment
    chips, the abstract, and a formatted citation. If the entry has math in its
@@ -339,28 +386,71 @@ Here is an end-to-end walkthrough to get you comfortable. It assumes you have a
    name and count. You can *combine* this with the search box to filter within
    the group.
 7. **Make a small edit.** With an entry selected, edit a field in the detail
-   pane (for example, fix a typo in the title). The **Save** button changes to
-   **Save •** to show you have unsaved changes.
-8. **Save.** Press **Cmd/Ctrl+S** (or click **Save •**). The application writes
-   your `.bib` atomically and keeps a `.bib.bak` backup of the previous version;
-   the button returns to **Saved**.
+   pane (for example, fix a typo in the title). A **•** appears next to the file
+   name in the header to show you have unsaved changes.
+8. **Save.** Press **⌘S** / **Ctrl+S** (or choose **File → Save**). The
+   application writes your `.bib` atomically and keeps a `.bib.bak` backup of the
+   previous version; the dot disappears.
 
 That is the full loop: *open → scope → find → read → edit → save*. Every other
 chapter of this manual goes deeper into one part of it.
+
+### 1.6.1 When the file has changed on disk
+
+Because your `.bib` is an ordinary text file, other things can write to it while
+it is open here: another editor, a Git checkout, a Dropbox or rsync sync, a
+`sed` script. The application will not quietly throw that away.
+
+When it reads or writes your library it remembers the file's modification time
+and size. If, at the moment you save, the file on disk no longer matches what it
+last saw, it stops and asks — **This file has changed on disk** — offering three
+choices:
+
+| Choice | What happens |
+| --- | --- |
+| **Overwrite** | Your in-memory version is written out, replacing the external changes. |
+| **Reload from Disk** | Your unsaved edits are discarded and the on-disk version is re-read into the window. |
+| **Cancel** | Nothing is written and nothing is discarded, so you can go and look at the file first. This is the default — pressing Enter or Escape takes it. |
+
+Two details worth knowing:
+
+- **The check happens at save time, not continuously.** The application does not
+  watch the file, so an external change made while you are working goes unnoticed
+  until you save (or until you reload the file yourself with
+  **File → Revert to Saved**).
+- **When you are closing the window**, the same guard runs on the "Save changes
+  before closing?" prompt, but with only **Overwrite** and **Cancel** — reloading
+  makes no sense for a window that is going away. Cancel is again the default, and
+  it keeps the window open (and cancels a quit that the close was part of).
+
+**Save As…** to a *different* path is not guarded this way; the file dialog
+already asks before replacing an existing file. And a save issued from a script —
+which has no one to prompt — fails with an error naming the file rather than
+overwriting it, so an automated run reports the conflict instead of hiding it.
+See [Scripting with JavaScript](12-scripting.md).
+
+> **Note:** The comparison is a modification-time-and-size check rather than a
+> hash of the contents, so it is fast and never cries wolf — but it can, in rare
+> cases, miss a change (an external edit of exactly the same byte length landing
+> within the same clock tick). It is a safety net against the common accidents,
+> not a guarantee.
 
 ## 1.7 Map of this manual
 
 | Chapter | What it covers |
 | --- | --- |
 | **[1. Getting started](01-getting-started.md)** | This chapter: what the app is, opening a library, the window anatomy, themes, and a first-session walkthrough. |
-| **[2. Browsing & searching](02-browsing-and-searching.md)** | The publications table (configurable columns, the icon columns, sorting, virtualization, selection), the live search filter, **Find Duplicates**, and the groups sidebar (Library, Static/Smart groups, and the dynamic Author/Keyword categories). |
-| **[3. Editing entries](03-editing-entries.md)** | Editing fields (with autocomplete), cite keys, and entry types in the detail pane; adding, duplicating, and deleting entries; generating cite keys; **Find & Replace**; the **Copy** commands and cite drag-out; the `@string` macro editor; crossref inheritance; and saving with backups. |
-| **[4. Attachments](04-attachments.md)** | Attaching, opening (in your OS default apps), and removing files (`Bdsk-File-N` blobs); the **Links** section for `Url`/`Doi`; how attachment paths are stored relative to the document; and **AutoFile** into a Papers folder. |
+| **[2. Browsing & searching](02-browsing-and-searching.md)** | The publications table (configurable columns, the icon columns, sorting, virtualization, selection), the live search filter and full-text PDF search, **Find Duplicates**, and the groups sidebar (Library, Static/Smart groups, folders, and the dynamic Author/Keyword categories). |
+| **[3. Editing entries](03-editing-entries.md)** | Editing fields (with autocomplete), cite keys, and entry types in the entry's editor window; adding, duplicating, and deleting entries; generating cite keys; **Find & Replace**; the **Copy** commands and cite drag-out; the `@string` macro editor; crossref inheritance; undo/redo; and saving with backups. |
+| **[4. Attachments](04-attachments.md)** | Attaching, opening (in your OS default apps), and removing files (`Bdsk-File-N` blobs); the **Links** section for `Url`/`Doi`; how attachment paths are stored relative to the document; **AutoFile** into a Papers folder; and **Publication → OCR Scanned PDFs…**, which adds a searchable text layer to scanned PDFs. |
 | **[5. Notes & abstracts](05-notes-and-abstracts.md)** | Writing abstracts and per-entry notes in Markdown, and the `[[citeKey]]` cross-reference links between entries. |
 | **[6. Preview & citations](06-preview-and-citations.md)** | The typeset preview card, entry-type colour coding, keyword tags, MathJax math, clickable links, formatted CSL citations (APA/Vancouver/Harvard), and the clipboard copy commands. |
-| **[7. Importing & exporting](07-importing-and-exporting.md)** | Pasting BibTeX, drag-and-drop, importing BibTeX/RIS files, and exporting to BibTeX/RIS/CSV/HTML. |
+| **[7. Importing & exporting](07-importing-and-exporting.md)** | Pasting BibTeX, drag-and-drop, importing BibTeX/RIS files, **File → Clone Bibliography…**, and exporting to BibTeX/RIS/CSV/HTML. |
 | **[8. Online search](08-online-search.md)** | Searching online databases inside the app and importing results as new entries. |
 | **[9. Shortcuts & reference](09-shortcuts-and-reference.md)** | The full menu bar, keyboard shortcuts, how your data is stored, and current limitations and troubleshooting. |
+| **[10. Configurable panels](10-panels.md)** | Resizing, hiding, and switching the side and bottom panels; the Details / Claude side-panel contents; the Annotation, Tabbed, and LaTeX Preview bottom-panel modes; the multi-select view and the row context menu. |
+| **[11. Customizing panels & outputs](11-customizing-panels.md)** | Designing your own panel and output templates with Handlebars: the context fields, helpers, live widgets, interactive hooks, and worked examples. |
+| **[12. Scripting with JavaScript](12-scripting.md)** | Automating your library from the **Script Console**: the `bibliofile` API, saved scripts, file and network access, and worked examples. |
 
 ## See also
 

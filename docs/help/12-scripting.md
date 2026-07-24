@@ -8,37 +8,45 @@ run scripts, the execution model, every object and method in the API, and worked
 examples.
 
 > **Warning:** Scripts run with the **same access as the app itself** — they can
-> read and change everything in this library and, with your permission, read and
-> write files and make network requests. Only run scripts **you wrote or trust**,
-> exactly as you would with AppleScript or a shell command.
+> read and change everything in this library, and read and write any file you can,
+> with no prompt. Only the **first network request** in a run asks your permission.
+> Only run scripts **you wrote or trust**, exactly as you would with AppleScript or
+> a shell command.
 
 ## Running scripts
 
 There are two ways to run JavaScript:
 
-**The Script Console** — **Tools ▸ Script Console…** (**⌘⌥J** / **Ctrl+Alt+J**).
+**The Script Console** — **Tools ▸ Script Console…** (**⌥⌘J** / **Ctrl+Alt+J**).
 A JavaScript editor with a **Run** button (**⌘↵** / **Ctrl+↵**) and an output
 pane. This is the place to experiment: type code, run it against the open
 library, and see the output immediately. Because you typed it yourself, the
-Console never asks for confirmation.
+Console never asks you to confirm the code — though a network request still
+prompts once per run (see *Network*, below).
 
-**Saved scripts** — files in your **Scripts folder** appear under **Tools ▸
-Scripts**. Use **Tools ▸ Scripts ▸ New Script…** to create one (it opens in your
+**Saved scripts** — the `.js` files in your **Scripts folder** appear under
+**Tools ▸ Scripts** (the top level of the folder only — subfolders aren't
+scanned). Use **Tools ▸ Scripts ▸ New Script…** to create one (it opens in your
 text editor) and **Open Scripts Folder** to reveal the folder. Selecting a saved
 script runs it against the current library and shows a result/error summary. The
 first time you run a given saved script — and again whenever you've edited it —
 Bibliofile asks you to confirm, since folder scripts may not have been written by
 you.
 
-> **Tip:** Start in the Console to get a script working, then **Save** it into the
-> Scripts folder (via *New Script…*) when you want it on the menu for repeated use.
+> **Tip:** Start in the Console to get a script working, then put it on the menu
+> for repeated use: **Tools ▸ Scripts ▸ New Script…** creates an `untitled.js`
+> starter and opens it in your text editor — paste your code in and save it there.
+> The Console itself has no Save button.
 
 ## The execution model
 
 A few rules shape how scripts behave:
 
-- **Synchronous.** The whole API is synchronous — no `await`, no Promises, no
-  timers. You write straight-line code:
+- **Synchronous.** Every call returns its value directly: no API call hands you a
+  Promise, `await` isn't allowed at the top level of a script, and there are no
+  timers (`setTimeout` and friends don't exist). `Promise` itself is present, but
+  nothing waits for one — a promise callback runs only once the run has already
+  finished, outside its undo step. So you write straight-line code:
 
   ```javascript
   const doc = bibliofile.activeDocument;
@@ -55,7 +63,8 @@ A few rules shape how scripts behave:
   ```
 
 - **One run = one Undo.** However many entries a script changes, a single **⌘Z**
-  (Edit ▸ Undo) reverts the entire run. A read-only run adds no undo step.
+  reverts the entire run — the Edit menu shows it as **Undo Run Script**. A
+  read-only run adds no undo step.
 
 - **Time-limited.** A run has a wall-clock limit (about 10 seconds), so an
   accidental infinite loop can't hang the app — it's stopped and reported as an
@@ -83,7 +92,7 @@ Everything starts from the global **`bibliofile`**.
 | `bibliofile.citationStyles()` | `string[]` | Available CSL styles — see [Citations](#citations-csl--citationjs). |
 | `bibliofile.io` | `object` | File access — see [Files](#files). |
 | `bibliofile.fetch(url, opts?)` | `object` | A synchronous HTTP request — see [Network](#network). |
-| `bibliofile.onChange(fn)` | `() => void` | React to later edits — see [onChange](#reacting-to-changes-onchange). |
+| `bibliofile.onChange(fn)` | `() => void` | React to later edits — see [onChange](#reacting-to-changes--onchange). |
 
 ```javascript
 console.log(bibliofile.name + ' ' + bibliofile.version);
@@ -135,7 +144,16 @@ return recent.map((e) => `${e.citeKey} (${e.field('Year')})`);
 | `doc.import(bibtexText)` | `Entry[]` | Parse + merge BibTeX text; returns the added entries. |
 | `doc.export(format, citeKeys?)` | `string` | Serialize to a string. `format` is `'bibtex'`, `'bibtex-minimal'`, `'ris'`, `'csv'`, `'html'`, or `'rtf'`. Pass `citeKeys` to export a subset. |
 | `doc.toBibTeX()` | `string` | The whole library as BibTeX. |
-| `doc.save(path?)` | `void` | Save to disk (optionally to a new path). |
+| `doc.save(path?)` | `void` | Save to disk (optionally to a new path). Throws if the file changed on disk — see the note below. |
+
+> **Note:** `doc.save()` is not quite ⌘S. Saving over the document's **own** file
+> **throws an error** if that `.bib` has changed on disk since you opened it —
+> where the UI offers *Overwrite / Reload from Disk / Cancel*, a script gets the
+> error instead, so it can't silently clobber an edit made outside the app (see
+> [Getting Started](01-getting-started.md)). Saving to a new `path` isn't guarded
+> that way. A script save also skips the "these characters can't be written in
+> this encoding" prompt: it writes in the document's current encoding, and
+> anything that encoding can't hold is lost.
 
 ```javascript
 const e = bibliofile.activeDocument.addEntry({
@@ -210,7 +228,10 @@ A single bibliography entry, from `doc.get(...)`, `doc.entries()`, etc.
 
 An **`Author`** is `{displayName, first, von, last, jr}` (all strings). An
 **`Attachment`** is `{field, kind, name, url}`, where `kind` is `'file'` (a local
-file) or `'url'` (a link).
+file) or `'url'` (a link). For a file, `url` is the absolute path (resolved
+against the `.bib`'s folder) and `name` its basename. `field` is only present for
+the app-managed `Bdsk-File-N` attachments — the ones synthesised from `Url`,
+`Local-Url` or `Doi` don't carry it.
 
 ```javascript
 const e = bibliofile.activeDocument.get('godel1931');
@@ -234,9 +255,19 @@ chain.
 | `e.setType(type)` | `Entry` | Change the entry type. |
 | `e.setCiteKey(key)` | `Entry` | Change the cite key. |
 | `e.generateCiteKey()` | `string` | Regenerate the cite key from your configured format; returns the new key. |
-| `e.attach(absPath)` | `Entry` | Attach a file by absolute path (AutoFiled if a Papers folder is set). |
-| `e.autoFile()` | `Entry` | AutoFile this entry's attachments into the Papers folder. |
+| `e.attach(absPath)` | `Entry` | Attach a file by absolute path. It is AutoFiled straight away only if you've set a Papers folder **and** ticked *AutoFile attachments when added* (Preferences ▸ Files). |
+| `e.autoFile()` | `Entry` | AutoFile this entry's attachments into the Papers folder. Throws if no Papers folder is configured. |
 | `e.delete()` | `void` | Delete the entry. |
+
+> **Note:** **Notes** (`Annote`) and **Abstract** are the two fields that don't
+> behave like the rest: they go through the storage codecs described in
+> [Notes & Abstracts](05-notes-and-abstracts.md). With the default *compressed*
+> **Annotation storage**, `e.setField('Annote', text)` really writes a compressed
+> blob to a private `Bdsk-Annotation` field and clears `Annote`, so
+> `e.field('Annote')` then reads back `''`; with *readable* storage the text stays
+> in `Annote` with `%`, `{` and `}` percent-escaped. `Abstract` is plain text
+> unless you switch **Abstract storage**. The script API has no decoder for those
+> blobs, so notes are write-mostly unless you're on the readable/plain settings.
 
 ```javascript
 bibliofile.activeDocument
@@ -247,8 +278,8 @@ bibliofile.activeDocument
 
 ### Files
 
-`bibliofile.io` provides synchronous file access (the same access level as the
-rest of the run):
+`bibliofile.io` provides synchronous file access — anywhere you can read or write,
+with no confirmation prompt (unlike the network, below):
 
 | Method | Returns | Description |
 | --- | --- | --- |
@@ -268,7 +299,13 @@ return 'wrote ' + doc.count() + ' entries';
 `bibliofile.fetch(url, opts?)` performs a **synchronous** HTTP request and
 returns `{status, headers, text}`. `opts` may include `method`, `headers`, and
 `body`. The **first** network call in a run prompts you to allow access (a script
-can read your whole library, so a request could send it elsewhere).
+can read your whole library, so a request could send it elsewhere); answering
+*Cancel* makes that call — and every later one in the same run — throw.
+
+A request that takes longer than **8 seconds**, or fails outright, **throws**
+rather than returning a result — so wrap `fetch` in `try`/`catch` if one failure
+shouldn't abort the whole run. A response bigger than about 8 MB fails the same
+way.
 
 ```javascript
 // look up a DOI's title from CrossRef and store it
@@ -343,9 +380,10 @@ bibliofile.io.writeText('/Users/me/reading-list.md', lines.join('\n'));
 return lines.length + ' references written';
 ```
 
-> **Tip:** `bibliofile.citationStyles()` lists every style you can pass as
-> `{style: …}` — the bundled ones (`apa`, `vancouver`, `harvard1`, …) plus any
-> `.csl` files you've installed in Preferences ▸ Citations.
+> **Tip:** `bibliofile.citationStyles()` lists every style id you can pass as
+> `{style: …}` — the three bundled ones (`apa`, `vancouver`, `harvard1`) plus any
+> `.csl` files you've installed with *Install CSL file…* in Preferences ▸
+> Citations (installed styles get an id of the form `user-…`).
 
 ### Reacting to changes — `onChange`
 
@@ -361,9 +399,13 @@ bibliofile.onChange(() => {
 });
 ```
 
-A handler stays active until you **run another script** (which replaces it) or
-**close the document**. Keep handlers quick — they run on the main thread with no
-time limit, so an infinite loop in a handler *will* hang the app.
+A handler stays active until you **run another script** (which replaces it — the
+latest run's handlers win) or **close the document**. It fires on edits made
+*after* the run, not on the run's own edits. Each handler runs in its own undo
+step (labelled *Script hook*); a handler's own edits don't re-trigger handlers,
+and one that throws doesn't stop the others or the app. Keep handlers quick —
+they run on the main thread with no time limit, so an infinite loop in a handler
+*will* hang the app.
 
 ## Recipes
 
@@ -383,7 +425,7 @@ for (const e of bibliofile.activeDocument.entries()) {
 }
 ```
 
-**Report entries that have no PDF attached:**
+**Report entries with no file attachment** (a link in `Url` doesn't count):
 
 ```javascript
 return bibliofile.activeDocument
@@ -414,13 +456,17 @@ bibliofile.activeDocument.transaction('Fix venues', (doc) => {
 
 ## Editor autocomplete
 
-A TypeScript definitions file, **`bibliofile.d.ts`**, ships in the app's
-resources. Copy it next to your scripts and point your editor's `tsconfig.json`
-(or `jsconfig.json`) at it to get autocomplete and inline docs for the whole API.
+A TypeScript definitions file, **`bibliofile.d.ts`**, describes the whole API.
+Copy it next to your scripts and point your editor's `tsconfig.json` (or
+`jsconfig.json`) at it to get autocomplete and inline docs.
+
+It is **not** bundled with the installed app yet: it lives in the project's
+source tree at `app/resources/bibliofile.d.ts`, so you need a copy of the source
+to get it.
 
 ## Gotchas
 
-- **No `await` / Promises / timers.** Everything is synchronous; `bibliofile.fetch`
+- **Nothing to `await`, no timers.** Everything is synchronous; `bibliofile.fetch`
   and `bibliofile.io` block until done.
 - **Use `return` or `console.log`** for output — a bare final expression isn't
   shown automatically.
@@ -428,6 +474,8 @@ resources. Copy it next to your scripts and point your editor's `tsconfig.json`
   `bibliofile.fetch`.
 - **`field()` returns `''`** for an absent field (not `undefined`), so
   `Number(e.field('Year'))` is `NaN` when there's no year.
+- **`doc.save()` throws** rather than prompting when the `.bib` has changed on
+  disk since it was opened.
 - **Saved scripts prompt once** (and again after an edit); the Console doesn't.
 - **`onChange` handlers** survive until the next run or document close, and have
   no time limit — keep them fast.
