@@ -2370,7 +2370,10 @@ function buildMenu(): void {
       },
       {
         label: t('menu.view.toggleBottom'),
-        accelerator: 'CmdOrCtrl+Alt+B',
+        // NOT Alt+B: Edit ▸ Copy as BibTeX already owns Alt+CmdOrCtrl+B, and a
+        // duplicate accelerator is dispatched to whichever item the menu bar
+        // matches first (Edit precedes View), which silently killed this one.
+        accelerator: 'Shift+CmdOrCtrl+B',
         click: () => sendMenuCommand('toggleBottomPanel'),
       },
       {
