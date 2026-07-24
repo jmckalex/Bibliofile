@@ -288,6 +288,7 @@ export const pl: Catalog = {
   "panel.selectAnnotation": "Zaznacz publikację, aby odczytać jej adnotację.",
   "splitter.bottom": "Zmień rozmiar panelu dolnego",
   "splitter.side": "Zmień rozmiar panelu bocznego",
+  "splitter.groups": "Zmień rozmiar paska bocznego grup",
   "view.fields": "Pola",
   "view.inherited": "(odziedziczone)",
   "view.editTitle": "Edytuj tę publikację w osobnym oknie",

@@ -388,6 +388,7 @@ export const en: Catalog = {
   'panel.selectAnnotation': 'Select a publication to read its annotation.',
   'splitter.bottom': 'Resize bottom panel',
   'splitter.side': 'Resize side panel',
+  'splitter.groups': 'Resize groups sidebar',
   'view.fields': 'Fields',
   'view.inherited': '(inherited)',
   'view.editTitle': 'Edit this publication in a separate window',

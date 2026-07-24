@@ -288,6 +288,7 @@ export const da: Catalog = {
   "panel.selectAnnotation": "Vælg en publikation for at læse dens annotation.",
   "splitter.bottom": "Tilpas bundpanel",
   "splitter.side": "Tilpas sidepanel",
+  "splitter.groups": "Tilpas gruppepanel",
   "view.fields": "Felter",
   "view.inherited": "(nedarvet)",
   "view.editTitle": "Rediger denne publikation i et separat vindue",

@@ -288,6 +288,7 @@ export const th: Catalog = {
   "panel.selectAnnotation": "เลือกสิ่งพิมพ์เพื่ออ่านคำอธิบายประกอบ",
   "splitter.bottom": "ปรับขนาดแผงด้านล่าง",
   "splitter.side": "ปรับขนาดแผงด้านข้าง",
+  "splitter.groups": "ปรับขนาดแถบด้านข้างกลุ่ม",
   "view.fields": "ฟิลด์",
   "view.inherited": "(สืบทอด)",
   "view.editTitle": "แก้ไขสิ่งพิมพ์นี้ในหน้าต่างแยก",

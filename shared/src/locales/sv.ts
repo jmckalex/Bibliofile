@@ -288,6 +288,7 @@ export const sv: Catalog = {
   "panel.selectAnnotation": "Markera en publikation för att läsa dess anteckning.",
   "splitter.bottom": "Ändra storlek på nedre panel",
   "splitter.side": "Ändra storlek på sidopanel",
+  "splitter.groups": "Ändra storlek på gruppanelen",
   "view.fields": "Fält",
   "view.inherited": "(ärvd)",
   "view.editTitle": "Redigera denna publikation i ett separat fönster",

@@ -288,6 +288,7 @@ export const hi: Catalog = {
   "panel.selectAnnotation": "इसका एनोटेशन पढ़ने हेतु एक प्रकाशन चुनें।",
   "splitter.bottom": "निचले पैनल का आकार बदलें",
   "splitter.side": "साइड पैनल का आकार बदलें",
+  "splitter.groups": "समूह साइडबार का आकार बदलें",
   "view.fields": "फ़ील्ड",
   "view.inherited": "(विरासत में मिला)",
   "view.editTitle": "इस प्रकाशन को अलग विंडो में संपादित करें",

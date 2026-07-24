@@ -288,6 +288,7 @@ export const id: Catalog = {
   "panel.selectAnnotation": "Pilih publikasi untuk membaca anotasinya.",
   "splitter.bottom": "Ubah ukuran panel bawah",
   "splitter.side": "Ubah ukuran panel samping",
+  "splitter.groups": "Ubah ukuran bilah sisi grup",
   "view.fields": "Bidang",
   "view.inherited": "(diwarisi)",
   "view.editTitle": "Edit publikasi ini di jendela terpisah",

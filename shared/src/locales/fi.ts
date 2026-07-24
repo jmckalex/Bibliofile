@@ -288,6 +288,7 @@ export const fi: Catalog = {
   "panel.selectAnnotation": "Valitse julkaisu lukeaksesi sen merkinnän.",
   "splitter.bottom": "Muuta alapaneelin kokoa",
   "splitter.side": "Muuta sivupaneelin kokoa",
+  "splitter.groups": "Muuta ryhmäpaneelin kokoa",
   "view.fields": "Kentät",
   "view.inherited": "(peritty)",
   "view.editTitle": "Muokkaa tätä julkaisua erillisessä ikkunassa",

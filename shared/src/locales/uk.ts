@@ -288,6 +288,7 @@ export const uk: Catalog = {
   "panel.selectAnnotation": "Виберіть публікацію, щоб прочитати її анотацію.",
   "splitter.bottom": "Змінити розмір нижньої панелі",
   "splitter.side": "Змінити розмір бічної панелі",
+  "splitter.groups": "Змінити розмір бічної панелі груп",
   "view.fields": "Поля",
   "view.inherited": "(успадковано)",
   "view.editTitle": "Редагувати цю публікацію в окремому вікні",

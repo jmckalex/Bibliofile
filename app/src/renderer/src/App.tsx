@@ -664,13 +664,24 @@ export function App() {
         className="bd-panes"
         style={{
           gridTemplateColumns: layout.rightPaneVisible
-            ? `220px minmax(0, 1fr) 6px ${layout.rightPaneWidth}px`
-            : '220px minmax(0, 1fr)',
+            ? `${layout.leftPaneWidth}px 6px minmax(0, 1fr) 6px ${layout.rightPaneWidth}px`
+            : `${layout.leftPaneWidth}px 6px minmax(0, 1fr)`,
         }}
       >
         <aside className="bd-pane">
           <GroupsSidebar />
         </aside>
+        {/* The groups sidebar is on the LEFT, so dragging right widens it: +dx
+            (the right pane's splitter, being on the far side, uses -dx). */}
+        <Splitter
+          orientation="vertical"
+          label={t('splitter.groups')}
+          onDrag={(dx) => {
+            const cur = getStore().getState().settings.layout.leftPaneWidth;
+            setLayout({ leftPaneWidth: Math.max(150, Math.min(500, cur + dx)) }, false);
+          }}
+          onCommit={() => setLayout({}, true)}
+        />
         {/* Middle column: the table, with the bottom panel scoped under it. This
             pane (not the whole window) is the file-import drop target. */}
         <section className="bd-pane bd-center" {...dropHandlers}>

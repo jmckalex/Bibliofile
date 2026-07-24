@@ -288,6 +288,7 @@ export const ru: Catalog = {
   "panel.selectAnnotation": "Выберите публикацию, чтобы прочитать её аннотацию.",
   "splitter.bottom": "Изменить размер нижней панели",
   "splitter.side": "Изменить размер боковой панели",
+  "splitter.groups": "Изменить размер боковой панели групп",
   "view.fields": "Поля",
   "view.inherited": "(унаследовано)",
   "view.editTitle": "Редактировать эту публикацию в отдельном окне",

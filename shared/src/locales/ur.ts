@@ -288,6 +288,7 @@ export const ur: Catalog = {
   "panel.selectAnnotation": "اس کی تشریح پڑھنے کے لیے ایک اشاعت منتخب کریں۔",
   "splitter.bottom": "نچلے پینل کا سائز تبدیل کریں",
   "splitter.side": "سائیڈ پینل کا سائز تبدیل کریں",
+  "splitter.groups": "گروپس سائیڈ بار کا سائز تبدیل کریں",
   "view.fields": "فیلڈز",
   "view.inherited": "(وراثت میں ملا)",
   "view.editTitle": "اس اشاعت میں علیحدہ ونڈو میں ترمیم کریں",

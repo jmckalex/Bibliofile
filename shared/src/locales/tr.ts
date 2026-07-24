@@ -288,6 +288,7 @@ export const tr: Catalog = {
   "panel.selectAnnotation": "Açıklamasını okumak için bir yayın seçin.",
   "splitter.bottom": "Alt paneli yeniden boyutlandır",
   "splitter.side": "Yan paneli yeniden boyutlandır",
+  "splitter.groups": "Grup kenar çubuğunu yeniden boyutlandır",
   "view.fields": "Alanlar",
   "view.inherited": "(devralındı)",
   "view.editTitle": "Bu yayını ayrı bir pencerede düzenle",

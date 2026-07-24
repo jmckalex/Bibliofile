@@ -288,6 +288,7 @@ export const nl: Catalog = {
   "panel.selectAnnotation": "Selecteer een publicatie om de annotatie te lezen.",
   "splitter.bottom": "Onderpaneel verkleinen/vergroten",
   "splitter.side": "Zijpaneel verkleinen/vergroten",
+  "splitter.groups": "Groepenzijbalk verkleinen/vergroten",
   "view.fields": "Velden",
   "view.inherited": "(overgenomen)",
   "view.editTitle": "Bewerk deze publicatie in een apart venster",

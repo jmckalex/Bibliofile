@@ -288,6 +288,7 @@ export const hu: Catalog = {
   "panel.selectAnnotation": "Válasszon egy publikációt a jegyzet megtekintéséhez.",
   "splitter.bottom": "Alsó panel átméretezése",
   "splitter.side": "Oldalpanel átméretezése",
+  "splitter.groups": "Csoportok oldalsáv átméretezése",
   "view.fields": "Mezők",
   "view.inherited": "(örökölt)",
   "view.editTitle": "A publikáció szerkesztése külön ablakban",

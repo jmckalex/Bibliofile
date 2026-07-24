@@ -1379,6 +1379,8 @@ export interface Settings {
 
 /** Persisted window-layout state: the resizable/hidable side and bottom panels. */
 export interface LayoutSettings {
+  /** Left (groups sidebar) width in px. */
+  readonly leftPaneWidth: number;
   /** Right (detail) pane width in px. */
   readonly rightPaneWidth: number;
   /** Whether the right pane is shown. */
@@ -1453,6 +1455,7 @@ export const DEFAULT_SETTINGS: Settings = {
   detailsForks: [],
   bottomForks: [],
   layout: {
+    leftPaneWidth: 220,
     rightPaneWidth: 340,
     rightPaneVisible: true,
     rightPaneContent: 'details',

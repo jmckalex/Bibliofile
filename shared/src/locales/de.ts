@@ -288,6 +288,7 @@ export const de: Catalog = {
   "panel.selectAnnotation": "Wählen Sie eine Publikation, um ihre Anmerkung zu lesen.",
   "splitter.bottom": "Unteres Panel anpassen",
   "splitter.side": "Seitenleiste anpassen",
+  "splitter.groups": "Gruppenleiste anpassen",
   "view.fields": "Felder",
   "view.inherited": "(geerbt)",
   "view.editTitle": "Diese Publikation in einem separaten Fenster bearbeiten",

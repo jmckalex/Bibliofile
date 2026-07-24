@@ -288,6 +288,7 @@ export const he: Catalog = {
   "panel.selectAnnotation": "בחר פרסום כדי לקרוא את ההערה שלו.",
   "splitter.bottom": "שנה גודל לוח תחתון",
   "splitter.side": "שנה גודל לוח צד",
+  "splitter.groups": "שנה גודל סרגל צד של קבוצות",
   "view.fields": "שדות",
   "view.inherited": "(בירושה)",
   "view.editTitle": "ערוך פרסום זה בחלון נפרד",

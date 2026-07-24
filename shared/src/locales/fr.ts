@@ -288,6 +288,7 @@ export const fr: Catalog = {
   "panel.selectAnnotation": "Sélectionnez une publication pour lire son annotation.",
   "splitter.bottom": "Redimensionner le panneau inférieur",
   "splitter.side": "Redimensionner le panneau latéral",
+  "splitter.groups": "Redimensionner la barre latérale des groupes",
   "view.fields": "Champs",
   "view.inherited": "(hérité)",
   "view.editTitle": "Modifier cette publication dans une fenêtre séparée",

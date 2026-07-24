@@ -288,6 +288,7 @@ export const ar: Catalog = {
   "panel.selectAnnotation": "حدّد منشوراً لقراءة تعليقه التوضيحي.",
   "splitter.bottom": "تغيير حجم اللوحة السفلية",
   "splitter.side": "تغيير حجم اللوحة الجانبية",
+  "splitter.groups": "تغيير حجم الشريط الجانبي للمجموعات",
   "view.fields": "الحقول",
   "view.inherited": "(موروث)",
   "view.editTitle": "تحرير هذا المنشور في نافذة منفصلة",

@@ -288,6 +288,7 @@ export const vi: Catalog = {
   "panel.selectAnnotation": "Chọn một ấn phẩm để đọc chú thích của nó.",
   "splitter.bottom": "Thay đổi kích thước bảng dưới",
   "splitter.side": "Thay đổi kích thước bảng bên",
+  "splitter.groups": "Thay đổi kích thước thanh bên nhóm",
   "view.fields": "Trường",
   "view.inherited": "(kế thừa)",
   "view.editTitle": "Sửa ấn phẩm này trong một cửa sổ riêng",

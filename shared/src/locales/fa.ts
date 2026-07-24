@@ -288,6 +288,7 @@ export const fa: Catalog = {
   "panel.selectAnnotation": "برای خواندن حاشیه‌نویسی، یک انتشار را انتخاب کنید.",
   "splitter.bottom": "تغییر اندازه پنل پایینی",
   "splitter.side": "تغییر اندازه پنل کناری",
+  "splitter.groups": "تغییر اندازه نوار کناری گروه‌ها",
   "view.fields": "فیلدها",
   "view.inherited": "(به‌ارث‌رسیده)",
   "view.editTitle": "ویرایش این انتشار در پنجره‌ای جداگانه",

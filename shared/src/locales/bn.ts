@@ -288,6 +288,7 @@ export const bn: Catalog = {
   "panel.selectAnnotation": "টীকা পড়তে একটি প্রকাশনা নির্বাচন করুন।",
   "splitter.bottom": "নিচের প্যানেলের আকার পরিবর্তন করুন",
   "splitter.side": "সাইড প্যানেলের আকার পরিবর্তন করুন",
+  "splitter.groups": "গ্রুপ সাইডবারের আকার পরিবর্তন করুন",
   "view.fields": "ফিল্ড",
   "view.inherited": "(উত্তরাধিকারসূত্রে প্রাপ্ত)",
   "view.editTitle": "একটি পৃথক উইন্ডোতে এই প্রকাশনা সম্পাদনা করুন",

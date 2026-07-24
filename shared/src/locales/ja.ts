@@ -288,6 +288,7 @@ export const ja: Catalog = {
   "panel.selectAnnotation": "注釈を読むには文献を選択してください。",
   "splitter.bottom": "下部パネルのサイズを変更",
   "splitter.side": "サイドパネルのサイズを変更",
+  "splitter.groups": "グループサイドバーのサイズを変更",
   "view.fields": "フィールド",
   "view.inherited": "（継承）",
   "view.editTitle": "この文献を別のウインドウで編集",

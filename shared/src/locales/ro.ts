@@ -288,6 +288,7 @@ export const ro: Catalog = {
   "panel.selectAnnotation": "Selectează o publicație pentru a-i citi adnotarea.",
   "splitter.bottom": "Redimensionează panoul inferior",
   "splitter.side": "Redimensionează panoul lateral",
+  "splitter.groups": "Redimensionează bara laterală de grupuri",
   "view.fields": "Câmpuri",
   "view.inherited": "(moștenit)",
   "view.editTitle": "Editează această publicație într-o fereastră separată",

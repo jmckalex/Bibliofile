@@ -288,6 +288,7 @@ export const ko: Catalog = {
   "panel.selectAnnotation": "주석을 읽으려면 문헌을 선택하세요.",
   "splitter.bottom": "하단 패널 크기 조정",
   "splitter.side": "측면 패널 크기 조정",
+  "splitter.groups": "그룹 사이드바 크기 조정",
   "view.fields": "필드",
   "view.inherited": "(상속됨)",
   "view.editTitle": "별도 창에서 이 문헌 편집",

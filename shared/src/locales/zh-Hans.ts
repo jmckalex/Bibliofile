@@ -288,6 +288,7 @@ export const zhHans: Catalog = {
   "panel.selectAnnotation": "选择一篇文献以阅读其注释。",
   "splitter.bottom": "调整底部面板大小",
   "splitter.side": "调整侧边面板大小",
+  "splitter.groups": "调整分组侧边栏大小",
   "view.fields": "字段",
   "view.inherited": "（继承）",
   "view.editTitle": "在单独的窗口中编辑此文献",

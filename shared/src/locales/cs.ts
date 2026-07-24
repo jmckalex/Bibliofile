@@ -288,6 +288,7 @@ export const cs: Catalog = {
   "panel.selectAnnotation": "Vyberte publikaci pro zobrazení její anotace.",
   "splitter.bottom": "Změnit velikost spodního panelu",
   "splitter.side": "Změnit velikost bočního panelu",
+  "splitter.groups": "Změnit velikost postranního panelu skupin",
   "view.fields": "Pole",
   "view.inherited": "(zděděno)",
   "view.editTitle": "Upravit tuto publikaci v samostatném okně",
