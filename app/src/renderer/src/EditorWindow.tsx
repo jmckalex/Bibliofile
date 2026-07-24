@@ -83,8 +83,8 @@ export function EditorWindow({ documentId, itemId }: { documentId: string; itemI
         </button>
       </header>
       {error && <div className="bd-editorwin__error">{error}</div>}
-      <div className="bd-editorwin__body">
-        <DetailPane />
+      <div className="bd-editorwin__body bd-editorwin__body--split">
+        <DetailPane split />
       </div>
     </div>
   );

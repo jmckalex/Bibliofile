@@ -963,7 +963,15 @@ export function JournalCover({ documentId, itemId }: { documentId: string; itemI
   return null;
 }
 
-export function DetailPane() {
+/**
+ * @param split Lay the read-only preview out as a fixed left column beside the
+ *   editable form, instead of stacked above it. The preview re-renders on every
+ *   keystroke and changes height as it does, so stacked it shoves the field being
+ *   typed in up and down under the cursor. Used by the standalone editor window,
+ *   which is wide enough; the main window's detail pane is a narrow side panel
+ *   where two columns would not fit, so it keeps the stacked layout.
+ */
+export function DetailPane({ split = false }: { split?: boolean }) {
   const t = useT();
   const detail = useStore((s) => s.detail);
   const documentId = useStore((s) => s.documentId);
@@ -977,17 +985,37 @@ export function DetailPane() {
     return <div className="bd-detail__empty">{detailLoading ? t('common.loading') : ''}</div>;
   }
 
-  return (
-    <div className="bd-detail">
+  const preview = (
+    <>
       {documentId && <JournalCover documentId={documentId} itemId={detail.id} />}
       {detail.previewHtml && (
         <PreviewCard html={detail.previewHtml} files={detail.files.filter((f) => f.kind === 'file')} />
       )}
       <CitationBlock detail={detail} />
+    </>
+  );
+  const form = (
+    <>
       <Identity detail={detail} />
       <Fields detail={detail} />
       <NotesSection detail={detail} />
       <Attachments detail={detail} />
+    </>
+  );
+
+  if (split) {
+    return (
+      <div className="bd-detail bd-detail--split">
+        <aside className="bd-detail__aside">{preview}</aside>
+        <div className="bd-detail__form">{form}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bd-detail">
+      {preview}
+      {form}
     </div>
   );
 }

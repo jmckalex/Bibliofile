@@ -2278,6 +2278,91 @@ bd-journal-cover.bd-jcover-drop .bd-jcover {
   text-align: center;
 }
 
+/* ---- Split detail layout (standalone editor window) --------------------- */
+/* The preview re-renders on every keystroke and changes height as it does. Above
+   the form that shoves the field under the cursor, so here it becomes a narrow
+   left column: the form's top edge is then fixed no matter what the preview does. */
+
+/* Each COLUMN scrolls, not the window body. Scrolling the body would move the
+   whole grid — preview included — which is what `position: sticky` on the aside
+   could not prevent: sticky only pins an element within the thing that scrolls,
+   and here the thing that scrolls was the body underneath it. */
+.bd-editorwin__body--split {
+  overflow: hidden;
+  min-height: 0; /* let the flex child actually shrink to the window */
+}
+
+.bd-detail--split {
+  display: grid;
+  grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+  padding: 0; /* the columns carry the padding, so each scrolls edge to edge */
+  align-items: stretch; /* full-height columns, so each can own its scrollbar */
+}
+
+/* Fixed in place. It only scrolls if the preview itself is taller than the
+   window, never because the fields moved. */
+.bd-detail__aside {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 0 14px 14px;
+}
+
+.bd-detail__form {
+  min-width: 0; /* let long field values shrink rather than widen the column */
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 14px 14px 0;
+}
+
+/* Thumbnail scale: the same cards, dialled down to suit a ~15rem column. */
+.bd-detail__aside .bd-preview,
+.bd-detail__aside .bd-cite {
+  font-size: 0.85em;
+  padding: 9px 10px;
+}
+
+.bd-detail__aside .bd-preview {
+  margin-bottom: 10px;
+}
+
+/* The cover floats right of the preview text in the wide layout; in a narrow
+   column that leaves it squeezed, so centre it above instead. */
+.bd-detail__aside .bd-jcover {
+  float: none;
+  margin: 0 auto 10px;
+}
+
+/* Too narrow to split (the user has dragged the editor window small): fall back
+   to stacked. The threshold must stay BELOW the editor window's default width —
+   a 14rem sidebar plus a usable field column needs ~570px, and anything above
+   that would silently disable the split at the size the window actually opens
+   at, which is exactly what a 620px threshold did against a 560px default. */
+@media (max-width: 560px) {
+  /* Stacked again, so hand scrolling back to the body as a single column —
+     two independently-scrolling boxes on top of each other would be horrible. */
+  .bd-editorwin__body--split {
+    overflow: auto;
+  }
+  .bd-detail--split {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    padding: 14px;
+  }
+  .bd-detail__aside,
+  .bd-detail__form {
+    overflow-y: visible;
+    padding: 0;
+  }
+  .bd-detail__aside .bd-preview,
+  .bd-detail__aside .bd-cite {
+    font-size: inherit;
+  }
+}
+
 .bd-preview {
   border: 1px solid var(--bd-border);
   border-radius: var(--bd-radius);

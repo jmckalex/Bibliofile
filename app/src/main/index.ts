@@ -480,7 +480,10 @@ function createEditorWindow(documentId: string, itemId: string): void {
     return;
   }
   const win = new BrowserWindow({
-    width: 560,
+    // Wide enough for the split layout (preview column beside the fields); below
+    // ~600px the renderer folds it back to a single stacked column, which is what
+    // the old 560px default would have done every time.
+    width: 880,
     height: 720,
     minWidth: 420,
     minHeight: 360,
