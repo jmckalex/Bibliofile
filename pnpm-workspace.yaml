@@ -8,19 +8,25 @@ packages:
 # ignored-build-script check otherwise returns exit 1 and blocks `pnpm -r test`.
 verifyDepsBeforeRun: false
 
-# Approve native build scripts (esbuild platform binary, electron runtime,
-# better-sqlite3 native addon for FTS5).
-onlyBuiltDependencies:
-  - esbuild
-  - electron
-  - better-sqlite3
-
 patchedDependencies:
   electron-vite@2.3.0: patches/electron-vite@2.3.0.patch
 
-# tesseract.js's only build script is `opencollective-postinstall || true` (harmless
-# funding telemetry). A definite `false` is the decision pnpm's own stub asks for —
-# it stops `pnpm install` failing with ERR_PNPM_IGNORED_BUILDS (exit 1) over the
-# un-decided build, which would red the first CI step (audit MED-2).
+# EVERY package with a build script needs an explicit decision here, or a COLD
+# `pnpm install --frozen-lockfile` exits 1 with ERR_PNPM_IGNORED_BUILDS.
+#
+# These used to be split: the three natives under `onlyBuiltDependencies` and
+# tesseract.js here. pnpm 11 does not consult `onlyBuiltDependencies` at all —
+# it is merely accepted as a known key, and `node_modules/.modules.yaml` recorded
+# it as null while honouring `allowBuilds` alone. Locally that went unnoticed
+# because node_modules was already built and nothing needed approving; the first
+# real CI run (cold install) failed on the very first step over all three.
+#
+#  esbuild / electron / better-sqlite3 — genuine native or platform binaries the
+#    build and the FTS5 tests need.
+#  tesseract.js — only `opencollective-postinstall || true` (funding telemetry),
+#    so a definite `false` rather than granting it a script (audit MED-2).
 allowBuilds:
+  esbuild: true
+  electron: true
+  better-sqlite3: true
   tesseract.js: false
