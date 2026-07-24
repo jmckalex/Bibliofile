@@ -482,6 +482,12 @@ function sanitizeSegment(name: string): string {
 interface UndoStep {
   snap: string;
   label: string;
+  /**
+   * Item ids, in library order, as they were when this snapshot was taken.
+   * Re-applied after the snapshot is re-parsed so identity survives undo/redo
+   * (audit rpt-02 SEV-8) — ids are per-parse UUIDs and aren't in the `.bib`.
+   */
+  ids: string[];
 }
 
 /** Human labels for the Edit-menu "Undo <label>" / "Redo <label>", by EditCommand kind. */
@@ -1327,7 +1333,7 @@ export class DocumentStore {
     const h = this.historyFor(documentId);
     const snap = this.serializeDocument(documentId);
     if (h.undo[h.undo.length - 1]?.snap === snap) return; // no change since last snapshot
-    h.undo.push({ snap, label });
+    h.undo.push({ snap, label, ids: doc.library.items.map((i) => i.id) });
     if (h.undo.length > DocumentStore.UNDO_LIMIT) h.undo.shift();
     h.redo.length = 0;
   }
@@ -1411,8 +1417,12 @@ export class DocumentStore {
     const h = this.historyFor(documentId);
     const step = h.undo.pop();
     if (step === undefined) return false;
-    h.redo.push({ snap: this.serializeDocument(documentId), label: step.label });
-    this.restoreSnapshot(documentId, step.snap);
+    h.redo.push({
+      snap: this.serializeDocument(documentId),
+      label: step.label,
+      ids: this.requireDoc(documentId).library.items.map((i) => i.id),
+    });
+    this.restoreSnapshot(documentId, step.snap, step.ids);
     return true;
   }
 
@@ -1421,8 +1431,12 @@ export class DocumentStore {
     const h = this.historyFor(documentId);
     const step = h.redo.pop();
     if (step === undefined) return false;
-    h.undo.push({ snap: this.serializeDocument(documentId), label: step.label });
-    this.restoreSnapshot(documentId, step.snap);
+    h.undo.push({
+      snap: this.serializeDocument(documentId),
+      label: step.label,
+      ids: this.requireDoc(documentId).library.items.map((i) => i.id),
+    });
+    this.restoreSnapshot(documentId, step.snap, step.ids);
     return true;
   }
 
@@ -1433,9 +1447,35 @@ export class DocumentStore {
     encoding: string,
     hadBom: boolean,
     dirty: boolean,
+    /**
+     * Item ids to re-apply, in library order — the ids the snapshot's state had.
+     * Only positional re-assignment is safe, and only when the count matches:
+     * `serialize` writes items in library order and `parse` reads them back in
+     * file order, so position is exactly preserved for a round-trip of the same
+     * item set. A mismatch means the text isn't the one these ids came from, so
+     * the fresh ids are kept rather than mis-assigning identity.
+     */
+    ids?: readonly string[],
   ): void {
     const prev = this.requireDoc(documentId);
     const { library, crossrefStore } = openLibraryFromText(text, prev.path, encoding, hadBom);
+    if (ids && ids.length === library.items.length) {
+      // The bdsk-file map is keyed by item id, so it has to be re-keyed in step
+      // or every managed attachment becomes unresolvable after an undo. Read the
+      // plists under the ids the PARSE just minted, before reassigning.
+      const remapped = new Map<string, BdskFilePlist>();
+      library.items.forEach((item, i) => {
+        const nextId = ids[i]!;
+        for (const name of item.fieldNames()) {
+          if (!BDSK_FILE_RE.test(name)) continue;
+          const plist = library.bdskFiles.get(bdskFileKey(item.id, name));
+          if (plist !== undefined) remapped.set(bdskFileKey(nextId, name), plist);
+        }
+        item.reassignId(nextId);
+      });
+      library.bdskFiles.clear();
+      for (const [k, v] of remapped) library.bdskFiles.set(k, v);
+    }
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
     const records = library.items.map((i) => ({ id: i.id, text: itemSearchText(i) }));
@@ -1467,9 +1507,9 @@ export class DocumentStore {
   }
 
   /** Rebuild from a serialized snapshot (undo/redo/external) — keeps encoding, marks dirty. */
-  private restoreSnapshot(documentId: string, text: string): void {
+  private restoreSnapshot(documentId: string, text: string, ids?: readonly string[]): void {
     const prev = this.requireDoc(documentId);
-    this.rebuildFromText(documentId, text, prev.encoding, prev.hadBom, true);
+    this.rebuildFromText(documentId, text, prev.encoding, prev.hadBom, true, ids);
   }
 
   /** Open from already-loaded text. Retains the library and returns the summary. */

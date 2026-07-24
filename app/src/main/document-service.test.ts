@@ -594,8 +594,8 @@ describe('document-service: BD test.bib', () => {
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');
-    // Re-query the id each time — undo/redo re-parses, so item ids change (the
-    // renderer reloads its selection via documentOpened).
+    // Re-query the id each time. (Ids are now PRESERVED across undo/redo — see
+    // the identity tests below — but re-querying keeps this test about values.)
     const firstId = (): string => store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
     const titleOf = (): string =>
       store.getItemDetail({ documentId, itemId: firstId() }).fields.find((f) => f.name.toLowerCase() === 'title')
@@ -1276,6 +1276,53 @@ describe('document-service: BD test.bib', () => {
 
     // Idempotent: a second run has nothing left to do.
     expect(store.consolidateLinkedFiles(documentId).refreshed).toBe(0);
+  });
+
+  it('undo/redo preserve item ids, so selection and editor windows survive', () => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{a, Title = {One}}\n\n@article{b, Title = {Two}}',
+      '/tmp/undo-ids.bib',
+    );
+    const before = store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.id);
+
+    store.applyEdit({
+      documentId,
+      command: { kind: 'setField', itemId: before[0]!, field: 'Title', value: 'Changed' },
+    });
+    expect(store.undo(documentId)).toBe(true);
+
+    // Ids are per-parse UUIDs and undo restores by re-parsing, so without the fix
+    // every id here is new: the renderer's selection dangles and any standalone
+    // editor window (keyed documentId::itemId) throws on its next fetch.
+    const afterUndo = store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.id);
+    expect(afterUndo).toEqual(before);
+    // Still addressable by that id, which is what the editor window relies on.
+    expect(store.getItemDetail({ documentId, itemId: before[0]! }).id).toBe(before[0]);
+
+    expect(store.redo(documentId)).toBe(true);
+    const afterRedo = store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.id);
+    expect(afterRedo).toEqual(before);
+    expect(store.getItemDetail({ documentId, itemId: before[0]! }).id).toBe(before[0]);
+  });
+
+  it('attachments still resolve after an undo (the bdsk-file map is re-keyed)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-undo-attach-'));
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {One}}', join(dir, 'lib.bib'));
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const pdf = join(dir, 'paper.pdf');
+    writeFileSync(pdf, '%PDF-1.4');
+    store.addAttachments(documentId, itemId, [pdf]);
+
+    store.applyEdit({ documentId, command: { kind: 'setField', itemId, field: 'Title', value: 'Two' } });
+    expect(store.undo(documentId)).toBe(true);
+
+    // bdskFiles is keyed BY ITEM ID, so re-assigning ids without re-keying it
+    // would leave every managed attachment looking unresolvable.
+    const files = store.getItemDetail({ documentId, itemId }).files;
+    expect(files).toHaveLength(1);
+    expect(files[0]!.url).toBe(pdf);
   });
 
   it('importRisText merges RIS records as new entries', () => {

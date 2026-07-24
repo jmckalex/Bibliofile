@@ -119,8 +119,8 @@ export function generateId(): string {
 }
 
 export class BibItem {
-  /** Stable unique id (replaces `identifierURL`). */
-  readonly id: string;
+  /** Stable unique id (replaces `identifierURL`). See {@link reassignId}. */
+  private _id: string;
   private _citeKey: string;
   private _type: string;
   /** Canonical-cased field name -> value. Source of truth. */
@@ -141,9 +141,29 @@ export class BibItem {
   /** Change-event channel for this item. */
   readonly changes = new Emitter<ItemChangeEvent>();
 
+  /** Stable unique id. Read-only to everything but {@link reassignId}. */
+  get id(): string {
+    return this._id;
+  }
+
+  /**
+   * Re-assign this item's id. **Undo/redo only** — an id must otherwise stay
+   * stable for as long as the item is live.
+   *
+   * Ids are per-parse UUIDs and are deliberately NOT serialised into the `.bib`,
+   * so the serialize→parse round-trip that restores an undo snapshot mints a
+   * fresh id for every entry. That silently invalidates the renderer's selection
+   * and any standalone editor/annotation window, which are keyed
+   * `documentId::itemId` (audit rpt-02 SEV-8). Restoring a snapshot re-applies
+   * the ids that state actually had, so identity survives an undo.
+   */
+  reassignId(next: string): void {
+    if (next) this._id = next;
+  }
+
   constructor(init: BibItemInit, typeManager: TypeManager) {
     const idGen = init.idGenerator ?? generateId;
-    this.id = init.id ?? idGen();
+    this._id = init.id ?? idGen();
     this._citeKey = init.citeKey ?? '';
     this._type = (init.type ?? 'misc').toLowerCase();
     this._files = init.files ? [...init.files] : [];
