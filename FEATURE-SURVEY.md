@@ -49,11 +49,16 @@ features worth preserving; drop legacy/mac-only cruft. "Done" = already shipped 
 - Separate per-publication **editor windows** — our inline detail pane is the modern replacement.
 - **TeX-task PDF preview** (spawns `bibtex`/`latex` to render a typeset bibliography) — needs a
   TeX install; superseded by the CSL + MathJax preview.
+  *(Update 2026-07-03: shipped anyway as an **opt-in** path — `tex-preview.ts` spawns
+  `pdflatex`+`bibtex`, inline SVG via `dvisvgm` for small selections, PDF for the library, gated
+  behind `texBibStyle`/`texBinDir` prefs. The default preview is still CSL + MathJax.)*
 - Exotic importers: **Z39.50 / SRU library catalogs**, MARC/UNIMARC/MODS, EndNote binary —
   keep RIS (above); drop the rest (parsers can be revived from the config tables if ever needed).
 - macOS **Services** ("Complete Citation" cite drawer), **Spotlight importer**, **QuickLook**
   generator, share/iCloud — OS-specific plugins, out of scope for the cross-platform app.
 - **Color labels** — low value next to Read/rating/keywords.
+  *(Update 2026-07-03: shipped anyway — `setColor` channel, Publication ▸ Color Label ▸ menu +
+  `ColorContextMenu.tsx`, row tint/stripe in the table. No longer dropped.)*
 - **Web groups / script groups / external search groups** — parsed but no members in-session;
   not worth a builder UI.
 
