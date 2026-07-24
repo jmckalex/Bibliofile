@@ -724,10 +724,36 @@ Local (Electron ABI): `pnpm -r build` · `pnpm build:app` · **1842 pass / 21 sk
 **CI green** on macos-latest with a cold install: **1859 pass / 4 skip** (TeX only), both
 native asserts passing.
 
+### Second audit round (2026-07-24, autonomous)
+
+- `94f5f6b` **rpt-02 SEV-7 / rpt-04 SEV-M3 — `fetchPdfBytes` SSRF.** The renderer handed main
+  an arbitrary URL to fetch, making a trusted process an open proxy onto loopback, RFC-1918
+  hosts and the cloud metadata endpoint. Two defences: an allowlist (main only fetches URLs it
+  surfaced from a locator run) and a lexical host guard (https, no credentials, no private /
+  CGNAT / link-local / `.local` / bare-name hosts), re-checked on every redirect hop with a cap
+  of 5 — `redirect: 'follow'` would otherwise land internally after a public first hop.
+  Documented limit: the host check is lexical, so DNS rebinding still passes it; the allowlist
+  is what carries the argument. Also **rpt-04 SEV-M1**: `IpcEventMap` covered 8 of 11 push
+  channels, so the three streaming-progress payloads were enforced only by hand-written
+  annotations at each end. Added, with an exhaustiveness assertion checked by `tsc`.
+- `b032f9d` **rpt-02 SEV-6 — `x-bibdesk://` drive-by automation.** Any web page could mutate the
+  open library or probe local paths. Mutating commands now confirm (defaulting to Cancel), and
+  `open?file=` is restricted to `.bib` via a pure, tested `isOpenableBibPath` that also rejects
+  NUL truncation — while still allowing spaces, which a first cut wrongly refused.
+- `640f4e7` **rpt-04 SEV-M4 — plugins-sdk safety.** Async `activate` rejections now roll back
+  the active flag; `activateAll`/`deactivateAll` settle each plugin independently and report
+  {ok, failed} instead of aborting the fan-out; `Emitter.emit` isolates a throwing listener so
+  it cannot break the mutation that emitted it; and an optional `apiVersion` is gated at
+  activation.
+- `1b17539` **rpt-02 SEV-8 — undo/redo item identity.** Undo restored by re-parsing, minting a
+  fresh UUID for every entry, so selection dangled and open editor windows threw
+  `Unknown itemId`. Each undo step now carries its ids and re-applies them positionally (only
+  when the count matches), re-keying the id-keyed `bdskFiles` map in the same pass.
+
 ### Remaining audit items (not started)
 
-**H13** Electron-33-EOL upgrade (the last High — deferred as risky, its own branch); rpt-02
-**SEV-6** `x-bibdesk://` unconfirmed mutation, **SEV-7** `fetchPdfBytes` SSRF, **SEV-8**
-undo/redo UUID regeneration; rpt-04 **SEV-M1** `IpcEventMap` completeness, **SEV-M4**
-plugins-sdk isolation; rpt-06 **M1** asar slimming (risky), **M3** citeproc CPAL election,
-**M4** dev-dep advisories. **Still user-only:** confirm OCR in a packaged build.
+**H13** Electron-33-EOL upgrade (the last High — deferred as risky, its own branch); rpt-06
+**M1** asar slimming (risky — needs pack:dir revalidation), **M3** citeproc CPAL licence
+election (a decision for the project owner, not a code change), **M4** dev-dep advisories
+(couples to H13); rpt-03 **MED-7** ~20 hard-coded English strings outside i18n.
+**Still user-only:** confirm OCR in a packaged build.
