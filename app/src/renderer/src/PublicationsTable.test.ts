@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { PublicationRow } from '@bibdesk/shared';
 
-import { reorderColumns, rowSortText, nextTypeMatch } from './PublicationsTable';
+import { reorderColumns, rowSortText, nextTypeMatch, rowNeedsScroll } from './PublicationsTable';
 
 const COLS = ['citeKey', 'type', 'authors', 'title', 'year'];
 
@@ -121,5 +121,33 @@ describe('nextTypeMatch (type-select search)', () => {
   it('normalises an out-of-range / negative start index', () => {
     expect(nextTypeMatch(rows, -1, 'c', 'title')).toBe(3); // Cherry
     expect(nextTypeMatch(rows, 10, 'b', 'title')).toBe(1); // wraps → Banana
+  });
+});
+
+describe('rowNeedsScroll (keeping the selection in view)', () => {
+  const H = 24; // row height
+  const VIEW = 240; // 10 rows visible, scrollTop 0 => rows 0..9
+
+  it('leaves a comfortably-visible row alone', () => {
+    expect(rowNeedsScroll(0, 0, VIEW, H)).toBe(false);
+    expect(rowNeedsScroll(5, 0, VIEW, H)).toBe(false);
+    expect(rowNeedsScroll(9, 0, VIEW, H)).toBe(false); // last fully-visible row
+  });
+
+  it('scrolls for a row below or above the viewport', () => {
+    expect(rowNeedsScroll(10, 0, VIEW, H)).toBe(true); // just past the bottom
+    expect(rowNeedsScroll(2000, 0, VIEW, H)).toBe(true); // a cite-key rename far away
+    expect(rowNeedsScroll(3, 240, VIEW, H)).toBe(true); // scrolled past it
+  });
+
+  it('scrolls for a row only PARTLY visible at an edge', () => {
+    // scrollTop 12 = half a row: row 0 is clipped at the top, row 10 at the bottom.
+    expect(rowNeedsScroll(0, 12, VIEW, H)).toBe(true);
+    expect(rowNeedsScroll(10, 12, VIEW, H)).toBe(true);
+    expect(rowNeedsScroll(5, 12, VIEW, H)).toBe(false); // still wholly on screen
+  });
+
+  it('never scrolls when there is no selection', () => {
+    expect(rowNeedsScroll(-1, 0, VIEW, H)).toBe(false);
   });
 });

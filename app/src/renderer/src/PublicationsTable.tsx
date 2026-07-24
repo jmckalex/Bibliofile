@@ -216,6 +216,26 @@ function buildColumns(keys: readonly string[], t: TFunction): Col[] {
 const TYPE_AHEAD_RESET_MS = 700;
 
 /** The text a row contributes to type-select, given the active sort column. */
+/**
+ * Should the viewport scroll to bring row `index` into view?
+ *
+ * True only when the row is not FULLY visible: a row peeking half-in at the
+ * bottom counts as needing a scroll, while one comfortably on screen does not —
+ * so re-sorting or filtering with the selection already visible never twitches
+ * the viewport. Pure arithmetic because every row is a fixed `rowHeight` and the
+ * header sits outside the scroll container.
+ */
+export function rowNeedsScroll(
+  index: number,
+  scrollTop: number,
+  viewportHeight: number,
+  rowHeight: number,
+): boolean {
+  if (index < 0) return false;
+  const top = index * rowHeight;
+  return top < scrollTop || top + rowHeight > scrollTop + viewportHeight;
+}
+
 export function rowSortText(row: PublicationRow, key: string | undefined): string {
   switch (key) {
     case 'type':
@@ -485,15 +505,34 @@ export function PublicationsTable() {
     [data, selectedItemId, selectedIds, sort, selectItem, extendSelectionTo, selectAll, openEditor, deleteSelection, virtualizer],
   );
 
-  // Keep the primary selection in view when it changes programmatically — e.g. a
-  // new publication (which sorts in anywhere) or "Select Crossref Parent". Keyed
-  // on selectedItemId only, so it doesn't yank the scroll on every sort/filter;
-  // align 'auto' is a no-op when the row is already visible.
+  /** Row index of the primary selection in the CURRENT ordering, or -1. */
+  const selectedIndex = useMemo(
+    () => (selectedItemId ? tableRows.findIndex((r) => r.original.id === selectedItemId) : -1),
+    [tableRows, selectedItemId],
+  );
+
+  // Keep the primary selection in view — a new publication (which sorts in
+  // anywhere), "Select Crossref Parent", or an edit that MOVES the selected row:
+  // renaming a cite key re-sorts it, usually somewhere far off-screen.
+  //
+  // Keyed on the row's INDEX as well as its id. Keying on the id alone (as this
+  // did) meant an edit never re-ran it, because editing doesn't change WHICH
+  // entry is selected — only where it sits — so the row slid silently out of
+  // view while the details pane still showed it.
+  //
+  // Guarded on actual visibility rather than always scrolling, so re-sorting or
+  // filtering with the selection already on screen doesn't twitch the viewport —
+  // which is what the previous `align: 'auto'` bought, and worth keeping. Rows
+  // are a fixed ROW_HEIGHT and the header is a sibling of the scroll container,
+  // so the offset is just index * ROW_HEIGHT.
   useEffect(() => {
-    if (!selectedItemId) return;
-    const index = tableRows.findIndex((r) => r.original.id === selectedItemId);
-    if (index >= 0) virtualizer.scrollToIndex(index, { align: 'auto' });
-  }, [selectedItemId]);
+    if (selectedIndex < 0) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    if (rowNeedsScroll(selectedIndex, el.scrollTop, el.clientHeight, ROW_HEIGHT)) {
+      virtualizer.scrollToIndex(selectedIndex, { align: 'center' });
+    }
+  }, [selectedItemId, selectedIndex]);
 
   const headerGroups = table.getHeaderGroups();
   const virtualItems = virtualizer.getVirtualItems();
