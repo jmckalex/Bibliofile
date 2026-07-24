@@ -7,7 +7,7 @@ name: CI
 # before it merges (remove it once merged).
 on:
   push:
-    branches: [main, audit-fixes]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 

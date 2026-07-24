@@ -16,6 +16,7 @@ import { tmpdir } from 'node:os';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { randomBytes } from 'node:crypto';
+import { Worker } from 'node:worker_threads';
 
 import {
   app,
@@ -98,7 +99,8 @@ import { createOcrSession, isLikelyScanned } from './ocr.js';
 import { importPdfsSmart } from './import-smart.js';
 import { extractPdfText } from './pdf-text.js';
 import { PdfPool } from './pdf-pool.js';
-import { PdfTextCache } from './pdf-cache.js';
+import { PdfTextIndex } from './pdf-index.js';
+import type { MigrateRequest, MigrateResult } from './migrate-worker.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
 import { getSettings, loadSettings, updateSettings } from './settings.js';
 import { t, setMainLocale } from './i18n.js';
@@ -586,25 +588,94 @@ function broadcastIndexProgress(documentId: string, done: number, total: number)
  * combined extractor handed to {@link DocumentStore.indexAttachments}.
  */
 let pdfPool: PdfPool | undefined;
-let pdfCache: PdfTextCache | undefined;
+let pdfIndex: PdfTextIndex | undefined;
 /** Pages of each PDF to extract for the full-text index (0 = all). Mirrors the
  * `ftsPageLimit` setting; updated on startup + when settings change. */
 let ftsPageLimit = 40;
 
-function ensurePdf(): { pool: PdfPool; cache: PdfTextCache } {
-  if (!pdfPool) pdfPool = new PdfPool(join(__dirname, 'pdf-worker.js'));
-  if (!pdfCache) pdfCache = new PdfTextCache(join(app.getPath('userData'), 'pdf-text-cache.json'));
-  return { pool: pdfPool, cache: pdfCache };
+/**
+ * The persistent PDF full-text index, created on first use and handed to the
+ * store. On creation it absorbs the legacy `pdf-text-cache.json` blob (so an
+ * upgrade re-uses already-extracted text instead of re-extracting the library)
+ * and drops rows whose file has gone — e.g. every path AutoFile has since moved,
+ * which the old cache accumulated forever.
+ */
+async function ensurePdfIndex(): Promise<PdfTextIndex> {
+  if (pdfIndex) return pdfIndex;
+  const dbPath = join(app.getPath('userData'), 'pdf-index.db');
+  const legacy = join(app.getPath('userData'), 'pdf-text-cache.json');
+
+  // Migrate BEFORE opening the database here, so only one thread ever has it
+  // open, and so the blob's parse cost lands in a thread that then exits.
+  if (existsSync(legacy)) {
+    try {
+      const res = await runMigrationWorker({ jsonPath: legacy, dbPath });
+      if (res.ok) console.log(`[index] migrated ${res.imported} cached PDFs (${res.skipped} stale)`);
+      else console.error('[index] legacy migration failed:', res.error);
+    } catch (err) {
+      // A failed migration leaves the blob in place to retry next launch; the
+      // index still works, it just starts empty and re-extracts as it goes.
+      console.error('[index] legacy migration worker failed:', err);
+    }
+  }
+
+  pdfIndex = new PdfTextIndex(dbPath);
+  if (pdfIndex.available) {
+    const evicted = pdfIndex.evictMissing();
+    if (evicted) console.log(`[index] evicted ${evicted} rows for files no longer on disk`);
+  }
+  store.setPdfIndex(pdfIndex);
+  return pdfIndex;
 }
 
-/** Extract one PDF's text: cache hit, else a worker-thread extraction (then cached). */
+/**
+ * Reconcile one document's PDF attachments with the persistent index, creating
+ * (and migrating into) the index first if needed. `force` clears the session
+ * latch so every file is re-checked — used after OCR rewrites PDFs in place and
+ * after a page-limit change.
+ */
+async function indexDocument(documentId: string, force = false): Promise<void> {
+  await ensurePdfIndex();
+  const reconcile = force
+    ? store.reindexAttachments.bind(store)
+    : store.indexAttachments.bind(store);
+  await reconcile(
+    documentId,
+    pdfExtract,
+    (done, total) => broadcastIndexProgress(documentId, done, total),
+    ftsPageLimit,
+  );
+}
+
+/** Run the one-time legacy-cache migration in a worker thread. */
+function runMigrationWorker(req: MigrateRequest): Promise<MigrateResult> {
+  return new Promise((resolvePromise, reject) => {
+    const worker = new Worker(join(__dirname, 'migrate-worker.js'), { workerData: req });
+    let settled = false;
+    worker.once('message', (msg: MigrateResult) => {
+      settled = true;
+      resolvePromise(msg);
+      void worker.terminate();
+    });
+    worker.once('error', reject);
+    worker.once('exit', (code) => {
+      if (!settled) reject(new Error(`migration worker exited with code ${code}`));
+    });
+  });
+}
+
+function ensurePool(): PdfPool {
+  if (!pdfPool) pdfPool = new PdfPool(join(__dirname, 'pdf-worker.js'));
+  return pdfPool;
+}
+
+/**
+ * Extract one PDF's text in a worker thread. No caching here any more: the store
+ * asks {@link PdfTextIndex} whether a file needs extracting at all, so this is
+ * only ever called for files that genuinely changed.
+ */
 async function pdfExtract(absPath: string): Promise<string> {
-  const { pool, cache } = ensurePdf();
-  const cached = cache.get(absPath, ftsPageLimit);
-  if (cached !== undefined) return cached;
-  const text = await pool.extract(absPath, ftsPageLimit);
-  cache.set(absPath, text, ftsPageLimit);
-  return text;
+  return ensurePool().extract(absPath, ftsPageLimit);
 }
 
 /**
@@ -646,13 +717,13 @@ function loadDocumentInto(win: BrowserWindow, path: string): OpenedDocument {
  * load (groups/rows) gets an unblocked main process first.
  */
 function scheduleIndex(documentId: string): void {
-  setTimeout(() => {
-    void store
-      .indexAttachments(documentId, pdfExtract, (done, total) =>
-        broadcastIndexProgress(documentId, done, total),
-      )
-      .then(() => pdfCache?.flush());
-  }, 2000);
+  // PDF full-text indexing is what the `fullTextSearch` preference buys, so don't
+  // pay for it while that is off. The flag previously gated only `includePdf` at
+  // QUERY time, so a user who never searched PDF contents still paid the entire
+  // extraction + indexing cost on every open. Switching it on indexes then (see
+  // the updateSettings handler); citation-field search is unaffected either way.
+  if (!getSettings().fullTextSearch) return;
+  setTimeout(() => void indexDocument(documentId), 2000);
 }
 
 /** Set a window's title + represented file (macOS proxy icon) for a document. */
@@ -1191,10 +1262,11 @@ async function ocrScannedPdfs(
     await ocrSession.close();
   }
 
-  // Re-extract + re-index so the freshly-added text is searchable in Bibliofile.
-  if (anyOcred) {
-    await store.reindexAttachments(documentId, pdfExtract, (d, t) => broadcastIndexProgress(documentId, d, t));
-    pdfCache?.flush();
+  // OCR rewrote the PDFs in place, so their stored text is stale. The index sees
+  // the content change by itself (mtime+size, md5-confirmed) and re-extracts just
+  // those files — clearing the session flag is all that's needed to make it look.
+  if (anyOcred && getSettings().fullTextSearch) {
+    await indexDocument(documentId, true);
   }
   return { results };
 }
@@ -2799,16 +2871,18 @@ function registerIpc(): void {
         detailsTemplate: resolveActivePanelBody(s.detailsForks, s.activeDetailsFork),
         bottomPanelTemplate: resolveActivePanelBody(s.bottomForks, s.activeBottomFork),
       });
-      // Full-text page-limit changed → re-extract + re-index every open document's
-      // PDFs at the new limit (the cache misses on the limit change, so it's a real
-      // re-extraction; runs in the background worker pool).
+      // Full-text page-limit changed → stored text no longer covers the wanted
+      // pages, so re-extract every open document's PDFs at the new limit (in the
+      // background worker pool). Only meaningful while full-text search is on.
       if (s.ftsPageLimit !== ftsPageLimit) {
         ftsPageLimit = s.ftsPageLimit;
-        for (const id of store.openDocumentIds()) {
-          void store
-            .reindexAttachments(id, pdfExtract, (done, total) => broadcastIndexProgress(id, done, total))
-            .then(() => pdfCache?.flush());
+        if (s.fullTextSearch) {
+          for (const id of store.openDocumentIds()) void indexDocument(id, true);
         }
+      }
+      // Full-text search just switched ON: index now, since open() skipped it.
+      if (req.patch.fullTextSearch === true) {
+        for (const id of store.openDocumentIds()) void indexDocument(id);
       }
       // Re-localize the menu when the UI language changes.
       if (req.patch.locale !== undefined) setMainLocale(s.locale);
@@ -3461,9 +3535,12 @@ app.on('before-quit', () => {
   isQuitting = true;
 });
 
-// Persist the PDF text cache and tear down the worker pool on quit.
+// Close the index and tear down the worker pool on quit. Nothing to flush: the
+// index writes each file's text as it is extracted, so a quit (or crash) part-way
+// through a first index keeps everything done so far. The old JSON blob persisted
+// only when a whole run finished, so an interrupted run lost the lot.
 app.on('will-quit', () => {
-  pdfCache?.flush();
+  pdfIndex?.close();
   void pdfPool?.destroy();
 });
 

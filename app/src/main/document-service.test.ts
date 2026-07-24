@@ -3,7 +3,16 @@
  * real BibDesk-authored `BD test.bib` fixture and exercises the full open → rows
  * → groups → detail path the IPC handlers expose.
  */
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  utimesSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,6 +28,7 @@ import {
   toDisplay,
 } from './document-service.js';
 import { FtsIndex } from './fts.js';
+import { PdfTextIndex } from './pdf-index.js';
 import { renderCite, renderBibliography } from './csl-format.js';
 
 /** Whether the native FTS backend loads in this runtime (skips FTS tests if not). */
@@ -28,6 +38,9 @@ const FTS_AVAILABLE = ((): boolean => {
   i.close();
   return ok;
 })();
+
+/** Same native backend, so the persistent PDF index is available exactly when FTS is. */
+const SQLITE = FTS_AVAILABLE;
 
 // The verbatim BD test.bib copied into the repo by the golden-harness task (T1).
 const FIXTURE = fileURLToPath(
@@ -484,10 +497,14 @@ describe('document-service: BD test.bib', () => {
     const pdf = join(dir, 'paper.pdf');
     writeFileSync(pdf, '%PDF-1.4'); // must exist; extraction is injected below
     const store = new DocumentStore();
+    // PDF text now lives in the persistent, path-keyed index rather than in the
+    // document's in-memory index, so the store needs one attached.
+    const index = new PdfTextIndex(join(dir, 'idx.db'));
+    store.setPdfIndex(index);
     const { documentId } = store.openText('@article{x, Title = {Networks}}', join(dir, 'lib.bib'));
     const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
     store.addAttachments(documentId, itemId, [pdf]);
-    // Fold a PDF body word ("alexander") into the FULL index only.
+    // Put a PDF body word ("alexander") into the PDF index only.
     await store.indexAttachments(documentId, async () => 'alexander bargaining dynamics');
 
     // A field word matches in both scopes.
@@ -496,6 +513,7 @@ describe('document-service: BD test.bib', () => {
     // A PDF-only word matches ONLY when PDF text is included.
     expect(store.ftsSearch(documentId, 'alexander', false).ids).toEqual([]);
     expect(store.ftsSearch(documentId, 'alexander', true).ids).toEqual([itemId]);
+    index.close();
   });
 
   it.runIf(FTS_AVAILABLE)('indexAttachments reports progress for entries that have PDFs', async () => {
@@ -505,6 +523,8 @@ describe('document-service: BD test.bib', () => {
     writeFileSync(pdf1, '%PDF-1.4');
     writeFileSync(pdf2, '%PDF-1.4');
     const store = new DocumentStore();
+    const index = new PdfTextIndex(join(dir, 'idx.db'));
+    store.setPdfIndex(index);
     const { documentId } = store.openText(
       '@article{a, Title={A}}\n@article{b, Title={B}}\n@article{c, Title={C}}',
       join(dir, 'lib.bib'),
@@ -512,12 +532,15 @@ describe('document-service: BD test.bib', () => {
     const ids = store.listPublications({ documentId, offset: 0, limit: -1 }).rows.map((r) => r.id);
     store.addAttachments(documentId, ids[0]!, [pdf1]);
     store.addAttachments(documentId, ids[1]!, [pdf2]);
-    // Entry c has no PDF → it is not counted toward the total.
+    // Entry c has no PDF → it contributes no file, so it is not counted. Progress
+    // now counts FILES that actually need extracting rather than entries, so a
+    // fully-cached reopen reports no steps instead of thousands of no-ops.
     const events: Array<[number, number]> = [];
     await store.indexAttachments(documentId, async () => 'text', (done, total) => events.push([done, total]));
-    expect(events[0]).toEqual([0, 2]); // start: 2 entries with PDFs
+    expect(events[0]).toEqual([0, 2]); // start: 2 PDFs needing extraction
     expect(events.map((e) => e[0])).toEqual([0, 1, 2]); // monotonic to completion
     expect(events.every(([, total]) => total === 2)).toBe(true);
+    index.close();
   });
 
   it('toItemDetail marks an entry type’s required fields (so they can’t be deleted)', () => {
@@ -935,6 +958,184 @@ describe('document-service: BD test.bib', () => {
       /already open/i,
     );
     expect(readFileSync(otherPath, 'utf8')).toContain('Keep me'); // untouched
+  });
+
+  /**
+   * Build a library with `n` PDF attachments wired to a fresh persistent index.
+   * `extract` records every call so tests can assert on work actually done.
+   */
+  function indexFixture(label: string, n = 2): {
+    store: DocumentStore;
+    documentId: string;
+    dir: string;
+    docPath: string;
+    idxPath: string;
+    index: PdfTextIndex;
+    calls: string[];
+    extract: (p: string) => Promise<string>;
+    pdfs: string[];
+  } {
+    const dir = mkdtempSync(join(tmpdir(), label));
+    const docPath = join(dir, 'lib.bib');
+    const store = new DocumentStore();
+    const idxPath = join(dir, 'idx.db');
+    const index = new PdfTextIndex(idxPath);
+    store.setPdfIndex(index);
+    const entries = Array.from({ length: n }, (_, i) => `@article{e${i}, Title = {Entry ${i}}}`);
+    const { documentId } = store.openText(entries.join('\n\n'), docPath);
+    const pdfs: string[] = [];
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    rows.forEach((r, i) => {
+      const p = join(dir, `paper${i}.pdf`);
+      writeFileSync(p, `%PDF-1.4 body ${i}`);
+      store.addAttachments(documentId, r.id, [p]);
+      pdfs.push(p);
+    });
+    // Persist AFTER attaching, so the "reopen" half of these tests reads a .bib
+    // that actually carries the Bdsk-File links (otherwise it would trivially
+    // find no PDFs and the assertion would pass for the wrong reason).
+    writeFileSync(docPath, store.serializeDocument(documentId), 'utf8');
+    const calls: string[] = [];
+    const extract = async (p: string): Promise<string> => {
+      calls.push(p);
+      return `extracted thermodynamics text for ${p}`;
+    };
+    return { store, documentId, dir, docPath, idxPath, index, calls, extract, pdfs };
+  }
+
+  it.runIf(SQLITE)('indexAttachments extracts each PDF once and does NOTHING on reopen', async () => {
+    const f = indexFixture('bd-idx-once-');
+    await f.store.indexAttachments(f.documentId, f.extract, undefined, 0);
+    expect(f.calls).toHaveLength(2); // both PDFs extracted the first time
+    expect(f.index.count()).toBe(2);
+    f.index.close();
+
+    // Reopen: a brand-new store + a fresh handle on the SAME database file, i.e.
+    // what the next launch sees. Nothing changed on disk, so nothing is extracted
+    // and no text is read back — this is the whole point of the rewrite.
+    const store2 = new DocumentStore();
+    const index2 = new PdfTextIndex(f.idxPath);
+    store2.setPdfIndex(index2);
+    const doc2 = store2.openFile(f.docPath).documentId;
+    const calls2: string[] = [];
+    await store2.indexAttachments(
+      doc2,
+      async (p) => {
+        calls2.push(p);
+        return 'should not happen';
+      },
+      undefined,
+      0,
+    );
+    expect(calls2).toEqual([]); // zero work on an unchanged library
+    expect(index2.count()).toBe(2); // …and the text is still there
+    // Guard against passing vacuously: an empty `calls2` would ALSO result from
+    // the reopened document linking no PDFs at all. Searching the persisted body
+    // text through the reopened document proves the links and the text are real.
+    expect(store2.ftsSearch(doc2, 'thermodynamics', true).ids).toHaveLength(2);
+    index2.close();
+  });
+
+  it.runIf(SQLITE)('re-extracts only the PDF whose content actually changed', async () => {
+    const f = indexFixture('bd-idx-delta-');
+    await f.store.indexAttachments(f.documentId, f.extract, undefined, 0);
+    f.calls.length = 0;
+
+    writeFileSync(f.pdfs[0]!, '%PDF-1.4 REPLACED with different bytes'); // e.g. after OCR
+    await f.store.reindexAttachments(f.documentId, f.extract, undefined, 0);
+
+    expect(f.calls).toEqual([f.pdfs[0]]); // only the changed one
+    f.index.close();
+  });
+
+  it.runIf(SQLITE)('a touched-but-identical PDF is not re-extracted', async () => {
+    const f = indexFixture('bd-idx-touch-');
+    await f.store.indexAttachments(f.documentId, f.extract, undefined, 0);
+    f.calls.length = 0;
+
+    // What AutoFile/Dropbox/a backup restore does: mtime moves, bytes don't.
+    const future = new Date(Date.now() + 60_000);
+    utimesSync(f.pdfs[0]!, future, future);
+    await f.store.reindexAttachments(f.documentId, f.extract, undefined, 0);
+
+    expect(f.calls).toEqual([]); // md5 confirmed the content, so no work
+    f.index.close();
+  });
+
+  it.runIf(SQLITE)('ftsSearch finds an entry by its PDF body only when includePdf', async () => {
+    const f = indexFixture('bd-idx-search-', 1);
+    await f.store.indexAttachments(f.documentId, f.extract, undefined, 0);
+    const itemId = f.store.listPublications({ documentId: f.documentId, offset: 0, limit: -1 })
+      .rows[0]!.id;
+
+    // "thermodynamics" appears only in the PDF body, never in a field.
+    expect(f.store.ftsSearch(f.documentId, 'thermodynamics', true).ids).toContain(itemId);
+    expect(f.store.ftsSearch(f.documentId, 'thermodynamics', false).ids).not.toContain(itemId);
+    // Field search still works, and works without the PDF index being consulted.
+    expect(f.store.ftsSearch(f.documentId, 'Entry', false).ids).toContain(itemId);
+    f.index.close();
+  });
+
+  it.runIf(SQLITE)('one PDF shared by two entries maps back to both', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-idx-shared-'));
+    const docPath = join(dir, 'lib.bib');
+    const store = new DocumentStore();
+    const index = new PdfTextIndex(join(dir, 'idx.db'));
+    store.setPdfIndex(index);
+    const { documentId } = store.openText(
+      '@article{a, Title = {A}}\n\n@article{b, Title = {B}}',
+      docPath,
+    );
+    const rows = store.listPublications({ documentId, offset: 0, limit: -1 }).rows;
+    const shared = join(dir, 'shared.pdf');
+    writeFileSync(shared, '%PDF-1.4');
+    for (const r of rows) store.addAttachments(documentId, r.id, [shared]);
+
+    const calls: string[] = [];
+    await store.indexAttachments(
+      documentId,
+      async (p) => {
+        calls.push(p);
+        return 'quantum entanglement';
+      },
+      undefined,
+      0,
+    );
+
+    expect(calls).toHaveLength(1); // extracted once, not once per entry
+    const ids = store.ftsSearch(documentId, 'entanglement', true).ids;
+    expect(ids).toHaveLength(2); // …but both entries match
+    expect(new Set(ids)).toEqual(new Set(rows.map((r) => r.id)));
+    index.close();
+  });
+
+  it.runIf(SQLITE)('an edit after indexing keeps PDF hits mapped to the right entry', async () => {
+    const f = indexFixture('bd-idx-edit-', 1);
+    await f.store.indexAttachments(f.documentId, f.extract, undefined, 0);
+    const itemId = f.store.listPublications({ documentId: f.documentId, offset: 0, limit: -1 })
+      .rows[0]!.id;
+
+    // Mutating an entry invalidates the cached path→items map; it must rebuild.
+    f.store.applyEdit({
+      documentId: f.documentId,
+      command: { kind: 'setField', itemId, field: 'Title', value: 'Renamed' },
+    });
+
+    expect(f.store.ftsSearch(f.documentId, 'thermodynamics', true).ids).toContain(itemId);
+    expect(f.store.ftsSearch(f.documentId, 'Renamed', false).ids).toContain(itemId);
+    f.index.close();
+  });
+
+  it('indexAttachments is inert when no PDF index is attached', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-idx-none-'));
+    const store = new DocumentStore(); // no setPdfIndex
+    const { documentId } = store.openText('@article{a, Title = {A}}', join(dir, 'lib.bib'));
+    const calls: string[] = [];
+    await store.indexAttachments(documentId, async (p) => {
+      calls.push(p);
+      return 'x';
+    });
+    expect(calls).toEqual([]); // no index → no extraction, and no crash
   });
 
   it('importRisText merges RIS records as new entries', () => {

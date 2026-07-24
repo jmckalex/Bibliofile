@@ -39,6 +39,9 @@ export default defineConfig({
           // Bundled separately so the main process can run it in a worker thread
           // (PDF text extraction off the main loop). Emitted as out/main/pdf-worker.js.
           'pdf-worker': resolve(__dirname, 'src/main/pdf-worker.ts'),
+          // Likewise: the one-time legacy pdf-text-cache.json migration parses a
+          // ~500 MB blob, so it runs off the main process entirely.
+          'migrate-worker': resolve(__dirname, 'src/main/migrate-worker.ts'),
         },
         // The OCR stack must load from node_modules at runtime, NOT be bundled:
         //  • tesseract.js computes its worker-thread script path from `__dirname`

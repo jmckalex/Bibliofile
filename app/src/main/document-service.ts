@@ -93,6 +93,7 @@ import { parseEndnote } from './endnote.js';
 import { parseAuxCiteKeys } from './aux.js';
 import { readFolders, writeFolders, nextFolderId, isSelfOrDescendant, type FolderRecord } from './folders.js';
 import { FtsIndex } from './fts.js';
+import { PdfTextIndex } from './pdf-index.js';
 import { extractPdfText } from './pdf-text.js';
 import {
   Condition,
@@ -672,6 +673,24 @@ export function itemFiles(item: BibItem, lib: BibLibrary, docPath: string): Item
   return out;
 }
 
+/**
+ * Absolute paths of an item's local PDF attachments, resolved against the
+ * document's directory. Shared by the indexer (deciding what to extract) and by
+ * search-result mapping (which entries a matched path belongs to), so the two can
+ * never disagree about what a given entry's PDFs are. Existence is NOT checked
+ * here — callers that need it check, and the map wants every linked path.
+ */
+export function itemPdfPaths(item: BibItem, lib: BibLibrary, docPath: string): string[] {
+  const baseDir = docPath ? dirname(docPath) : '';
+  const out: string[] = [];
+  for (const f of itemFiles(item, lib, docPath)) {
+    if (f.kind !== 'file' || !/\.pdf$/i.test(f.url)) continue;
+    const p = f.url.replace(/^file:\/\/(localhost)?/i, '');
+    out.push(isAbsolute(p) ? p : baseDir ? resolve(baseDir, p) : p);
+  }
+  return out;
+}
+
 /** Return `path`, or `path` with a `-1`, `-2`… suffix until it doesn't exist. */
 function uniquePath(path: string): string {
   if (!existsSync(path)) return path;
@@ -1026,13 +1045,24 @@ interface OpenDoc {
   readonly itemsById: Map<string, BibItem>;
   /** Live crossref store; new items are bound to it. */
   readonly crossrefStore: LibraryCrossrefStore;
-  /** SQLite FTS5 full-text index (field text + extracted PDF text). */
+  /**
+   * In-memory FTS5 index over this document's FIELD text.
+   *
+   * Deliberately not persisted: it is small, it changes on every edit, and it is
+   * keyed by an item id that is a fresh UUID on every parse — so a persisted copy
+   * would be worthless on the next launch. Extracted PDF text is the opposite on
+   * all three counts and lives in the on-disk, path-keyed {@link PdfTextIndex};
+   * see that module's header for the full rationale.
+   */
   readonly fts: FtsIndex;
-  /** Field-only FTS5 index (no PDF text) — used when full-text search is toggled off. */
-  readonly ftsFields: FtsIndex;
-  /** itemId → extracted PDF text from its attachments (filled lazily). */
-  readonly pdfText: Map<string, string>;
-  /** True once attachment PDF text has been indexed for this document. */
+  /**
+   * Absolute PDF path → ids of the items linking it, so on-disk full-text hits
+   * (which are keyed by path) map back to entries. `null` means "needs rebuilding"
+   * — invalidated by every mutation and rebuilt on demand, since searches are far
+   * more frequent than edits.
+   */
+  pdfPathItems: Map<string, string[]> | null;
+  /** True once this document's attachments have been reconciled this session. */
   attachmentsIndexed: boolean;
   /** Unsaved-changes flag, set by edits and cleared on save. */
   dirty: boolean;
@@ -1073,8 +1103,12 @@ function fileStamp(path: string): { mtimeMs: number; size: number } | undefined 
   }
 }
 
-/** Concatenated searchable text for an item (field text + any indexed PDF text). */
-function itemSearchText(item: BibItem, pdfText: string): string {
+/**
+ * Concatenated searchable FIELD text for an item. PDF text is deliberately NOT
+ * folded in here — it is indexed separately, on disk, keyed by file path (see
+ * {@link PdfTextIndex}), which is what keeps reopening a large library cheap.
+ */
+function itemSearchText(item: BibItem): string {
   const parts: string[] = [item.citeKey, item.type];
   const skip = new Set([
     COMPRESSED_FIELD.toLowerCase(),
@@ -1093,7 +1127,6 @@ function itemSearchText(item: BibItem, pdfText: string): string {
   if (notes) parts.push(detexify(notes));
   const abstract = readAbstract(item, false);
   if (abstract) parts.push(detexify(abstract));
-  if (pdfText) parts.push(pdfText);
   return parts.join(' \n ');
 }
 
@@ -1145,6 +1178,20 @@ export interface CloneDocumentResult {
 
 export class DocumentStore {
   private readonly docs = new Map<string, OpenDoc>();
+
+  /**
+   * The persistent, path-keyed PDF full-text index. Shared by every open document
+   * (it is keyed by absolute path, so two libraries citing the same PDF share one
+   * copy of its text) and injected by the Electron layer, which owns the userData
+   * location. Absent → PDF full-text search is simply unavailable; field search
+   * is untouched.
+   */
+  private pdfIndex: PdfTextIndex | undefined;
+
+  /** Attach the persistent PDF text index (see {@link pdfIndex}). */
+  setPdfIndex(index: PdfTextIndex | undefined): void {
+    this.pdfIndex = index;
+  }
 
   /** Editing defaults driven by preferences (cite-key format, new-entry type). */
   private editConfig = {
@@ -1353,13 +1400,10 @@ export class DocumentStore {
     const { library, crossrefStore } = openLibraryFromText(text, prev.path, encoding, hadBom);
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
-    const records = library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') }));
+    const records = library.items.map((i) => ({ id: i.id, text: itemSearchText(i) }));
     const fts = new FtsIndex();
     fts.rebuild(records);
-    const ftsFields = new FtsIndex();
-    ftsFields.rebuild(records);
     prev.fts.close();
-    prev.ftsFields.close();
     const next: OpenDoc = {
       documentId,
       path: prev.path,
@@ -1369,9 +1413,10 @@ export class DocumentStore {
       itemsById,
       crossrefStore,
       fts,
-      ftsFields,
-      pdfText: new Map(),
-      attachmentsIndexed: false,
+      pdfPathItems: null,
+      // A rebuild re-parses in-memory text; the PDFs on disk are unaffected, but
+      // the item ids are all new, so the path→items map must be rebuilt.
+      attachmentsIndexed: prev.attachmentsIndexed,
       dirty,
       encoding,
       hadBom,
@@ -1422,12 +1467,9 @@ export class DocumentStore {
     const { opened, library, crossrefStore, encoding, hadBom } = result;
     const itemsById = new Map<string, BibItem>();
     for (const item of library.items) itemsById.set(item.id, item);
-    const pdfText = new Map<string, string>();
-    const records = library.items.map((i) => ({ id: i.id, text: itemSearchText(i, '') }));
+    const records = library.items.map((i) => ({ id: i.id, text: itemSearchText(i) }));
     const fts = new FtsIndex();
     fts.rebuild(records);
-    const ftsFields = new FtsIndex();
-    ftsFields.rebuild(records);
     const doc: OpenDoc = {
       documentId: opened.documentId,
       path: opened.path,
@@ -1437,8 +1479,7 @@ export class DocumentStore {
       itemsById,
       crossrefStore,
       fts,
-      ftsFields,
-      pdfText,
+      pdfPathItems: null,
       attachmentsIndexed: false,
       dirty: false,
       encoding,
@@ -1457,20 +1498,37 @@ export class DocumentStore {
   }
 
   /**
-   * Re-index one item in both FTS indexes: the field-only index (`ftsFields`) and
-   * the full index (`fts`, field text + any cached PDF text). Keeping them in lock
-   * step lets the renderer toggle PDF/full-text search on and off per query.
+   * Re-index one item's field text, and invalidate the path→items map since an
+   * edit may have added, retargeted or removed an attachment.
    */
   private reindex(doc: OpenDoc, item: BibItem): void {
-    const fieldText = itemSearchText(item, '');
-    doc.ftsFields.upsert(item.id, fieldText);
-    doc.fts.upsert(item.id, itemSearchText(item, doc.pdfText.get(item.id) ?? ''));
+    doc.fts.upsert(item.id, itemSearchText(item));
+    doc.pdfPathItems = null;
   }
 
-  /** Drop one item from both FTS indexes (merge/delete). */
+  /** Drop one item from the field index (merge/delete). */
   private dropFromIndex(doc: OpenDoc, id: string): void {
     doc.fts.remove(id);
-    doc.ftsFields.remove(id);
+    doc.pdfPathItems = null;
+  }
+
+  /**
+   * Absolute PDF path → ids of the items linking it, built on demand and cached
+   * until the next mutation. Maps hits from the path-keyed on-disk index back to
+   * entries; one path can belong to several entries (a shared PDF).
+   */
+  private pdfPathsOf(doc: OpenDoc): Map<string, string[]> {
+    if (doc.pdfPathItems) return doc.pdfPathItems;
+    const map = new Map<string, string[]>();
+    for (const item of doc.library.items) {
+      for (const abs of itemPdfPaths(item, doc.library, doc.path)) {
+        const ids = map.get(abs);
+        if (ids) ids.push(item.id);
+        else map.set(abs, [item.id]);
+      }
+    }
+    doc.pdfPathItems = map;
+    return map;
   }
 
   /** Recompute the dynamic Author/Keyword category groups for the current state. */
@@ -1505,9 +1563,14 @@ export class DocumentStore {
 
   /** Close a document and release it. Throws if the id is unknown. */
   closeDocument(request: CloseDocumentRequest): ClosedDocument {
-    if (!this.docs.delete(request.documentId)) {
-      throw new Error(`Unknown documentId: ${request.documentId}`);
-    }
+    const doc = this.docs.get(request.documentId);
+    if (!doc) throw new Error(`Unknown documentId: ${request.documentId}`);
+    // Close the native FTS handle before dropping the doc: it owns a SQLite
+    // connection that GC does not reclaim, so open/close cycles leaked one per
+    // document (audit rpt-02 SEV-5). The shared PDF index is NOT closed here —
+    // it outlives individual documents.
+    doc.fts.close();
+    this.docs.delete(request.documentId);
     return { documentId: request.documentId };
   }
 
@@ -3063,86 +3126,106 @@ export class DocumentStore {
     includePdf = false,
   ): { available: boolean; ids: string[] } {
     const doc = this.requireDoc(documentId);
-    const index = includePdf ? doc.fts : doc.ftsFields;
-    const ids = index.search(query).filter((id) => doc.itemsById.has(id));
-    return { available: index.available, ids };
+    const ids = doc.fts.search(query).filter((id) => doc.itemsById.has(id));
+    if (!includePdf || !this.pdfIndex?.available) return { available: doc.fts.available, ids };
+
+    // Field hits first, then entries whose PDF *body* matched, in the on-disk
+    // index's own bm25 order. Field matches rank above body matches deliberately:
+    // a query hitting a title is a far stronger signal than one buried in a page
+    // of an attachment. Merging (rather than searching one combined index) is what
+    // lets the huge half live on disk keyed by path.
+    const seen = new Set(ids);
+    const byPath = this.pdfPathsOf(doc);
+    for (const path of this.pdfIndex.search(query)) {
+      for (const id of byPath.get(path) ?? []) {
+        if (seen.has(id) || !doc.itemsById.has(id)) continue;
+        seen.add(id);
+        ids.push(id);
+      }
+    }
+    return { available: doc.fts.available, ids };
   }
 
   /**
-   * Extract text from local PDF attachments and fold it into the full-text index
-   * (best-effort, once per document). Intended to run in the background after a
-   * document opens; the field-text index already works immediately.
+   * Reconcile the persistent PDF text index with this document's attachments:
+   * extract only the files that are new or whose CONTENT changed, and store their
+   * text on disk. Best-effort, once per document per session.
+   *
+   * This is the hot path when reopening a large library, so the shape matters.
+   * The index is consulted per file — nothing is read back — and `check()` answers
+   * from a cheap mtime+size stamp, hashing only when that stamp moved. A library
+   * whose PDFs are all unchanged therefore does no extraction and no text I/O at
+   * all: it costs one indexed lookup per file. (Previously every open re-read the
+   * entire extracted corpus — hundreds of MB — and re-tokenized it into a
+   * throwaway in-memory index.)
    *
    * `extract` is injected so the main process can run pdfjs in a worker-thread
-   * pool (off the main loop) and consult a persistent text cache; the default is
-   * the inline single-PDF extractor (used by tests and any non-Electron caller).
+   * pool, off the main loop; the default is the inline extractor used by tests.
+   * `pages` must match the `ftsPageLimit` the text is wanted at — a change there
+   * invalidates stored text, which `check()` reports as `page-limit`.
    */
   async indexAttachments(
     documentId: string,
     extract: (absPath: string) => Promise<string> = extractPdfText,
     onProgress?: (done: number, total: number) => void,
+    pages = 40,
   ): Promise<void> {
     const doc = this.docs.get(documentId);
-    if (!doc || doc.attachmentsIndexed || !doc.fts.available) return;
+    const index = this.pdfIndex;
+    if (!doc || doc.attachmentsIndexed || !index?.available) return;
     doc.attachmentsIndexed = true;
-    const stripScheme = (u: string): string => u.replace(/^file:\/\/(localhost)?/i, '');
-    const baseDir = doc.path ? dirname(doc.path) : '';
-    // Yield to the event loop between items so a long all-cache-hit reopen (no
-    // worker round-trip to interleave) still services IPC/UI rather than bursting.
-    const yieldToLoop = (): Promise<void> => new Promise((r) => setImmediate(r));
 
-    // Collect the items that actually have an existing PDF to extract, so progress
-    // is reported against real work (entries with no PDFs are not counted).
-    const work: { item: BibItem; paths: string[] }[] = [];
+    // Distinct paths: a PDF shared by several entries is extracted once, since
+    // the index is keyed by path rather than by entry.
+    const paths = new Set<string>();
     for (const item of doc.library.items) {
-      const paths: string[] = [];
-      for (const f of itemFiles(item, doc.library, doc.path)) {
-        if (f.kind !== 'file' || !/\.pdf$/i.test(f.url)) continue;
-        const p = stripScheme(f.url);
-        const abs = isAbsolute(p) ? p : baseDir ? resolve(baseDir, p) : p;
-        if (existsSync(abs)) paths.push(abs);
-      }
-      if (paths.length) work.push({ item, paths });
+      for (const abs of itemPdfPaths(item, doc.library, doc.path)) paths.add(abs);
     }
-    const total = work.length;
-    onProgress?.(0, total);
 
+    // Decide up front what actually needs extracting, so progress counts real
+    // work. Reporting 2000 "steps" that are all no-ops is what made a fully-cached
+    // reopen look like it was re-indexing the whole library.
+    const todo: string[] = [];
+    for (const abs of paths) {
+      if (index.check(abs, pages).extract) todo.push(abs);
+    }
+    const total = todo.length;
+    onProgress?.(0, total);
+    if (total === 0) return;
+
+    // Yield between files so extraction never monopolises the main loop.
+    const yieldToLoop = (): Promise<void> => new Promise((r) => setImmediate(r));
     let done = 0;
-    for (const { item, paths } of work) {
+    for (const abs of todo) {
       // The document may be closed (or re-opened) while indexing is in flight.
       if (this.docs.get(documentId) !== doc) return;
-      let added = '';
-      for (const abs of paths) {
-        await yieldToLoop();
+      await yieldToLoop();
+      try {
         const text = await extract(abs);
-        if (text) added += ` \n ${text}`;
-      }
-      if (added) {
-        doc.pdfText.set(item.id, (doc.pdfText.get(item.id) ?? '') + added);
-        this.reindex(doc, item);
+        if (text) index.put(abs, text, pages);
+      } catch {
+        /* one unreadable PDF must not abort the whole run */
       }
       onProgress?.(++done, total);
     }
   }
 
   /**
-   * Re-extract + re-index every PDF attachment for a document — used when the
-   * full-text page-limit changes. Drops the previously-indexed PDF text first,
-   * then re-runs {@link indexAttachments}, which re-extracts at the now-current
-   * limit (the injected extractor / cache key on the page limit do the rest).
+   * Force re-extraction of every PDF attachment — used when the full-text page
+   * limit changes, so stored text no longer covers the wanted pages. Clearing the
+   * session flag is enough: {@link indexAttachments} asks the index per file, and
+   * a different `pages` value makes every check report `page-limit`.
    */
   async reindexAttachments(
     documentId: string,
     extract: (absPath: string) => Promise<string> = extractPdfText,
     onProgress?: (done: number, total: number) => void,
+    pages = 40,
   ): Promise<void> {
     const doc = this.docs.get(documentId);
-    if (!doc || !doc.fts.available) return;
-    for (const item of doc.library.items) {
-      if (doc.pdfText.delete(item.id)) this.reindex(doc, item);
-    }
+    if (!doc) return;
     doc.attachmentsIndexed = false;
-    await this.indexAttachments(documentId, extract, onProgress);
+    await this.indexAttachments(documentId, extract, onProgress, pages);
   }
 
   /** Ids of all currently-open documents. */
