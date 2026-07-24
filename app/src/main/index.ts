@@ -100,6 +100,7 @@ import { importPdfsSmart } from './import-smart.js';
 import { extractPdfText } from './pdf-text.js';
 import { PdfPool } from './pdf-pool.js';
 import { PdfTextIndex } from './pdf-index.js';
+import { isRememberedUrl, rememberFetchableUrl } from './url-guard.js';
 import type { MigrateRequest, MigrateResult } from './migrate-worker.js';
 import { buildHelpHtml, findHelpDir } from './help.js';
 import { getSettings, loadSettings, updateSettings } from './settings.js';
@@ -1003,6 +1004,11 @@ async function locateOaPdfs(
   setContactEmail(getSettings().contactEmail ?? '');
   // Record one entry's outcome and stream it to the UI for live progress.
   const emit = (r: OaPdfItemResult): void => {
+    // Any URL we hand the renderer becomes one it may later ask main to fetch
+    // (the "possible match" review). Record it, so `fetchPdfBytes` can refuse
+    // URLs the renderer invented rather than acting as an open proxy
+    // (audit rpt-02 SEV-7).
+    if (r.url) rememberFetchableUrl(r.url);
     results.push(r);
     onProgress?.({ documentId, done: results.length, total, result: r });
   };
@@ -2849,6 +2855,14 @@ function registerIpc(): void {
     [IpcChannels.findBrokenLinks]: (req) => ({ links: store.findBrokenLinks(req.documentId) }),
     [IpcChannels.findOpenAccessPdf]: (req) => locateOaPdfs(req.documentId, req.itemIds),
     [IpcChannels.fetchPdfBytes]: async (req) => {
+      // Main fetching a renderer-supplied URL is a proxy: without this it can be
+      // pointed at loopback, RFC-1918 hosts or the cloud metadata endpoint, and
+      // the response inferred. Only URLs main itself surfaced from a locator run
+      // are fetchable (audit rpt-02 SEV-7 / rpt-04 SEV-M3).
+      if (!isRememberedUrl(req.url)) {
+        console.warn('[fetch] refused a URL this app did not surface:', req.url);
+        return { data: null, error: 'That PDF link did not come from a search result.' };
+      }
       const buf = await downloadPdf(req.url);
       return buf ? { data: new Uint8Array(buf) } : { data: null, error: 'Could not download the PDF.' };
     },

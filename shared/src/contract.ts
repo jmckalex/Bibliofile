@@ -102,6 +102,9 @@ import type {
   RenameAuthorResult,
   OpenEditorRequest,
   DocumentChangedEvent,
+  OaPdfProgress,
+  IndexProgress,
+  OcrProgress,
   FieldSuggestionsRequest,
   FieldSuggestionsResponse,
   AutoFileRequest,
@@ -229,6 +232,13 @@ export interface IpcEventMap {
   [IpcEvents.menuExportTemplate]: ExportTemplateMenuRequest;
   [IpcEvents.menuSetColor]: number;
   [IpcEvents.documentChanged]: DocumentChangedEvent;
+  // Streaming-progress channels. These were pushed at runtime and subscribed in
+  // preload, but absent here — so their payload shapes were enforced only by
+  // hand-written annotations at each end, and a field could be dropped over IPC
+  // with no compile error. `contract.test.ts` now asserts this map is exhaustive.
+  [IpcEvents.oaPdfProgress]: OaPdfProgress;
+  [IpcEvents.indexProgress]: IndexProgress;
+  [IpcEvents.ocrProgress]: OcrProgress;
 }
 
 /** Request payload type for a given request/response channel. */

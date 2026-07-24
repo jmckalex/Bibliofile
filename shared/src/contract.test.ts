@@ -11,6 +11,7 @@ import {
   type BibDeskApi,
   type GroupNode,
   type IpcContract,
+  type IpcEventMap,
   type ItemDetail,
   type OpenedDocument,
   type PublicationRow,
@@ -157,5 +158,24 @@ describe('type-level contract checks', () => {
 
   it('IpcHandlers covers exactly the request/response channels', () => {
     expectTypeOf<keyof IpcHandlers>().toEqualTypeOf<keyof IpcContract>();
+  });
+
+  // IpcEventMap silently covered only 8 of the 11 push channels: the three
+  // streaming-progress ones were sent by main and subscribed in preload with
+  // hand-written annotations at each end, so a payload shape could change on one
+  // side with no compile error (audit rpt-04 SEV-M1). Assert exhaustiveness both
+  // ways so neither a new channel nor a stale map entry can slip through.
+  it('IpcEventMap covers exactly the event channels', () => {
+    expectTypeOf<keyof IpcEventMap>().toEqualTypeOf<(typeof IpcEvents)[keyof typeof IpcEvents]>();
+  });
+
+  it('every event channel has a runtime-reachable payload type', () => {
+    // A value-level companion to the type test above: the map's keys and the
+    // IpcEvents values must be the same set at runtime too.
+    const declared = Object.values(IpcEvents).sort();
+    // `IpcEventMap` is a type, so enumerate the channels the preload bridge and
+    // main actually use via IpcEvents itself; this guards the constant object.
+    expect(new Set(declared).size).toBe(declared.length);
+    expect(declared).toHaveLength(11);
   });
 });

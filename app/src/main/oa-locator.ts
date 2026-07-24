@@ -17,6 +17,8 @@
  * job.
  */
 
+import { isPubliclyFetchable } from './url-guard.js';
+
 const UA = 'Bibliofile (bibliography manager)';
 
 // --- pure helpers (exported for tests) --------------------------------------
@@ -194,6 +196,9 @@ const MAX_RETRIES = 3;
 const LOOKUP_TIMEOUT_MS = 15_000;
 const PDF_TIMEOUT_MS = 45_000;
 
+/** Redirect hops we will follow for a PDF download before giving up. */
+const MAX_REDIRECTS = 5;
+
 let contactEmail = '';
 let nextSlot = 0; // earliest timestamp the next request may start
 
@@ -370,16 +375,31 @@ const defaultDeps: LocateDeps = { oaPdfForDoi: unpaywallPdf, resolveByTitle: cro
  * so a stalled host can't hang the batch.
  */
 export async function downloadPdf(url: string): Promise<Buffer | null> {
+  // Follow redirects BY HAND, revalidating every hop. `redirect: 'follow'` would
+  // happily land on http://169.254.169.254/ after a public first hop, so the
+  // guard has to apply to each target, not just the one we were handed
+  // (audit rpt-02 SEV-7).
+  let target = url;
   try {
-    const { res, body } = await fetchWithTimeout(
-      url,
-      { headers: { 'User-Agent': UA }, redirect: 'follow' },
-      PDF_TIMEOUT_MS,
-      (r) => (r.ok ? r.arrayBuffer() : Promise.resolve(undefined)),
-    );
-    if (!res.ok || !body) return null;
-    const buf = Buffer.from(body as ArrayBuffer);
-    return looksLikePdf(buf) ? buf : null;
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+      if (!isPubliclyFetchable(target)) return null;
+      const { res, body } = await fetchWithTimeout(
+        target,
+        { headers: { 'User-Agent': UA }, redirect: 'manual' },
+        PDF_TIMEOUT_MS,
+        (r) => (r.ok ? r.arrayBuffer() : Promise.resolve(undefined)),
+      );
+      if (res.status >= 300 && res.status < 400) {
+        const next = res.headers.get('location');
+        if (!next) return null;
+        target = new URL(next, target).toString(); // may be relative
+        continue;
+      }
+      if (!res.ok || !body) return null;
+      const buf = Buffer.from(body as ArrayBuffer);
+      return looksLikePdf(buf) ? buf : null;
+    }
+    return null; // too many hops — a redirect loop or a deliberate stall
   } catch {
     return null; // timeout / network / abort → treat as "no PDF available"
   }
