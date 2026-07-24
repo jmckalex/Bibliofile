@@ -631,6 +631,8 @@ export const en: Catalog = {
   'dialog.couldNotOpen': 'Could not open {path}',
   'dialog.couldNotCreate': 'Could not create the bibliography',
   'dialog.couldNotExport': 'Could not export the document',
+  'dialog.linksRefreshed':
+    'Updated {count} attachment {fileNoun} with macOS bookmarks (no files moved).',
   'dialog.couldNotClone': 'Could not clone the bibliography',
   'dialog.cloneTitle': 'Clone Bibliography',
   'dialog.cloneDone': 'Cloned {count} {entryNoun} to “{name}”',

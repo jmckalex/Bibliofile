@@ -1497,6 +1497,41 @@ async function newDocument(): Promise<void> {
   }
 }
 
+/**
+ * One-line outcome of an AutoFile / Consolidate run.
+ *
+ * Reports moved files and refreshed links separately: on a library that is
+ * already tidy, everything is where it should be and NOTHING moves — reporting
+ * only "moved" there made a successful run that added thousands of BibDesk
+ * bookmarks read as "nothing needed filing".
+ */
+function filingSummary(res: {
+  moved: number;
+  refreshed?: number;
+  itemsAffected: number;
+}): string {
+  const parts: string[] = [];
+  if (res.moved > 0) {
+    parts.push(
+      t('dialog.filed', {
+        count: res.moved,
+        fileNoun: t(res.moved === 1 ? 'dialog.file' : 'dialog.files'),
+        entryCount: res.itemsAffected,
+        entryNoun: t(res.itemsAffected === 1 ? 'dialog.entry' : 'dialog.entries'),
+      }),
+    );
+  }
+  if (res.refreshed && res.refreshed > 0) {
+    parts.push(
+      t('dialog.linksRefreshed', {
+        count: res.refreshed,
+        fileNoun: t(res.refreshed === 1 ? 'dialog.file' : 'dialog.files'),
+      }),
+    );
+  }
+  return parts.length ? parts.join(' ') : t('dialog.noFilingNeeded');
+}
+
 /** Send a menu command to the focused library window (which acts on its own state). */
 function sendMenuCommand(command: MenuCommand): void {
   focusedWindow()?.webContents.send(IpcEvents.menuCommand, command);
@@ -3165,15 +3200,7 @@ function registerIpc(): void {
       const summaryOpts: Electron.MessageBoxOptions = {
         type: res.errors.length ? 'warning' : 'info',
         buttons: [t('dialog.ok')],
-        message:
-          res.moved > 0
-            ? t('dialog.filed', {
-                count: res.moved,
-                fileNoun: t(res.moved === 1 ? 'dialog.file' : 'dialog.files'),
-                entryCount: res.itemsAffected,
-                entryNoun: t(res.itemsAffected === 1 ? 'dialog.entry' : 'dialog.entries'),
-              })
-            : t('dialog.noFilingNeeded'),
+        message: filingSummary(res),
         ...(res.errors.length
           ? {
               detail: t(res.errors.length === 1 ? 'dialog.problems' : 'dialog.problemsPlural', {
@@ -3216,15 +3243,7 @@ function registerIpc(): void {
       const summaryOpts: Electron.MessageBoxOptions = {
         type: res.errors.length ? 'warning' : 'info',
         buttons: [t('dialog.ok')],
-        message:
-          res.moved > 0
-            ? t('dialog.filed', {
-                count: res.moved,
-                fileNoun: t(res.moved === 1 ? 'dialog.file' : 'dialog.files'),
-                entryCount: res.itemsAffected,
-                entryNoun: t(res.itemsAffected === 1 ? 'dialog.entry' : 'dialog.entries'),
-              })
-            : t('dialog.noFilingNeeded'),
+        message: filingSummary(res),
         ...(res.errors.length
           ? {
               detail: t(res.errors.length === 1 ? 'dialog.problems' : 'dialog.problemsPlural', {

@@ -58,6 +58,17 @@ jobs:
         working-directory: app
         run: node -e "const D=require('better-sqlite3');const db=new D(':memory:');db.exec('CREATE VIRTUAL TABLE t USING fts5(x)');db.close();console.log('better-sqlite3 + FTS5 OK')"
 
+      # The macOS bookmark addon writes the `bookmark` blob that makes our
+      # attachments byte-compatible with BibDesk's. Its tests self-skip when it
+      # isn't built, so build it here or they would silently never run. Node-API,
+      # so the `node` target's binary is equally valid for the packaged Electron
+      # app — no per-ABI rebuild, and no Electron headers to fetch in CI.
+      - name: Build the macOS bookmark addon
+        run: node scripts/build-bookmark-addon.mjs node
+
+      - name: Assert bookmark generation works
+        run: node -e "const bm=require('./app/native/bookmark/build/Release/bibliophile_bookmark.node');const b=bm.create(process.cwd());if(!b||b.subarray(0,4).toString()!=='book')throw new Error('bookmark creation failed');console.log('bookmark addon OK')"
+
       # Runs after build:app so the built renderer exists for the prod-CSP
       # build-output test. TeX-preview tests self-skip when TeX isn't installed.
       - name: Test

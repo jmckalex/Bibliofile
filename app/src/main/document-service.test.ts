@@ -14,7 +14,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { describe, it, expect } from 'vitest';
@@ -29,6 +29,8 @@ import {
 } from './document-service.js';
 import { FtsIndex } from './fts.js';
 import { PdfTextIndex } from './pdf-index.js';
+import { bookmarkFor, bookmarksAvailable, resolveBookmark } from './bookmark.js';
+import { decodeBdskFile, encodeBdskFile } from '@bibdesk/bibtex';
 import { renderCite, renderBibliography } from './csl-format.js';
 
 /** Whether the native FTS backend loads in this runtime (skips FTS tests if not). */
@@ -41,6 +43,15 @@ const FTS_AVAILABLE = ((): boolean => {
 
 /** Same native backend, so the persistent PDF index is available exactly when FTS is. */
 const SQLITE = FTS_AVAILABLE;
+
+/** Whether the macOS bookmark addon is built for this runtime's ABI. */
+const HAVE_BOOKMARKS = bookmarksAvailable();
+
+/** macOS canonicalises /var → /private/var, so compare resolved paths loosely. */
+function samePath(a: string | undefined, b: string): boolean {
+  if (!a) return false;
+  return a === b || a === `/private${b}` || `/private${a}` === b;
+}
 
 // The verbatim BD test.bib copied into the repo by the golden-harness task (T1).
 const FIXTURE = fileURLToPath(
@@ -946,6 +957,72 @@ describe('document-service: BD test.bib', () => {
     expect(() => store.cloneDocument(documentId, docPath, papers)).toThrow(/different file/i);
   });
 
+  it.runIf(HAVE_BOOKMARKS)('a new attachment carries a BibDesk-compatible bookmark', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-bm-attach-'));
+    const store = new DocumentStore();
+    const { documentId } = store.openText('@article{a, Title = {A}}', join(dir, 'lib.bib'));
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const pdf = join(dir, 'paper.pdf');
+    writeFileSync(pdf, '%PDF-1.4');
+
+    store.addAttachments(documentId, itemId, [pdf]);
+
+    const b64 = /bdsk-file-1\s*=\s*\{([A-Za-z0-9+/=]+)\}/i.exec(store.serializeDocument(documentId));
+    const plist = decodeBdskFile(b64![1]!) as { relativePath: string; bookmark: Buffer };
+    expect(Object.keys(plist)).toEqual(['relativePath', 'bookmark']); // BibDesk's own order
+    expect(plist.relativePath).toBe('paper.pdf');
+    expect(samePath(resolveBookmark(Buffer.from(plist.bookmark)), pdf)).toBe(true);
+  });
+
+  it.runIf(HAVE_BOOKMARKS)("a clone's bookmark points at the COPY, never the original", () => {
+    const f = cloneFixture('bd-bm-clone-');
+    const papers = join(f.dir, 'Papers');
+
+    f.store.cloneDocument(f.documentId, join(f.dir, 'clone.bib'), papers);
+
+    const clone = new DocumentStore();
+    const cloneId = clone.openFile(join(f.dir, 'clone.bib')).documentId;
+    const b64 = /bdsk-file-1\s*=\s*\{([A-Za-z0-9+/=]+)\}/i.exec(clone.serializeDocument(cloneId));
+    const plist = decodeBdskFile(b64![1]!) as { relativePath: string; bookmark: Buffer };
+    const target = resolveBookmark(Buffer.from(plist.bookmark))!;
+
+    // THE safety property. A macOS bookmark tracks a file by identity, so had the
+    // source's blob been carried over, the clone would resolve straight back to
+    // the original library's PDF and "experiment freely" would be a lie.
+    expect(target.includes(`${sep}Papers${sep}`)).toBe(true);
+    expect(f.srcs.some((s) => samePath(target, s))).toBe(false);
+  });
+
+  it.runIf(HAVE_BOOKMARKS)('a clone KEEPS the original bookmark when the copy cannot happen', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-bm-keep-'));
+    const docPath = join(dir, 'lib.bib');
+    const pdf = join(dir, 'paper.pdf');
+    writeFileSync(pdf, '%PDF-1.4');
+    // A source library shaped exactly like BibDesk's: relativePath + bookmark.
+    const original = { relativePath: 'paper.pdf', bookmark: bookmarkFor(pdf)! };
+    writeFileSync(
+      docPath,
+      `@article{a,\n\tTitle = {A},\n\tbdsk-file-1 = {${encodeBdskFile(original)}}}\n`,
+      'utf8',
+    );
+    const store = new DocumentStore();
+    const { documentId } = store.openFile(docPath);
+    store.setEditConfig({ papersFolder: join(dir, 'Papers'), autoFileFormat: '%a1%Y' });
+
+    rmSync(pdf); // the copy can't happen — the source file is gone
+    const res = store.cloneDocument(documentId, join(dir, 'clone.bib'), join(dir, 'Papers'));
+    expect(res.notCopied).toBe(1);
+
+    const clone = new DocumentStore();
+    const cloneId = clone.openFile(join(dir, 'clone.bib')).documentId;
+    const b64 = /bdsk-file-1\s*=\s*\{([A-Za-z0-9+/=]+)\}/i.exec(clone.serializeDocument(cloneId));
+    const plist = decodeBdskFile(b64![1]!) as { relativePath: string; bookmark?: Buffer };
+    // The link still names that same file, so BibDesk's own recovery blob for it
+    // is still valid and must not be thrown away.
+    expect(plist.bookmark).toBeDefined();
+    expect(Buffer.from(plist.bookmark!).equals(original.bookmark)).toBe(true);
+  });
+
   it('cloneDocument refuses to overwrite a DIFFERENT open bibliography', () => {
     const { store, documentId, dir } = cloneFixture('bd-clone-open-');
     // A second library open in the same session, with its own on-disk file.
@@ -1136,6 +1213,69 @@ describe('document-service: BD test.bib', () => {
       return 'x';
     });
     expect(calls).toEqual([]); // no index → no extraction, and no crash
+  });
+
+  it('consolidate leaves a `-N` uniquified file alone instead of renaming it each run', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-consolidate-uniq-'));
+    const papers = join(dir, 'Papers');
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@article{euler1748, Author = {Leonhard Euler}, Year = {1748}}',
+      join(dir, 'lib.bib'),
+    );
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    store.setEditConfig({ papersFolder: papers, autoFileFormat: '%a1%Y' });
+
+    // Another entry already owns the ideal name, so this one lives at `-1`.
+    mkdirSync(papers, { recursive: true });
+    writeFileSync(join(papers, 'Euler1748.pdf'), 'SOMEONE ELSE');
+    const mine = join(papers, 'Euler1748-1.pdf');
+    writeFileSync(mine, '%PDF-1.4 mine');
+    store.addAttachments(documentId, itemId, [mine]);
+
+    // Every run used to coin the next suffix: -2, then -3, then -4…
+    for (let i = 0; i < 3; i++) store.consolidateLinkedFiles(documentId);
+
+    expect(existsSync(mine)).toBe(true); // stayed put
+    expect(existsSync(join(papers, 'Euler1748-2.pdf'))).toBe(false);
+    expect(readFileSync(join(papers, 'Euler1748.pdf'), 'utf8')).toBe('SOMEONE ELSE'); // untouched
+    expect(store.getItemDetail({ documentId, itemId }).files[0]!.url).toBe(mine);
+  });
+
+  it.runIf(HAVE_BOOKMARKS)('consolidate backfills bookmarks WITHOUT moving anything', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-consolidate-backfill-'));
+    const papers = join(dir, 'Papers');
+    mkdirSync(papers, { recursive: true });
+    const docPath = join(dir, 'lib.bib');
+    // A library exactly as the cross-platform writer used to leave it: the file
+    // already sits at its AutoFile target, and the plist has no bookmark.
+    const filed = join(papers, 'Euler1748.pdf');
+    writeFileSync(filed, '%PDF-1.4');
+    writeFileSync(
+      docPath,
+      `@article{euler1748,\n\tAuthor = {Leonhard Euler},\n\tYear = {1748},\n\tbdsk-file-1 = {${encodeBdskFile(
+        { relativePath: 'Papers/Euler1748.pdf' },
+      )}}}\n`,
+      'utf8',
+    );
+    const store = new DocumentStore();
+    const { documentId } = store.openFile(docPath);
+    store.setEditConfig({ papersFolder: papers, autoFileFormat: '%a1%Y' });
+
+    const res = store.consolidateLinkedFiles(documentId);
+
+    expect(res.moved).toBe(0); // nothing needed moving — and nothing was moved
+    expect(res.refreshed).toBe(1); // …but the link was brought up to parity
+    expect(res.dirty).toBe(true);
+    expect(existsSync(filed)).toBe(true);
+
+    const b64 = /bdsk-file-1\s*=\s*\{([A-Za-z0-9+/=]+)\}/i.exec(store.serializeDocument(documentId));
+    const plist = decodeBdskFile(b64![1]!) as { relativePath: string; bookmark: Buffer };
+    expect(plist.relativePath).toBe('Papers/Euler1748.pdf'); // path untouched
+    expect(samePath(resolveBookmark(Buffer.from(plist.bookmark)), filed)).toBe(true);
+
+    // Idempotent: a second run has nothing left to do.
+    expect(store.consolidateLinkedFiles(documentId).refreshed).toBe(0);
   });
 
   it('importRisText merges RIS records as new entries', () => {

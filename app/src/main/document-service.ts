@@ -21,7 +21,6 @@
  */
 
 import {
-  constants as fsConstants,
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -42,6 +41,7 @@ import {
   relativePathOf,
   plistInteger,
   type BibLibrary,
+  type BdskFilePlist,
   type GroupRecord,
 } from '@bibdesk/bibtex';
 import {
@@ -94,6 +94,7 @@ import { parseAuxCiteKeys } from './aux.js';
 import { readFolders, writeFolders, nextFolderId, isSelfOrDescendant, type FolderRecord } from './folders.js';
 import { FtsIndex } from './fts.js';
 import { PdfTextIndex } from './pdf-index.js';
+import { bookmarkFor, copyFilePreservingAttributes } from './bookmark.js';
 import { extractPdfText } from './pdf-text.js';
 import {
   Condition,
@@ -620,6 +621,22 @@ function fieldDisplayValue(name: string, raw: string): string {
 /** Matches a managed `Bdsk-File-N` attachment field. */
 const BDSK_FILE_RE = /^bdsk-file-\d+$/i;
 
+/**
+ * Build a `bdsk-file-N` plist for an attachment: BibDesk's portable
+ * `relativePath` (stored relative to the document) plus, on macOS, the
+ * `bookmark` blob BibDesk uses to re-find a file that has since been renamed or
+ * moved. Key order matches BibDesk's own writer.
+ *
+ * `absPath` must be where the file actually IS now — a bookmark is a handle to a
+ * real file, so it is only ever created for the file this attachment points at.
+ * Where bookmarks are unavailable the plist is `relativePath`-only, which
+ * BibDesk still resolves (it consults `relativePath` before the bookmark).
+ */
+function bdskFilePlist(relativePath: string, absPath: string): Record<string, unknown> {
+  const bookmark = bookmarkFor(absPath);
+  return bookmark ? { relativePath, bookmark } : { relativePath };
+}
+
 /** Next free `Bdsk-File-N` index for an item (1-based, after the current max). */
 function nextBdskFileIndex(item: BibItem): number {
   let max = 0;
@@ -689,6 +706,27 @@ export function itemPdfPaths(item: BibItem, lib: BibLibrary, docPath: string): s
     out.push(isAbsolute(p) ? p : baseDir ? resolve(baseDir, p) : p);
   }
   return out;
+}
+
+/**
+ * Is `src` already sitting where AutoFile would put it — either exactly at
+ * `intended`, or beside it under the `-1`, `-2`… name {@link uniquePath} coins
+ * when the ideal name is taken?
+ *
+ * The `-N` case matters for idempotency. Comparing only against the exact
+ * intended name means a file parked at `Title-1.pdf` (because another entry
+ * already owns `Title.pdf`) looks unfiled on EVERY run, and each run renames it
+ * again — `-2`, `-3`, `-4`… Treating the suffixed form as filed stops that walk.
+ */
+function isFiledAt(src: string, intended: string): boolean {
+  const from = resolve(src);
+  const to = resolve(intended);
+  if (from === to) return true;
+  if (dirname(from) !== dirname(to)) return false;
+  const ext = extname(to);
+  if (extname(from).toLowerCase() !== ext.toLowerCase()) return false;
+  const stem = basename(to, ext).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`^${stem}-\\d+$`).test(basename(from, extname(from)));
 }
 
 /** Return `path`, or `path` with a `-1`, `-2`… suffix until it doesn't exist. */
@@ -2151,7 +2189,7 @@ export class DocumentStore {
     for (const abs of absPaths) {
       const rel = baseDir ? relative(baseDir, abs) : abs;
       const field = `Bdsk-File-${n++}`;
-      const plist = { relativePath: rel };
+      const plist = bdskFilePlist(rel, abs);
       item.setField(field, encodeBdskFile(plist));
       doc.library.bdskFiles.set(bdskFileKey(item.id, field), plist);
     }
@@ -2171,19 +2209,22 @@ export class DocumentStore {
    * fall back to copy. Returns how many files moved + per-file errors. Mirrors
    * BibDesk's "AutoFile Linked File".
    */
-  autoFile(documentId: string, itemId: string): { moved: number; errors: string[]; detail: ItemDetail } {
+  autoFile(
+    documentId: string,
+    itemId: string,
+  ): { moved: number; refreshed: number; errors: string[]; detail: ItemDetail } {
     this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const item = this.itemOf(doc, itemId);
     const papers = this.editConfig.papersFolder;
     if (!papers) throw new Error('No Papers folder is configured (set one in Preferences).');
     const baseDir = doc.path ? dirname(doc.path) : '';
-    const { moved, errors } = this.autoFileItemFiles(doc, item, papers, baseDir);
-    if (moved) {
-      doc.dirty = true;
+    const { moved, refreshed, errors } = this.autoFileItemFiles(doc, item, papers, baseDir);
+    if (moved || refreshed) {
+      doc.dirty = true; // a refreshed bookmark still changes the .bib
       this.reindex(doc, item);
     }
-    return { moved, errors, detail: this.detailFor(doc, item) };
+    return { moved, refreshed, errors, detail: this.detailFor(doc, item) };
   }
 
   /**
@@ -2199,9 +2240,10 @@ export class DocumentStore {
     item: BibItem,
     papers: string,
     baseDir: string,
-  ): { moved: number; errors: string[] } {
+  ): { moved: number; refreshed: number; errors: string[] } {
     const errors: string[] = [];
     let moved = 0;
+    let refreshed = 0;
     for (const name of item.fieldNames()) {
       if (!BDSK_FILE_RE.test(name)) continue;
       const plist = doc.library.bdskFiles.get(bdskFileKey(item.id, name));
@@ -2221,7 +2263,14 @@ export class DocumentStore {
       // `name-1`, `name-2`, … each run — not idempotent).
       const intended = join(papers, (stem || item.citeKey || 'paper') + ext);
       try {
-        if (resolve(src) === resolve(intended)) continue; // already filed
+        if (isFiledAt(src, intended)) {
+          // Already where AutoFile wants it (possibly under a `-N` name coined
+          // when its ideal name was taken). Nothing to move — but the plist may
+          // predate bookmark support, and re-filing is the natural moment to make
+          // an existing library BibDesk-compatible, so top it up in place.
+          if (this.refreshBookmark(doc, item, name, plist, rel, src)) refreshed++;
+          continue;
+        }
         mkdirSync(dirname(intended), { recursive: true });
         const dest = uniquePath(intended);
         try {
@@ -2235,7 +2284,9 @@ export class DocumentStore {
           }
         }
         const newRel = baseDir ? relative(baseDir, dest) : dest;
-        const newPlist = { relativePath: newRel };
+        // The file MOVED, so its old bookmark is regenerated against the new
+        // location rather than carried over.
+        const newPlist = bdskFilePlist(newRel, dest);
         item.setField(name, encodeBdskFile(newPlist));
         doc.library.bdskFiles.set(bdskFileKey(item.id, name), newPlist);
         moved++;
@@ -2243,7 +2294,34 @@ export class DocumentStore {
         errors.push(`${basename(src)}: ${e instanceof Error ? e.message : String(e)}`);
       }
     }
-    return { moved, errors };
+    return { moved, refreshed, errors };
+  }
+
+  /**
+   * Add a macOS bookmark to an attachment plist that has none, leaving the file
+   * where it is. Returns whether anything changed.
+   *
+   * This is how a library written before bookmark support (or by the
+   * cross-platform writer) is brought up to BibDesk parity without touching a
+   * single file. An existing bookmark is left alone: it tracks the file by
+   * identity, so it is still valid even if the name has changed, and rewriting
+   * every one of them would churn the whole `.bib` for no gain.
+   */
+  private refreshBookmark(
+    doc: OpenDoc,
+    item: BibItem,
+    field: string,
+    plist: BdskFilePlist,
+    rel: string,
+    absPath: string,
+  ): boolean {
+    if (typeof plist === 'object' && plist !== null && 'bookmark' in plist) return false;
+    const bookmark = bookmarkFor(absPath);
+    if (!bookmark) return false; // unavailable platform/build — stay as we were
+    const next = { relativePath: rel, bookmark };
+    item.setField(field, encodeBdskFile(next));
+    doc.library.bdskFiles.set(bdskFileKey(item.id, field), next);
+    return true;
   }
 
   /**
@@ -2257,7 +2335,14 @@ export class DocumentStore {
   consolidateLinkedFiles(
     documentId: string,
     itemIds?: readonly string[],
-  ): { scanned: number; itemsAffected: number; moved: number; dirty: boolean; errors: string[] } {
+  ): {
+    scanned: number;
+    itemsAffected: number;
+    moved: number;
+    refreshed: number;
+    dirty: boolean;
+    errors: string[];
+  } {
     this.snapshot(documentId);
     const doc = this.requireDoc(documentId);
     const papers = this.editConfig.papersFolder;
@@ -2271,18 +2356,20 @@ export class DocumentStore {
 
     const errors: string[] = [];
     let moved = 0;
+    let refreshed = 0;
     let itemsAffected = 0;
     for (const item of targets) {
       const res = this.autoFileItemFiles(doc, item, papers, baseDir);
-      if (res.moved > 0) {
+      if (res.moved > 0 || res.refreshed > 0) {
         moved += res.moved;
+        refreshed += res.refreshed;
         itemsAffected++;
         this.reindex(doc, item);
       }
       for (const e of res.errors) errors.push(`${item.citeKey}: ${e}`);
     }
-    if (moved) doc.dirty = true;
-    return { scanned: targets.length, itemsAffected, moved, dirty: doc.dirty, errors };
+    if (moved || refreshed) doc.dirty = true;
+    return { scanned: targets.length, itemsAffected, moved, refreshed, dirty: doc.dirty, errors };
   }
 
   /**
@@ -2302,10 +2389,11 @@ export class DocumentStore {
     const intended = join(papers, (stem || item.citeKey || 'paper') + extname(src));
     mkdirSync(dirname(intended), { recursive: true });
     const dest = uniquePath(intended);
-    // COPYFILE_EXCL makes "never clobber" an OS guarantee rather than something
-    // uniquePath's existsSync merely checked a moment ago — this whole feature
-    // exists so the user's real files can't be harmed, so it fails loudly instead.
-    copyFileSync(src, dest, fsConstants.COPYFILE_EXCL);
+    // Preserves extended attributes (Finder tags/comments) as well as the bytes,
+    // and is exclusive — "never clobber" stays an OS guarantee rather than
+    // something uniquePath's existsSync merely checked a moment ago. This whole
+    // feature exists so the user's real files can't be harmed, so it fails loudly.
+    copyFilePreservingAttributes(src, dest);
     return dest;
   }
 
@@ -2372,26 +2460,39 @@ export class DocumentStore {
           const rel = plist ? relativePathOf(plist) : undefined;
           if (!rel) continue;
           const src = sourceDir && !isAbsolute(rel) ? resolve(sourceDir, rel) : rel;
-          const rewrite = (p: string): void => {
-            const next = { relativePath: p };
+          const store = (next: object): void => {
             item.setField(name, encodeBdskFile(next));
             library.bdskFiles.set(bdskFileKey(item.id, name), next);
+          };
+          // Repointed at a DIFFERENT file (our copy) → a fresh plist. The old
+          // macOS bookmark must NOT be carried over: a bookmark tracks a file by
+          // identity across moves and renames, so the original's blob would
+          // resolve straight back to the SOURCE library's PDF — exactly what
+          // cloning exists to prevent.
+          const pointAtCopy = (p: string): void => store(bdskFilePlist(p, resolve(targetDir, p)));
+          // Still the SAME file on disk (its copy failed, or the source is
+          // missing), so keep everything else the plist carried — notably
+          // BibDesk's bookmark, which remains valid for that very file — and
+          // swap only the path.
+          const keepPointingAtOriginal = (p: string): void => {
+            const base = typeof plist === 'object' && plist !== null ? plist : {};
+            store({ ...(base as Record<string, unknown>), relativePath: p });
           };
           if (!existsSync(src)) {
             errors.push(`${item.citeKey}: ${basename(src)}: file not found`);
             notCopied++;
-            rewrite(src); // absolute: no worse than it was, and still diagnosable
+            keepPointingAtOriginal(src); // absolute: no worse than it was
             continue;
           }
           try {
-            rewrite(relative(targetDir, this.copyFiledAs(item, src, filesTo)));
+            pointAtCopy(relative(targetDir, this.copyFiledAs(item, src, filesTo)));
             copied++;
           } catch (e) {
             errors.push(
               `${item.citeKey}: ${basename(src)}: ${e instanceof Error ? e.message : String(e)}`,
             );
             notCopied++;
-            rewrite(src); // keep the clone's link live, pointing at the original
+            keepPointingAtOriginal(src); // keep the clone's link live
           }
           continue;
         }
@@ -2534,7 +2635,8 @@ export class DocumentStore {
     if (!BDSK_FILE_RE.test(field)) throw new Error(`Not a managed attachment: ${field}`);
     const baseDir = doc.path ? dirname(doc.path) : '';
     const rel = baseDir ? relative(baseDir, newAbsPath) : newAbsPath;
-    const plist = { relativePath: rel };
+    // Repointed at a user-picked file, so any previous bookmark is meaningless.
+    const plist = bdskFilePlist(rel, newAbsPath);
     item.setField(field, encodeBdskFile(plist));
     doc.library.bdskFiles.set(bdskFileKey(item.id, field), plist);
     return this.dirtyDetail(doc, item);

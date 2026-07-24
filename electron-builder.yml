@@ -63,6 +63,10 @@ extraResources:
 #   - from: app/native/scripting/build/Release/bibliophile_scripting.node
 #     to: bibliophile_scripting.node
 # Until then AppleScript automation degrades gracefully (logs "not built") when packaged.
+#
+# The BOOKMARK addon (mac.extraResources, below) does not have those problems and IS
+# bundled: the `dist*`/`pack:dir` scripts build it, and it is Node-API so one binary
+# is valid for both Node and Electron — there is no wrong-ABI binary to ship.
 
 # Native .node binaries can't live inside the asar. The OCR deps are externalized and
 # collected into the asar, but must be UNPACKED to real file paths: tesseract.js spawns
@@ -96,6 +100,15 @@ dmg:
   artifactName: ${productName}-${version}-${arch}.${ext}
 
 mac:
+  # macOS-only, so it lives here rather than in the top-level extraResources: a
+  # Linux/Windows build would otherwise fail on the missing file. Built for the
+  # Electron ABI by the `dist*`/`pack:dir` scripts (build-bookmark-addon.mjs), and
+  # picked up at runtime by bookmark.ts's `process.resourcesPath` candidate. This
+  # is what lets packaged builds write BibDesk-compatible attachment bookmarks
+  # instead of degrading to relativePath-only.
+  extraResources:
+    - from: app/native/bookmark/build/Release/bibliophile_bookmark.node
+      to: bibliophile_bookmark.node
   target:
     - dmg
     - zip

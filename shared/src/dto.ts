@@ -1113,6 +1113,12 @@ export interface AutoFileRequest {
  * the refreshed detail so the pane can update without a full reload. */
 export interface AutoFileResult {
   readonly moved: number;
+  /**
+   * Attachments already in the right place whose plist gained a macOS bookmark
+   * (BibDesk's move/rename-recovery blob). No file was touched for these — it is
+   * how an older library is brought up to BibDesk parity in place.
+   */
+  readonly refreshed?: number;
   readonly errors: readonly string[];
   readonly dirty: boolean;
   /** Present only for a single-entry AutoFile; bulk runs reload instead. */
@@ -1134,6 +1140,11 @@ export interface ConsolidateResult {
   readonly itemsAffected: number;
   /** Total files moved across all items. */
   readonly moved: number;
+  /**
+   * Attachments left where they were but whose plist gained a macOS bookmark.
+   * Distinct from `moved`: nothing on disk changed, only the `.bib`.
+   */
+  readonly refreshed?: number;
   /** Whether the document now has unsaved changes. */
   readonly dirty: boolean;
   /** Per-file failures, each prefixed with the owning entry's cite key. */
