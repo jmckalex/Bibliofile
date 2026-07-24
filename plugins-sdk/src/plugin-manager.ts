@@ -35,6 +35,67 @@ export function definePlugin(plugin: Plugin): Plugin {
   return plugin;
 }
 
+/**
+ * The plugin API version this SDK implements. Bump the MAJOR when a breaking
+ * change lands in {@link PluginApi}; a plugin declares the majors it supports via
+ * `apiVersion`, and one built for a different major is refused at activation
+ * rather than left to fail somewhere deep inside a call it doesn't understand.
+ */
+export const PLUGIN_API_VERSION = 1;
+
+/**
+ * Outcome of a fan-out over the registry. Reported rather than thrown: one
+ * plugin's failure must not decide the fate of the others, and the host needs to
+ * know which ones are actually live.
+ */
+export interface PluginBatchResult {
+  readonly ok: readonly string[];
+  readonly failed: readonly { readonly name: string; readonly error: Error }[];
+}
+
+/**
+ * Run `fn` over every name, isolating each. `Promise.all` aborts the whole
+ * fan-out on the first rejection and leaves the batch half-applied with no
+ * record of what succeeded (audit rpt-04 SEV-M4).
+ */
+async function settleEach(
+  names: readonly string[],
+  fn: (name: string) => void | Promise<void>,
+): Promise<PluginBatchResult> {
+  const ok: string[] = [];
+  const failed: { name: string; error: Error }[] = [];
+  await Promise.all(
+    names.map(async (name) => {
+      try {
+        await fn(name);
+        ok.push(name);
+      } catch (err) {
+        failed.push({ name, error: err instanceof Error ? err : new Error(String(err)) });
+      }
+    }),
+  );
+  return { ok, failed };
+}
+
+/**
+ * Refuse a plugin built against an incompatible major API version. A plugin that
+ * declares nothing is assumed to target the current one — `apiVersion` was
+ * documented as informational and never checked, so requiring it now would
+ * reject every plugin already written.
+ */
+function assertApiCompatible(plugin: Plugin): void {
+  const declared = plugin.apiVersion;
+  if (declared === undefined) return;
+  if (!Number.isInteger(declared) || declared < 1) {
+    throw new Error(`Plugin "${plugin.name}" declares an invalid apiVersion: ${String(declared)}`);
+  }
+  if (declared !== PLUGIN_API_VERSION) {
+    throw new Error(
+      `Plugin "${plugin.name}" targets plugin API v${declared}, but this host implements v${PLUGIN_API_VERSION}`,
+    );
+  }
+}
+
 /** Internal registry record tracking a plugin's active state. */
 interface Registration {
   readonly plugin: Plugin;
@@ -97,9 +158,20 @@ export class PluginManager {
   activate(name: string): void | Promise<void> {
     const reg = this.requireReg(name);
     if (reg.active) return;
+    assertApiCompatible(reg.plugin);
     reg.active = true;
     try {
-      return reg.plugin.activate(this.api);
+      const result = reg.plugin.activate(this.api);
+      // An ASYNC activate that rejects must roll back too. Rolling back only in
+      // this catch (i.e. only for a synchronous throw) left a plugin marked
+      // active despite having failed, and unretryable (audit rpt-04 SEV-M4).
+      if (result instanceof Promise) {
+        return result.catch((err: unknown) => {
+          reg.active = false;
+          throw err;
+        });
+      }
+      return result;
     } catch (err) {
       // Activation failed synchronously: roll back the active flag so a retry
       // is possible, and rethrow.
@@ -123,13 +195,13 @@ export class PluginManager {
    * Activate every registered (inactive) plugin. Returns a promise that resolves
    * once all activations (sync or async) have settled.
    */
-  async activateAll(): Promise<void> {
-    await Promise.all(this.names().map((n) => this.activate(n)));
+  async activateAll(): Promise<PluginBatchResult> {
+    return settleEach(this.names(), (n) => this.activate(n));
   }
 
   /** Deactivate every active plugin. Resolves once all teardowns have settled. */
-  async deactivateAll(): Promise<void> {
-    await Promise.all(this.names().map((n) => this.deactivate(n)));
+  async deactivateAll(): Promise<PluginBatchResult> {
+    return settleEach(this.names(), (n) => this.deactivate(n));
   }
 
   private requireReg(name: string): Registration {

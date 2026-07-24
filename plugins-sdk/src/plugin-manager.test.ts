@@ -7,7 +7,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { parse } from '@bibdesk/bibtex';
 import { createPluginApi, type PluginApi } from './plugin-api.js';
-import { definePlugin, PluginManager } from './plugin-manager.js';
+import { definePlugin, PluginManager, PLUGIN_API_VERSION } from './plugin-manager.js';
 import type { Plugin } from './types.js';
 
 function makeApi(): PluginApi {
@@ -184,5 +184,96 @@ describe('PluginManager — end-to-end with the API', () => {
     m.deactivate('watcher');
     api.addEntry({ type: 'misc', fields: { Title: 'Another' } });
     expect(seen).toEqual(['addEntry']); // no new events after teardown
+  });
+});
+
+/** A minimal manifest with an activate() the test controls. */
+function plug(name: string, over: Partial<Plugin> = {}): Plugin {
+  return definePlugin({ name, version: '1.0.0', activate: () => {}, ...over } as Plugin);
+}
+
+describe('plugin isolation and the API version gate (audit rpt-04 SEV-M4)', () => {
+  function mgr(): { m: PluginManager; api: PluginApi } {
+    const api = createPluginApi(parse('@misc{a, Title = {A}}'));
+    return { m: new PluginManager(api), api };
+  }
+
+  it('rolls back `active` when an ASYNC activate rejects', async () => {
+    const { m } = mgr();
+    m.register(plug('flaky', { activate: () => Promise.reject(new Error('nope')) }));
+    await expect(m.activate('flaky')).rejects.toThrow('nope');
+    // Previously only a SYNCHRONOUS throw rolled back, so a rejected async
+    // activate left the plugin marked active — failed, yet unretryable.
+    expect(m.isActive('flaky')).toBe(false);
+  });
+
+  it('activateAll isolates failures and reports which plugins are live', async () => {
+    const { m } = mgr();
+    m.register(plug('good1'));
+    m.register(plug('bad', { activate: () => Promise.reject(new Error('boom')) }));
+    m.register(plug('good2'));
+
+    const res = await m.activateAll();
+
+    // Promise.all would have aborted the fan-out on 'bad' and left the batch
+    // half-applied with no record of what succeeded.
+    expect([...res.ok].sort()).toEqual(['good1', 'good2']);
+    expect(res.failed.map((f) => f.name)).toEqual(['bad']);
+    expect(res.failed[0]!.error.message).toBe('boom');
+    expect(m.isActive('good1')).toBe(true);
+    expect(m.isActive('good2')).toBe(true);
+    expect(m.isActive('bad')).toBe(false);
+  });
+
+  it('deactivateAll isolates a throwing teardown', async () => {
+    const { m } = mgr();
+    m.register(plug('ok'));
+    m.register(plug('rude', { deactivate: () => { throw new Error('teardown'); } }));
+    await m.activateAll();
+
+    const res = await m.deactivateAll();
+    expect(res.failed.map((f) => f.name)).toEqual(['rude']);
+    expect(m.isActive('ok')).toBe(false); // the good one still tore down
+  });
+
+  it('refuses a plugin built against a different major API version', () => {
+    const { m } = mgr();
+    m.register(plug('future', { apiVersion: PLUGIN_API_VERSION + 1 }));
+    expect(() => m.activate('future')).toThrow(/plugin API v/);
+    expect(m.isActive('future')).toBe(false);
+  });
+
+  it('accepts a matching apiVersion, and one that declares none', () => {
+    const { m } = mgr();
+    m.register(plug('current', { apiVersion: PLUGIN_API_VERSION }));
+    m.register(plug('legacy')); // written before apiVersion existed
+    m.activate('current');
+    m.activate('legacy');
+    expect(m.isActive('current')).toBe(true);
+    expect(m.isActive('legacy')).toBe(true);
+  });
+
+  it('rejects a nonsense apiVersion rather than coercing it', () => {
+    const { m } = mgr();
+    m.register(plug('junk', { apiVersion: 0 }));
+    expect(() => m.activate('junk')).toThrow(/invalid apiVersion/);
+  });
+
+  it('a throwing change listener cannot break the mutation that emitted it', () => {
+    const { m, api } = mgr();
+    const seen: string[] = [];
+    m.register(
+      plug('rude', {
+        activate: (a: PluginApi) => {
+          a.onChange(() => { throw new Error('listener exploded'); });
+          a.onChange((e) => seen.push(e.kind));
+        },
+      }),
+    );
+    m.activate('rude');
+
+    // The mutation must complete, and the well-behaved listener must still run.
+    expect(() => api.addEntry({ type: 'misc', fields: { Title: 'New' } })).not.toThrow();
+    expect(seen).toEqual(['addEntry']);
   });
 });

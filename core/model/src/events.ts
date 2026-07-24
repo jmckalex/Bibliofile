@@ -35,12 +35,26 @@ export class Emitter<E> {
     this.listeners.delete(listener);
   }
 
-  /** Synchronously deliver `event` to every current listener. */
+  /**
+   * Synchronously deliver `event` to every current listener.
+   *
+   * A listener that throws is isolated: the remaining listeners still receive
+   * the event and the exception does not escape into the mutation that emitted
+   * it. Without this one bad subscriber — a plugin's `onChange`, say — aborts an
+   * edit halfway through and takes unrelated listeners down with it
+   * (audit rpt-04 SEV-M4).
+   */
   emit(event: E): void {
     // Snapshot so a listener that (un)subscribes during dispatch doesn't
     // mutate the set we're iterating.
     for (const listener of [...this.listeners]) {
-      listener(event);
+      try {
+        listener(event);
+      } catch (err) {
+        // Report and carry on: emit() is called from inside model mutations,
+        // which must stay consistent regardless of who is listening.
+        console.error('[events] listener threw; continuing', err);
+      }
     }
   }
 

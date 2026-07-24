@@ -112,6 +112,14 @@ export interface Plugin {
   readonly name: string;
   /** Semver-ish version string (informational). */
   readonly version: string;
+  /**
+   * Major version of the plugin API this was built against (see
+   * `PLUGIN_API_VERSION`). Checked at activation: a mismatch is refused up front
+   * instead of failing somewhere deep inside a call the plugin misunderstands.
+   * Optional — omitting it means "targets the current host", which keeps plugins
+   * written before this existed working.
+   */
+  readonly apiVersion?: number;
   /** Optional human-readable description. */
   readonly description?: string;
   /** Called when the plugin is activated against a {@link PluginApi}. */
