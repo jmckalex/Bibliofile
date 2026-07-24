@@ -243,8 +243,10 @@ async function dispatchMenuCommand(command: MenuCommand, modals: ModalSetters): 
       await store.edit({ kind: 'addEntry', entryType: store.settings.defaultEntryType });
       return;
     case 'pastePublication': {
+      // An unreadable clipboard reads as empty; pasteEntries reports both rather
+      // than leaving the menu item looking dead.
       const text = await navigator.clipboard.readText().catch(() => '');
-      if (text.trim()) await store.pasteEntries(text);
+      await store.pasteEntries(text);
       return;
     }
     case 'importFile':

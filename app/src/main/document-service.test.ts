@@ -765,6 +765,178 @@ describe('document-service: BD test.bib', () => {
     expect(existsSync(srcs.get(rows[1]!.id)!)).toBe(true); // untouched
   });
 
+  /**
+   * Build a two-entry library with one managed attachment each, ready to clone.
+   * Returns the store, the doc id, the temp dir and the attachment source paths.
+   */
+  function cloneFixture(label: string): {
+    store: DocumentStore;
+    documentId: string;
+    dir: string;
+    docPath: string;
+    srcs: string[];
+  } {
+    const dir = mkdtempSync(join(tmpdir(), label));
+    const docPath = join(dir, 'lib.bib');
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      [
+        '@article{euler1748, Author = {Leonhard Euler}, Title = {On sums}, Year = {1748}}',
+        '@book{gauss1801, Author = {Carl Gauss}, Title = {Disquisitiones}, Year = {1801}}',
+      ].join('\n\n'),
+      docPath,
+    );
+    writeFileSync(docPath, store.serializeDocument(documentId), 'utf8');
+    const incoming = join(dir, 'incoming');
+    mkdirSync(incoming);
+    const srcs: string[] = [];
+    for (const r of store.listPublications({ documentId, offset: 0, limit: -1 }).rows) {
+      const src = join(incoming, `${r.citeKey}.pdf`);
+      writeFileSync(src, `%PDF-1.4 ${r.citeKey}`);
+      store.addAttachments(documentId, r.id, [src]);
+      srcs.push(src);
+    }
+    store.setEditConfig({ papersFolder: join(dir, 'Papers'), autoFileFormat: '%a1%Y' });
+    return { store, documentId, dir, docPath, srcs };
+  }
+
+  it('cloneDocument writes a new .bib and copies attachments into the AutoFile folder', () => {
+    const { store, documentId, dir, srcs } = cloneFixture('bd-clone-');
+    const papers = join(dir, 'Papers');
+    const clonePath = join(dir, 'clone.bib');
+
+    const res = store.cloneDocument(documentId, clonePath, papers);
+
+    expect(res.path).toBe(clonePath);
+    expect(res.entries).toBe(2);
+    expect(res.copied).toBe(2);
+    expect(res.notCopied).toBe(0);
+    expect(res.errors).toEqual([]);
+    // The clone is a real, openable library with both entries.
+    expect(existsSync(clonePath)).toBe(true);
+    const clone = new DocumentStore();
+    const cloneId = clone.openFile(clonePath).documentId;
+    expect(clone.listPublications({ documentId: cloneId, offset: 0, limit: -1 }).rows).toHaveLength(2);
+    // Both attachments were COPIED (originals still in place) and filed by the
+    // configured AutoFile format (%a1%Y → Euler1748.pdf / Gauss1801.pdf).
+    for (const src of srcs) expect(existsSync(src)).toBe(true);
+    expect(readdirSync(papers).sort()).toEqual(['Euler1748.pdf', 'Gauss1801.pdf']);
+    // …and the clone's links resolve to those copies, not to the originals.
+    for (const row of clone.listPublications({ documentId: cloneId, offset: 0, limit: -1 }).rows) {
+      const url = clone.getItemDetail({ documentId: cloneId, itemId: row.id }).files[0]!.url;
+      expect(url.startsWith(papers)).toBe(true);
+      expect(existsSync(url)).toBe(true);
+    }
+  });
+
+  it('cloneDocument leaves the source document and its files completely untouched', () => {
+    const { store, documentId, dir, docPath, srcs } = cloneFixture('bd-clone-src-');
+    const before = {
+      path: store.summarize(documentId).path,
+      dirty: store.isDirty(documentId),
+      text: store.serializeDocument(documentId),
+      bytes: readFileSync(docPath, 'utf8'),
+      attachments: store
+        .listPublications({ documentId, offset: 0, limit: -1 })
+        .rows.map((r) => store.getItemDetail({ documentId, itemId: r.id }).files[0]!.url),
+      contents: srcs.map((s) => readFileSync(s, 'utf8')),
+    };
+
+    store.cloneDocument(documentId, join(dir, 'clone.bib'), join(dir, 'Papers'));
+
+    expect(store.summarize(documentId).path).toBe(before.path); // not a Save As
+    expect(store.isDirty(documentId)).toBe(before.dirty);
+    expect(store.serializeDocument(documentId)).toBe(before.text); // links unrewritten
+    expect(readFileSync(docPath, 'utf8')).toBe(before.bytes); // source file untouched
+    expect(
+      store
+        .listPublications({ documentId, offset: 0, limit: -1 })
+        .rows.map((r) => store.getItemDetail({ documentId, itemId: r.id }).files[0]!.url),
+    ).toEqual(before.attachments);
+    srcs.forEach((s, i) => expect(readFileSync(s, 'utf8')).toBe(before.contents[i]));
+  });
+
+  it('cloneDocument never overwrites a file already at the AutoFile target', () => {
+    const { store, documentId, dir } = cloneFixture('bd-clone-collide-');
+    const papers = join(dir, 'Papers');
+    // Pre-file the ORIGINAL library's copy where AutoFile would put the clone's.
+    mkdirSync(papers, { recursive: true });
+    writeFileSync(join(papers, 'Euler1748.pdf'), 'ORIGINAL-MUST-SURVIVE');
+
+    const res = store.cloneDocument(documentId, join(dir, 'clone.bib'), papers);
+
+    expect(res.copied).toBe(2);
+    expect(readFileSync(join(papers, 'Euler1748.pdf'), 'utf8')).toBe('ORIGINAL-MUST-SURVIVE');
+    expect(existsSync(join(papers, 'Euler1748-1.pdf'))).toBe(true); // uniquified copy
+    // The clone must point at its OWN copy, or edits there would hit the original.
+    const clone = new DocumentStore();
+    const cloneId = clone.openFile(join(dir, 'clone.bib')).documentId;
+    const urls = clone
+      .listPublications({ documentId: cloneId, offset: 0, limit: -1 })
+      .rows.map((r) => clone.getItemDetail({ documentId: cloneId, itemId: r.id }).files[0]!.url);
+    expect(urls.some((u) => u.endsWith('Euler1748-1.pdf'))).toBe(true);
+    expect(urls.some((u) => u.endsWith(join('Papers', 'Euler1748.pdf')))).toBe(false);
+  });
+
+  it('cloneDocument reports a missing attachment and keeps the link resolvable', () => {
+    const { store, documentId, dir, srcs } = cloneFixture('bd-clone-missing-');
+    rmSync(srcs[0]!); // break one link before cloning
+
+    const res = store.cloneDocument(documentId, join(dir, 'clone.bib'), join(dir, 'Papers'));
+
+    expect(res.copied).toBe(1);
+    expect(res.notCopied).toBe(1);
+    expect(res.errors).toHaveLength(1);
+    expect(res.errors[0]).toContain('euler1748');
+    expect(res.errors[0]).toContain('file not found');
+    // The surviving entry still filed; the broken one kept an absolute path so it
+    // isn't ALSO broken by the clone living in a different directory.
+    const clone = new DocumentStore();
+    const cloneId = clone.openFile(join(dir, 'clone.bib')).documentId;
+    const broken = clone.findBrokenLinks(cloneId);
+    expect(broken).toHaveLength(1);
+    expect(broken[0]!.path).toBe(srcs[0]);
+  });
+
+  it('cloneDocument copies unmanaged Local-Url attachments too, and refuses to clone onto itself', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'bd-clone-localurl-'));
+    const docPath = join(dir, 'lib.bib');
+    const pdf = join(dir, 'paper.pdf');
+    writeFileSync(pdf, '%PDF-1.4 local');
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      `@article{euler1748, Author = {Leonhard Euler}, Year = {1748}, Local-Url = {${pdf}}}`,
+      docPath,
+    );
+    writeFileSync(docPath, store.serializeDocument(documentId), 'utf8');
+    const papers = join(dir, 'Papers');
+    store.setEditConfig({ papersFolder: papers, autoFileFormat: '%a1%Y' });
+
+    const res = store.cloneDocument(documentId, join(dir, 'clone.bib'), papers);
+    expect(res.copied).toBe(1);
+    expect(readFileSync(join(papers, 'Euler1748.pdf'), 'utf8')).toBe('%PDF-1.4 local');
+    // Rewritten to the copy; the original Local-Url target is still there.
+    expect(readFileSync(join(dir, 'clone.bib'), 'utf8')).toContain(join(papers, 'Euler1748.pdf'));
+    expect(existsSync(pdf)).toBe(true);
+
+    // Cloning over the source would destroy what it is meant to protect.
+    expect(() => store.cloneDocument(documentId, docPath, papers)).toThrow(/different file/i);
+  });
+
+  it('cloneDocument refuses to overwrite a DIFFERENT open bibliography', () => {
+    const { store, documentId, dir } = cloneFixture('bd-clone-open-');
+    // A second library open in the same session, with its own on-disk file.
+    const otherPath = join(dir, 'other.bib');
+    writeFileSync(otherPath, '@article{other, Title = {Keep me}}', 'utf8');
+    store.openFile(otherPath);
+
+    // Cloning onto it would leave the stale in-memory copy to clobber the clone.
+    expect(() => store.cloneDocument(documentId, otherPath, join(dir, 'Papers'))).toThrow(
+      /already open/i,
+    );
+    expect(readFileSync(otherPath, 'utf8')).toContain('Keep me'); // untouched
+  });
+
   it('importRisText merges RIS records as new entries', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{seed, Title = {Seed}}', '/tmp/ris.bib');

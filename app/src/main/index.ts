@@ -1589,6 +1589,72 @@ async function saveDocumentAs(): Promise<void> {
   }
 }
 
+/**
+ * Clone Bibliography: write a copy of the open library to a new `.bib` and copy
+ * every attachment it links into the AutoFile folder, filed under the configured
+ * AutoFile format — exactly as those files would land had they been added to a
+ * bibliography — then open the clone in its own window.
+ *
+ * The point is a library you can experiment on freely: the original `.bib` and
+ * every file it links are left untouched, and nothing existing is overwritten.
+ * With AutoFile unconfigured there is no Papers folder to file into, so we fall
+ * back to a folder beside the clone rather than dead-ending on a preference.
+ */
+async function cloneBibliography(): Promise<void> {
+  const id = focusedDocId();
+  if (!id) return;
+  const win = windowForDoc(id) ?? focusedWindow();
+  const current = store.summarize(id);
+  const stem = current.displayName.replace(/\.bib$/i, '');
+  const result = await dialog.showSaveDialog(win!, {
+    title: t('dialog.cloneTitle'),
+    defaultPath: join(dirname(current.path), `${stem} copy.bib`),
+    filters: [{ name: 'BibTeX', extensions: ['bib'] }],
+  });
+  if (result.canceled || !result.filePath) return;
+
+  const papers = getSettings().papersFolder;
+  const filesTo =
+    papers || join(dirname(result.filePath), `${basename(result.filePath, '.bib')} Papers`);
+
+  try {
+    const res = store.cloneDocument(id, result.filePath, filesTo);
+    openPath(res.path); // the clone gets its own window
+    const details = [
+      res.copied > 0
+        ? t('dialog.cloneFilesCopied', {
+            count: res.copied,
+            fileNoun: t(res.copied === 1 ? 'dialog.file' : 'dialog.files'),
+            dir: filesTo,
+          })
+        : t('dialog.cloneNoFiles'),
+      ...(papers ? [] : [t('dialog.cloneNoPapersFolder')]),
+      // `errors` can also carry non-attachment problems (a lossy encoding), so
+      // the list is shown whenever it is non-empty — not only when a copy failed.
+      ...(res.notCopied > 0 ? [t('dialog.cloneNotCopied', { count: res.notCopied })] : []),
+      ...(res.errors.length > 0
+        ? [`${res.errors.slice(0, 12).join('\n')}${res.errors.length > 12 ? '\n…' : ''}`]
+        : []),
+    ];
+    void dialog.showMessageBox(win!, {
+      type: res.errors.length > 0 ? 'warning' : 'info',
+      buttons: [t('dialog.ok')],
+      message: t('dialog.cloneDone', {
+        count: res.entries,
+        entryNoun: t(res.entries === 1 ? 'dialog.entry' : 'dialog.entries'),
+        name: basename(res.path),
+      }),
+      detail: details.join('\n\n'),
+    });
+  } catch (err) {
+    void dialog.showMessageBox(win!, {
+      type: 'error',
+      message: t('dialog.couldNotClone'),
+      detail: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
 /** Revert to Saved: re-read the document from disk, discarding unsaved edits. */
 async function revertToSaved(): Promise<void> {
   const id = focusedDocId();
@@ -1809,6 +1875,11 @@ function buildMenu(): void {
         click: () => void saveDocumentAs(),
       },
       {
+        label: t('menu.file.clone'),
+        enabled: docEnabled,
+        click: () => void cloneBibliography(),
+      },
+      {
         label: t('menu.file.revert'),
         enabled: docEnabled,
         click: () => void revertToSaved(),
@@ -1975,6 +2046,17 @@ function buildMenu(): void {
         label: t('menu.publication.newCrossref'),
         enabled: docEnabled,
         click: () => sendMenuCommand('newWithCrossref'),
+      },
+      {
+        // BibDesk's Publication menu carries this right after the two New
+        // Publication items (⌥⌘L there too). Same command as Edit ▸ Paste
+        // Publication — this is the discoverable name for it. No ellipsis: BibDesk
+        // opens a parsing sheet for arbitrary text, whereas this reads BibTeX from
+        // the clipboard and adds the entries immediately, with no further input.
+        label: t('menu.publication.fromClipboard'),
+        accelerator: 'Alt+CmdOrCtrl+L',
+        enabled: docEnabled,
+        click: () => sendMenuCommand('pastePublication'),
       },
       {
         label: t('menu.publication.edit'),

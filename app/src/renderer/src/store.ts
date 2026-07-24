@@ -44,7 +44,20 @@ import {
   CITATION_STYLES,
   parseSearchQuery,
   searchTokensMatch,
+  makeT,
+  resolveLocale,
+  type TFunction,
 } from '@bibdesk/shared';
+
+/**
+ * Translate from inside a store action, where the `useT` hook isn't available.
+ * `navigator` is guarded so the store stays usable under a non-DOM test runner.
+ */
+function storeT(locale: string): TFunction {
+  return makeT(
+    resolveLocale(locale, typeof navigator === 'undefined' ? undefined : navigator.language),
+  );
+}
 
 /** Live state of a Find Open-Access PDFs batch, surfaced in a non-blocking panel. */
 export interface OaLookupState {
@@ -1009,7 +1022,15 @@ export function createStore(api: BibDeskApi) {
 
     pasteEntries: async (text) => {
       const { documentId } = get();
-      if (!documentId || !text.trim()) return;
+      if (!documentId) return;
+      // Say so rather than no-op: reached from a menu item (Publication ▸ New
+      // Publications from Clipboard), an empty or unreadable clipboard looks
+      // exactly like a broken command. The drop/paste callers pre-match BibTeX,
+      // so they never land here.
+      if (!text.trim()) {
+        set({ error: storeT(get().settings.locale)('app.clipboardEmpty') });
+        return;
+      }
       try {
         const res = await api.pasteEntries({ documentId, text });
         await get().afterImport(res);

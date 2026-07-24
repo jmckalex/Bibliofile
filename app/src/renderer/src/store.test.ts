@@ -62,7 +62,14 @@ function makeFakeApi() {
     openEditor: string[];
     exportTemplate: { templateName: string; itemIds?: readonly string[] }[];
     updateSettings: Partial<Settings>[];
-  } = { listPublications: [], openEditor: [], exportTemplate: [], updateSettings: [] };
+    pasteEntries: string[];
+  } = {
+    listPublications: [],
+    openEditor: [],
+    exportTemplate: [],
+    updateSettings: [],
+    pasteEntries: [],
+  };
   const api: BibDeskApi = {
     openDocument: async () => DOC,
     closeDocument: async (r) => ({ documentId: r.documentId }),
@@ -138,7 +145,10 @@ function makeFakeApi() {
     },
     readAttachment: async () => ({ data: null }),
     exportText: async () => ({ text: '' }),
-    pasteEntries: async () => ({ dirty: true, addedIds: [], warnings: [] }),
+    pasteEntries: async (r) => {
+      calls.pasteEntries.push(r.text);
+      return { dirty: true, addedIds: ['pasted-1'], warnings: [] };
+    },
     importFiles: async () => ({ dirty: true, addedIds: [], warnings: [] }),
     importDialog: async () => ({ dirty: false, addedIds: [], warnings: [] }),
     commitStagedEntry: async () => ({ itemId: 'committed' }),
@@ -400,6 +410,32 @@ describe('viewer store', () => {
     expect(s.selectedItemId).toBe('new-1'); // primary selection is the new entry
     expect(s.selectedIds).toEqual(['new-1']); // prior selection cleared
     expect(calls.openEditor).toContain('new-1'); // editor opened on it
+  });
+
+  it('pasteEntries adds the clipboard BibTeX and selects the new entry', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    await store.getState().pasteEntries('@article{new2026, Title = {Pasted}}');
+
+    expect(calls.pasteEntries).toEqual(['@article{new2026, Title = {Pasted}}']);
+    const s = store.getState();
+    expect(s.dirty).toBe(true);
+    expect(s.selectedItemId).toBe('pasted-1'); // first added entry is selected
+    expect(s.error).toBeUndefined();
+  });
+
+  it('pasteEntries reports an empty/unreadable clipboard instead of doing nothing', async () => {
+    const { api, calls } = makeFakeApi();
+    const store = createStore(api);
+    await store.getState().onDocumentOpened(DOC);
+
+    await store.getState().pasteEntries('   '); // what a failed clipboard read yields
+
+    expect(calls.pasteEntries).toEqual([]); // nothing sent to main
+    expect(store.getState().error).toBe('The clipboard has no text to paste.');
+    expect(store.getState().dirty).toBe(false);
   });
 
   it('setQuery stores the query (client-side filter, no reload)', async () => {

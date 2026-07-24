@@ -21,6 +21,7 @@
  */
 
 import {
+  constants as fsConstants,
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -1125,6 +1126,23 @@ export type RenderBibFn = (
   autolink: boolean,
 ) => string;
 
+/** Outcome of {@link DocumentStore.cloneDocument}. */
+export interface CloneDocumentResult {
+  /** Absolute path of the `.bib` that was written. */
+  readonly path: string;
+  /** Entries in the clone. */
+  readonly entries: number;
+  /** Attachment files copied into the AutoFile folder. */
+  readonly copied: number;
+  /**
+   * Attachments left pointing at the ORIGINAL file because the copy failed (or
+   * its source was missing) — these are SHARED with the source library.
+   */
+  readonly notCopied: number;
+  /** One line per problem, prefixed with the owning entry's cite key. */
+  readonly errors: string[];
+}
+
 export class DocumentStore {
   private readonly docs = new Map<string, OpenDoc>();
 
@@ -2202,6 +2220,159 @@ export class DocumentStore {
     }
     if (moved) doc.dirty = true;
     return { scanned: targets.length, itemsAffected, moved, dirty: doc.dirty, errors };
+  }
+
+  /**
+   * Copy one file into the AutoFile folder under the name AutoFile would give it
+   * (the configured format, e.g. `%p1/%T5` → `Euler/On-the-sums…`), creating any
+   * intermediate directories. Returns the path actually written.
+   *
+   * Unlike {@link autoFileItemFiles} (which MOVES and therefore short-circuits a
+   * file already sitting at its target) this always uniquifies: a clone's copy
+   * must never resolve to the original library's file, or experimenting in the
+   * clone would write through to the original.
+   */
+  private copyFiledAs(item: BibItem, src: string, papers: string): string {
+    const stem = parseFormat(this.editConfig.autoFileFormat, item, LOCAL_FILE_FIELD, {
+      typeManager: sharedTypeManager,
+    });
+    const intended = join(papers, (stem || item.citeKey || 'paper') + extname(src));
+    mkdirSync(dirname(intended), { recursive: true });
+    const dest = uniquePath(intended);
+    // COPYFILE_EXCL makes "never clobber" an OS guarantee rather than something
+    // uniquePath's existsSync merely checked a moment ago — this whole feature
+    // exists so the user's real files can't be harmed, so it fails loudly instead.
+    copyFileSync(src, dest, fsConstants.COPYFILE_EXCL);
+    return dest;
+  }
+
+  /**
+   * Clone the document: write the current in-memory library to a NEW `.bib` at
+   * `targetPath` and copy every attachment it links into `filesTo` — filed under
+   * the configured AutoFile format, exactly as a freshly added file would be —
+   * rewriting the clone's links to point at those copies.
+   *
+   * The result is a self-contained library to experiment on: nothing in the
+   * source document is touched (not its path, dirty flag, undo history, external-
+   * change baseline, nor any file it links), and no existing file is overwritten,
+   * so destructive operations in the clone (AutoFile, OCR's in-place replace…)
+   * can only ever hit the copies.
+   *
+   * Attachments that can't be copied (missing on disk, unreadable, a full disk)
+   * are reported in `errors` and left pointing at the ORIGINAL absolute path — a
+   * live link is more useful than one broken by the move to a new directory, but
+   * it IS shared with the source library, so the caller should surface these.
+   *
+   * `filesTo` must be non-empty; the caller decides the folder (normally the
+   * AutoFile/Papers preference). Read-only w.r.t. the store: the clone is NOT
+   * opened or retained here — the caller opens the written file normally.
+   */
+  cloneDocument(documentId: string, targetPath: string, filesTo: string): CloneDocumentResult {
+    const doc = this.requireDoc(documentId);
+    const target = resolve(targetPath);
+    // Never write over a library that is OPEN — the source (which this feature
+    // exists to protect), or any other, whose in-memory state would silently
+    // outlive the clone we just wrote and clobber it on its next save.
+    for (const other of this.docs.values()) {
+      if (resolve(other.path) !== target) continue;
+      throw new Error(
+        other.documentId === documentId
+          ? 'A clone must be written to a different file from the original.'
+          : `“${basename(target)}” is already open; choose a different file for the clone.`,
+      );
+    }
+    if (!filesTo) throw new Error('No folder was given for the cloned attachments.');
+    const sourceDir = doc.path ? dirname(doc.path) : '';
+    const targetDir = dirname(target);
+
+    // Parse a DETACHED copy of the current (including unsaved) state: the clone
+    // gets its own items and its own bdsk-file map, so rewriting its attachment
+    // paths below cannot reach the open document.
+    const { library } = openLibraryFromText(
+      serialize(doc.library),
+      target,
+      doc.encoding,
+      doc.hadBom,
+    );
+
+    const errors: string[] = [];
+    let copied = 0;
+    let notCopied = 0;
+
+    for (const item of library.items) {
+      for (const name of item.fieldNames()) {
+        // 1) managed Bdsk-File-N attachments — stored relative to the document,
+        //    so they resolve against the SOURCE dir and are rewritten relative
+        //    to the clone's own directory.
+        if (BDSK_FILE_RE.test(name)) {
+          const plist = library.bdskFiles.get(bdskFileKey(item.id, name));
+          const rel = plist ? relativePathOf(plist) : undefined;
+          if (!rel) continue;
+          const src = sourceDir && !isAbsolute(rel) ? resolve(sourceDir, rel) : rel;
+          const rewrite = (p: string): void => {
+            const next = { relativePath: p };
+            item.setField(name, encodeBdskFile(next));
+            library.bdskFiles.set(bdskFileKey(item.id, name), next);
+          };
+          if (!existsSync(src)) {
+            errors.push(`${item.citeKey}: ${basename(src)}: file not found`);
+            notCopied++;
+            rewrite(src); // absolute: no worse than it was, and still diagnosable
+            continue;
+          }
+          try {
+            rewrite(relative(targetDir, this.copyFiledAs(item, src, filesTo)));
+            copied++;
+          } catch (e) {
+            errors.push(
+              `${item.citeKey}: ${basename(src)}: ${e instanceof Error ? e.message : String(e)}`,
+            );
+            notCopied++;
+            rewrite(src); // keep the clone's link live, pointing at the original
+          }
+          continue;
+        }
+
+        // 2) unmanaged local-file fields (`Local-Url`, `Local-File`, `File`).
+        //    Only values that actually resolve to a file are touched, which also
+        //    skips shapes we don't own (e.g. JabRef's `desc:path:type` triple)
+        //    rather than corrupting them. Rewritten in the form they arrived in.
+        if (!URL_FIELDS_LOCAL.has(name.toLowerCase())) continue;
+        const value = item.stringValueOfField(name, false).trim();
+        if (!value) continue;
+        const scheme = /^file:\/\/(localhost)?/i.exec(value);
+        const bare = scheme ? value.slice(scheme[0].length) : value;
+        const src = sourceDir && !isAbsolute(bare) ? resolve(sourceDir, bare) : bare;
+        if (!existsSync(src)) continue; // already broken, or not a path at all
+        try {
+          const dest = this.copyFiledAs(item, src, filesTo);
+          item.setField(name, scheme ? `${scheme[0]}${dest}` : dest);
+          copied++;
+        } catch (e) {
+          errors.push(
+            `${item.citeKey}: ${basename(src)}: ${e instanceof Error ? e.message : String(e)}`,
+          );
+          notCopied++;
+        }
+      }
+    }
+
+    // The clone keeps the source's encoding so it stays a faithful test copy. A
+    // rewritten path can carry characters a legacy encoding can't hold (managed
+    // attachments are base64 plists, but a Local-Url is written literally), so
+    // say so rather than dropping them silently the way a bare write would.
+    const { bytes, lossy } = encodeBib(serialize(library), doc.encoding, doc.hadBom);
+    if (lossy) {
+      errors.push(
+        `Some characters cannot be written in this bibliography's ${doc.encoding} encoding and were replaced.`,
+      );
+    }
+    mkdirSync(targetDir, { recursive: true });
+    const tmp = `${target}.tmp.${process.pid}.${__tmpSeq++}`;
+    writeFileSync(tmp, bytes);
+    renameSync(tmp, target); // atomic on the same filesystem
+
+    return { path: target, entries: library.items.length, copied, notCopied, errors };
   }
 
   /**
