@@ -69,7 +69,7 @@ import {
   isScriptTrusted,
   recordScriptTrust,
 } from './script-files.js';
-import { parseAppUrl } from './app-url.js';
+import { parseAppUrl, isOpenableBibPath } from './app-url.js';
 import { dispatchBridge } from './bridge.js';
 import { initScripting } from './scripting-bridge.js';
 import { htmlToRtf, wrapRtf } from './rtf.js';
@@ -1332,17 +1332,53 @@ async function printItems(req: PrintRequest): Promise<PrintResponse> {
  * Commands: `open?file=`, `import?bibtex=|doi=`, `new?type=&Field=…`. Mutating
  * commands refresh the renderer; unknown/no-op commands are ignored.
  */
-function handleAppUrl(raw: string): void {
+/**
+ * Ask before letting an `x-bibdesk://` URL act. Anything can emit one of these —
+ * including a web page the user merely visited (`location.href =
+ * 'x-bibdesk://import?bibtex=…'`) — so an unattended mutation of the open library
+ * is a drive-by edit (audit rpt-02 SEV-6). Defaults to Cancel: the safe answer
+ * must be the one you get by hitting Return or Escape.
+ */
+async function confirmAppUrlAction(message: string): Promise<boolean> {
+  const parent = dialogParent();
+  const opts: Electron.MessageBoxOptions = {
+    type: 'warning',
+    buttons: [t('dialog.allow'), t('common.cancel')],
+    defaultId: 1,
+    cancelId: 1,
+    message,
+    detail: t('dialog.urlActionDetail'),
+  };
+  const choice = parent
+    ? await dialog.showMessageBox(parent, opts)
+    : await dialog.showMessageBox(opts);
+  return choice.response === 0;
+}
+
+async function handleAppUrl(raw: string): Promise<void> {
   const action = parseAppUrl(raw);
   if (!action) return;
   const { command, params } = action;
   switch (command) {
-    case 'open':
-      if (params.file) openPathWhenReady(params.file);
+    case 'open': {
+      const file = params.file;
+      if (!file) return;
+      // Only bibliographies. `open?file=` otherwise opens any path this process
+      // can read, which turns a visited web page into a local-file prober.
+      if (!isOpenableBibPath(file)) {
+        console.warn('[x-bibdesk] refused open of a non-.bib path:', file);
+        return;
+      }
+      if (!(await confirmAppUrlAction(t('dialog.urlOpenConfirm', { name: basename(file) })))) return;
+      openPathWhenReady(file);
       return;
+    }
     case 'import': {
       const docId = focusedDocId();
       if (!docId) return;
+      if (!params.bibtex && !params.doi) return;
+      const name = store.summarize(docId).displayName;
+      if (!(await confirmAppUrlAction(t('dialog.urlImportConfirm', { name })))) return;
       if (params.bibtex) {
         store.importBibtexText(docId, params.bibtex);
         refreshDocument(docId);
@@ -1362,6 +1398,8 @@ function handleAppUrl(raw: string): void {
     case 'new': {
       const docId = focusedDocId();
       if (!docId) return;
+      const name = store.summarize(docId).displayName;
+      if (!(await confirmAppUrlAction(t('dialog.urlNewConfirm', { name })))) return;
       const fields: Record<string, string> = {};
       for (const [k, v] of Object.entries(params)) if (k.toLowerCase() !== 'type') fields[k] = v;
       store.importEntry(docId, params.type || 'misc', fields);
@@ -3553,7 +3591,7 @@ app.on('open-file', (event, path) => {
 // macOS automation: `open location "x-bibdesk://…"` (AppleScript) delivers here.
 app.on('open-url', (event, url) => {
   event.preventDefault();
-  handleAppUrl(url);
+  void handleAppUrl(url);
 });
 
 // Re-show a welcome window on dock-activate when nothing is open (macOS).
@@ -3597,7 +3635,7 @@ if (!gotLock) {
     // Windows/Linux deliver the protocol URL (and .bib paths) via argv.
     for (const arg of argv.slice(1)) {
       if (arg.startsWith('x-bibdesk://')) {
-        handleAppUrl(arg);
+        void handleAppUrl(arg);
         break;
       }
       if (arg.toLowerCase().endsWith('.bib') && existsSync(arg)) {
@@ -3674,7 +3712,7 @@ if (!gotLock) {
 
     // A protocol URL passed on the initial command line (Windows/Linux cold start).
     const urlArg = process.argv.find((a) => a.startsWith('x-bibdesk://'));
-    if (urlArg) handleAppUrl(urlArg);
+    if (urlArg) void handleAppUrl(urlArg);
 
     if (process.env.BIBDESK_OPEN_HELP) setTimeout(openHelp, 600);
     if (process.env.BIBDESK_OPEN_PREFS) setTimeout(openPreferences, 1400);

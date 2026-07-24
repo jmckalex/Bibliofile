@@ -633,6 +633,12 @@ export const en: Catalog = {
   'dialog.couldNotExport': 'Could not export the document',
   'dialog.linksRefreshed':
     'Updated {count} attachment {fileNoun} with macOS bookmarks (no files moved).',
+  'dialog.allow': 'Allow',
+  'dialog.urlActionDetail':
+    'This request came from outside Bibliofile (an x-bibdesk:// link, which any app or web page can send). Only allow it if you just started this action yourself.',
+  'dialog.urlOpenConfirm': 'Open the bibliography “{name}”?',
+  'dialog.urlImportConfirm': 'Add entries to “{name}” from an external link?',
+  'dialog.urlNewConfirm': 'Create a new entry in “{name}” from an external link?',
   'dialog.couldNotClone': 'Could not clone the bibliography',
   'dialog.cloneTitle': 'Clone Bibliography',
   'dialog.cloneDone': 'Cloned {count} {entryNoun} to “{name}”',

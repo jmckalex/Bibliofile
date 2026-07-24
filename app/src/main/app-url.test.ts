@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseAppUrl } from './app-url.js';
+import { parseAppUrl, isOpenableBibPath } from './app-url.js';
 
 describe('parseAppUrl', () => {
   it('parses command (authority) + query params', () => {
@@ -33,5 +33,24 @@ describe('parseAppUrl', () => {
     expect(parseAppUrl('https://example.com')).toBeNull();
     expect(parseAppUrl('not a url')).toBeNull();
     expect(parseAppUrl('x-bibdesk://')).toBeNull();
+  });
+});
+
+describe('isOpenableBibPath (x-bibdesk://open guard)', () => {
+  it('accepts .bib paths, case-insensitively, including ones with spaces', () => {
+    expect(isOpenableBibPath('/Users/me/lib.bib')).toBe(true);
+    expect(isOpenableBibPath('/Users/me/LIB.BIB')).toBe(true);
+    expect(isOpenableBibPath('/Users/me/My Library.bib')).toBe(true);
+  });
+
+  it('refuses the paths a web page would probe for', () => {
+    for (const p of ['/etc/passwd', '/Users/me/.ssh/id_rsa', '/Users/me/notes.txt', '/Users/me/lib.bib.txt', '']) {
+      expect(isOpenableBibPath(p), p).toBe(false);
+    }
+  });
+
+  it('refuses a NUL-truncation attempt', () => {
+    // The OS stops at the NUL, so the ".bib" we checked is not what would open.
+    expect(isOpenableBibPath('/etc/passwd\u0000.bib')).toBe(false);
   });
 });

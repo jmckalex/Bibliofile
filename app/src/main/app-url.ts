@@ -39,3 +39,21 @@ export function parseAppUrl(raw: string): AppUrlAction | null {
   for (const [k, v] of url.searchParams) params[k] = v;
   return { command, params };
 }
+
+/**
+ * May an `x-bibdesk://open?file=` request open this path?
+ *
+ * Only bibliographies. Any app — or any web page the user merely visits — can
+ * emit one of these URLs, so an unrestricted `open?file=` is a local-file prober:
+ * the app's response tells the sender whether a given path exists and parses
+ * (audit rpt-02 SEV-6). Callers must ALSO confirm with the user; this is the
+ * cheap categorical filter, not the whole gate.
+ */
+export function isOpenableBibPath(file: string): boolean {
+  if (!file) return false;
+  // Reject embedded NULs: the OS would truncate the path there, so the `.bib`
+  // suffix we checked need not be the suffix that actually gets opened.
+  // Spaces are perfectly legitimate here ("My Library.bib") — only NUL is not.
+  if (file.includes('\u0000')) return false;
+  return /\.bib$/i.test(file.trim());
+}
