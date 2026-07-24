@@ -38,4 +38,25 @@ describe('help manual', () => {
     expect(html).toContain('class="hljs language-javascript"');
     expect(html).toContain('hljs-keyword'); // token spans survived sanitize
   });
+
+  // The manual is authored as 13 files that cross-link by `NN-chapter.md#anchor`
+  // and `#anchor`, but ships as ONE page. marked emits no heading ids of its own
+  // and the sanitizer drops attributes it isn't told to keep, so every one of
+  // these links silently went nowhere until headings gained chapter-scoped ids.
+  it('gives every heading an id that its cross-links actually resolve to', () => {
+    const html = buildHelpHtml(findHelpDir(appDir)!);
+
+    // Headings carry chapter-prefixed ids (and survived sanitization).
+    expect(html).toMatch(/<h2 id="09-shortcuts-and-reference-[a-z0-9-]+"/);
+
+    const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map((m) => m[1]));
+    const links = [...html.matchAll(/href="#([^"]+)"/g)].map((m) => m[1]);
+
+    // Guards against a vacuous pass if the manual ever stops cross-linking.
+    expect(links.length).toBeGreaterThan(300);
+    expect(ids.size).toBeGreaterThan(300);
+
+    const dead = [...new Set(links.filter((h) => !ids.has(h)))];
+    expect(dead).toEqual([]);
+  });
 });

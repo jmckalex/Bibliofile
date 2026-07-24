@@ -33,19 +33,58 @@ function escapeCode(s: string): string {
 }
 
 /**
- * A dedicated marked instance for the manual (separate from the notes pipeline's
- * global `marked`), with a code renderer that syntax-highlights fenced blocks via
- * highlight.js. Unknown / no language falls back to escaped plain text.
+ * Heading slug, mirroring GitHub's algorithm — lowercase, drop everything that
+ * isn't a word character / space / hyphen, then map EACH space to one hyphen
+ * (runs of spaces become runs of hyphens, and nothing is trimmed afterwards, so
+ * "Find & Replace" -> "find--replace" and "🗑 Delete" -> "-delete"). The manual's
+ * `#anchor` fragments are authored to GitHub's rules, so the ids we emit have to
+ * be generated the same way for them to resolve.
  */
-const helpMarked = new Marked({
-  renderer: {
-    code({ text, lang }: { text: string; lang?: string }): string {
-      const language = lang && hljs.getLanguage(lang) ? lang : '';
-      const body = language ? hljs.highlight(text, { language }).value : escapeCode(text);
-      return `<pre><code class="hljs${language ? ` language-${language}` : ''}">${body}</code></pre>`;
+export function slugifyHeading(text: string): string {
+  return text
+    .replace(/`/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s/g, '-');
+}
+
+/**
+ * A dedicated marked instance for one chapter of the manual (separate from the
+ * notes pipeline's global `marked`), with:
+ *
+ * - a code renderer that syntax-highlights fenced blocks via highlight.js
+ *   (unknown / no language falls back to escaped plain text), and
+ * - a heading renderer that emits `id="<chapterId>-<slug>"`. marked does not emit
+ *   heading ids of its own, and the whole manual renders into ONE page, so bare
+ *   GitHub slugs would collide across chapters — hence the chapter prefix.
+ *
+ * `seen` de-duplicates slugs within the chapter (`-1`, `-2`, …) so repeated
+ * headings can't produce duplicate DOM ids.
+ */
+function chapterMarked(chapterId: string, seen: Map<string, number>): Marked {
+  return new Marked({
+    renderer: {
+      code({ text, lang }: { text: string; lang?: string }): string {
+        const language = lang && hljs.getLanguage(lang) ? lang : '';
+        const body = language ? hljs.highlight(text, { language }).value : escapeCode(text);
+        return `<pre><code class="hljs${language ? ` language-${language}` : ''}">${body}</code></pre>`;
+      },
+      heading(this: { parser: { parseInline(tokens: unknown[]): string } }, token: {
+        tokens: unknown[];
+        depth: number;
+        text: string;
+      }): string {
+        const { tokens, depth, text } = token;
+        const base = slugifyHeading(text);
+        const n = seen.get(base) ?? 0;
+        seen.set(base, n + 1);
+        const slug = n === 0 ? base : `${base}-${n}`;
+        return `<h${depth} id="${chapterId}-${slug}">${this.parser.parseInline(tokens)}</h${depth}>`;
+      },
     },
-  },
-});
+  });
+}
 
 const HELP_SANITIZE: sanitizeHtml.IOptions = {
   allowedTags: [
@@ -63,6 +102,9 @@ const HELP_SANITIZE: sanitizeHtml.IOptions = {
     code: ['class'],
     span: ['class'],
     pre: ['class'],
+    // Heading ids are what the manual's `#anchor` cross-links land on; without
+    // this the sanitizer strips them and every in-page link goes nowhere.
+    h1: ['id'], h2: ['id'], h3: ['id'], h4: ['id'], h5: ['id'], h6: ['id'],
   },
   allowedSchemes: ['http', 'https', 'file', 'data', 'mailto'],
 };
@@ -87,13 +129,21 @@ function renderChapter(helpDir: string, file: string): Chapter {
   const id = basename(file, '.md');
   const md = readFileSync(join(helpDir, file), 'utf8');
   const title = /^#\s+(.+)$/m.exec(md)?.[1]?.trim() ?? id;
-  let html = helpMarked.parse(md, { async: false }) as string;
+  let html = chapterMarked(id, new Map()).parse(md, { async: false }) as string;
   // ../image.png  ->  file:///abs/docs/image.png
   html = html.replace(/(\.\.\/)+([^"')\s]+\.(?:png|jpe?g|gif|svg|webp))/gi, (_m, _dots, p) =>
     `file://${join(helpDir, '..', p)}`,
   );
-  // NN-chapter.md(#anchor) -> #NN-chapter (in-page navigation)
-  html = html.replace(/href="(\d[0-9a-z-]*)\.md(#[^"]*)?"/gi, (_m, n, a) => `href="#${n}${a ?? ''}"`);
+  // A bare same-chapter fragment is scoped to this chapter's heading ids:
+  // #some-heading -> #NN-chapter-some-heading. Must run BEFORE the cross-chapter
+  // rewrite below, which is what produces hrefs that already start with '#'.
+  html = html.replace(/href="#([^"]+)"/g, (_m, a) => `href="#${id}-${a}"`);
+  // NN-chapter.md(#anchor) -> #NN-chapter(-anchor) (in-page navigation). Without
+  // a fragment this targets the chapter's <section id>; with one it targets the
+  // heading id emitted above.
+  html = html.replace(/href="(\d[0-9a-z-]*)\.md(?:#([^"]*))?"/gi, (_m, n, a) =>
+    `href="#${n}${a ? `-${a}` : ''}"`,
+  );
   return { id, title, html: sanitizeHtml(html, HELP_SANITIZE) };
 }
 
