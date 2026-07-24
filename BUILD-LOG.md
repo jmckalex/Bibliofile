@@ -649,3 +649,85 @@ user-facing Help (`docs/help/`) was updated alongside:
 - **Labeled undo** — per-action labels in the Edit → Undo/Redo menu (stack + autosave exist).
 - **Person/date field-type editors** — still plain text + autocomplete (date-picker deferred over
   Date-Added/Modified clobbering risk).
+
+## Code-audit fix campaign + follow-on work (2026-07-05 → -24) — MERGED to `main`, pushed
+
+Worked through the defects in the 2026-07-02 audit
+(`/Users/jalex/Source/BibDesk/claude-fable-code-audit/`), most-severe first, consulting the
+user between severity tiers. Method per tier: reproduce → fix → unit-test → **adversarial
+review of the diff** → fix confirmed findings → commit. The reviews repeatedly caught real
+self-inflicted regressions before commit (an H2 `@comment` corruption; a first-cut MED-3
+guard that keyed on the nullable progress panel and was defeated by its Close button; a
+clone that would happily overwrite an already-open library).
+
+The campaign branch was `git merge --ff-only`'d into `main` on 2026-07-24 and deleted.
+
+### The campaign (audit items)
+
+- `303c71c` **Security (C1/H5/H6)** — stored-XSS→RCE fix (`markdown.ts` was re-inserting raw
+  math spans *after* `sanitize-html`), a Content-Security-Policy, and navigation/window-open
+  guards.
+- `7c35721` **BibTeX round-trip (H1/H2/rpt-01 MED-1/MED-3)** — serializer brace-balances
+  unbalanced values; an in-entry `%` comment no longer desyncs the field splitter; recovery
+  for a missing `}`. Fixes silent corruption of *well-formed* `.bib` files on the next save.
+- `78f10ee` **Save/OCR safety (H3/H4)** — external-change-on-disk guard (mtime+size baseline,
+  Overwrite/Reload/Cancel, `ExternalChangeError` unless forced); OCR copies the pristine PDF
+  to `userData/OCR Backups` before its destructive in-place replace.
+- `90a9d0c` **Renderer data-loss UX (H7/H8/H9)** — settings writes stop collapsing a
+  multi-selection; the PDF-review backdrop-click no longer discards staged drafts;
+  editor-window `beforeunload` + ⌘S field-commit flush.
+- `d9a2adb` **CI (H12)** — `.github/workflows/ci.yml`, and made `eslint .` actually green
+  (the config was mis-scoped → 71 false errors).
+- `3086627` **Packaging (H10/H11 + rpt-06 MED-2)** — `extraResources` (tessdata, journals,
+  help, cover PNGs) + `asarUnpack` the OCR deps, incl. the per-arch `@napi-rs/canvas-darwin-*`
+  skia binaries declared as app `optionalDependencies`.
+- `bc98e3b` **Renderer state races (rpt-03 MED-1…6)** — optimistic dirty-clear on save;
+  Replace-All/Print honour the active filter; OA/OCR batches serialized by a
+  panel-independent run-token lock; no selection snap-back; commit-on-blur prefs; surfaced
+  previously-silent rejections.
+
+### Follow-on work (user-requested, after the merge)
+
+- `48fdd1a` **Clone Bibliography** (File menu) — writes the library to a new `.bib` and copies
+  every attachment into the AutoFile folder under the configured format, so the clone is a
+  fully independent library to experiment on. The source is provably untouched; nothing is
+  ever overwritten (`COPYFILE_EXCL`); it refuses to write over any *open* library. Plus
+  **Publication ▸ New Publications from Clipboard** (⌥⌘L) — the engine already existed under
+  Edit ▸ Paste Publication, so this was discoverability, placed and named as in BibDesk.
+- `8b90d14` **Full-text index rearchitected.** `fts.ts` opened SQLite at `':memory:'`, so every
+  open rebuilt the whole index — re-reading the entire extracted PDF corpus (483 MB on the
+  user's library) out of one JSON blob and re-tokenizing it, with the text resident twice.
+  Search is now two indexes: field text stays in memory (small, changes constantly, keyed by a
+  per-session UUID), while PDF text moves to an on-disk FTS5 index keyed by **absolute path** —
+  the stable key that makes it persistable at all. The table is **contentless**: 641 MB stored
+  vs **141 MB** measured on real data. Freshness is mtime+size with an md5 confirm, so AutoFile
+  moves and cloud re-syncs no longer re-extract. PDF indexing is now gated on the
+  `fullTextSearch` preference (it previously gated only *queries*). Also fixed rpt-02 **SEV-5**:
+  `closeDocument` leaked a native FTS handle per open/close cycle.
+- `164177d` **Editor window split layout** — the live preview re-rendered on every keystroke and
+  changed height, shoving the field under the cursor. It is now a fixed left column.
+- `b242ba7` **macOS BibDesk parity.** BibDesk stores each linked file with a `bookmark` blob that
+  finds the file after a rename/move; we wrote only `relativePath`. A Node-API Foundation addon
+  (`app/native/bookmark`) now makes exactly BibDesk's call. Being N-API it is ABI-stable across
+  Node and Electron, which is what made it packageable. Copies also preserve extended attributes
+  (Finder tags/comments) via `copyfile(3)`. Consolidate Linked Files backfills bookmarks in
+  place, and no longer renames `-N` uniquified files on every run.
+- `3a45d20` **Table** keeps the selected row in view when an edit re-sorts it.
+- `158dd39` **CI cold-install fix** — pnpm 11 does not consult `onlyBuiltDependencies`; every
+  package with a build script needs a decision in `allowBuilds`. A *warm* install has nothing
+  to approve, so this only ever failed on CI, which had never run until the first push.
+
+### Verified
+
+Local (Electron ABI): `pnpm -r build` · `pnpm build:app` · **1842 pass / 21 skip** · `eslint .`
+0 errors / 16 warnings. Local (node ABI, both native addons): **1863 pass / 0 skip**.
+**CI green** on macos-latest with a cold install: **1859 pass / 4 skip** (TeX only), both
+native asserts passing.
+
+### Remaining audit items (not started)
+
+**H13** Electron-33-EOL upgrade (the last High — deferred as risky, its own branch); rpt-02
+**SEV-6** `x-bibdesk://` unconfirmed mutation, **SEV-7** `fetchPdfBytes` SSRF, **SEV-8**
+undo/redo UUID regeneration; rpt-04 **SEV-M1** `IpcEventMap` completeness, **SEV-M4**
+plugins-sdk isolation; rpt-06 **M1** asar slimming (risky), **M3** citeproc CPAL election,
+**M4** dev-dep advisories. **Still user-only:** confirm OCR in a packaged build.
