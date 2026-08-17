@@ -146,7 +146,7 @@ export function ViewPane() {
           title={t('view.editTitle')}
           onClick={() => openEditor(detail.id)}
         >
-          <Icon name="edit" /> Edit…
+          <Icon name="edit" /> {t('view.edit')}
         </button>
       </div>
       {documentId && <JournalCover documentId={documentId} itemId={detail.id} />}

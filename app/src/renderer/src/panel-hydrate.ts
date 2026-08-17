@@ -7,6 +7,7 @@
  * This is the renderer counterpart to `app/src/main/panel.ts`.
  */
 import { getStore } from './store.js';
+import { tNow } from './i18n.js';
 import { typesetMath, hasMath } from './mathjax.js';
 import { renderPdfThumbnail } from './pdfjs.js';
 import { panelIconSvg } from '../../icon-svg.js';
@@ -174,8 +175,8 @@ function addThumbDeleteButtons(root: HTMLElement): void {
     btn.type = 'button';
     btn.className = 'bd-thumb__del';
     btn.dataset.removeThumb = field;
-    btn.title = 'Remove attachment';
-    btn.setAttribute('aria-label', 'Remove attachment');
+    btn.title = tNow('detail.removeAttachment');
+    btn.setAttribute('aria-label', tNow('detail.removeAttachment'));
     btn.textContent = '×'; // ×
     fig.appendChild(btn);
   }

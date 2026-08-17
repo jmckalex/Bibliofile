@@ -16,6 +16,7 @@
  */
 import { typesetMath, hasMath } from './mathjax.js';
 import { getStore, citeStyleLabel } from './store.js';
+import { tNow } from './i18n.js';
 
 const escapeHtml = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -161,7 +162,7 @@ class BdJournalCover extends HTMLElement {
       const title = res.journal ?? '';
       this.innerHTML = `<div class="bd-jcover" title="${escapeHtml(title)}"><img src="${
         this.objectUrl
-      }" alt="${escapeHtml(title ? `${title} cover` : 'journal cover')}" /></div>`;
+      }" alt="${escapeHtml(title ? tNow('detail.journalCover', { name: title }) : tNow('detail.journalCoverGeneric'))}" /></div>`;
     } else if (res.journal) {
       this.innerHTML = generatedCover(res.journal);
     } else {
@@ -199,7 +200,7 @@ class BdCitation extends HTMLElement {
     const token = ++this.token;
     const styleLabel = citeStyleLabel(getStore().getState().citationStyles, styleId);
     // Header renders immediately; the body fills in after the async format.
-    this.innerHTML = `<div class="bd-cite"><div class="bd-cite__head"><span class="bd-detail__section bd-detail__section--inline">Citation</span><span class="bd-cite__stylename" title="Set the citation style in Preferences">${escapeHtml(
+    this.innerHTML = `<div class="bd-cite"><div class="bd-cite__head"><span class="bd-detail__section bd-detail__section--inline">${escapeHtml(tNow('detail.citation'))}</span><span class="bd-cite__stylename" title="${escapeHtml(tNow('detail.citationStyleTitle'))}">${escapeHtml(
       styleLabel,
     )}</span></div></div>`;
     if (!documentId || !itemId) return;

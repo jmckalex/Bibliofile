@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { BUILTIN_COLUMNS, LOCALES, defaultPanelBody, type Settings, type EntryTypeInfo, type ExportTemplate, type PanelTemplate, type PanelWhich, type CitationStyle } from '@bibdesk/shared';
 import { useT } from './i18n.js';
+import { Rich } from './RichText.js';
 import { CodeEditor } from './CodeEditor.js';
 import { Icon, type IconName } from './icons.js';
 import { useStore } from './store.js';
@@ -100,11 +101,7 @@ function ColumnsSection({
           }}
         />
       </div>
-      <p className="bd-prefs__hint">
-        <strong>Reorder</strong> columns by dragging a header; <strong>resize</strong> by dragging a
-        header’s right edge. Any BibTeX field name works as a column, and the{' '}
-        <strong>View → Columns</strong> menu toggles these too.
-      </p>
+      <p className="bd-prefs__hint"><Rich text={t('prefs.columnsHint')} /></p>
     </section>
   );
 }
@@ -173,12 +170,7 @@ function FullTextSection({
           </label>
         </div>
       </div>
-      <p className="bd-prefs__hint">
-        How many pages of each PDF to scan for the full-text index. <strong>At most N</strong>{' '}
-        keeps indexing fast (40 is plenty for articles); <strong>All</strong> indexes the whole
-        PDF — useful for long or scanned books, <em>provided the scan has a searchable text layer
-        (OCR)</em>. Changing this re-indexes any open libraries.
-      </p>
+      <p className="bd-prefs__hint"><Rich text={t('prefs.ftsPageLimitHint')} /></p>
     </section>
   );
 }
@@ -260,11 +252,7 @@ function EntryTypesSection({
   return (
     <section className="bd-prefs__section">
       <h3>{t('prefs.entryTypes')}</h3>
-      <p className="bd-prefs__hint">
-        Define your own BibTeX entry types and the fields the editor offers for them. Required and
-        optional fields are comma-separated; the <strong>order you type them</strong> is the order
-        shown. The 15 standard types are built in (listed below for reference).
-      </p>
+      <p className="bd-prefs__hint"><Rich text={t('prefs.customTypesHint')} /></p>
       {customNames.length === 0 && <p className="bd-prefs__hint">{t('prefs.noCustomTypes')}</p>}
       {customNames.map((name) => {
         const ct = customTypes[name]!;
@@ -491,13 +479,7 @@ function TemplatesSection({
   return (
     <section className="bd-prefs__section">
       <h3>{t('prefs.exportTemplates')}</h3>
-      <p className="bd-prefs__hint">
-        Author your own export formats with Handlebars; each appears under{' '}
-        <strong>File → Export</strong>. Per-entry context: <code>citeKey</code>, <code>type</code>,{' '}
-        <code>fields.&lt;Name&gt;</code>, <code>authors</code>/<code>authorsText</code>, and{' '}
-        <code>title year venue volume pages doi</code>; <code>{'{{field "name"}}'}</code> looks up a
-        field case-insensitively. Loop with <code>{'{{#each entries}}'}</code>.
-      </p>
+      <p className="bd-prefs__hint"><Rich text={t('prefs.exportTemplatesHint')} /></p>
       {templates.length === 0 && <p className="bd-prefs__hint">{t('prefs.noTemplates')}</p>}
       {templates.map((tpl, i) => (
         <TemplateRow
@@ -760,25 +742,8 @@ function PanelsSection({
   return (
     <section className="bd-prefs__section">
       <h3>{t('prefs.panels')}</h3>
-      <p className="bd-prefs__hint">
-        Fork the right detail pane and the bottom panel to customize them with Handlebars, then pick
-        which fork is active (or keep the built-in default). Per-item context: <code>citeKey</code>,{' '}
-        <code>type</code>, <code>fields</code> (<code>name</code>/<code>value</code>/
-        <code>isInherited</code>), <code>{'{{{notesHtml}}}'}</code>, <code>{'{{{abstractHtml}}}'}</code>,{' '}
-        <code>attachments</code> / <code>links</code> (<code>displayName</code>/<code>url</code>),{' '}
-        <code>{'{{{previewHtml}}}'}</code>. Live widgets: <code>{'<bd-journal-cover>'}</code>,{' '}
-        <code>{'<bd-citation>'}</code> (these don’t render in the sandboxed HTML preview, but do in the
-        live panel).
-      </p>
-      <p className="bd-prefs__hint">
-        <strong>Tabs &amp; thumbnails.</strong> Wrap content in{' '}
-        <code>{'<div class="bd-tabs">'}</code> with <code>{'.bd-tab[data-tab="key"]'}</code> buttons and
-        matching <code>{'[data-tabpanel="key"]'}</code> panels for a tabbed view. An attachment tile{' '}
-        <code>{'<figure class="bd-thumb" data-thumb data-file="{{url}}">'}</code> (with a{' '}
-        <code>{'.bd-thumb__img'}</code> slot) gets a live PDF/image preview and opens natively on
-        double-click. The built-in <strong>Tabbed</strong> bottom-panel mode (the bottom-panel switch,
-        or View ▸ Bottom Panel ▸ Tabbed) is a ready-made example of both.
-      </p>
+      <p className="bd-prefs__hint"><Rich text={t('prefs.panelForksHint')} /></p>
+      <p className="bd-prefs__hint"><Rich text={t('prefs.panelTabsHint')} /></p>
       <PanelForkManager
         which="details"
         label={t('prefs.detailPane')}
@@ -1029,9 +994,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                       onChange={(e) => void save({ autosave: e.target.checked })}
                     />
                   </label>
-                  <p className="bd-prefs__hint">
-                    Save automatically a moment after each edit. Undo (⌘Z) / Redo (⇧⌘Z) work regardless.
-                  </p>
+                  <p className="bd-prefs__hint"><Rich text={t('prefs.autosaveHint')} /></p>
                 </section>
                 <FullTextSection pageLimit={settings.ftsPageLimit ?? 40} save={save} />
               </>
@@ -1063,11 +1026,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                       }}
                     />
                   </label>
-                  <p className="bd-prefs__hint">
-                    Inserted when you drag rows to a TeX editor or run <strong>Copy \cite&#123;…&#125;</strong>.
-                    <code>%K</code> expands to the cite key(s) — e.g. <code>\cite&#123;%K&#125;</code> or{' '}
-                    <code>\citep&#123;%K&#125;</code>.
-                  </p>
+                  <p className="bd-prefs__hint"><Rich text={t('prefs.citeCommandHint')} /></p>
                 </section>
                 <section className="bd-prefs__section">
                   <h3>{t('prefs.texPreview')}</h3>
@@ -1118,18 +1077,8 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                     }}
                   />
                 </label>
-                <p className="bd-prefs__hint">
-                  BibDesk format language — e.g. <code>%a1:%Y%u2</code> = first author, year, then a
-                  unique suffix. Used by the <strong>Generate</strong> button.
-                </p>
-                <p className="bd-prefs__hint">
-                  <strong>Author-count recipe</strong> (the default):{' '}
-                  <code>%p[/][/etal1]2:%Y%u0</code> → <code>Surname:Year</code> for one author,{' '}
-                  <code>Surname1/Surname2:Year</code> for two, <code>Surname1/etal:Year</code> for
-                  three or more; <code>%u0</code> adds a disambiguating letter (<code>a</code>,{' '}
-                  <code>b</code>, …) only on a clash. <code>%p</code> uses editors when an entry has
-                  no author (e.g. edited books); use <code>%a</code> instead for authors only.
-                </p>
+                <p className="bd-prefs__hint"><Rich text={t('prefs.citeKeyFormatHint')} /></p>
+                <p className="bd-prefs__hint"><Rich text={t('prefs.citeKeyRecipeHint')} /></p>
               </section>
             )}
 
@@ -1178,13 +1127,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                       onChange={(e) => void save({ autoFileOnAdd: e.target.checked })}
                     />
                   </label>
-                  <p className="bd-prefs__hint">
-                    <strong>Publication → AutoFile Linked Files</strong> moves an entry’s attachments into the
-                    Papers folder, named by this format (default <code>%p1/%T5</code> = a folder per first
-                    author or editor, then the title’s first words; the extension is added automatically).
-                    With <em>AutoFile attachments when added</em> on, files are filed the moment you add them
-                    (drag-and-drop, picker, or import) — requires a Papers folder.
-                  </p>
+                  <p className="bd-prefs__hint"><Rich text={t('prefs.autoFileHint')} /></p>
                 </section>
                 <section className="bd-prefs__section">
                   <h3>{t('prefs.annotationStorage')}</h3>
@@ -1199,13 +1142,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                       <option value="readable">{t('prefs.annotation.readable')}</option>
                     </select>
                   </label>
-                  <p className="bd-prefs__hint">
-                    <strong>Compressed</strong> stores markdown annotations lz-string-compressed in a
-                    private <code>Bdsk-Annotation</code> field — brace-safe and small, but opaque to other
-                    tools. <strong>Readable</strong> keeps them in the standard <code>Annote</code> field
-                    (only <code>% {'{'} {'}'}</code> escaped) — portable and human-readable, but the
-                    flakier path. Existing entries convert on next edit; either form always reads back.
-                  </p>
+                  <p className="bd-prefs__hint"><Rich text={t('prefs.annotationStorageHint')} /></p>
                 </section>
                 <section className="bd-prefs__section">
                   <h3>{t('prefs.abstractStorage')}</h3>
@@ -1221,15 +1158,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                       <option value="compressed">{t('prefs.abstract.compressed')}</option>
                     </select>
                   </label>
-                  <p className="bd-prefs__hint">
-                    The abstract is a normal field, so <strong>Plain</strong> (the default) stores it
-                    verbatim — portable and fed to citation styles, but a stray unbalanced{' '}
-                    <code>{'}'}</code> could corrupt the <code>.bib</code>. <strong>Readable</strong> and{' '}
-                    <strong>Compressed</strong> apply the same brace-safe encodings as annotations (in the
-                    standard <code>Abstract</code> field, or a private <code>Bdsk-Abstract</code> blob) —
-                    safe against bad braces, but less portable (other tools and CSL won’t see a compressed
-                    abstract). Existing entries convert on next edit; all forms always read back.
-                  </p>
+                  <p className="bd-prefs__hint"><Rich text={t('prefs.abstractStorageHint')} /></p>
                 </section>
               </>
             )}
@@ -1256,10 +1185,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                 <EntryTypesSection customTypes={settings.customTypes} entryTypes={entryTypes} save={save} />
                 <section className="bd-prefs__section">
                   <h3>{t('prefs.fieldTypes')}</h3>
-                  <p className="bd-prefs__hint">
-                    Comma-separated field names. These control how the app treats each field — which
-                    are parsed as people, shown as links, rated, etc.
-                  </p>
+                  <p className="bd-prefs__hint"><Rich text={t('prefs.fieldTypesHint')} /></p>
                   {FIELD_CATEGORIES.map(({ key, labelKey }) => (
                     <label className="bd-prefs__row" key={key}>
                       <span>{t(labelKey)}</span>
@@ -1301,10 +1227,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                     }}
                   />
                 </label>
-                <p className="bd-prefs__hint">
-                  The assistant (Tools → Claude Assistant, ⌘J) uses your Anthropic API key, stored
-                  encrypted on this device. It reads the library freely and asks before any change.
-                </p>
+                <p className="bd-prefs__hint"><Rich text={t('prefs.assistantHint')} /></p>
               </section>
             )}
           </div>

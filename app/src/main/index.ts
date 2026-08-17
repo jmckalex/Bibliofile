@@ -102,6 +102,16 @@ import { PdfPool } from './pdf-pool.js';
 import { PdfTextIndex } from './pdf-index.js';
 import { isRememberedUrl, rememberFetchableUrl } from './url-guard.js';
 import type { MigrateRequest, MigrateResult } from './migrate-worker.js';
+
+/**
+ * Label for the preview card's 📎 attachment chip. `document-service` renders that
+ * card but is deliberately electron-free (its tests import it with no electron
+ * mock), so the translated string is injected rather than looked up there —
+ * the same reason `renderCite` is injected. Audit rpt-03 MED-7.
+ */
+function fileChipLabel(count: number): string {
+  return t(count === 1 ? 'detail.fileChip' : 'detail.fileChipPlural', { count });
+}
 import { buildHelpHtml, findHelpDir } from './help.js';
 import { getSettings, loadSettings, updateSettings } from './settings.js';
 import { t, setMainLocale } from './i18n.js';
@@ -2963,6 +2973,7 @@ function registerIpc(): void {
         citationAutolink: s.citationAutolink,
         detailsTemplate: resolveActivePanelBody(s.detailsForks, s.activeDetailsFork),
         bottomPanelTemplate: resolveActivePanelBody(s.bottomForks, s.activeBottomFork),
+        fileChipLabel,
       });
       // Full-text page-limit changed → stored text no longer covers the wanted
       // pages, so re-extract every open document's PDFs at the new limit (in the
@@ -3679,6 +3690,7 @@ if (!gotLock) {
       citationAutolink: settings.citationAutolink,
       detailsTemplate: resolveActivePanelBody(settings.detailsForks, settings.activeDetailsFork),
       bottomPanelTemplate: resolveActivePanelBody(settings.bottomForks, settings.activeBottomFork),
+      fileChipLabel,
     });
     registerIpc();
     ensureScriptsDir(app.getPath('userData')); // create the Scripts folder for the Scripts menu

@@ -786,6 +786,7 @@ export function toItemDetail(
   citeKeyExists: (key: string) => boolean,
   renderCite?: (rawCommand: string) => string,
   renderBibliography?: (keys: readonly string[]) => string,
+  fileChipLabel?: (count: number) => string,
 ): ItemDetail {
   const fields: ItemField[] = [];
   const emitted = new Set<string>();
@@ -878,7 +879,7 @@ export function toItemDetail(
     files,
     // Only real file attachments count toward the "📎 N files" chip — remote
     // Url/Doi links have their own chips and must not be counted as files.
-    previewHtml: buildPreviewHtml(item, files.filter((f) => f.kind === 'file').length),
+    previewHtml: buildPreviewHtml(item, files.filter((f) => f.kind === 'file').length, fileChipLabel),
     notesRaw,
     notesHtml: renderNotes(notesRaw, citeKeyExists, renderCite, renderBibliography),
     abstractRaw,
@@ -902,7 +903,11 @@ function splitKeywords(raw: string): string[] {
  * math spans intact for the renderer's MathJax pass. All interpolated text is
  * de-TeXified (math-aware) and HTML-escaped. Returns undefined when empty.
  */
-export function buildPreviewHtml(item: BibItem, fileCount: number): string | undefined {
+export function buildPreviewHtml(
+  item: BibItem,
+  fileCount: number,
+  fileChipLabel?: (count: number) => string,
+): string | undefined {
   const title = toDisplay(item.stringValueOfField(FieldNames.Title, true));
   const authors = formatAuthorsDisplay(item);
   const journal = toDisplay(
@@ -942,7 +947,7 @@ export function buildPreviewHtml(item: BibItem, fileCount: number): string | und
     );
   if (fileCount > 0)
     chips.push(
-      `<button type="button" class="bd-chip bd-chip--files" data-open-files="1">${panelIconSvg('paperclip')} ${fileCount} ${fileCount === 1 ? 'file' : 'files'}</button>`,
+      `<button type="button" class="bd-chip bd-chip--files" data-open-files="1">${panelIconSvg('paperclip')} ${fileChipLabel ? escapeHtml(fileChipLabel(fileCount)) : `${fileCount} ${fileCount === 1 ? 'file' : 'files'}`}</button>`,
     );
   if (chips.length) p.push(`<div class="bd-card__chips">${chips.join('')}</div>`);
 
@@ -1258,6 +1263,11 @@ export class DocumentStore {
     // stays free of the citeproc/electron citation engine.
     renderCite: undefined as RenderCiteFn | undefined,
     renderBibliography: undefined as RenderBibFn | undefined,
+    // Label for the preview card's 📎 attachment chip. Injected for the same
+    // reason as the two above: main's `t` reaches for electron's `app` to resolve
+    // the locale, and this module is deliberately electron-free (its tests import
+    // it directly, with no electron mock). Undefined ⇒ the English default.
+    fileChipLabel: undefined as ((count: number) => string) | undefined,
   };
 
   /** Apply preference-driven editing defaults. */
@@ -1276,9 +1286,11 @@ export class DocumentStore {
     bottomPanelTemplate?: string;
     renderCite?: RenderCiteFn;
     renderBibliography?: RenderBibFn;
+    fileChipLabel?: (count: number) => string;
   }): void {
     if (c.renderCite) this.editConfig.renderCite = c.renderCite;
     if (c.renderBibliography) this.editConfig.renderBibliography = c.renderBibliography;
+    if (c.fileChipLabel) this.editConfig.fileChipLabel = c.fileChipLabel;
     if (c.citeKeyFormat) this.editConfig.citeKeyFormat = c.citeKeyFormat;
     if (c.defaultEntryType) this.editConfig.defaultEntryType = c.defaultEntryType;
     if (c.papersFolder !== undefined) this.editConfig.papersFolder = c.papersFolder;
@@ -3787,6 +3799,7 @@ export class DocumentStore {
       (k) => keys.has(k.toLowerCase()),
       renderCite,
       renderBibliography,
+      this.editConfig.fileChipLabel,
     );
     // Render the configurable detail + bottom panels (default templates reproduce
     // ViewPane / the annotation reader); the renderer hydrates them, falling back

@@ -404,8 +404,8 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
             onChange={(e) => commit(e.target.value)}
           >
             <option value="">—</option>
-            <option value="0">No</option>
-            <option value="2">Yes</option>
+            <option value="0">{t('detail.triStateNo')}</option>
+            <option value="2">{t('detail.triStateYes')}</option>
           </select>
         ) : field.kind === 'keywords' ? (
           <KeywordTokens key={`${itemId}:${field.name}`} itemId={itemId} field={field} />

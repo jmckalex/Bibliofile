@@ -121,9 +121,12 @@ export const en: Catalog = {
   'prefs.language.hint': 'Changes apply immediately. Untranslated text falls back to English.',
 
   // --- Preferences: chrome (section headings, labels, controls) ---
-  // The long bd-prefs__hint help paragraphs intentionally stay in English —
-  // they embed format codes (%a1, %K), Handlebars tokens and field names that
-  // must not be translated.
+  // The long bd-prefs__hint help paragraphs used to stay in English on the
+  // grounds that they embed format codes (%a1, %K), Handlebars tokens and field
+  // names that must not be translated. They are now keys like everything else
+  // (audit rpt-03 MED-7): the untranslatable tokens sit inside `` `code` `` runs,
+  // which the renderer's `Rich` component sets in <code> and a translator leaves
+  // alone, so only the prose around them needs translating.
   'prefs.title': 'Preferences',
   // Left-rail section labels (the others reuse existing prefs.* keys).
   'prefs.section.general': 'General',
@@ -161,6 +164,40 @@ export const en: Catalog = {
   'prefs.texPreview': 'LaTeX preview',
   'prefs.texBibStyle': 'BibTeX style (.bst)',
   'prefs.texBinDir': 'TeX bin directory',
+  // Preferences hint paragraphs. These carry the inline markup understood by the
+  // renderer's `Rich` component — `**bold**`, `*italic*`, `` `code` `` — so that a
+  // whole sentence stays one translatable key instead of being split around its
+  // formatting (audit rpt-03 MED-7).
+  'prefs.columnsHint':
+    '**Reorder** columns by dragging a header; **resize** by dragging a header’s right edge. Any BibTeX field name works as a column, and the **View → Columns** menu toggles these too.',
+  'prefs.ftsPageLimitHint':
+    'How many pages of each PDF to scan for the full-text index. **At most N** keeps indexing fast (40 is plenty for articles); **All** indexes the whole PDF — useful for long or scanned books, *provided the scan has a searchable text layer (OCR)*. Changing this re-indexes any open libraries.',
+  'prefs.customTypesHint':
+    'Define your own BibTeX entry types and the fields the editor offers for them. Required and optional fields are comma-separated; the **order you type them** is the order shown. The 15 standard types are built in (listed below for reference).',
+  'prefs.exportTemplatesHint':
+    'Author your own export formats with Handlebars; each appears under **File → Export**. Per-entry context: `citeKey`, `type`, `fields.<Name>`, `authors`/`authorsText`, and `title year venue volume pages doi`; `{{field "name"}}` looks up a field case-insensitively. Loop with `{{#each entries}}`.',
+  'prefs.panelForksHint':
+    'Fork the right detail pane and the bottom panel to customize them with Handlebars, then pick which fork is active (or keep the built-in default). Per-item context: `citeKey`, `type`, `fields` (`name`/`value`/`isInherited`), `{{{notesHtml}}}`, `{{{abstractHtml}}}`, `attachments` / `links` (`displayName`/`url`), `{{{previewHtml}}}`. Live widgets: `<bd-journal-cover>`, `<bd-citation>` (these don’t render in the sandboxed HTML preview, but do in the live panel).',
+  'prefs.panelTabsHint':
+    '**Tabs & thumbnails.** Wrap content in `<div class="bd-tabs">` with `.bd-tab[data-tab="key"]` buttons and matching `[data-tabpanel="key"]` panels for a tabbed view. An attachment tile `<figure class="bd-thumb" data-thumb data-file="{{url}}">` (with a `.bd-thumb__img` slot) gets a live PDF/image preview and opens natively on double-click. The built-in **Tabbed** bottom-panel mode (the bottom-panel switch, or View ▸ Bottom Panel ▸ Tabbed) is a ready-made example of both.',
+  'prefs.autosaveHint':
+    'Save automatically a moment after each edit. Undo (⌘Z) / Redo (⇧⌘Z) work regardless.',
+  'prefs.citeCommandHint':
+    'Inserted when you drag rows to a TeX editor or run **Copy \\cite{…}**. `%K` expands to the cite key(s) — e.g. `\\cite{%K}` or `\\citep{%K}`.',
+  'prefs.citeKeyFormatHint':
+    'BibDesk format language — e.g. `%a1:%Y%u2` = first author, year, then a unique suffix. Used by the **Generate** button.',
+  'prefs.citeKeyRecipeHint':
+    '**Author-count recipe** (the default): `%p[/][/etal1]2:%Y%u0` → `Surname:Year` for one author, `Surname1/Surname2:Year` for two, `Surname1/etal:Year` for three or more; `%u0` adds a disambiguating letter (`a`, `b`, …) only on a clash. `%p` uses editors when an entry has no author (e.g. edited books); use `%a` instead for authors only.',
+  'prefs.autoFileHint':
+    '**Publication → AutoFile Linked Files** moves an entry’s attachments into the Papers folder, named by this format (default `%p1/%T5` = a folder per first author or editor, then the title’s first words; the extension is added automatically). With *AutoFile attachments when added* on, files are filed the moment you add them (drag-and-drop, picker, or import) — requires a Papers folder.',
+  'prefs.annotationStorageHint':
+    '**Compressed** stores markdown annotations lz-string-compressed in a private `Bdsk-Annotation` field — brace-safe and small, but opaque to other tools. **Readable** keeps them in the standard `Annote` field (only `% { }` escaped) — portable and human-readable, but the flakier path. Existing entries convert on next edit; either form always reads back.',
+  'prefs.abstractStorageHint':
+    'The abstract is a normal field, so **Plain** (the default) stores it verbatim — portable and fed to citation styles, but a stray unbalanced `}` could corrupt the `.bib`. **Readable** and **Compressed** apply the same brace-safe encodings as annotations (in the standard `Abstract` field, or a private `Bdsk-Abstract` blob) — safe against bad braces, but less portable (other tools and CSL won’t see a compressed abstract). Existing entries convert on next edit; all forms always read back.',
+  'prefs.fieldTypesHint':
+    'Comma-separated field names. These control how the app treats each field — which are parsed as people, shown as links, rated, etc.',
+  'prefs.assistantHint':
+    'The assistant (Tools → Claude Assistant, ⌘J) uses your Anthropic API key, stored encrypted on this device. It reads the library freely and asks before any change.',
   'prefs.texPreviewHint':
     'Tools → LaTeX Preview typesets the bibliography with your local pdflatex + bibtex using this .bst style (e.g. plain, abbrv, ieeetr). Leave the bin directory blank to search your PATH.',
   'prefs.citeKeys': 'Cite keys',
@@ -391,6 +428,7 @@ export const en: Catalog = {
   'splitter.groups': 'Resize groups sidebar',
   'view.fields': 'Fields',
   'view.inherited': '(inherited)',
+  'view.edit': 'Edit…',
   'view.editTitle': 'Edit this publication in a separate window',
 
   // --- Detail / edit pane ---
@@ -405,6 +443,11 @@ export const en: Catalog = {
   'detail.addKeyword': 'Add a keyword…',
   'detail.removeKeyword': 'Remove keyword {keyword}',
   'detail.citation': 'Citation',
+  'detail.triStateNo': 'No',
+  'detail.triStateYes': 'Yes',
+  // The 📎 chip on the preview card, rendered main-side by `buildPreviewHtml`.
+  'detail.fileChip': '{count} file',
+  'detail.fileChipPlural': '{count} files',
   'detail.citationStyleTitle': 'Set the citation style in Preferences',
   'detail.done': 'Done',
   'detail.edit': 'Edit',
@@ -602,12 +645,12 @@ export const en: Catalog = {
   'fr.caseSensitive': 'Case sensitive',
   'fr.invalidPattern': 'Invalid pattern: {error}',
   'fr.opError': 'Find & Replace failed: {error}',
-  'fr.replaced': 'Replaced',
-  'fr.occurrence': 'occurrence',
-  'fr.occurrences': 'occurrences',
-  'fr.inWord': 'in',
-  'fr.fieldWord': 'field',
-  'fr.fieldsWord': 'fields',
+  // Whole-sentence result summaries. The previous keys concatenated
+  // "Replaced" + N + "occurrence(s)" + "in" + N + "field(s)" in fixed English
+  // order, which many of the 30 locales cannot express (audit rpt-03 LOW-8).
+  // `{total}` and `{fields}` are pre-formatted counts.
+  'fr.resultSummary': 'Replaced **{total}** occurrence(s) in **{fields}** field(s).',
+  'fr.resultPreview': '**{total}** occurrence(s) in **{fields}** field(s).',
   'fr.andMore': '… and {count} more',
   'fr.replaceAll': 'Replace All',
 

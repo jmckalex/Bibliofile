@@ -250,9 +250,13 @@ export {
 /** Dependency-free i18n: locale list, resolver, and a `makeT` translate factory. */
 export {
   LOCALES,
+  REGISTERED_LOCALES,
+  getCatalog,
   resolveLocale,
   makeT,
   type Catalog,
   type TFunction,
   type LocaleCode,
 } from './i18n.js';
+/** The English catalog — the source of truth every other locale falls back to. */
+export { en } from './locales/en.js';

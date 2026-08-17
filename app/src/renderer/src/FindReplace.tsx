@@ -10,6 +10,7 @@ import { useState } from 'react';
 import type { FindReplaceResult } from '@bibdesk/shared';
 import { useStore, visibleRows } from './store.js';
 import { useT } from './i18n.js';
+import { Rich } from './RichText.js';
 import { Icon } from './icons.js';
 
 // Common fields offered explicitly; "All fields" searches every field.
@@ -133,19 +134,18 @@ export function FindReplace({ onClose }: { onClose: () => void }) {
             <div className="bd-fr__result">
               {result.error ? (
                 <span className="bd-fr__error">{t('fr.opError', { error: result.error })}</span>
-              ) : result.applied ? (
-                <span>
-                  {t('fr.replaced')} <strong>{result.total}</strong>{' '}
-                  {t(result.total === 1 ? 'fr.occurrence' : 'fr.occurrences')} {t('fr.inWord')}{' '}
-                  <strong>{result.matches.length}</strong>{' '}
-                  {t(result.matches.length === 1 ? 'fr.fieldWord' : 'fr.fieldsWord')}.
-                </span>
               ) : (
+                // One whole-sentence key per outcome, with the counts interpolated
+                // and emboldened by the `**…**` markers in the catalog string —
+                // assembling this from word fragments fixed the English word order
+                // and left many locales unable to express it (audit rpt-03 LOW-8).
                 <span>
-                  <strong>{result.total}</strong>{' '}
-                  {t(result.total === 1 ? 'fr.occurrence' : 'fr.occurrences')} {t('fr.inWord')}{' '}
-                  <strong>{result.matches.length}</strong>{' '}
-                  {t(result.matches.length === 1 ? 'fr.fieldWord' : 'fr.fieldsWord')}.
+                  <Rich
+                    text={t(result.applied ? 'fr.resultSummary' : 'fr.resultPreview', {
+                      total: result.total,
+                      fields: result.matches.length,
+                    })}
+                  />
                 </span>
               )}
               {!result.applied && result.matches.length > 0 && (
