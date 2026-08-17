@@ -412,8 +412,11 @@ function FieldRow({ itemId, field, template = false }: { itemId: string; field: 
         ) : long ? (
           <textarea
             key={`${itemId}:${field.name}`}
-            className="bd-input bd-input--area"
+            className="bd-input bd-input--area bd-input--autosize"
             defaultValue={field.rawValue}
+            // `rows` is only the no-`field-sizing` fallback — `bd-input--autosize`
+            // sizes the box to its text, so committing a 60+ character Title
+            // doesn't turn this row into a three-line box (see styles.css).
             rows={3}
             onBlur={(e) => commit(e.target.value)}
           />

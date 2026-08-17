@@ -2853,6 +2853,25 @@ button.bd-chip {
   line-height: 1.4;
 }
 
+/* Size the box to its text instead of standing at a fixed `rows`. FieldRow swaps a
+   field's <input> for a <textarea> once the value passes its "long" threshold (60
+   chars), and with `rows={3}` alone that swap made the row jump from one line to
+   three the instant you tabbed out of a long Title — a 71-character title that fits
+   on one line got a three-line box. Measured in Electron 33 (Chromium 130) at a
+   700px field: input 23px, `rows=3` textarea 63px, autosizing textarea 26px, so the
+   swap is now a 3px settle rather than a 40px jump; genuinely long values grow to
+   fit rather than hiding inside a 3-row scroller.
+
+   `field-sizing` is Chromium 123+, and Electron pins the engine, so there is no
+   fallback path in practice — but `rows` still applies where it is unsupported.
+   The cap stops a pasted abstract from pushing the rest of the form off-screen;
+   past it the textarea scrolls, as before. */
+.bd-input--autosize {
+  field-sizing: content;
+  max-height: 9.8em; /* ~7 lines at line-height 1.4, then scroll */
+  overflow-y: auto;
+}
+
 .bd-input--mono {
   font-family: var(--bd-mono);
 }
