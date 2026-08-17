@@ -3,8 +3,9 @@
 # Make the LIVE app scriptable for development. AppleScript needs a real .app
 # bundle with the sdef + Info.plist keys, but `electron-vite dev`/`preview` run
 # the dev Electron.app. This patches THAT bundle (renames it "Bibliofile",
-# enables AppleScript, installs the sdef) and ad-hoc re-signs, then builds the
-# native addon. After running this, the live app exposes the dictionary:
+# enables AppleScript, claims the `.bib` document type, installs the sdef) and
+# ad-hoc re-signs, then builds the native addon. After running this, the live app
+# exposes the dictionary:
 #
 #   bash scripts/dev-applescript.sh
 #   pnpm build:app && pnpm --filter @bibdesk/app start   # or: pnpm dev
@@ -38,8 +39,28 @@ $PB -c "Add :CFBundleDisplayName string Bibliofile" "$PLIST" 2>/dev/null || $PB 
 $PB -c "Set :CFBundleIdentifier org.bibdesk.bibliophile" "$PLIST" 2>/dev/null || $PB -c "Add :CFBundleIdentifier string org.bibdesk.bibliophile" "$PLIST"
 $PB -c "Add :NSAppleScriptEnabled bool true" "$PLIST" 2>/dev/null || $PB -c "Set :NSAppleScriptEnabled true" "$PLIST"
 $PB -c "Add :OSAScriptingDefinition string Bibliofile.sdef" "$PLIST" 2>/dev/null || $PB -c "Set :OSAScriptingDefinition Bibliofile.sdef" "$PLIST"
+
+# Claim the `.bib` document type, mirroring electron-builder's `fileAssociations`
+# (which only the PACKAGED app gets). Without this the dev app's File → Open Recent
+# is permanently empty: `app.addRecentDocument()` records each opened path in the OS
+# list, but AppKit displays only the entries whose type the bundle claims — so the
+# menu shows nothing but "Clear Menu", and macOS prunes the unclaimed entries on its
+# next write. It also makes the `open-file` handler reachable from Finder.
+# Deleted-then-added so re-running the script doesn't stack duplicate entries.
+$PB -c "Delete :CFBundleDocumentTypes" "$PLIST" 2>/dev/null || true
+$PB -c "Add :CFBundleDocumentTypes array" "$PLIST"
+$PB -c "Add :CFBundleDocumentTypes:0 dict" "$PLIST"
+$PB -c "Add :CFBundleDocumentTypes:0:CFBundleTypeName string 'BibTeX Bibliography'" "$PLIST"
+$PB -c "Add :CFBundleDocumentTypes:0:CFBundleTypeRole string Editor" "$PLIST"
+$PB -c "Add :CFBundleDocumentTypes:0:LSHandlerRank string Alternate" "$PLIST"
+$PB -c "Add :CFBundleDocumentTypes:0:CFBundleTypeExtensions array" "$PLIST"
+$PB -c "Add :CFBundleDocumentTypes:0:CFBundleTypeExtensions:0 string bib" "$PLIST"
+
 cp app/scripting/Bibliofile.sdef "$ELECTRON_APP/Contents/Resources/Bibliofile.sdef"
 codesign --force --deep --sign - "$ELECTRON_APP" >/dev/null 2>&1
+# Make LaunchServices notice the new document type (it caches the bundle's plist).
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+  -f "$ELECTRON_APP" >/dev/null 2>&1 || true
 
 echo "Done. The live app is now scriptable as \"Bibliofile\"."
 echo "Run it (built):  pnpm build:app && pnpm --filter @bibdesk/app start"

@@ -21,6 +21,30 @@ copyright: © 2026 J. McKenzie Alexander
 # symlinked layout with `directories.app`. Keep in sync with app's electron devDep.
 electronVersion: 33.4.11
 
+# Claim `.bib` as a document type we can open. This is NOT cosmetic on macOS — two
+# features that look unrelated to packaging depend on it:
+#   - File → Open Recent. `app.addRecentDocument()` (loadDocumentInto, main/index.ts)
+#     does record every opened path in the OS list, but AppKit DISPLAYS only the
+#     entries whose type the bundle claims in CFBundleDocumentTypes. With no claim
+#     the menu holds nothing but "Clear Menu" no matter how many files you open —
+#     and macOS prunes the recorded-but-unclaimed entries on the next write.
+#   - `app.on('open-file')` is unreachable from a Finder double-click unless macOS
+#     knows Bibliofile opens .bib in the first place.
+# electron-builder turns this into CFBundleTypeExtensions/CFBundleTypeName/
+# CFBundleTypeRole/LSHandlerRank (electronMac.js). `rank: Alternate` is deliberate:
+# it declares support WITHOUT taking .bib away from BibDesk (the default would be
+# `Default`, which would). macOS's Open With → Always Open With still lets the user
+# promote Bibliofile. The dev bundle that `scripts/run-bibliophile.sh` launches is
+# not built by electron-builder, so `scripts/dev-applescript.sh` patches the same
+# keys in — keep the two in step (app/src/main/file-associations.test.ts).
+fileAssociations:
+  - ext: bib
+    name: BibTeX Bibliography
+    description: BibTeX bibliography database
+    role: Editor
+    rank: Alternate
+    mimeType: text/x-bibtex
+
 directories:
   app: app # the Electron application directory (app/package.json)
   output: release # built installers land in ./release (repo root)
