@@ -2,8 +2,8 @@
 #
 # Two-package.json layout: the dev deps + this config live at the repo root; the
 # Electron app (its `main`, version, and runtime deps) is `app/`. electron-vite
-# bundles the renderer/preload/main, externalising ONLY the native `better-sqlite3`
-# — so the packaged app is `app/out/**` plus that one native module (asar-unpacked).
+# bundles the renderer/preload/main, leaving out only `better-sqlite3` and the OCR
+# stack — which must therefore ship as real modules (see `files:` below).
 #
 # Native rebuild for the Electron ABI is done by `scripts/rebuild-native.mjs
 # electron` before packaging (see the root `pack`/`dist` scripts), so npmRebuild is
@@ -53,6 +53,14 @@ directories:
 # Relative to the app dir (app/). The whole app is bundled into out/**; the OCR
 # stack and better-sqlite3 are externalized (not bundled), so electron-builder
 # collects them from the production dependency tree into the asar (see asarUnpack).
+#
+# BUT electron-builder 24 collects only app/package.json's DIRECT dependencies out
+# of pnpm's layout — a package's own deps live beside it in node_modules/.pnpm and
+# are silently left behind. So every runtime dependency of an externalized package,
+# all the way down, must ALSO be declared in app/package.json, at the version its
+# parent resolves (0.12.0 crashed on launch for want of tesseract.js's
+# regenerator-runtime). app/src/main/packaged-deps.test.ts enforces that in CI, and
+# the afterPack hook below loads the modules inside the finished bundle.
 files:
   - out/**/*
   - package.json
@@ -111,6 +119,10 @@ asarUnpack:
 
 npmRebuild: false # we rebuild better-sqlite3 for Electron ourselves (see scripts)
 
+# Load every runtime module (and run a tiny OCR) inside the packed .app with its own
+# Electron binary; throws — failing the build — if any can't load. Runs BEFORE
+# signing, so a broken bundle is never notarized.
+afterPack: scripts/verify-packaged-app.cjs
 # Notarize + staple the signed .app (skips itself without APPLE_* env vars).
 afterSign: scripts/notarize.cjs
 # Code-sign + notarize + staple the .dmg itself (the .app's signature/ticket

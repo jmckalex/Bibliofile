@@ -50,6 +50,9 @@ export default defineConfig({
         //    picked per-architecture at runtime (arm64 vs x64 builds);
         //  • pdf.js / pdf-lib / the WASM core are resolved alongside them.
         // (Packaged builds additionally need electron-builder asarUnpack for these.)
+        // Adding to this list means declaring the new package's whole runtime
+        // dependency tree in app/package.json too, or the packaged app can't load
+        // it — packaged-deps.test.ts reads this list and will say what's missing.
         external: ['tesseract.js', 'tesseract.js-core', '@napi-rs/canvas', 'pdfjs-dist', 'pdf-lib'],
       },
     },

@@ -119,6 +119,12 @@ importers:
       '@napi-rs/canvas':
         specifier: ^1.0.1
         version: 1.0.1
+      '@pdf-lib/standard-fonts':
+        specifier: ^1.0.0
+        version: 1.0.0
+      '@pdf-lib/upng':
+        specifier: ^1.0.1
+        version: 1.0.1
       '@tanstack/react-table':
         specifier: ^8.20.5
         version: 8.21.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -134,6 +140,9 @@ importers:
       bindings:
         specifier: ^1.5.0
         version: 1.5.0
+      bmp-js:
+        specifier: ^0.1.0
+        version: 0.1.0
       fast-xml-parser:
         specifier: ^4.5.6
         version: 4.5.6
@@ -149,6 +158,12 @@ importers:
       iconv-lite:
         specifier: ^0.7.2
         version: 0.7.2
+      idb-keyval:
+        specifier: ^6.2.0
+        version: 6.2.5
+      is-url:
+        specifier: ^1.2.4
+        version: 1.2.4
       lz-string:
         specifier: ^1.5.0
         version: 1.5.0
@@ -158,6 +173,12 @@ importers:
       mathjax:
         specifier: ^3.2.2
         version: 3.2.2
+      node-fetch:
+        specifier: ^2.6.9
+        version: 2.7.0
+      pako:
+        specifier: ^1.0.11
+        version: 1.0.11
       pdf-lib:
         specifier: ^1.17.1
         version: 1.17.1
@@ -170,6 +191,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      regenerator-runtime:
+        specifier: ^0.13.3
+        version: 0.13.11
       sanitize-html:
         specifier: ^2.17.5
         version: 2.17.5
@@ -177,8 +201,26 @@ importers:
         specifier: ^7.0.0
         version: 7.0.0
       tesseract.js-core:
-        specifier: ^6.1.2
-        version: 6.1.2
+        specifier: ^7.0.0
+        version: 7.0.0
+      tr46:
+        specifier: ~0.0.3
+        version: 0.0.3
+      tslib:
+        specifier: ^1.11.1
+        version: 1.14.1
+      wasm-feature-detect:
+        specifier: ^1.8.0
+        version: 1.8.0
+      webidl-conversions:
+        specifier: ^3.0.0
+        version: 3.0.1
+      whatwg-url:
+        specifier: ^5.0.0
+        version: 5.0.0
+      zlibjs:
+        specifier: ^0.3.1
+        version: 0.3.1
       zustand:
         specifier: ^5.0.2
         version: 5.0.14(@types/react@18.3.31)(react@18.3.1)
@@ -1234,6 +1276,7 @@ packages:
   '@xmldom/xmldom@0.9.10':
     resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -2664,9 +2707,6 @@ packages:
 
   temp-file@3.4.0:
     resolution: {integrity: sha512-C5tjlC/HCtVUOi3KWVokd4vHVViOmGjtLwIh4MuzPo/nMYTV/p1urt3RnMz2IWXDdKEGJH3k5+KPxtqRsUYGtg==}
-
-  tesseract.js-core@6.1.2:
-    resolution: {integrity: sha512-pv4GjmramjdObhDyR1q85Td8X60Puu/lGQn7Kw2id05LLgHhAcWgnz6xSdMCSxBMWjQDmMyDXPTC2aqADdpiow==}
 
   tesseract.js-core@7.0.0:
     resolution: {integrity: sha512-WnNH518NzmbSq9zgTPeoF8c+xmilS8rFIl1YKbk/ptuuc7p6cLNELNuPAzcmsYw450ca6bLa8j3t0VAtq435Vw==}
@@ -5459,8 +5499,6 @@ snapshots:
     dependencies:
       async-exit-hook: 2.0.1
       fs-extra: 10.1.0
-
-  tesseract.js-core@6.1.2: {}
 
   tesseract.js-core@7.0.0: {}
 
