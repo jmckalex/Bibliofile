@@ -245,11 +245,26 @@ export function detexifyAccentSpan(span: string): string | null {
 export function texify(input: string): string {
   if (input.length === 0) return input;
 
-  const precomposed = input.normalize('NFC');
+  // iterate by code point to keep astral chars / surrogate pairs intact
+  const points = [...input.normalize('NFC')];
   let out = '';
 
-  // iterate by code point to keep astral chars / surrogate pairs intact
-  for (const chPoint of precomposed) {
+  for (let i = 0; i < points.length; i++) {
+    const chPoint = points[i]!;
+
+    // A combining mark survives NFC only where no precomposed character exists, e.g.
+    // dotless ı + U+0308, as PDF text extraction emits for "naïve". Convert the letter
+    // and its marks as one character, or not at all, as BibDesk does with a composed
+    // character sequence: converting the base alone orphans the mark (`na{\i}̈ve`).
+    let end = i + 1;
+    while (end < points.length && COMBINING_MARK.test(points[end]!)) end++;
+    if (end > i + 1) {
+      const cluster = points.slice(i, end).join('');
+      out += texifyCluster(cluster) ?? cluster;
+      i = end - 1;
+      continue;
+    }
+
     // multi-code-unit code points (astral) can't be in our BMP tables; pass through.
     if (chPoint.length > 1) {
       out += chPoint;
@@ -280,6 +295,22 @@ export function texify(input: string): string {
   }
 
   return out;
+}
+
+const COMBINING_MARK = /^\p{M}$/u;
+
+/**
+ * TeX form of a base letter plus the combining mark(s) NFC could not fold into it,
+ * or `null` to leave the cluster untouched. A dotless ı/ȷ base takes the accent the
+ * way `i`/`j` would (`{\"\i}`), but only where that form keeps the dot off: under-
+ * accents (`{\c i}`) are written on a dotted i, so they would change the letter.
+ */
+function texifyCluster(cluster: string): string | null {
+  const base = cluster[0]!;
+  const dotless = base === 'ı' ? 'i' : base === 'ȷ' ? 'j' : null;
+  if (dotless === null) return texifyChar(cluster);
+  const tex = texifyChar(dotless + cluster.slice(1));
+  return tex !== null && tex.endsWith(`\\${dotless}}`) ? tex : null;
 }
 
 // ---------------------------------------------------------------------------

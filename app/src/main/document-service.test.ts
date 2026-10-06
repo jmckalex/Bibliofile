@@ -591,6 +591,21 @@ describe('document-service: BD test.bib', () => {
     expect(detail.previewHtml ?? '').not.toMatch(/📎|class="bd-chip bd-chip--files"/);
   });
 
+  it('shows a Bdsk-Url-N verbatim, so a TeX-escaped URL is visible as such', () => {
+    // Earlier saves wrote `\_` into Bdsk-Url-N; displaying it de-TeXified hid the
+    // broken URL. It is written verbatim now, so it is shown verbatim too.
+    const store = new DocumentStore();
+    const { documentId } = store.openText(
+      '@misc{a, Title = {T}, Bdsk-Url-1 = {https://e.org/A\\_b}, Bdsk-Url-2 = {https://e.org/{\\"o}}}',
+      '/tmp/bdsk-url.bib',
+    );
+    const itemId = store.listPublications({ documentId, offset: 0, limit: -1 }).rows[0]!.id;
+    const shown = (name: string): string | undefined =>
+      store.getItemDetail({ documentId, itemId }).fields.find((f) => f.name.toLowerCase() === name)?.value;
+    expect(shown('bdsk-url-1')).toBe('https://e.org/A\\_b');
+    expect(shown('bdsk-url-2')).toBe('https://e.org/{\\"o}');
+  });
+
   it('undo/redo restore prior states across edits', () => {
     const store = new DocumentStore();
     const { documentId } = store.openText('@article{a, Title = {One}}', '/tmp/u.bib');

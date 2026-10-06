@@ -27,7 +27,10 @@ import {
   type FieldValue,
   type MacroResolver,
 } from '@bibdesk/model';
-import { texify, balanceBraces } from '@bibdesk/tex';
+// texifyCore, not texify: BibDesk's save-time TeXify is its CharacterConversion table
+// alone (BibItem.m:1808). The public `texify` also escapes `& % # _`, which BibDesk never
+// does, so a save changed text BibDesk would leave alone (`Taylor & Francis`, `%%`).
+import { texifyCore as texify, balanceBraces } from '@bibdesk/tex';
 
 import type { BibLibrary, DocumentInfoEntry } from './library.js';
 import { bdskFileKey } from './library.js';

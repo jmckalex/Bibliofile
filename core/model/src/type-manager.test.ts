@@ -87,6 +87,12 @@ describe('TypeManager — shouldTeXifyField', () => {
     expect(tm.shouldTeXifyField('Annote')).toBe(false);
     expect(tm.shouldTeXifyField('Abstract')).toBe(false);
   });
+  it('does NOT TeXify BibDesk linked-URL / linked-file fields', () => {
+    expect(tm.shouldTeXifyField('Bdsk-Url-1')).toBe(false);
+    expect(tm.shouldTeXifyField('bdsk-url-12')).toBe(false);
+    expect(tm.shouldTeXifyField('Bdsk-File-2')).toBe(false);
+    expect(tm.shouldTeXifyField('Bdsk-Url')).toBe(true); // no index: not BibDesk's field
+  });
   it('DOES TeXify normal fields', () => {
     expect(tm.shouldTeXifyField('Title')).toBe(true);
     expect(tm.shouldTeXifyField('Author')).toBe(true);

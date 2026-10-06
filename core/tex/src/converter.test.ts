@@ -241,6 +241,36 @@ describe('core vs layered', () => {
 });
 
 // ---------------------------------------------------------------------------
+// A letter followed by combining marks NFC cannot fold into it.
+// ---------------------------------------------------------------------------
+
+describe('texify — base letter + combining marks', () => {
+  // dotless ı + U+0308, as PDF text extraction emits "naïve"
+  const PDF_NAIVE = 'na\u0131\u0308ve';
+
+  it('converts dotless ı + diaeresis as one character, not `{\\i}` + an orphan mark', () => {
+    expect(texifyCore(PDF_NAIVE)).toBe('na{\\"\\i}ve');
+    expect(detexify(texifyCore(PDF_NAIVE))).toBe('na\u00efve');
+  });
+  it('dotless ȷ takes accents too', () => {
+    expect(texifyCore('\u0237\u030c')).toBe('{\\v \\j}');
+  });
+  it('leaves dotless ı + an under-accent untouched (its TeX form has a dotted i)', () => {
+    expect(texifyCore('\u0131\u0327')).toBe('\u0131\u0327');
+  });
+  it('converts an ASCII letter + a mark with no precomposed form', () => {
+    expect(texifyCore('q\u0301')).toBe("{\\'q}");
+  });
+  it('leaves a cluster it cannot express whole, rather than splitting it', () => {
+    expect(texifyCore('\u00f8\u0303')).toBe('\u00f8\u0303'); // ø + tilde: no TeX form
+    expect(texifyCore('\u0915\u093f')).toBe('\u0915\u093f'); // Devanagari "ki"
+  });
+  it('still folds a decomposed letter that NFC can compose', () => {
+    expect(texifyCore('e\u0301')).toBe("{\\'e}");
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Pass-through behavior.
 // ---------------------------------------------------------------------------
 

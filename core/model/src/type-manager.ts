@@ -84,6 +84,8 @@ const ORGANIZATION = 'Organization';
 const LOCATION = 'Location';
 const COLOR = 'Bdsk-Color';
 const LOCAL_URL = 'Local-Url';
+/** BibDesk's linked-file / linked-URL fields: `Bdsk-File-N`, `Bdsk-Url-N`. */
+const LINKED_FIELD = /^bdsk-(file|url)-\d+$/i;
 
 function lowerSet(fields: Iterable<string>): Set<string> {
   const s = new Set<string>();
@@ -292,9 +294,14 @@ export class TypeManager {
    * port spec (C4) treats URL/local-file/citation/note fields as the
    * never-TeXify set. We expose that exact union here. Field NAMES and macro
    * tokens are handled by the serializer separately.
+   *
+   * `Bdsk-Url-N` / `Bdsk-File-N` are never TeXified either. BibDesk holds them as
+   * linked-file objects and writes them verbatim, so they appear in no field set,
+   * and TeXifying one turns `a_b&c` into the different, broken URL `a\_b\&c`.
    */
   shouldTeXifyField(field: string): boolean {
     return !(
+      LINKED_FIELD.test(field) ||
       this.isURLField(field) ||
       this.isCitationField(field) ||
       this.isNoteField(field)

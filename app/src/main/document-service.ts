@@ -620,9 +620,14 @@ function rawFieldText(item: BibItem, name: string): string {
  */
 function fieldDisplayValue(name: string, raw: string): string {
   const lower = name.toLowerCase();
-  if (URL_FIELDS_LOCAL.has(lower) || URL_FIELDS_REMOTE.has(lower)) return raw;
+  if (URL_FIELDS_LOCAL.has(lower) || URL_FIELDS_REMOTE.has(lower) || BDSK_URL_RE.test(lower)) {
+    return raw;
+  }
   return toDisplay(raw);
 }
+
+/** Matches a BibDesk linked-URL field (`Bdsk-Url-N`), written verbatim like a URL field. */
+const BDSK_URL_RE = /^bdsk-url-\d+$/i;
 
 /** Matches a managed `Bdsk-File-N` attachment field. */
 const BDSK_FILE_RE = /^bdsk-file-\d+$/i;
