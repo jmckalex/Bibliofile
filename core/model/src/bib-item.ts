@@ -185,9 +185,6 @@ export class BibItem {
     if (this._dateModified !== undefined) {
       this.setFieldInternal(FieldNames.DateModified, this._dateModified, false);
     }
-    // Apply the booktitle workaround for initial fields too (BibDesk runs it on
-    // any Title set / metadata update, including load), without emitting.
-    this.maybeDuplicateTitleToBooktitle(false);
   }
 
   // --- basic accessors -------------------------------------------------------
@@ -412,10 +409,6 @@ export class BibItem {
         oldValue: old,
         newValue: value,
       });
-      // BibTeX booktitle workaround on Title change (see duplicateTitleToBooktitle).
-      if (lower === FieldNames.Title.toLowerCase()) {
-        this.maybeDuplicateTitleToBooktitle();
-      }
     }
   }
 
@@ -556,26 +549,13 @@ export class BibItem {
   }
 
   /**
-   * The BibTeX booktitle workaround (`duplicateTitleToBooktitleOverwriting:`):
-   * for entry types where it applies, copy `Title` to `Booktitle` when
-   * `Booktitle` is empty. In BibDesk the applicable types come from a
-   * preference (`BDSKTypesForDuplicateBooktitleKey`, default `inbook`,
-   * `incollection`, `inproceedings`, `conference`). We use that default set so
-   * an `@inproceedings`/`@incollection` crossref'ing an `@proceedings`/`@book`
-   * carries the title forward as the booktitle.
-   */
-  private maybeDuplicateTitleToBooktitle(emit = true): void {
-    if (!BOOKTITLE_DUP_TYPES.has(this._type)) return;
-    const title = this.rawValueOfField(FieldNames.Title);
-    if (isEmptyValue(title)) return;
-    const booktitle = this.rawValueOfField(FieldNames.Booktitle);
-    if (!isEmptyValue(booktitle)) return; // don't overwrite (overwrite=NO default)
-    // set Booktitle = Title (without re-triggering the workaround)
-    this.setFieldInternal(FieldNames.Booktitle, title!, emit);
-  }
-
-  /**
-   * Explicitly run the booktitle duplication (e.g. requested by the app/editor).
+   * The BibTeX crossref workaround (`duplicateTitleToBooktitleOverwriting:`):
+   * copy this entry's `Title` into its own `Booktitle`. It is meant for a crossref
+   * PARENT (`book`, `proceedings`, …): inheritance is by field name, so a child's
+   * Booktitle comes from the parent's Booktitle, never its Title. Run it only on
+   * explicit request. Applying it to a child, or on load, overrides that
+   * inheritance and writes a chapter title to disk as the volume title. BibDesk's
+   * automatic variant (`BDSKDuplicateBooktitleKey`) is off by default.
    * Returns true if it changed anything.
    */
   duplicateTitleToBooktitle(overwrite = false): boolean {
@@ -657,17 +637,6 @@ export class BibItem {
 
 /** Crossref validation result codes (mirrors `BDSKCrossrefError`). */
 export type CrossrefError = 'none' | 'self' | 'chain' | 'isCrossreffed';
-
-/**
- * Default entry types for which `Title` is duplicated to `Booktitle`
- * (BibDesk `BDSKTypesForDuplicateBooktitleKey` factory default).
- */
-const BOOKTITLE_DUP_TYPES = new Set<string>([
-  'inbook',
-  'incollection',
-  'inproceedings',
-  'conference',
-]);
 
 /**
  * Hook for fields that must never be inherited from a crossref parent

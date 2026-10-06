@@ -539,17 +539,17 @@ Consider an edited proceedings volume and one paper within it:
 
 When you select `ng2024types`, its **Fields** list shows its own `author`,
 `title`, `crossref`, and `pages` as normal rows, and additionally shows
-`publisher`, `address`, `editor`, and `year` as muted **(inherited)** rows
-borrowed from `popl2024`. The child did not have to restate any of them.
+`booktitle`, `publisher`, `address`, `editor`, and `year` as muted
+**(inherited)** rows borrowed from `popl2024`. The child did not have to restate
+any of them.
 
-> **Note: BibDesk's booktitle workaround.** For the four entry types `inbook`,
-> `incollection`, `inproceedings` and `conference`, the app copies the entry's
-> **own** `Title` into its **own** `Booktitle` whenever `Booktitle` is empty —
-> exactly as macOS BibDesk does. So `ng2024types` above picks up a *local*
-> `booktitle` of "A Calculus of Effect Handlers" the moment it is loaded, and that
-> is a real stored field, not an inherited one. If you want the venue there
-> instead, set `Booktitle` on the child yourself — an existing `Booktitle` is
-> never overwritten, so whatever you type wins from then on.
+> **Note: put `Booktitle` on the parent.** Inheritance is by field name, so a
+> child's `Booktitle` comes from the parent's own `Booktitle`, never from the
+> parent's `Title`. That is why `popl2024` above sets both. A parent with only a
+> `Title` passes no booktitle on, in Bibliofile or in BibTeX. The app never writes
+> a `Booktitle` you didn't type. macOS BibDesk has an optional workaround that
+> copies a parent's `Title` into its `Booktitle`; it is off by default there, and
+> Bibliofile does not offer it.
 
 ### Overriding an inherited field
 

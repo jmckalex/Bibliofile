@@ -88,43 +88,48 @@ describe('crossref inheritance', () => {
 });
 
 describe('crossref booktitle workaround', () => {
-  it('an inproceedings inheriting from a proceedings carries Title -> Booktitle', () => {
+  const CHILD_TYPES = ['inbook', 'incollection', 'inproceedings', 'conference'];
+
+  it("a crossref-ed child inherits the parent's Booktitle, not its own Title", () => {
     const s = new Store();
     mk(s, {
       citeKey: 'proc',
       type: 'proceedings',
-      fields: { Title: 'Proc. of FOO 2020' },
+      fields: { Title: 'Proceedings of FOO 2020', Booktitle: 'FOO 2020' },
     });
     const child = mk(s, {
       citeKey: 'paper',
       type: 'inproceedings',
       fields: { Crossref: 'proc', Title: 'My Paper' },
     });
-    // child's own Title -> own Booktitle via the workaround (set on Title)
-    expect(child.stringValueOfField('Booktitle', false)).toBe('My Paper');
+    expect(child.rawValueOfField('Booktitle')).toBeUndefined();
+    expect(child.isFieldInherited('Booktitle')).toBe(true);
+    expect(child.stringValueOfField('Booktitle', true)).toBe('FOO 2020');
   });
 
-  it('duplicateTitleToBooktitle fires for inbook/incollection/inproceedings/conference', () => {
+  it('constructing an entry never invents a Booktitle', () => {
     const s = new Store();
-    for (const type of ['inbook', 'incollection', 'inproceedings', 'conference']) {
-      const it = mk(s, { type, fields: {} });
-      it.setField('Title', 'T');
-      expect(it.stringValueOfField('Booktitle', false)).toBe('T');
+    for (const type of CHILD_TYPES) {
+      const it = mk(s, { type, fields: { Title: 'T' } });
+      expect(it.rawValueOfField('Booktitle'), type).toBeUndefined();
     }
   });
 
-  it('does NOT duplicate for non-applicable types', () => {
+  it('editing Title never writes Booktitle', () => {
     const s = new Store();
-    const a = mk(s, { type: 'article', fields: {} });
-    a.setField('Title', 'T');
-    expect(a.stringValueOfField('Booktitle', false)).toBe('');
+    for (const type of [...CHILD_TYPES, 'book', 'proceedings', 'article']) {
+      const it = mk(s, { type, fields: {} });
+      it.setField('Title', 'T');
+      expect(it.rawValueOfField('Booktitle'), type).toBeUndefined();
+    }
   });
 
-  it('does not overwrite an existing Booktitle (overwrite=false default)', () => {
+  it('explicit duplicateTitleToBooktitle fills an empty Booktitle on a parent', () => {
     const s = new Store();
-    const it = mk(s, { type: 'inproceedings', fields: { Booktitle: 'Existing' } });
-    it.setField('Title', 'NewTitle');
-    expect(it.stringValueOfField('Booktitle', false)).toBe('Existing');
+    const parent = mk(s, { type: 'proceedings', fields: { Title: 'Proc' } });
+    expect(parent.duplicateTitleToBooktitle()).toBe(true);
+    expect(parent.stringValueOfField('Booktitle', false)).toBe('Proc');
+    expect(parent.duplicateTitleToBooktitle()).toBe(false); // already equal
   });
 
   it('explicit duplicateTitleToBooktitle(overwrite) overwrites', () => {
