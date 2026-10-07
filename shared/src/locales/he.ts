@@ -439,4 +439,13 @@ export const he: Catalog = {
   "detail.triStateYes": "כן",
   "detail.fileChip": "{count} קובץ",
   "detail.fileChipPlural": "{count} קבצים",
+  "prefs.startup": "פתיחה בעת ההפעלה",
+  "prefs.startup.none": "אין עדיין ספריות. Bibliofile נפתח עם חלון הפתיחה.",
+  "prefs.startup.add": "הוספת ספרייה…",
+  "prefs.startup.remove": "הסרה מרשימת ההפעלה",
+  "prefs.startup.hint": "כל ספרייה כאן נפתחת בחלון משלה בכל הפעלה של Bibliofile, בנוסף לכל קובץ שאיתו פותחים אותו.",
+  "dialog.startupAddTitle": "בחירת ספריות לפתיחה בעת ההפעלה",
+  "dialog.startupMissing": "לא נמצאה ספרייה שהוגדרה להיפתח בעת ההפעלה",
+  "dialog.startupMissingPlural": "לא נמצאו ספריות שהוגדרו להיפתח בעת ההפעלה: {count}",
+  "dialog.startupMissingDetail": "אפשר לעדכן את הרשימה כאן: {where}.",
 };

@@ -439,4 +439,13 @@ export const hi: Catalog = {
   "detail.triStateYes": "हाँ",
   "detail.fileChip": "{count} फ़ाइल",
   "detail.fileChipPlural": "{count} फ़ाइलें",
+  "prefs.startup": "शुरू होने पर खोलें",
+  "prefs.startup.none": "अभी कोई लाइब्रेरी नहीं है। Bibliofile स्वागत विंडो के साथ शुरू होता है।",
+  "prefs.startup.add": "लाइब्रेरी जोड़ें…",
+  "prefs.startup.remove": "स्टार्टअप सूची से हटाएँ",
+  "prefs.startup.hint": "Bibliofile हर बार शुरू होने पर यहाँ की हर लाइब्रेरी अपनी अलग विंडो में खुलती है, उस फ़ाइल के साथ जिससे आप इसे खोलते हैं।",
+  "dialog.startupAddTitle": "शुरू होने पर खुलने वाली लाइब्रेरी चुनें",
+  "dialog.startupMissing": "शुरू होने पर खुलने के लिए तय एक लाइब्रेरी नहीं मिली",
+  "dialog.startupMissingPlural": "शुरू होने पर खुलने के लिए तय {count} लाइब्रेरी नहीं मिलीं",
+  "dialog.startupMissingDetail": "सूची यहाँ अपडेट करें: {where}।",
 };

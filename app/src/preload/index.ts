@@ -131,6 +131,7 @@ import type {
   ConsolidateRequest,
   ConsolidateResult,
   ChooseFolderResponse,
+  ChooseBibFilesResponse,
   AgentKeyStatus,
   AgentSetKeyRequest,
   AgentRunRequest,
@@ -337,6 +338,9 @@ const api: BibDeskApi = {
   },
   chooseFolder(): Promise<ChooseFolderResponse> {
     return ipcRenderer.invoke(IpcChannels.chooseFolder, {});
+  },
+  chooseBibFiles(): Promise<ChooseBibFilesResponse> {
+    return ipcRenderer.invoke(IpcChannels.chooseBibFiles, {});
   },
   agentKeyStatus(): Promise<AgentKeyStatus> {
     return ipcRenderer.invoke(IpcChannels.agentKeyStatus, {});

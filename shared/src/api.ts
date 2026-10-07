@@ -113,6 +113,7 @@ import type {
   ConsolidateRequest,
   ConsolidateResult,
   ChooseFolderResponse,
+  ChooseBibFilesResponse,
   AgentKeyStatus,
   AgentSetKeyRequest,
   AgentRunRequest,
@@ -328,6 +329,8 @@ export interface BibDeskApi {
 
   /** Open a native folder picker (e.g. the Papers folder). Resolves to {path|null}. */
   chooseFolder(): Promise<ChooseFolderResponse>;
+  /** Pick one or more `.bib` files (multi-select). */
+  chooseBibFiles(): Promise<ChooseBibFilesResponse>;
 
   /** Whether the Anthropic API key is stored (Claude assistant). */
   agentKeyStatus(): Promise<AgentKeyStatus>;

@@ -439,4 +439,13 @@ export const da: Catalog = {
   "detail.triStateYes": "Ja",
   "detail.fileChip": "{count} fil",
   "detail.fileChipPlural": "{count} filer",
+  "prefs.startup": "Åbn ved start",
+  "prefs.startup.none": "Ingen biblioteker endnu. Bibliofile starter med velkomstvinduet.",
+  "prefs.startup.add": "Tilføj bibliotek…",
+  "prefs.startup.remove": "Fjern fra startlisten",
+  "prefs.startup.hint": "Hvert bibliotek her åbnes i sit eget vindue, hver gang Bibliofile starter, sammen med en eventuel fil, du åbner det med.",
+  "dialog.startupAddTitle": "Vælg biblioteker, der skal åbnes ved start",
+  "dialog.startupMissing": "Et bibliotek, der skal åbnes ved start, blev ikke fundet",
+  "dialog.startupMissingPlural": "{count} biblioteker, der skal åbnes ved start, blev ikke fundet",
+  "dialog.startupMissingDetail": "Opdater listen under {where}.",
 };

@@ -1351,6 +1351,29 @@ bd-citation {
   flex: 1 1 auto;
 }
 
+/* Preferences ▸ General ▸ Open at startup: file name, then its folder (full path on hover). */
+.bd-startup__file {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.bd-startup__name {
+  flex: 0 0 auto;
+  font-weight: 600;
+}
+
+.bd-startup__folder {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--bd-text-muted);
+  font-size: 0.9em;
+}
+
 /* ---- Find Duplicates modal --------------------------------------------- */
 
 .bd-dup__summary {

@@ -439,4 +439,13 @@ export const fi: Catalog = {
   "detail.triStateYes": "Kyllä",
   "detail.fileChip": "{count} tiedosto",
   "detail.fileChipPlural": "{count} tiedostoa",
+  "prefs.startup": "Avaa käynnistettäessä",
+  "prefs.startup.none": "Ei vielä kirjastoja. Bibliofile käynnistyy tervetuloikkunaan.",
+  "prefs.startup.add": "Lisää kirjasto…",
+  "prefs.startup.remove": "Poista käynnistysluettelosta",
+  "prefs.startup.hint": "Jokainen tässä oleva kirjasto avautuu omaan ikkunaansa aina, kun Bibliofile käynnistyy, sen tiedoston lisäksi, jolla sovelluksen avaat.",
+  "dialog.startupAddTitle": "Valitse käynnistettäessä avattavat kirjastot",
+  "dialog.startupMissing": "Käynnistettäessä avattavaa kirjastoa ei löytynyt",
+  "dialog.startupMissingPlural": "Käynnistettäessä avattavia kirjastoja ei löytynyt: {count}",
+  "dialog.startupMissingDetail": "Luetteloa voi muokata täällä: {where}.",
 };

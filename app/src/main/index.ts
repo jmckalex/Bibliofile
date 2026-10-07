@@ -97,6 +97,7 @@ import { searchOnline, extractDoi, extractArxivId, searchArxivById } from './onl
 import { locateOa, downloadPdf, firstAuthorSurname, setContactEmail, looksLikePdf } from './oa-locator.js';
 import { importPdfsSmart } from './import-smart.js';
 import { extractPdfText } from './pdf-text.js';
+import { planStartupOpen } from './startup-files.js';
 import { PdfPool } from './pdf-pool.js';
 import { PdfTextIndex } from './pdf-index.js';
 import { isRememberedUrl, rememberFetchableUrl } from './url-guard.js';
@@ -1545,6 +1546,43 @@ function startupOpenPath(): string | undefined {
     if (arg.toLowerCase().endsWith('.bib') && existsSync(arg)) return arg;
   }
   return undefined;
+}
+
+/**
+ * Open the "Open at startup" libraries (Preferences ▸ General), then `launchPath`.
+ * The first goes into `first`, the welcome window; the rest get windows of their
+ * own. Like BibDesk's default file, the list opens on every launch, including one
+ * made by opening a file. Unlike BibDesk, which skips a missing default file
+ * silently, a listed library that has gone missing is reported, in one dialog.
+ */
+function openStartupLibraries(first: BrowserWindow, launchPath?: string): void {
+  const { open, missing } = planStartupOpen(getSettings().startupFiles, launchPath, existsSync);
+  let target: BrowserWindow | undefined = first;
+  for (const path of open) {
+    try {
+      openPath(path, target);
+      target = undefined; // later libraries get windows of their own
+    } catch (err) {
+      console.error('[open] startup failed:', err instanceof Error ? err.stack : String(err));
+      void dialog.showMessageBox(first, {
+        type: 'error',
+        message: t('dialog.couldNotOpen', { path }),
+        detail: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+  if (missing.length > 0) {
+    // Name the setting with this locale's own labels, so it matches the screen.
+    const where = [t('menu.preferences').replace(/(…|\.\.\.)$/, ''), t('prefs.section.general'), t('prefs.startup')].join(' ▸ ');
+    void dialog.showMessageBox(first, {
+      type: 'warning',
+      message:
+        missing.length === 1
+          ? t('dialog.startupMissing')
+          : t('dialog.startupMissingPlural', { count: missing.length }),
+      detail: `${missing.join('\n')}\n\n${t('dialog.startupMissingDetail', { where })}`,
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -3385,6 +3423,18 @@ function registerIpc(): void {
       else void dialog.showMessageBox(summaryOpts);
       return res;
     },
+    [IpcChannels.chooseBibFiles]: async () => {
+      const opts: Electron.OpenDialogOptions = {
+        ...openDialogOptions(),
+        title: t('dialog.startupAddTitle'),
+        properties: ['openFile', 'multiSelections'],
+      };
+      const parent = dialogParent();
+      const result = parent
+        ? await dialog.showOpenDialog(parent, opts)
+        : await dialog.showOpenDialog(opts);
+      return { paths: result.canceled ? [] : result.filePaths };
+    },
     [IpcChannels.chooseFolder]: async () => {
       const opts: Electron.OpenDialogOptions = {
         title: t('dialog.choosePapersTitle'),
@@ -3617,6 +3667,9 @@ function registerIpc(): void {
   ipcMain.handle(IpcChannels.chooseFolder, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.chooseFolder](req),
   );
+  ipcMain.handle(IpcChannels.chooseBibFiles, (_e: IpcMainInvokeEvent, req) =>
+    handlers[IpcChannels.chooseBibFiles](req),
+  );
   ipcMain.handle(IpcChannels.agentKeyStatus, (_e: IpcMainInvokeEvent, req) =>
     handlers[IpcChannels.agentKeyStatus](req),
   );
@@ -3670,9 +3723,11 @@ app.on('open-url', (event, url) => {
   void handleAppUrl(url);
 });
 
-// Re-show a welcome window on dock-activate when nothing is open (macOS).
+// Re-show a welcome window on dock-activate when nothing is open (macOS), and
+// reopen the "Open at startup" libraries into it, as BibDesk reopens its default
+// file (BDSKActivateReopen).
 app.on('activate', () => {
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) openStartupLibraries(createWindow());
 });
 
 app.on('window-all-closed', () => {
@@ -3770,22 +3825,12 @@ if (!gotLock) {
     });
     const first = createWindow();
 
-    // Auto-open from BIBDESK_OPEN / CLI, or honor a path buffered by open-file —
-    // into the initial (welcome) window so no empty window is left behind.
-    const startup = pendingOpenPath ?? startupOpenPath();
+    // The "Open at startup" libraries, then the file from BIBDESK_OPEN / CLI / a
+    // buffered open-file, into the initial (welcome) window first so no empty
+    // window is left behind.
+    const launchPath = pendingOpenPath ?? startupOpenPath();
     pendingOpenPath = null;
-    if (startup) {
-      try {
-        openPath(startup, first);
-      } catch (err) {
-        console.error('[open] startup failed:', err instanceof Error ? err.stack : String(err));
-        void dialog.showMessageBox(first, {
-          type: 'error',
-          message: t('dialog.couldNotOpen', { path: startup }),
-          detail: err instanceof Error ? err.message : String(err),
-        });
-      }
-    }
+    openStartupLibraries(first, launchPath);
 
     // A protocol URL passed on the initial command line (Windows/Linux cold start).
     const urlArg = process.argv.find((a) => a.startsWith('x-bibdesk://'));

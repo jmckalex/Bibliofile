@@ -119,6 +119,7 @@ function makeFakeApi() {
     autoFile: async () => ({ moved: 0, errors: [], dirty: true, detail: DETAIL }),
     consolidateLinkedFiles: async () => ({ scanned: 0, itemsAffected: 0, moved: 0, dirty: true, errors: [] }),
     chooseFolder: async () => ({ path: null }),
+    chooseBibFiles: async () => ({ paths: [] }),
     agentKeyStatus: async () => ({ hasKey: false, encryptionAvailable: true }),
     agentSetKey: async () => ({ hasKey: true, encryptionAvailable: true }),
     agentRun: async () => ({ reply: '', toolLog: [], mutated: false }),

@@ -439,4 +439,13 @@ export const nl: Catalog = {
   "detail.triStateYes": "Ja",
   "detail.fileChip": "{count} bestand",
   "detail.fileChipPlural": "{count} bestanden",
+  "prefs.startup": "Openen bij opstarten",
+  "prefs.startup.none": "Nog geen bibliotheken. Bibliofile start met het welkomstvenster.",
+  "prefs.startup.add": "Bibliotheek toevoegen…",
+  "prefs.startup.remove": "Verwijderen uit de opstartlijst",
+  "prefs.startup.hint": "Elke bibliotheek hier opent in een eigen venster telkens wanneer Bibliofile start, naast een eventueel bestand waarmee u het opent.",
+  "dialog.startupAddTitle": "Kies bibliotheken om bij opstarten te openen",
+  "dialog.startupMissing": "Een bibliotheek die bij opstarten moet openen, is niet gevonden",
+  "dialog.startupMissingPlural": "{count} bibliotheken die bij opstarten moeten openen, zijn niet gevonden",
+  "dialog.startupMissingDetail": "Werk de lijst bij in {where}.",
 };

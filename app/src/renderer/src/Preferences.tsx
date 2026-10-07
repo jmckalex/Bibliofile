@@ -111,6 +111,70 @@ function ColumnsSection({
  * `ftsPageLimit` number (0 = all); a local `pageCount` remembers the last N so
  * toggling back from "All" restores it rather than snapping to a default.
  */
+/** Split an absolute path into its file name and folder (both separators). */
+function splitPath(path: string): { name: string; folder: string } {
+  const cut = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+  return { name: path.slice(cut + 1), folder: cut > 0 ? path.slice(0, cut) : '' };
+}
+
+/** Preferences ▸ General ▸ Open at startup: the libraries opened at every launch. */
+function StartupFilesSection({
+  files,
+  save,
+}: {
+  files: readonly string[];
+  save: (patch: Partial<Settings>) => Promise<void>;
+}) {
+  const t = useT();
+  const add = async (): Promise<void> => {
+    const res = await window.bibdesk?.chooseBibFiles();
+    const picked = (res?.paths ?? []).filter((p) => !files.includes(p));
+    if (picked.length > 0) await save({ startupFiles: [...files, ...picked] });
+  };
+  const remove = (path: string): void => {
+    void save({ startupFiles: files.filter((p) => p !== path) });
+  };
+  return (
+    <section className="bd-prefs__section">
+      <h3>{t('prefs.startup')}</h3>
+      {files.length > 0 ? (
+        <ul className="bd-cols">
+          {files.map((path) => {
+            const { name, folder } = splitPath(path);
+            return (
+              <li className="bd-cols__row" key={path}>
+                <span className="bd-startup__file" title={path}>
+                  <span className="bd-startup__name">{name}</span>
+                  {folder && <span className="bd-startup__folder">{folder}</span>}
+                </span>
+                <span className="bd-cols__btns">
+                  <button
+                    type="button"
+                    className="bd-field__del"
+                    onClick={() => remove(path)}
+                    title={t('prefs.startup.remove')}
+                    aria-label={t('prefs.startup.remove')}
+                  >
+                    <Icon name="close" />
+                  </button>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="bd-prefs__hint">{t('prefs.startup.none')}</p>
+      )}
+      <div className="bd-cols__add">
+        <button type="button" className="bd-btn bd-btn--small" onClick={() => void add()}>
+          {t('prefs.startup.add')}
+        </button>
+      </div>
+      <p className="bd-prefs__hint">{t('prefs.startup.hint')}</p>
+    </section>
+  );
+}
+
 function FullTextSection({
   pageLimit,
   save,
@@ -984,6 +1048,7 @@ export function Preferences({ onClose }: { onClose: () => void }) {
                     </select>
                   </label>
                 </section>
+                <StartupFilesSection files={settings.startupFiles ?? []} save={save} />
                 <section className="bd-prefs__section">
                   <h3>{t('prefs.saving')}</h3>
                   <label className="bd-prefs__row">

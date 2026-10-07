@@ -439,4 +439,13 @@ export const bn: Catalog = {
   "detail.triStateYes": "হ্যাঁ",
   "detail.fileChip": "{count}টি ফাইল",
   "detail.fileChipPlural": "{count}টি ফাইল",
+  "prefs.startup": "চালুর সময় খুলুন",
+  "prefs.startup.none": "এখনও কোনো লাইব্রেরি নেই। Bibliofile স্বাগত উইন্ডো দিয়ে শুরু হয়।",
+  "prefs.startup.add": "লাইব্রেরি যোগ করুন…",
+  "prefs.startup.remove": "চালুর তালিকা থেকে সরান",
+  "prefs.startup.hint": "Bibliofile যতবার চালু হয়, এখানকার প্রতিটি লাইব্রেরি নিজস্ব উইন্ডোতে খোলে, আপনি যে ফাইল দিয়ে এটি খোলেন সেটির সাথে।",
+  "dialog.startupAddTitle": "চালুর সময় খোলার জন্য লাইব্রেরি বেছে নিন",
+  "dialog.startupMissing": "চালুর সময় খোলার জন্য নির্ধারিত একটি লাইব্রেরি পাওয়া যায়নি",
+  "dialog.startupMissingPlural": "চালুর সময় খোলার জন্য নির্ধারিত {count}টি লাইব্রেরি পাওয়া যায়নি",
+  "dialog.startupMissingDetail": "তালিকাটি হালনাগাদ করুন: {where}।",
 };

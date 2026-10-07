@@ -439,4 +439,13 @@ export const fr: Catalog = {
   "detail.triStateYes": "Oui",
   "detail.fileChip": "{count} fichier",
   "detail.fileChipPlural": "{count} fichiers",
+  "prefs.startup": "Ouvrir au démarrage",
+  "prefs.startup.none": "Aucune bibliothèque pour l’instant. Bibliofile démarre sur la fenêtre d’accueil.",
+  "prefs.startup.add": "Ajouter une bibliothèque…",
+  "prefs.startup.remove": "Retirer de la liste de démarrage",
+  "prefs.startup.hint": "Chaque bibliothèque de cette liste s’ouvre dans sa propre fenêtre à chaque démarrage de Bibliofile, en plus du fichier avec lequel vous l’ouvrez.",
+  "dialog.startupAddTitle": "Choisir les bibliothèques à ouvrir au démarrage",
+  "dialog.startupMissing": "Impossible de trouver une bibliothèque à ouvrir au démarrage",
+  "dialog.startupMissingPlural": "Impossible de trouver {count} bibliothèques à ouvrir au démarrage",
+  "dialog.startupMissingDetail": "Vous pouvez mettre à jour la liste dans {where}.",
 };

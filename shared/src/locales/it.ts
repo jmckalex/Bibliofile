@@ -439,4 +439,13 @@ export const it: Catalog = {
   "detail.triStateYes": "Sì",
   "detail.fileChip": "{count} file",
   "detail.fileChipPlural": "{count} file",
+  "prefs.startup": "Apri all’avvio",
+  "prefs.startup.none": "Nessuna libreria per ora. Bibliofile si avvia con la finestra di benvenuto.",
+  "prefs.startup.add": "Aggiungi libreria…",
+  "prefs.startup.remove": "Rimuovi dall’elenco di avvio",
+  "prefs.startup.hint": "Ogni libreria di questo elenco si apre nella propria finestra a ogni avvio di Bibliofile, oltre al file con cui lo apri.",
+  "dialog.startupAddTitle": "Scegli le librerie da aprire all’avvio",
+  "dialog.startupMissing": "Impossibile trovare una libreria da aprire all’avvio",
+  "dialog.startupMissingPlural": "Impossibile trovare {count} librerie da aprire all’avvio",
+  "dialog.startupMissingDetail": "Puoi aggiornare l’elenco in {where}.",
 };

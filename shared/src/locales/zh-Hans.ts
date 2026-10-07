@@ -439,4 +439,13 @@ export const zhHans: Catalog = {
   "detail.triStateYes": "是",
   "detail.fileChip": "{count} 个文件",
   "detail.fileChipPlural": "{count} 个文件",
+  "prefs.startup": "启动时打开",
+  "prefs.startup.none": "尚无文献库。Bibliofile 启动时显示欢迎窗口。",
+  "prefs.startup.add": "添加文献库…",
+  "prefs.startup.remove": "从启动列表中移除",
+  "prefs.startup.hint": "每次启动 Bibliofile 时，这里的每个文献库都会在各自的窗口中打开，用来打开它的文件也会一并打开。",
+  "dialog.startupAddTitle": "选择启动时打开的文献库",
+  "dialog.startupMissing": "找不到设置为启动时打开的文献库",
+  "dialog.startupMissingPlural": "找不到 {count} 个设置为启动时打开的文献库",
+  "dialog.startupMissingDetail": "可在“{where}”中更新列表。",
 };

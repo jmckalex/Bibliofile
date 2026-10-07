@@ -442,6 +442,7 @@ and **Group** the heading you will find it under.
 | --- | --- | --- | --- |
 | **General** | Appearance → Language | **System default** | The UI language; untranslated text falls back to English |
 | **General** | Appearance → Theme | **System** | Light/Dark/System (System follows the OS) |
+| **General** | Open at startup | **none** | Libraries opened, each in its own window, whenever the app starts — see [Automatically on launch](01-getting-started.md#132-automatically-on-launch) |
 | **General** | Saving → Autosave | **off** | When on, saves automatically a moment after each edit |
 | **General** | Full-text search → PDF pages to index | **At most 40** | How much of each PDF is scanned for the full-text index. **All** suits scanned books; the cap keeps indexing fast for articles. Changing it invalidates the stored text, so open libraries are re-indexed — but only while full-text search is on |
 | **Display** | Columns (list + add/remove/reorder) | Cite Key, Type, Authors, Title, Year, Keywords, Attachments, Read | The table columns and their order (see [Browsing & Searching](02-browsing-and-searching.md#226-configuring-the-columns)) |

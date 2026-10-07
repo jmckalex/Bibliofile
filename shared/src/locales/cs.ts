@@ -439,4 +439,13 @@ export const cs: Catalog = {
   "detail.triStateYes": "Ano",
   "detail.fileChip": "{count} soubor",
   "detail.fileChipPlural": "{count} souborů",
+  "prefs.startup": "Otevřít při spuštění",
+  "prefs.startup.none": "Zatím žádné knihovny. Bibliofile se spustí s uvítacím oknem.",
+  "prefs.startup.add": "Přidat knihovnu…",
+  "prefs.startup.remove": "Odebrat ze seznamu pro spuštění",
+  "prefs.startup.hint": "Každá knihovna zde se při každém spuštění Bibliofile otevře ve vlastním okně, spolu se souborem, kterým aplikaci otevřete.",
+  "dialog.startupAddTitle": "Vyberte knihovny, které se otevřou při spuštění",
+  "dialog.startupMissing": "Knihovnu určenou k otevření při spuštění se nepodařilo najít",
+  "dialog.startupMissingPlural": "Knihovny určené k otevření při spuštění se nepodařilo najít: {count}",
+  "dialog.startupMissingDetail": "Seznam lze upravit zde: {where}.",
 };

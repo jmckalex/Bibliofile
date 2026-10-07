@@ -112,6 +112,7 @@ import type {
   ConsolidateRequest,
   ConsolidateResult,
   ChooseFolderResponse,
+  ChooseBibFilesResponse,
   AgentKeyStatus,
   AgentSetKeyRequest,
   AgentRunRequest,
@@ -212,6 +213,7 @@ export interface IpcContract {
   [IpcChannels.autoFile]: IpcEntry<AutoFileRequest, AutoFileResult>;
   [IpcChannels.consolidateLinkedFiles]: IpcEntry<ConsolidateRequest, ConsolidateResult>;
   [IpcChannels.chooseFolder]: IpcEntry<Record<string, never>, ChooseFolderResponse>;
+  [IpcChannels.chooseBibFiles]: IpcEntry<Record<string, never>, ChooseBibFilesResponse>;
   [IpcChannels.agentKeyStatus]: IpcEntry<Record<string, never>, AgentKeyStatus>;
   [IpcChannels.agentSetKey]: IpcEntry<AgentSetKeyRequest, AgentKeyStatus>;
   [IpcChannels.agentRun]: IpcEntry<AgentRunRequest, AgentRunResponse>;

@@ -152,6 +152,8 @@ export const IpcChannels = {
   consolidateLinkedFiles: 'bibdesk:consolidateLinkedFiles',
   /** Open a folder picker (e.g. choosing the Papers folder). */
   chooseFolder: 'bibdesk:chooseFolder',
+  /** Pick one or more `.bib` files (Preferences ▸ General ▸ Open at startup). */
+  chooseBibFiles: 'bibdesk:chooseBibFiles',
   /** Whether the Anthropic API key is stored (Claude assistant). */
   agentKeyStatus: 'bibdesk:agentKeyStatus',
   /** Store/clear the Anthropic API key (via safeStorage). */

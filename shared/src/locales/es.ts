@@ -439,4 +439,13 @@ export const es: Catalog = {
   "detail.triStateYes": "Sí",
   "detail.fileChip": "{count} archivo",
   "detail.fileChipPlural": "{count} archivos",
+  "prefs.startup": "Abrir al iniciar",
+  "prefs.startup.none": "Aún no hay bibliotecas. Bibliofile se inicia con la ventana de bienvenida.",
+  "prefs.startup.add": "Añadir biblioteca…",
+  "prefs.startup.remove": "Quitar de la lista de inicio",
+  "prefs.startup.hint": "Cada biblioteca de esta lista se abre en su propia ventana cada vez que se inicia Bibliofile, además de cualquier archivo con el que lo abras.",
+  "dialog.startupAddTitle": "Elige las bibliotecas que se abrirán al iniciar",
+  "dialog.startupMissing": "No se encontró una biblioteca configurada para abrirse al iniciar",
+  "dialog.startupMissingPlural": "No se encontraron {count} bibliotecas configuradas para abrirse al iniciar",
+  "dialog.startupMissingDetail": "Puedes actualizar la lista en {where}.",
 };

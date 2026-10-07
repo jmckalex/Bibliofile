@@ -439,4 +439,13 @@ export const ar: Catalog = {
   "detail.triStateYes": "نعم",
   "detail.fileChip": "{count} ملف",
   "detail.fileChipPlural": "{count} ملفات",
+  "prefs.startup": "فتح عند بدء التشغيل",
+  "prefs.startup.none": "لا توجد مكتبات بعد. يبدأ Bibliofile بنافذة الترحيب.",
+  "prefs.startup.add": "إضافة مكتبة…",
+  "prefs.startup.remove": "إزالة من قائمة بدء التشغيل",
+  "prefs.startup.hint": "تُفتح كل مكتبة هنا في نافذة خاصة بها عند كل بدء لـ Bibliofile، إلى جانب أي ملف تفتحه به.",
+  "dialog.startupAddTitle": "اختر المكتبات التي تُفتح عند بدء التشغيل",
+  "dialog.startupMissing": "تعذّر العثور على مكتبة محددة للفتح عند بدء التشغيل",
+  "dialog.startupMissingPlural": "تعذّر العثور على مكتبات محددة للفتح عند بدء التشغيل: {count}",
+  "dialog.startupMissingDetail": "حدّث القائمة في {where}.",
 };

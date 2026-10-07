@@ -439,4 +439,13 @@ export const id: Catalog = {
   "detail.triStateYes": "Ya",
   "detail.fileChip": "{count} berkas",
   "detail.fileChipPlural": "{count} berkas",
+  "prefs.startup": "Buka saat mulai",
+  "prefs.startup.none": "Belum ada pustaka. Bibliofile dimulai dengan jendela sambutan.",
+  "prefs.startup.add": "Tambah Pustaka…",
+  "prefs.startup.remove": "Hapus dari daftar saat mulai",
+  "prefs.startup.hint": "Setiap pustaka di sini dibuka di jendelanya sendiri setiap kali Bibliofile dimulai, bersama berkas apa pun yang Anda gunakan untuk membukanya.",
+  "dialog.startupAddTitle": "Pilih Pustaka untuk Dibuka saat Mulai",
+  "dialog.startupMissing": "Tidak dapat menemukan pustaka yang diatur untuk dibuka saat mulai",
+  "dialog.startupMissingPlural": "Tidak dapat menemukan {count} pustaka yang diatur untuk dibuka saat mulai",
+  "dialog.startupMissingDetail": "Perbarui daftarnya di {where}.",
 };

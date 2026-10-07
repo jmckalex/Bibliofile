@@ -439,4 +439,13 @@ export const el: Catalog = {
   "detail.triStateYes": "Ναι",
   "detail.fileChip": "{count} αρχείο",
   "detail.fileChipPlural": "{count} αρχεία",
+  "prefs.startup": "Άνοιγμα κατά την εκκίνηση",
+  "prefs.startup.none": "Δεν υπάρχουν βιβλιοθήκες ακόμη. Το Bibliofile ξεκινά με το παράθυρο υποδοχής.",
+  "prefs.startup.add": "Προσθήκη βιβλιοθήκης…",
+  "prefs.startup.remove": "Αφαίρεση από τη λίστα εκκίνησης",
+  "prefs.startup.hint": "Κάθε βιβλιοθήκη εδώ ανοίγει στο δικό της παράθυρο κάθε φορά που ξεκινά το Bibliofile, μαζί με όποιο αρχείο το ανοίξετε.",
+  "dialog.startupAddTitle": "Επιλέξτε βιβλιοθήκες για άνοιγμα κατά την εκκίνηση",
+  "dialog.startupMissing": "Δεν βρέθηκε μια βιβλιοθήκη που έχει οριστεί να ανοίγει κατά την εκκίνηση",
+  "dialog.startupMissingPlural": "Δεν βρέθηκαν {count} βιβλιοθήκες που έχουν οριστεί να ανοίγουν κατά την εκκίνηση",
+  "dialog.startupMissingDetail": "Ενημερώστε τη λίστα εδώ: {where}.",
 };

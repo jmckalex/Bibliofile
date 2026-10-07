@@ -439,4 +439,13 @@ export const vi: Catalog = {
   "detail.triStateYes": "Có",
   "detail.fileChip": "{count} tệp",
   "detail.fileChipPlural": "{count} tệp",
+  "prefs.startup": "Mở khi khởi động",
+  "prefs.startup.none": "Chưa có thư viện nào. Bibliofile khởi động với cửa sổ chào mừng.",
+  "prefs.startup.add": "Thêm thư viện…",
+  "prefs.startup.remove": "Xóa khỏi danh sách khởi động",
+  "prefs.startup.hint": "Mỗi thư viện ở đây mở trong cửa sổ riêng mỗi khi Bibliofile khởi động, cùng với tệp bạn dùng để mở ứng dụng.",
+  "dialog.startupAddTitle": "Chọn thư viện mở khi khởi động",
+  "dialog.startupMissing": "Không tìm thấy một thư viện được đặt để mở khi khởi động",
+  "dialog.startupMissingPlural": "Không tìm thấy {count} thư viện được đặt để mở khi khởi động",
+  "dialog.startupMissingDetail": "Cập nhật danh sách trong {where}.",
 };

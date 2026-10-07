@@ -439,4 +439,13 @@ export const sv: Catalog = {
   "detail.triStateYes": "Ja",
   "detail.fileChip": "{count} fil",
   "detail.fileChipPlural": "{count} filer",
+  "prefs.startup": "Öppna vid start",
+  "prefs.startup.none": "Inga bibliotek än. Bibliofile startar med välkomstfönstret.",
+  "prefs.startup.add": "Lägg till bibliotek…",
+  "prefs.startup.remove": "Ta bort från startlistan",
+  "prefs.startup.hint": "Varje bibliotek här öppnas i ett eget fönster varje gång Bibliofile startar, utöver en eventuell fil du öppnar det med.",
+  "dialog.startupAddTitle": "Välj bibliotek att öppna vid start",
+  "dialog.startupMissing": "Ett bibliotek som ska öppnas vid start hittades inte",
+  "dialog.startupMissingPlural": "{count} bibliotek som ska öppnas vid start hittades inte",
+  "dialog.startupMissingDetail": "Uppdatera listan under {where}.",
 };

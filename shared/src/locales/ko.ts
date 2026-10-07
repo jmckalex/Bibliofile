@@ -439,4 +439,13 @@ export const ko: Catalog = {
   "detail.triStateYes": "예",
   "detail.fileChip": "파일 {count}개",
   "detail.fileChipPlural": "파일 {count}개",
+  "prefs.startup": "시작할 때 열기",
+  "prefs.startup.none": "아직 라이브러리가 없습니다. Bibliofile은 환영 창으로 시작합니다.",
+  "prefs.startup.add": "라이브러리 추가…",
+  "prefs.startup.remove": "시작 목록에서 제거",
+  "prefs.startup.hint": "여기에 있는 각 라이브러리는 Bibliofile이 시작될 때마다 각자의 창에서 열리며, 앱을 열 때 사용한 파일도 함께 열립니다.",
+  "dialog.startupAddTitle": "시작할 때 열 라이브러리 선택",
+  "dialog.startupMissing": "시작할 때 열도록 설정된 라이브러리를 찾을 수 없습니다",
+  "dialog.startupMissingPlural": "시작할 때 열도록 설정된 라이브러리 {count}개를 찾을 수 없습니다",
+  "dialog.startupMissingDetail": "목록은 {where}에서 수정할 수 있습니다.",
 };

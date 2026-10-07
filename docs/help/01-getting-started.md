@@ -151,10 +151,19 @@ open just brings its window to the front rather than loading it twice. Use the
 
 ### 1.3.2 Automatically on launch
 
-The application can open a library *automatically* when it starts up — for
-example, when a `.bib` file is handed to it by the operating system as it
-launches (such as a file you double-clicked or dropped onto the application).
-When this happens you arrive directly at a populated window with no menu step.
+To have your libraries open every time the application starts, list them in
+**Preferences → General → Open at startup**. Click **Add Library…** and choose one
+or more `.bib` files; the **×** beside an entry takes it off the list (the file
+itself is untouched). Each listed library opens in its own window whenever the
+application starts, and on macOS again when you click its Dock icon with no window
+open. If a listed file has been moved, renamed, or is on a drive that isn't
+connected, you are told which one and the others open as usual; the entry stays
+on the list until you remove it.
+
+The application also opens a library *automatically* when the operating system
+hands it one as it launches (such as a file you double-clicked or dropped onto
+the application). That file opens alongside your startup libraries, in front.
+Either way you arrive directly at a populated window with no menu step.
 
 ### 1.3.3 Advanced: launch with a specific file
 

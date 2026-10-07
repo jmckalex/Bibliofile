@@ -439,4 +439,13 @@ export const pl: Catalog = {
   "detail.triStateYes": "Tak",
   "detail.fileChip": "{count} plik",
   "detail.fileChipPlural": "{count} plików",
+  "prefs.startup": "Otwórz przy uruchomieniu",
+  "prefs.startup.none": "Brak bibliotek. Bibliofile uruchamia się z oknem powitalnym.",
+  "prefs.startup.add": "Dodaj bibliotekę…",
+  "prefs.startup.remove": "Usuń z listy uruchamiania",
+  "prefs.startup.hint": "Każda biblioteka z tej listy otwiera się we własnym oknie przy każdym uruchomieniu Bibliofile, oprócz pliku, którym je otwierasz.",
+  "dialog.startupAddTitle": "Wybierz biblioteki otwierane przy uruchomieniu",
+  "dialog.startupMissing": "Nie znaleziono biblioteki ustawionej do otwarcia przy uruchomieniu",
+  "dialog.startupMissingPlural": "Nie znaleziono bibliotek ustawionych do otwarcia przy uruchomieniu: {count}",
+  "dialog.startupMissingDetail": "Listę można zmienić tutaj: {where}.",
 };

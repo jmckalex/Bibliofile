@@ -439,4 +439,13 @@ export const fa: Catalog = {
   "detail.triStateYes": "بله",
   "detail.fileChip": "{count} پرونده",
   "detail.fileChipPlural": "{count} پرونده",
+  "prefs.startup": "باز کردن هنگام راه‌اندازی",
+  "prefs.startup.none": "هنوز کتابخانه‌ای نیست. Bibliofile با پنجرهٔ خوش‌آمد شروع می‌شود.",
+  "prefs.startup.add": "افزودن کتابخانه…",
+  "prefs.startup.remove": "حذف از فهرست راه‌اندازی",
+  "prefs.startup.hint": "هر کتابخانهٔ این فهرست هر بار که Bibliofile شروع می‌شود در پنجرهٔ خودش باز می‌شود، همراه با هر پرونده‌ای که برنامه را با آن باز کنید.",
+  "dialog.startupAddTitle": "کتابخانه‌هایی را که هنگام راه‌اندازی باز شوند انتخاب کنید",
+  "dialog.startupMissing": "کتابخانه‌ای که قرار بود هنگام راه‌اندازی باز شود پیدا نشد",
+  "dialog.startupMissingPlural": "{count} کتابخانه که قرار بود هنگام راه‌اندازی باز شوند پیدا نشدند",
+  "dialog.startupMissingDetail": "فهرست را در {where} به‌روز کنید.",
 };

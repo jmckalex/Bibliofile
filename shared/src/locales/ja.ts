@@ -439,4 +439,13 @@ export const ja: Catalog = {
   "detail.triStateYes": "はい",
   "detail.fileChip": "{count} 件のファイル",
   "detail.fileChipPlural": "{count} 件のファイル",
+  "prefs.startup": "起動時に開く",
+  "prefs.startup.none": "ライブラリはまだありません。Bibliofile はウェルカムウインドウで起動します。",
+  "prefs.startup.add": "ライブラリを追加…",
+  "prefs.startup.remove": "起動時リストから削除",
+  "prefs.startup.hint": "ここにある各ライブラリは、Bibliofile の起動時に毎回それぞれのウインドウで開きます。起動に使ったファイルも開きます。",
+  "dialog.startupAddTitle": "起動時に開くライブラリを選択",
+  "dialog.startupMissing": "起動時に開くよう設定されたライブラリが見つかりません",
+  "dialog.startupMissingPlural": "起動時に開くよう設定されたライブラリが {count} 件見つかりません",
+  "dialog.startupMissingDetail": "リストは「{where}」で変更できます。",
 };

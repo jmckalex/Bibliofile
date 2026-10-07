@@ -439,4 +439,13 @@ export const ro: Catalog = {
   "detail.triStateYes": "Da",
   "detail.fileChip": "{count} fișier",
   "detail.fileChipPlural": "{count} fișiere",
+  "prefs.startup": "Deschide la pornire",
+  "prefs.startup.none": "Nicio bibliotecă încă. Bibliofile pornește cu fereastra de bun venit.",
+  "prefs.startup.add": "Adaugă bibliotecă…",
+  "prefs.startup.remove": "Elimină din lista de pornire",
+  "prefs.startup.hint": "Fiecare bibliotecă de aici se deschide în propria fereastră la fiecare pornire a Bibliofile, pe lângă fișierul cu care îl deschizi.",
+  "dialog.startupAddTitle": "Alege bibliotecile de deschis la pornire",
+  "dialog.startupMissing": "Nu s-a găsit o bibliotecă setată să se deschidă la pornire",
+  "dialog.startupMissingPlural": "Nu s-au găsit biblioteci setate să se deschidă la pornire: {count}",
+  "dialog.startupMissingDetail": "Poți actualiza lista aici: {where}.",
 };

@@ -439,4 +439,13 @@ export const hu: Catalog = {
   "detail.triStateYes": "Igen",
   "detail.fileChip": "{count} fájl",
   "detail.fileChipPlural": "{count} fájl",
+  "prefs.startup": "Megnyitás indításkor",
+  "prefs.startup.none": "Még nincs könyvtár. A Bibliofile az üdvözlőablakkal indul.",
+  "prefs.startup.add": "Könyvtár hozzáadása…",
+  "prefs.startup.remove": "Eltávolítás az indítási listából",
+  "prefs.startup.hint": "Az itt szereplő könyvtárak a Bibliofile minden indításakor saját ablakban nyílnak meg, azzal a fájllal együtt, amellyel az alkalmazást megnyitja.",
+  "dialog.startupAddTitle": "Válassza ki az indításkor megnyitandó könyvtárakat",
+  "dialog.startupMissing": "Egy indításkor megnyitandó könyvtár nem található",
+  "dialog.startupMissingPlural": "{count} indításkor megnyitandó könyvtár nem található",
+  "dialog.startupMissingDetail": "A lista itt módosítható: {where}.",
 };

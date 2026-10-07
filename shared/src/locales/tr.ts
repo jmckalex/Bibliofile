@@ -439,4 +439,13 @@ export const tr: Catalog = {
   "detail.triStateYes": "Evet",
   "detail.fileChip": "{count} dosya",
   "detail.fileChipPlural": "{count} dosya",
+  "prefs.startup": "Başlangıçta aç",
+  "prefs.startup.none": "Henüz kütüphane yok. Bibliofile karşılama penceresiyle başlar.",
+  "prefs.startup.add": "Kütüphane Ekle…",
+  "prefs.startup.remove": "Başlangıç listesinden kaldır",
+  "prefs.startup.hint": "Buradaki her kütüphane, Bibliofile her başladığında kendi penceresinde açılır; uygulamayı açtığınız dosya da açılır.",
+  "dialog.startupAddTitle": "Başlangıçta açılacak kütüphaneleri seçin",
+  "dialog.startupMissing": "Başlangıçta açılacak bir kütüphane bulunamadı",
+  "dialog.startupMissingPlural": "Başlangıçta açılacak {count} kütüphane bulunamadı",
+  "dialog.startupMissingDetail": "Listeyi şuradan güncelleyebilirsiniz: {where}.",
 };

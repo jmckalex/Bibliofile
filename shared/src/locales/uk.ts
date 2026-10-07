@@ -439,4 +439,13 @@ export const uk: Catalog = {
   "detail.triStateYes": "Так",
   "detail.fileChip": "{count} файл",
   "detail.fileChipPlural": "{count} файлів",
+  "prefs.startup": "Відкривати під час запуску",
+  "prefs.startup.none": "Бібліотек поки немає. Bibliofile запускається з вікном привітання.",
+  "prefs.startup.add": "Додати бібліотеку…",
+  "prefs.startup.remove": "Прибрати зі списку запуску",
+  "prefs.startup.hint": "Кожна бібліотека з цього списку відкривається в окремому вікні під час кожного запуску Bibliofile, разом із файлом, яким ви його відкрили.",
+  "dialog.startupAddTitle": "Виберіть бібліотеки, які відкриватимуться під час запуску",
+  "dialog.startupMissing": "Не вдалося знайти бібліотеку, призначену для відкриття під час запуску",
+  "dialog.startupMissingPlural": "Не вдалося знайти бібліотеки, призначені для відкриття під час запуску: {count}",
+  "dialog.startupMissingDetail": "Список можна змінити тут: {where}.",
 };

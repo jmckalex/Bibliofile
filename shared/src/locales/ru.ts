@@ -439,4 +439,13 @@ export const ru: Catalog = {
   "detail.triStateYes": "Да",
   "detail.fileChip": "{count} файл",
   "detail.fileChipPlural": "{count} файлов",
+  "prefs.startup": "Открывать при запуске",
+  "prefs.startup.none": "Библиотек пока нет. Bibliofile запускается с окном приветствия.",
+  "prefs.startup.add": "Добавить библиотеку…",
+  "prefs.startup.remove": "Убрать из списка запуска",
+  "prefs.startup.hint": "Каждая библиотека из этого списка открывается в отдельном окне при каждом запуске Bibliofile, вместе с файлом, которым вы его открыли.",
+  "dialog.startupAddTitle": "Выберите библиотеки для открытия при запуске",
+  "dialog.startupMissing": "Не удалось найти библиотеку, назначенную для открытия при запуске",
+  "dialog.startupMissingPlural": "Не удалось найти библиотеки, назначенные для открытия при запуске: {count}",
+  "dialog.startupMissingDetail": "Список можно изменить здесь: {where}.",
 };

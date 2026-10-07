@@ -439,4 +439,13 @@ export const th: Catalog = {
   "detail.triStateYes": "ใช่",
   "detail.fileChip": "{count} ไฟล์",
   "detail.fileChipPlural": "{count} ไฟล์",
+  "prefs.startup": "เปิดเมื่อเริ่มโปรแกรม",
+  "prefs.startup.none": "ยังไม่มีคลัง Bibliofile จะเริ่มด้วยหน้าต่างต้อนรับ",
+  "prefs.startup.add": "เพิ่มคลัง…",
+  "prefs.startup.remove": "นำออกจากรายการเริ่มโปรแกรม",
+  "prefs.startup.hint": "คลังแต่ละรายการที่นี่จะเปิดในหน้าต่างของตัวเองทุกครั้งที่ Bibliofile เริ่มทำงาน พร้อมกับไฟล์ที่คุณใช้เปิดโปรแกรม",
+  "dialog.startupAddTitle": "เลือกคลังที่จะเปิดเมื่อเริ่มโปรแกรม",
+  "dialog.startupMissing": "ไม่พบคลังที่ตั้งให้เปิดเมื่อเริ่มโปรแกรม",
+  "dialog.startupMissingPlural": "ไม่พบคลังที่ตั้งให้เปิดเมื่อเริ่มโปรแกรม {count} รายการ",
+  "dialog.startupMissingDetail": "อัปเดตรายการได้ที่ {where}",
 };

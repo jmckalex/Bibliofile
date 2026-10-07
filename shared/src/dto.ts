@@ -1156,6 +1156,11 @@ export interface ChooseFolderResponse {
   readonly path: string | null;
 }
 
+/** Response from the `.bib` file picker (multi-select; empty when cancelled). */
+export interface ChooseBibFilesResponse {
+  readonly paths: readonly string[];
+}
+
 // --- Field-value autocomplete -----------------------------------------------
 
 /** Request distinct existing values for a field (for editor autocomplete). */
@@ -1335,6 +1340,12 @@ export interface Settings {
   readonly autoFileOnAdd: boolean;
   /** When true, save automatically a moment after each edit. */
   readonly autosave: boolean;
+  /**
+   * Libraries (absolute `.bib` paths) opened automatically, each in its own window,
+   * whenever the app starts, and when the Dock icon is clicked with no window open.
+   * BibDesk's "open default file" startup behaviour, as a list.
+   */
+  readonly startupFiles: readonly string[];
   /** When true, the filter box also searches extracted PDF body text (full-text). */
   readonly fullTextSearch: boolean;
   /** Max pages of each PDF to extract for the full-text index. 0 = the whole PDF
@@ -1436,6 +1447,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoFileFormat: '%p1/%T5',
   autoFileOnAdd: false,
   autosave: false,
+  startupFiles: [],
   fullTextSearch: false,
   ftsPageLimit: 40,
   agentModel: 'claude-opus-4-8',

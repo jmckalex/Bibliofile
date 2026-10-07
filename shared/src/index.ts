@@ -208,6 +208,7 @@ export {
   type ConsolidateRequest,
   type ConsolidateResult,
   type ChooseFolderResponse,
+  type ChooseBibFilesResponse,
   type AgentKeyStatus,
   type AgentSetKeyRequest,
   type AgentRunRequest,

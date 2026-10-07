@@ -439,4 +439,13 @@ export const de: Catalog = {
   "detail.triStateYes": "Ja",
   "detail.fileChip": "{count} Datei",
   "detail.fileChipPlural": "{count} Dateien",
+  "prefs.startup": "Beim Start öffnen",
+  "prefs.startup.none": "Noch keine Bibliotheken. Bibliofile startet mit dem Willkommensfenster.",
+  "prefs.startup.add": "Bibliothek hinzufügen…",
+  "prefs.startup.remove": "Aus der Startliste entfernen",
+  "prefs.startup.hint": "Jede Bibliothek hier wird bei jedem Start von Bibliofile in einem eigenen Fenster geöffnet, zusätzlich zu einer Datei, mit der Sie die App öffnen.",
+  "dialog.startupAddTitle": "Bibliotheken zum Öffnen beim Start auswählen",
+  "dialog.startupMissing": "Eine Bibliothek, die beim Start geöffnet werden soll, wurde nicht gefunden",
+  "dialog.startupMissingPlural": "{count} Bibliotheken, die beim Start geöffnet werden sollen, wurden nicht gefunden",
+  "dialog.startupMissingDetail": "Die Liste lässt sich unter {where} anpassen.",
 };
