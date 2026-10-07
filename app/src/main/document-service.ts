@@ -40,6 +40,7 @@ import {
   encodeBdskFile,
   relativePathOf,
   plistInteger,
+  parseValueStrict,
   type BibLibrary,
   type BdskFilePlist,
   type GroupRecord,
@@ -624,6 +625,27 @@ function fieldDisplayValue(name: string, raw: string): string {
     return raw;
   }
   return toDisplay(raw);
+}
+
+/**
+ * The value to store for edited field text. A field that holds a macro expression
+ * is edited AS BibTeX, as BibDesk's editor does (`BDSKComplexStringFormatter.m:119`):
+ * the pane shows `nov`, so typing `dec` must keep the month macro rather than store the
+ * literal `{dec}`, which styles print as "dec". Typed text that isn't an expression,
+ * or that names a macro the document doesn't define, stays literal: "Spring" means the
+ * word, not an undefined `@string`. A plain field is edited as literal text, as before.
+ * The value checked is the one the pane shows, so an inherited macro counts too.
+ */
+function editedFieldValue(item: BibItem, field: string, text: string): FieldValue {
+  const shown = item.valueOfField(field, true);
+  if (shown === undefined || !isComplex(shown)) return text;
+  const parsed = parseValueStrict(text);
+  if (parsed === undefined) return text;
+  const macros = item.macroResolver;
+  if (isComplex(parsed) && parsed.nodes.some((n) => n.type === 'macro' && !macros?.isDefined(n.value))) {
+    return text;
+  }
+  return parsed;
 }
 
 /** Matches a BibDesk linked-URL field (`Bdsk-Url-N`), written verbatim like a URL field. */
@@ -3155,7 +3177,7 @@ export class DocumentStore {
       switch (op.kind) {
         case 'setField': {
           if (op.value === '') item.removeField(op.field);
-          else item.setField(op.field, op.value);
+          else item.setField(op.field, editedFieldValue(item, op.field, op.value));
           this.reindex(doc, item);
           count++;
           break;
@@ -3395,8 +3417,8 @@ export class DocumentStore {
   /**
    * Set (or, when `rawValue` is empty, remove) a field on an item, mark the
    * document dirty, and return the item's refreshed detail. `rawValue` is the
-   * raw BibTeX field text (not the de-TeXified display form); it is stored as a
-   * literal string value (macro/complex editing comes later).
+   * raw BibTeX field text (not the de-TeXified display form). A macro-valued field
+   * is edited as BibTeX, any other as literal text (see {@link editedFieldValue}).
    */
   updateField(
     documentId: string,
@@ -3408,7 +3430,7 @@ export class DocumentStore {
     const item = doc.itemsById.get(itemId);
     if (!item) throw new Error(`Unknown itemId: ${itemId}`);
     if (rawValue === '') item.removeField(fieldName);
-    else item.setField(fieldName, rawValue);
+    else item.setField(fieldName, editedFieldValue(item, fieldName, rawValue));
     doc.dirty = true;
     this.reindex(doc, item);
     return this.detailFor(doc, item);
@@ -3435,7 +3457,7 @@ export class DocumentStore {
           // Optionally apply the same brace-safe encoding to the abstract.
           writeAbstract(item, cmd.value, this.editConfig.abstractStorage);
         } else if (cmd.value === '') item.removeField(cmd.field);
-        else item.setField(cmd.field, cmd.value);
+        else item.setField(cmd.field, editedFieldValue(item, cmd.field, cmd.value));
         return this.dirtyDetail(doc, item);
       }
       case 'removeField': {

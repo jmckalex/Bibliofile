@@ -29,6 +29,8 @@ import {
 interface PieceResult {
   node: StringNode;
   next: number;
+  /** For a braced/quoted piece: was its closing delimiter found? */
+  closed?: boolean;
 }
 
 /** Parse a `{ … }` brace-delimited literal starting at `text[i] === '{'`. */
@@ -53,7 +55,7 @@ function parseBraced(text: string, i: number): PieceResult {
   // file), `j === text.length` and `j - 1` would chop the last REAL character —
   // keep everything after the opening brace instead.
   const inner = closed ? text.slice(i + 1, j - 1) : text.slice(i + 1);
-  return { node: stringNode(inner), next: j };
+  return { node: stringNode(inner), next: j, closed };
 }
 
 /** Parse a `" … "` quote-delimited literal starting at `text[i] === '"'`. */
@@ -71,7 +73,7 @@ function parseQuoted(text: string, i: number): PieceResult {
   }
   const inner = text.slice(i + 1, j);
   // consume the closing quote
-  return { node: stringNode(inner), next: j + 1 };
+  return { node: stringNode(inner), next: j + 1, closed: j < text.length };
 }
 
 /** Parse a bare token (number or macro name) starting at `text[i]`. */
@@ -117,5 +119,48 @@ export function parseValue(region: string): FieldValue {
     // empty value (e.g. `field = {}` or `field = ""`)
     return '';
   }
+  return normalizeValue(complexValue(nodes));
+}
+
+/** A bare token that can stand alone in a value: a number or a plain macro name. */
+const BARE_TOKEN = /^[^\s#{}"%'(),=]+$/;
+
+/**
+ * Parse text a person typed as a BibTeX value expression (`dec`, `"Proc. " # acm`,
+ * `{May} # " 2020"`), or `undefined` when it is not one: an unclosed brace or quote,
+ * two pieces with no `#` between them, a dangling `#`, or a bare token that is not a
+ * number or a macro name. {@link parseValue} must accept whatever is on disk; this
+ * decides whether typed text was meant as an expression at all (`Spring term` wasn't).
+ */
+export function parseValueStrict(text: string): FieldValue | undefined {
+  const nodes: StringNode[] = [];
+  let expectPiece = true;
+  let i = 0;
+  while (i < text.length) {
+    const c = text[i]!;
+    if (/\s/.test(c)) {
+      i++;
+      continue;
+    }
+    if (c === '#') {
+      if (expectPiece) return undefined;
+      expectPiece = true;
+      i++;
+      continue;
+    }
+    if (!expectPiece) return undefined;
+    let piece: PieceResult;
+    if (c === '{') piece = parseBraced(text, i);
+    else if (c === '"') piece = parseQuoted(text, i);
+    else {
+      piece = parseBare(text, i);
+      if (!BARE_TOKEN.test(text.slice(i, piece.next))) return undefined;
+    }
+    if (piece.closed === false) return undefined;
+    nodes.push(piece.node);
+    i = piece.next;
+    expectPiece = false;
+  }
+  if (expectPiece) return undefined; // empty, or a trailing `#`
   return normalizeValue(complexValue(nodes));
 }

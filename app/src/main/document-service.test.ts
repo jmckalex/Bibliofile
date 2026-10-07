@@ -2268,3 +2268,66 @@ describe('external-change detection on save (H3)', () => {
     expect(store.diskChangedSinceLoad(documentId)).toBe(false);
   });
 });
+
+describe('editing a macro-valued field (BDSKComplexStringFormatter parity)', () => {
+  // The pane shows a macro field's raw BibTeX (`nov`) and commits what is typed.
+  // Stored literally, `dec` became `month = {dec}`, which styles print as "dec".
+  const open = (bib: string) => {
+    const store = new DocumentStore();
+    const { documentId } = store.openText(bib, '/tmp/macro-edit.bib');
+    const idOf = (key: string): string =>
+      store.listPublications({ documentId, offset: 0, limit: -1 }).rows.find((r) => r.citeKey === key)!.id;
+    const fieldLine = (field: string, key: string): string | undefined => {
+      const entry = store.serializeDocument(documentId).split('\n@').find((b) => b.includes(`{${key},`))!;
+      return entry.split('\n').find((l) => l.trimStart().startsWith(`${field} = `))?.trim().replace(/[,}]$/, '');
+    };
+    const setField = (key: string, field: string, value: string) =>
+      store.applyEdit({ documentId, command: { kind: 'setField', itemId: idOf(key), field, value } });
+    return { store, documentId, idOf, fieldLine, setField };
+  };
+
+  it('keeps a month macro a macro: nov -> dec saves `month = dec`', () => {
+    const t = open('@article{a, Title = {T}, Month = nov}\n');
+    t.setField('a', 'Month', 'dec');
+    expect(t.fieldLine('month', 'a')).toBe('month = dec');
+  });
+
+  it('a braced value typed into a macro field is stored as that literal', () => {
+    const t = open('@article{a, Title = {T}, Month = nov}\n');
+    t.setField('a', 'Month', '{December}');
+    expect(t.fieldLine('month', 'a')).toBe('month = {December}');
+  });
+
+  it('a word naming no defined macro stays literal text', () => {
+    const t = open('@article{a, Title = {T}, Month = nov}\n');
+    t.setField('a', 'Month', 'Spring');
+    expect(t.fieldLine('month', 'a')).toBe('month = {Spring}');
+    t.setField('a', 'Month', 'Spring term');
+    expect(t.fieldLine('month', 'a')).toBe('month = {Spring term}');
+  });
+
+  it('edits a #-joined expression over an @string as BibTeX', () => {
+    const t = open('@string{acm = {ACM}}\n\n@book{a, Title = {T}, Publisher = acm # { Press}}\n');
+    t.setField('a', 'Publisher', 'acm # { Inc.}');
+    expect(t.fieldLine('publisher', 'a')).toBe('publisher = acm # { Inc.}');
+  });
+
+  it('a plain field stays literal even when the text looks like a macro', () => {
+    const t = open('@article{a, Title = {T}, Note = {x}}\n');
+    t.setField('a', 'Note', 'dec');
+    expect(t.fieldLine('note', 'a')).toBe('note = {dec}');
+  });
+
+  it("an inherited macro counts: editing the child's inherited Month row keeps a macro", () => {
+    const t = open('@proceedings{p, Title = {P}, Month = nov}\n\n@inproceedings{c, Crossref = {p}, Title = {C}}\n');
+    t.setField('c', 'Month', 'dec');
+    expect(t.fieldLine('month', 'c')).toBe('month = dec');
+  });
+
+  it('the batch "set field" path does the same', () => {
+    const t = open('@article{a, Title = {T}, Month = nov}\n\n@article{b, Title = {U}, Month = jan}\n');
+    t.store.batchEdit(t.documentId, [t.idOf('a'), t.idOf('b')], { kind: 'setField', field: 'Month', value: 'dec' });
+    expect(t.fieldLine('month', 'a')).toBe('month = dec');
+    expect(t.fieldLine('month', 'b')).toBe('month = dec');
+  });
+});

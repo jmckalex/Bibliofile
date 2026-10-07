@@ -24,6 +24,7 @@
 
 export { parse } from './parser.js';
 export { serialize, serializeEntry } from './serializer.js';
+export { parseValueStrict } from './value-parser.js';
 
 export {
   type BibLibrary,
