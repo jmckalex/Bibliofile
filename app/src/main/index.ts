@@ -95,7 +95,6 @@ import { renderCite, renderBibliography } from './csl-format.js';
 import { findTexBin, renderTexPreview, renderTexPreviewSvg, SVG_MAX_KEYS } from './tex-preview.js';
 import { searchOnline, extractDoi, extractArxivId, searchArxivById } from './online.js';
 import { locateOa, downloadPdf, firstAuthorSurname, setContactEmail, looksLikePdf } from './oa-locator.js';
-import { createOcrSession, isLikelyScanned } from './ocr.js';
 import { importPdfsSmart } from './import-smart.js';
 import { extractPdfText } from './pdf-text.js';
 import { PdfPool } from './pdf-pool.js';
@@ -1223,6 +1222,23 @@ function backupOriginalPdf(path: string): string {
  * PDFs that already have a text layer are skipped. Streams per-entry progress; once
  * done, re-indexes so the new text is searchable in Bibliofile too.
  */
+/**
+ * The OCR engine, loaded on first use instead of at launch. ocr.ts statically imports
+ * tesseract.js, pdf-lib and @napi-rs/canvas, which ship as real node_modules rather
+ * than bundled code, so a packaging slip there is a missing module. Imported at
+ * startup, 0.12.0's slip crashed the whole app before a window opened; imported
+ * here, the same slip fails only OCR, which reports "OCR engine could not start".
+ * A failed load is not cached, so a later attempt retries.
+ */
+let ocrModule: Promise<typeof import('./ocr.js')> | undefined;
+function loadOcr(): Promise<typeof import('./ocr.js')> {
+  ocrModule ??= import('./ocr.js').catch((err: unknown) => {
+    ocrModule = undefined;
+    throw err;
+  });
+  return ocrModule;
+}
+
 async function ocrScannedPdfs(
   documentId: string,
   itemIds: readonly string[],
@@ -1233,9 +1249,11 @@ async function ocrScannedPdfs(
   const total = itemIds.length;
   const stripScheme = (u: string): string => u.replace(/^file:\/\/(localhost)?/i, '');
 
+  let ocr;
   let ocrSession;
   try {
-    ocrSession = await createOcrSession({ lang: lang || 'eng', langPath: tessdataDir() });
+    ocr = await loadOcr();
+    ocrSession = await ocr.createOcrSession({ lang: lang || 'eng', langPath: tessdataDir() });
   } catch (err) {
     const message = `OCR engine could not start: ${err instanceof Error ? err.message : String(err)}`;
     return { results: itemIds.slice(0, 1).map((id) => ({ itemId: id, citeKey: '', status: 'error' as const, message })) };
@@ -1275,7 +1293,7 @@ async function ocrScannedPdfs(
           errored = true;
           continue;
         }
-        if (!(await isLikelyScanned(bytes))) continue; // already has a text layer
+        if (!(await ocr.isLikelyScanned(bytes))) continue; // already has a text layer
         hadScan = true;
         try {
           const out = await ocrSession.ocrPdf(bytes, (p, pages) => {
