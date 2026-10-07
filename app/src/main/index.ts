@@ -221,6 +221,34 @@ const closeConfirmed = new WeakSet<BrowserWindow>();
  */
 let isQuitting = false;
 
+/** Library windows whose renderers have flushed for the current close attempt. */
+const closeFlushed = new WeakSet<BrowserWindow>();
+
+/** Upper bound on waiting for renderers to flush, so a hung one can't block a close. */
+const FLUSH_TIMEOUT_MS = 2000;
+
+/**
+ * Have every window commit the field being typed in, and wait until those edits
+ * have reached the store. DetailPane commits on blur, and the renderer's own
+ * `beforeunload` flush runs only AFTER the close handler has decided whether
+ * anything is unsaved — so without this, text typed and then closed or ⌘Q'd
+ * was neither prompted for nor included in the prompt's Save. Every window is
+ * asked, because a standalone editor window edits the same document. Windows
+ * without the hook (Help) resolve at once.
+ */
+function flushRendererEdits(): Promise<void> {
+  const flushes = BrowserWindow.getAllWindows()
+    .filter((w) => !w.isDestroyed())
+    .map((w) =>
+      w.webContents.executeJavaScript('window.bibliofileFlushEdits?.()', true).then(
+        () => undefined,
+        () => undefined, // a renderer mid-teardown can't flush; nothing to wait for
+      ),
+    );
+  const timeout = new Promise<void>((resolve) => setTimeout(resolve, FLUSH_TIMEOUT_MS));
+  return Promise.race([Promise.all(flushes).then(() => undefined), timeout]);
+}
+
 /**
  * Bind `win` to `documentId` (the library it now shows). Idempotent per window:
  * reusing a window for a new document (welcome-screen reuse, Revert) drops and
@@ -249,7 +277,23 @@ function bindWindowToDoc(win: BrowserWindow, documentId: string): void {
   win.on('close', (e) => {
     if (closeConfirmed.has(win)) return; // already answered
     const id = docIdForWindow(win);
-    if (!id || !store.isDirty(id)) return; // nothing unsaved → let it close
+    if (!id) return;
+    // Commit any field still being typed in BEFORE asking whether anything is
+    // unsaved, then retry: the same close, or the quit this close was part of
+    // (preventDefault aborts an in-progress quit; app.quit() resumes it).
+    if (!closeFlushed.has(win)) {
+      e.preventDefault();
+      const quitting = isQuitting;
+      void flushRendererEdits().then(() => {
+        if (win.isDestroyed()) return;
+        closeFlushed.add(win);
+        if (quitting) app.quit();
+        else win.close();
+      });
+      return;
+    }
+    closeFlushed.delete(win); // a later close attempt (after Cancel) flushes again
+    if (!store.isDirty(id)) return; // nothing unsaved → let it close
     e.preventDefault();
     const { displayName, path } = store.summarize(id);
     const choice = dialog.showMessageBoxSync(win, {

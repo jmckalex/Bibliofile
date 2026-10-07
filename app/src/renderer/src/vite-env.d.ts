@@ -19,4 +19,6 @@ interface MathJaxApi {
 
 interface Window {
   MathJax?: MathJaxApi;
+  /** Commit the field being typed in and wait for it to reach main (main calls it on close). */
+  bibliofileFlushEdits?: () => Promise<void>;
 }

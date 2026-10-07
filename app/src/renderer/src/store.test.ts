@@ -17,7 +17,7 @@ import type {
   Unsubscribe,
 } from '@bibdesk/shared';
 import { DEFAULT_SETTINGS } from '@bibdesk/shared';
-import { createStore, filterRows, visibleRows, citeStyleLabel } from './store.js';
+import { createStore, filterRows, visibleRows, citeStyleLabel, flushPendingEdits } from './store.js';
 
 const DOC: OpenedDocument = {
   documentId: 'doc-1',
@@ -876,5 +876,35 @@ describe('pdf review queue (drop-a-PDF)', () => {
     const r = store.getState().pdfReview!;
     expect(r.items.map((i) => i.itemId)).toEqual(['s1']); // accepted one removed
     expect(r.accepted).toEqual(['committed']); // fake commitStagedEntry returns this id
+  });
+});
+
+describe('flushPendingEdits (main calls it before a close decides "nothing unsaved")', () => {
+  it('resolves only once an in-flight edit has reached main', async () => {
+    const { api } = makeFakeApi();
+    let land!: () => void;
+    const landed = new Promise<void>((r) => (land = r));
+    const store = createStore({
+      ...api,
+      applyEdit: async () => {
+        await landed; // main hasn't applied the edit yet
+        return { dirty: true };
+      },
+    });
+    await store.getState().onDocumentOpened(DOC);
+
+    void store.getState().edit({ kind: 'setField', itemId: 'a', field: 'Title', value: 'typed' });
+    let flushed = false;
+    const flush = flushPendingEdits().then(() => (flushed = true));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(flushed).toBe(false); // still waiting on the edit
+
+    land();
+    await flush;
+    expect(flushed).toBe(true);
+  });
+
+  it('resolves at once with nothing in flight', async () => {
+    await expect(flushPendingEdits()).resolves.toBeUndefined();
   });
 });

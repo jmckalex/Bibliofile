@@ -427,6 +427,31 @@ const DEFAULT_SORT: readonly SortSpec[] = [{ key: 'citeKey', direction: 'asc' }]
  * Build a Zustand vanilla store wired to the given api. Exported (rather than a
  * module-level singleton) so tests can inject a fake api.
  */
+/**
+ * `applyEdit` calls still in flight, across every store (the drop-PDF staging store
+ * included), so {@link flushPendingEdits} can wait for them.
+ */
+const inFlightEdits = new Set<Promise<unknown>>();
+
+function trackEdit<T>(p: Promise<T>): Promise<T> {
+  inFlightEdits.add(p);
+  const done = (): void => void inFlightEdits.delete(p);
+  p.then(done, done);
+  return p;
+}
+
+/**
+ * Commit whatever is being typed and resolve once that edit has reached main.
+ * DetailPane commits a field on blur, and main's close/quit handler decides whether
+ * anything is unsaved BEFORE this renderer's `beforeunload` runs. So main calls this
+ * first (as `window.bibliofileFlushEdits`); otherwise the field being typed in was
+ * neither prompted for nor saved.
+ */
+export async function flushPendingEdits(): Promise<void> {
+  if (typeof document !== 'undefined') (document.activeElement as HTMLElement | null)?.blur();
+  await Promise.allSettled([...inFlightEdits]);
+}
+
 export function createStore(api: BibDeskApi) {
   // Monotonic token so an in-flight LaTeX render that's been superseded by a
   // newer one (selection changed mid-render) discards its now-stale result.
@@ -828,7 +853,7 @@ export function createStore(api: BibDeskApi) {
         command.kind === 'deleteEntry' ||
         command.kind === 'mergeEntries';
       try {
-        const res = await api.applyEdit({ documentId, command });
+        const res = await trackEdit(api.applyEdit({ documentId, command }));
         set({ dirty: res.dirty, error: undefined });
         // The standalone editor has no table/sidebar to refresh; the main window
         // gets a documentChanged broadcast instead. Skip the heavy reloads here.

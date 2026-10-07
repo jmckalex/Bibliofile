@@ -12,11 +12,16 @@ import { App } from './App.js';
 import { EditorWindow } from './EditorWindow.js';
 import { AnnotationWindow } from './AnnotationWindow.js';
 import { registerBdElements } from './bd-elements.js';
+import { flushPendingEdits } from './store.js';
 import './styles.css';
 
 // Register the bd-* custom elements (journal cover, citation) used by the
 // template-driven detail/panel HTML.
 registerBdElements();
+
+// Main calls this before deciding a closing window has nothing unsaved (see
+// flushPendingEdits). Every window kind commits through the same store `edit`.
+window.bibliofileFlushEdits = flushPendingEdits;
 
 const container = document.getElementById('root');
 if (!container) {

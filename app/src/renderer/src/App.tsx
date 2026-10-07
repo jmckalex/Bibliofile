@@ -493,8 +493,8 @@ export function App() {
 
   // Flush a field being edited on teardown (reload / refresh): DetailPane commits on
   // blur, so blurring the focused input dispatches its setField IPC before unload.
-  // (This does not cover the OS close/quit prompt, which main evaluates before this
-  // fires; ⌘S/menu-Save blur the field explicitly for that path.)
+  // The OS close/quit prompt, which main evaluates before this fires, is covered by
+  // main calling `window.bibliofileFlushEdits` first; ⌘S/menu-Save blur explicitly.
   useEffect(() => {
     const flush = (): void => (document.activeElement as HTMLElement | null)?.blur();
     window.addEventListener('beforeunload', flush);
